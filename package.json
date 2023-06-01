@@ -1,0 +1,58 @@
+{
+  "name": "re2js",
+  "version": "0.1.0",
+  "description": "RE2 regex engine port for JS",
+  "type": "module",
+  "keywords": [
+    "re2",
+    "regex engine"
+  ],
+  "scripts": {
+    "build": "rollup -c --environment BUILD:production",
+    "dev": "rollup -c -w",
+    "lint": "eslint src/**/*.js babel.config.js babel.config.js",
+    "test": "jest -c jest.config.js",
+    "test:watch": "jest -c jest.config.js --watch"
+  },
+  "author": "Alexey Vasiliev",
+  "license": "MIT",
+  "repository": "github:le0pard/re2js",
+  "bugs": {
+    "url": "https://github.com/le0pard/re2js/issues"
+  },
+  "homepage": "https://github.com/le0pard/re2js#readme",
+  "files": [
+    "build/",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "build/index.cjs.js",
+  "module": "build/index.esm.js",
+  "unpkg": "build/index.umd.js",
+  "exports": {
+    ".": {
+      "import": "./build/index.esm.js",
+      "require": "./build/index.cjs.js"
+    }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.1",
+    "@babel/eslint-parser": "^7.21.8",
+    "@babel/preset-env": "^7.22.4",
+    "@rollup/plugin-alias": "^5.0.0",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
+    "eslint": "^8.41.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-import-resolver-node": "^0.3.7",
+    "eslint-plugin-import": "^2.27.5",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "jsdom": "^22.1.0",
+    "prettier": "^2.8.8",
+    "rollup": "^3.23.0"
+  },
+  "packageManager": "yarn@3.2.2"
+}
