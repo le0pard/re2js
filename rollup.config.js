@@ -78,7 +78,7 @@ const makeConfig = (env = 'development') => {
 }
 
 export default (commandLineArgs) => {
-  if (commandLineArgs.environment === 'BUILD:production') {
+  if (commandLineArgs.environment === 'production') {
     return makeConfig('production')
   }
 

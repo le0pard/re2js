@@ -8,9 +8,9 @@
     "regex engine"
   ],
   "scripts": {
-    "build": "rollup -c --environment BUILD:production",
+    "build": "rollup -c --environment production",
     "dev": "rollup -c -w",
-    "lint": "eslint src/**/*.js babel.config.js babel.config.js",
+    "lint": "eslint src/**/*.js babel.config.js jest.config.js",
     "test": "jest -c jest.config.js",
     "test:watch": "jest -c jest.config.js --watch"
   },
