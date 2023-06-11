@@ -21,14 +21,15 @@ class CodepointRange {
   }
 
   addAll(codepoints) {
-    for (const i of codepoints) {
+    const sortedCodepoints = Array.from(codepoints).sort((a, b) => a - b)
+    for (const i of sortedCodepoints) {
       this.add(i)
     }
   }
 
   finish() {
-    if (this.setStart != -1) {
-      this.builder.push([this.setStart, this.lastInSet, this.setStride == -1 ? 1 : this.setStride])
+    if (this.setStart !== -1) {
+      this.builder.push([this.setStart, this.lastInSet, this.setStride === -1 ? 1 : this.setStride])
     }
     return this.builder
   }

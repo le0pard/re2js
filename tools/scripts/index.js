@@ -5,8 +5,6 @@ import lodash from 'lodash'
 
 import { CodepointRange } from './codepointRange.js'
 
-const { difference } = lodash
-
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
 const toUpperCase = (codepoint) => String.fromCodePoint(codepoint).toUpperCase().codePointAt(0)
@@ -40,7 +38,7 @@ const generateCaseFoldOrbits = () => {
     if (orb.size === 1 && u === i && l === i) {
       orbits.delete(i)
     } else if (orb.size === 2) {
-      const [first, second] = Array.from(orb).sort()
+      const [first, second] = Array.from(orb)
       if (toLowerCase(first) === second && toUpperCase(second) === first) {
         orbits.delete(i)
       }
@@ -54,7 +52,7 @@ const generateCaseFoldOrbits = () => {
   for (let [key, value] of orbits) {
     let orbitWithKey = new Set(value)
     orbitWithKey.add(key)
-    orbitWithKey = Array.from(orbitWithKey).sort()
+    orbitWithKey = Array.from(orbitWithKey).sort((a, b) => a - b)
 
     let a = orbitWithKey[0]
     for (let i of orbitWithKey.slice(1)) {
@@ -92,7 +90,7 @@ const addFoldExceptions = (codepoints) => {
     }
   }
 
-  const diff = difference(Array.from(exceptionCodepoints), Array.from(codepoints))
+  const diff = lodash.difference(Array.from(exceptionCodepoints), codepoints)
   if (diff.length !== 0) {
     const range = new CodepointRange()
     range.addAll(diff)
