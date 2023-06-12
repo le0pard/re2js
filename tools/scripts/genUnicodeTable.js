@@ -105,8 +105,7 @@ const getCodePoints =  async (type, name) => {
   return codePoints
 }
 
-const genRanges = async (type, name) => {
-  const codePoints = await getCodePoints(type, name)
+const genRanges = async (codePoints) => {
   const gen = new CodepointRange()
   gen.addAll(codePoints)
   return gen.finish()
@@ -133,38 +132,33 @@ for (const [key, value] of sortedOrbits.entries()) {
 code = [...code, '  }']
 
 for (const [alias, name] of aliasesToNames.entries()) {
-  const res = await genRanges('General_Category', name)
-  code = [...code, `  static category${alias} = ${JSON.stringify(res)}`]
-  categoriesCode = [...categoriesCode, `  group.set('${alias}', this.category${alias})`]
+  const codePoints = await getCodePoints('General_Category', name)
+  const res = await genRanges(codePoints)
+  code = [...code, `  static ${alias} = ${JSON.stringify(res)}`]
+  categoriesCode = [...categoriesCode, `  group.set('${alias}', this.${alias})`]
   if (alias === 'Lu') {
-    code = [...code, `  static Upper = this.category${alias}`]
+    code = [...code, `  static Upper = this.${alias}`]
+  }
+
+  const foldRes = addFoldExceptions(codePoints)
+  if (foldRes !== null) {
+    code = [...code, `  static fold${alias} = ${JSON.stringify(foldRes)}`]
+    foldCategoryCode = [...foldCategoryCode, `  group.set('${alias}', this.fold${alias})`]
   }
 }
 
 for (const name of unicode['Script']) {
-  const res = await genRanges('Script', name)
-  code = [...code, `  static script${name} = ${JSON.stringify(res)}`]
-  scriptsCode = [...scriptsCode, `  group.set('${name}', this.script${name})`]
-}
+  const codePoints = await getCodePoints('Script', name)
+  const res = await genRanges(codePoints)
+  code = [...code, `  static ${name} = ${JSON.stringify(res)}`]
+  scriptsCode = [...scriptsCode, `  group.set('${name}', this.${name})`]
 
-for (const [alias, name] of aliasesToNames.entries()) {
-  const res = await getCodePoints('General_Category', name)
-  const foldRes = addFoldExceptions(res)
+  const foldRes = addFoldExceptions(codePoints)
   if (foldRes !== null) {
-    code = [...code, `  static foldCategory${alias} = ${JSON.stringify(foldRes)}`]
-    foldCategoryCode = [...foldCategoryCode, `  group.set('${alias}', this.foldCategory${alias})`]
+    code = [...code, `  static fold${name} = ${JSON.stringify(foldRes)}`]
+    foldScriptCode = [...foldScriptCode, `  group.set('${name}', this.fold${name})`]
   }
 }
-
-for (const name of unicode['Script']) {
-  const res = await getCodePoints('Script', name)
-  const foldRes = addFoldExceptions(res)
-  if (foldRes !== null) {
-    code = [...code, `  static foldScript${name} = ${JSON.stringify(foldRes)}`]
-    foldScriptCode = [...foldScriptCode, `  group.set('${name}', this.foldScript${name})`]
-  }
-}
-
 
 code = [
   ...code,
