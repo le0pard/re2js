@@ -112,31 +112,47 @@ const genRanges = async (type, name) => {
   return gen.finish()
 }
 
-let code = []
+let code = [
+  'class UnicodeTables {',
+  '',
+  '  static memo = new Map()',
+  ''
+]
 
-code = [...code, "const CASE_ORBIT = {"]
+let categoriesCode = []
+let scriptsCode = []
+let foldCategoryCode = []
+let foldScriptCode = []
+
+code = [...code, "  static CASE_ORBIT = {"]
 
 for (const [key, value] of sortedOrbits.entries()) {
-  code = [...code, `${key}: ${value},`]
+  code = [...code, `    ${key}: ${value},`]
 }
 
-code = [...code, '}']
+code = [...code, '  }']
 
 for (const [alias, name] of aliasesToNames.entries()) {
   const res = await genRanges('General_Category', name)
-  code = [...code, `const ${alias} = ${JSON.stringify(res)}`]
+  code = [...code, `  static category${alias} = ${JSON.stringify(res)}`]
+  categoriesCode = [...categoriesCode, `  group.set('${alias}', this.category${alias})`]
+  if (alias === 'Lu') {
+    code = [...code, `  static Upper = this.category${alias}`]
+  }
 }
 
 for (const name of unicode['Script']) {
   const res = await genRanges('Script', name)
-  code = [...code, `const ${name} = ${JSON.stringify(res)}`]
+  code = [...code, `  static script${name} = ${JSON.stringify(res)}`]
+  scriptsCode = [...scriptsCode, `  group.set('${name}', this.script${name})`]
 }
 
 for (const [alias, name] of aliasesToNames.entries()) {
   const res = await getCodePoints('General_Category', name)
   const foldRes = addFoldExceptions(res)
   if (foldRes !== null) {
-    code = [...code, `const fold${alias} = ${JSON.stringify(foldRes)}`]
+    code = [...code, `  static foldCategory${alias} = ${JSON.stringify(foldRes)}`]
+    foldCategoryCode = [...foldCategoryCode, `  group.set('${alias}', this.foldCategory${alias})`]
   }
 }
 
@@ -144,8 +160,81 @@ for (const name of unicode['Script']) {
   const res = await getCodePoints('Script', name)
   const foldRes = addFoldExceptions(res)
   if (foldRes !== null) {
-    code = [...code, `const fold${name} = ${JSON.stringify(foldRes)}`]
+    code = [...code, `  static foldScript${name} = ${JSON.stringify(foldRes)}`]
+    foldScriptCode = [...foldScriptCode, `  group.set('${name}', this.foldScript${name})`]
   }
 }
+
+
+code = [
+  ...code,
+  '',
+  '  static Categories() {',
+  "    if (this.memo.has('Categories')) {",
+  "      return this.memo.get('Categories')",
+  '    } else {',
+  '      const group = new Map()',
+  ...categoriesCode,
+  "      this.memo.set('Categories', group)",
+  '      return group',
+  '    }',
+  '  }',
+  ''
+]
+
+code = [
+  ...code,
+  '',
+  '  static Scripts() {',
+  "    if (this.memo.has('Scripts')) {",
+  "      return this.memo.get('Scripts')",
+  '    } else {',
+  '      const group = new Map()',
+  ...scriptsCode,
+  "      this.memo.set('Scripts', group)",
+  '      return group',
+  '    }',
+  '  }',
+  ''
+]
+
+code = [
+  ...code,
+  '',
+  '  static FoldCategory() {',
+  "    if (this.memo.has('FoldCategory')) {",
+  "      return this.memo.get('FoldCategory')",
+  '    } else {',
+  '      const group = new Map()',
+  ...foldCategoryCode,
+  "      this.memo.set('FoldCategory', group)",
+  '      return group',
+  '    }',
+  '  }',
+  ''
+]
+
+code = [
+  ...code,
+  '',
+  '  static FoldScript() {',
+  "    if (this.memo.has('FoldScript')) {",
+  "      return this.memo.get('FoldScript')",
+  '    } else {',
+  '      const group = new Map()',
+  ...foldScriptCode,
+  "      this.memo.set('FoldScript', group)",
+  '      return group',
+  '    }',
+  '  }',
+  ''
+]
+
+code = [
+  ...code,
+  '}',
+  '',
+  'export { UnicodeTables }'
+]
 
 console.log(code.join("\n"))
