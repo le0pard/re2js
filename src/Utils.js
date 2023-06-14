@@ -1,127 +1,96 @@
-let Utils = {
-  EMPTY_INTS: [],
+class Utils {
+  static EMPTY_INTS = []
 
-  isalnum: function(c) {
-    return ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
-  },
+  static METACHARACTERS = '\\.+*?()|[]{}^$'
 
-  unhex: function(c) {
-    if ('0' <= c && c <= '9') {
-      return c.charCodeAt(0) - '0'.charCodeAt(0);
+  static EMPTY_BEGIN_LINE = 0x01
+  static EMPTY_END_LINE = 0x02
+  static EMPTY_BEGIN_TEXT = 0x04
+  static EMPTY_END_TEXT = 0x08
+  static EMPTY_WORD_BOUNDARY = 0x10
+  static EMPTY_NO_WORD_BOUNDARY = 0x20
+  static EMPTY_ALL = -1
+
+  static ZERO_CODEPOINT = '0'.codePointAt(0)
+  static NINE_CODEPOINT = '9'.codePointAt(0)
+  static A_UPPER_CODEPOINT = 'A'.codePointAt(0)
+  static Z_UPPER_CODEPOINT = 'Z'.codePointAt(0)
+  static A_LOWER_CODEPOINT = 'a'.codePointAt(0)
+  static Z_LOWER_CODEPOINT = 'z'.codePointAt(0)
+  static F_UPPER_CODEPOINT = 'F'.codePointAt(0)
+  static F_LOWER_CODEPOINT = 'f'.codePointAt(0)
+
+  static isalnum(c) {
+    return (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) || (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT) || (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT)
+  }
+
+  static unhex(c) {
+    if (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) {
+      return c.charCodeAt(0) - this.ZERO_CODEPOINT
     }
-    if ('a' <= c && c <= 'f') {
-      return c.charCodeAt(0) - 'a'.charCodeAt(0) + 10;
+    if (this.A_LOWER_CODEPOINT <= c && c <= this.F_LOWER_CODEPOINT) {
+      return c.charCodeAt(0) - this.A_LOWER_CODEPOINT + 10
     }
-    if ('A' <= c && c <= 'F') {
-      return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+    if (this.A_UPPER_CODEPOINT <= c && c <= this.F_UPPER_CODEPOINT) {
+      return c.charCodeAt(0) - this.A_UPPER_CODEPOINT + 10
     }
-    return -1;
-  },
+    return -1
+  }
 
-  METACHARACTERS: "\\.+*?()|[]{}^$",
-
-  escapeRune: function(out, rune) {
-    if (this.isalnum(rune)) {
-      if (this.METACHARACTERS.includes(rune)) {
-        out += '\\';
-      }
-      out += rune;
-    } else {
-      switch (rune) {
-        case '\"':
-          out += "\\\"";
-          break;
-        case '\\':
-          out += "\\\\";
-          break;
-        case '\t':
-          out += "\\t";
-          break;
-        case '\n':
-          out += "\\n";
-          break;
-        case '\r':
-          out += "\\r";
-          break;
-        case '\b':
-          out += "\\b";
-          break;
-        case '\f':
-          out += "\\f";
-          break;
-        default:
-          let s = rune.toString(16);
-          if (rune < 0x100) {
-            out += "\\x";
-            if (s.length == 1) {
-              out += '0';
-            }
-            out += s;
-          } else {
-            out += "\\x{" + s + "}";
-          }
-      }
+  static escapeRune(rune) {
+    let out = ''
+    if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
+      out += '\\'
     }
-    return out;
-  },
+    out += String.fromCodePoint(rune)
+    return out
+  }
 
-  stringToRunes: function(str) {
-    return Array.from(str).map(c => c.charCodeAt(0));
-  },
-
-  runeToString: function(r) {
-    return String.fromCharCode(r);
-  },
-
-  subarray: function(array, start, end) {
-    return array.slice(start, end);
-  },
-
-  indexOf: function(source, target, fromIndex) {
-    if (fromIndex < 0) {
-      fromIndex = 0;
+  static stringToRunes(str) {
+    let runes = []
+    for (let i = 0; i < str.length; i++) {
+      runes.push(str.codePointAt(i))
     }
-    if (target.length === 0) {
-      return fromIndex;
-    }
+    return runes
+  }
 
-    const sourceStr = String.fromCharCode(...source);
-    const targetStr = String.fromCharCode(...target);
+  static runeToString(r) {
+    return String.fromCodePoint(r)
+  }
 
-    return sourceStr.indexOf(targetStr, fromIndex);
-  },
+  static subarray(array, start, end) {
+    return array.slice(start, end)
+  }
 
-  isWordRune: function(r) {
-    return ('A' <= r && r <= 'Z') || ('a' <= r && r <= 'z') || ('0' <= r && r <= '9') || r == '_';
-  },
+  static indexOf(source, target, fromIndex) {
+    return source.indexOf(target, fromIndex)
+  }
 
-  EMPTY_BEGIN_LINE: 0x01,
-  EMPTY_END_LINE: 0x02,
-  EMPTY_BEGIN_TEXT: 0x04,
-  EMPTY_END_TEXT: 0x08,
-  EMPTY_WORD_BOUNDARY: 0x10,
-  EMPTY_NO_WORD_BOUNDARY: 0x20,
-  EMPTY_ALL: -1,
+  static isWordRune(r) {
+    return ((this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) || (this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) || (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) || r === '_')
+  }
 
-  emptyOpContext: function(r1, r2) {
-    let op = 0;
+  static emptyOpContext(r1, r2) {
+    let op = 0
     if (r1 < 0) {
-      op |= this.EMPTY_BEGIN_TEXT | this.EMPTY_BEGIN_LINE;
+      op |= this.EMPTY_BEGIN_TEXT | this.EMPTY_BEGIN_LINE
     }
-    if (r1 == '\n') {
-      op |= this.EMPTY_BEGIN_LINE;
+    if (r1 === '\n') {
+      op |= this.EMPTY_BEGIN_LINE
     }
     if (r2 < 0) {
-      op |= this.EMPTY_END_TEXT | this.EMPTY_END_LINE;
+      op |= this.EMPTY_END_TEXT | this.EMPTY_END_LINE
     }
-    if (r2 == '\n') {
-      op |= this.EMPTY_END_LINE;
+    if (r2 === '\n') {
+      op |= this.EMPTY_END_LINE
     }
-    if (this.isWordRune(r1) != this.isWordRune(r2)) {
-      op |= this.EMPTY_WORD_BOUNDARY;
+    if (this.isWordRune(r1) !== this.isWordRune(r2)) {
+      op |= this.EMPTY_WORD_BOUNDARY
     } else {
-      op |= this.EMPTY_NO_WORD_BOUNDARY;
+      op |= this.EMPTY_NO_WORD_BOUNDARY
     }
-    return op;
+    return op
   }
 }
+
+export { Utils }
