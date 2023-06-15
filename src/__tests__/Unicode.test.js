@@ -34,7 +34,7 @@ const genEqualsIgnoreCases = () => {
 describe('Unicode', () => {
   describe('#equalsIgnoreCase', () => {
     test.each(genEqualsIgnoreCases())(
-      '#equalsIgnoreCase(%i, %i)',
+      '#equalsIgnoreCase(%i, %i) === %p',
       (r1, r2, expected) => {
         expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
       }

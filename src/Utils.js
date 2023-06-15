@@ -20,10 +20,12 @@ class Utils {
   static F_UPPER_CODEPOINT = 'F'.codePointAt(0)
   static F_LOWER_CODEPOINT = 'f'.codePointAt(0)
 
+  // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
     return (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) || (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT) || (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT)
   }
 
+  // If |c| is an ASCII hex digit, returns its value, otherwise -1.
   static unhex(c) {
     if (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) {
       return c.charCodeAt(0) - this.ZERO_CODEPOINT
@@ -37,6 +39,8 @@ class Utils {
     return -1
   }
 
+  // Appends a RE2 literal to |out| for rune |rune|,
+  // with regexp metacharacters escaped.
   static escapeRune(rune) {
     let out = ''
     if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
@@ -46,6 +50,7 @@ class Utils {
     return out
   }
 
+  // Returns the array of runes in the specified Java UTF-16 string.
   static stringToRunes(str) {
     let runes = []
     for (let i = 0; i < str.length; i++) {
@@ -54,22 +59,35 @@ class Utils {
     return runes
   }
 
+  // Returns the Java UTF-16 string containing the single rune |r|.
   static runeToString(r) {
     return String.fromCodePoint(r)
   }
 
+  // Returns a new copy of the specified subarray.
   static subarray(array, start, end) {
     return array.slice(start, end)
   }
 
+  // Returns the index of the first occurrence of array |target| within
+  // array |source| after |fromIndex|, or -1 if not found.
   static indexOf(source, target, fromIndex) {
     return source.indexOf(target, fromIndex)
   }
 
+  // isWordRune reports whether r is consider a ``word character''
+  // during the evaluation of the \b and \B zero-width assertions.
+  // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
   static isWordRune(r) {
     return ((this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) || (this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) || (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) || r === '_')
   }
 
+  // emptyOpContext returns the zero-width assertions satisfied at the position
+  // between the runes r1 and r2, a bitmask of EMPTY_* flags.
+  // Passing r1 == -1 indicates that the position is at the beginning of the
+  // text.
+  // Passing r2 == -1 indicates that the position is at the end of the text.
+  // TODO(adonovan): move to Machine.
   static emptyOpContext(r1, r2) {
     let op = 0
     if (r1 < 0) {
