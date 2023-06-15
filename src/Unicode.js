@@ -60,7 +60,7 @@ class Unicode {
   }
 
   static simpleFold(r) {
-    if (r < UnicodeTables.CASE_ORBIT.length && UnicodeTables.CASE_ORBIT[r] !== 0) {
+    if (UnicodeTables.CASE_ORBIT[r]) {
       return UnicodeTables.CASE_ORBIT[r]
     }
 

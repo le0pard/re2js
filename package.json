@@ -11,8 +11,8 @@
     "build": "rollup -c --environment production",
     "dev": "rollup -c -w",
     "lint": "eslint src/**/*.js babel.config.js jest.config.js",
-    "test": "jest -c jest.config.js",
-    "test:watch": "jest -c jest.config.js --watch"
+    "test": "yarn node --experimental-vm-modules $(yarn bin jest) -c jest.config.js",
+    "test:watch": "yarn node --experimental-vm-modules $(yarn bin jest) -c jest.config.js --watch"
   },
   "author": "Alexey Vasiliev",
   "license": "MIT",
