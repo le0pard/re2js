@@ -109,6 +109,23 @@ class Utils {
     }
     return op
   }
+
+  /**
+   * Returns a string that quotes all regular expression metacharacters inside the argument text;
+   * the returned string is a regular expression matching the literal text. For example,
+   * {@code quoteMeta("[foo]").equals("\\[foo\\]")}.
+   */
+  static quoteMeta(s) {
+    let b = "";
+    for (let i = 0, len = s.length; i < len; i++) {
+      let c = s.charAt(i);
+      if (this.METACHARACTERS.indexOf(c) >= 0) {
+        b += '\\';
+      }
+      b += c;
+    }
+    return b;
+  }
 }
 
 export { Utils }
