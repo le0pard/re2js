@@ -1,5 +1,9 @@
+import { Regexp } from './Regexp'
 import { Prog } from './Prog'
 import { Inst } from './Inst'
+import { Unicode } from './Unicode'
+import { Utils } from './Utils'
+import { RE2Flags } from './RE2Flags'
 
 class Frag {
   constructor(i = 0, out = 0, nullable = false) {
@@ -10,6 +14,9 @@ class Frag {
 }
 
 class Compiler {
+  static ANY_RUNE_NOT_NL = [0, '\n'.codePointAt(0) - 1, '\n'.codePointAt(0) + 1, Unicode.MAX_RUNE]
+  static ANY_RUNE = [0, Unicode.MAX_RUNE]
+
   constructor() {
     this.prog = new Prog() // Program being built
     this.newInst(Inst.FAIL) // always the first instruction
@@ -133,9 +140,78 @@ class Compiler {
   }
 
   compile(re) {
-    //... more advanced implementation required based on 're' structure ...
-    // This requires knowledge about how 're' is structured, and then translating
-    // corresponding Regexp structure to equivalent JavaScript representation.
+    switch (re.op) {
+      case Regexp.Op.NO_MATCH:
+        return this.fail()
+      case Regexp.Op.EMPTY_MATCH:
+        return this.nop()
+      case Regexp.Op.LITERAL: {
+        if (re.runes.length === 0) {
+          return this.nop()
+        } else {
+          let f = null
+          for (let r of re.runes) {
+            let f1 = this.rune(r, re.flags)
+            f = f ? this.cat(f, f1) : f1
+          }
+          return f
+        }
+      }
+      case Regexp.Op.CHAR_CLASS:
+        return this.rune(re.runes, re.flags)
+      case Regexp.Op.ANY_CHAR_NOT_NL:
+        return this.rune(Compiler.ANY_RUNE_NOT_NL, 0)
+      case Regexp.Op.ANY_CHAR:
+        return this.rune(Compiler.ANY_RUNE, 0)
+      case Regexp.Op.BEGIN_LINE:
+        return this.empty(Utils.EMPTY_BEGIN_LINE)
+      case Regexp.Op.END_LINE:
+        return this.empty(Utils.EMPTY_END_LINE)
+      case Regexp.Op.BEGIN_TEXT:
+        return this.empty(Utils.EMPTY_BEGIN_TEXT)
+      case Regexp.Op.END_TEXT:
+        return this.empty(Utils.EMPTY_END_TEXT)
+      case Regexp.Op.WORD_BOUNDARY:
+        return this.empty(Utils.EMPTY_WORD_BOUNDARY)
+      case Regexp.Op.NO_WORD_BOUNDARY:
+        return this.empty(Utils.EMPTY_NO_WORD_BOUNDARY)
+      case Regexp.Op.CAPTURE: {
+        const bra = this.cap(re.cap << 1)
+        const sub = this.compile(re.subs[0])
+        const ket = this.cap(re.cap << 1 | 1)
+        return this.cat(this.cat(bra, sub), ket)
+      }
+      case Regexp.Op.STAR:
+        return this.star(this.compile(re.subs[0]), (re.flags & RE2Flags.NON_GREEDY) !== 0)
+      case Regexp.Op.PLUS:
+        return this.plus(this.compile(re.subs[0]), (re.flags & RE2Flags.NON_GREEDY) !== 0)
+      case Regexp.Op.QUEST:
+        return this.quest(this.compile(re.subs[0]), (re.flags & RE2Flags.NON_GREEDY) !== 0)
+      case Regexp.Op.CONCAT:
+        if (re.subs.length === 0) {
+          return this.nop()
+        } else {
+          let f = null
+          for (let sub of re.subs) {
+            let f1 = this.compile(sub)
+            f = f ? this.cat(f, f1) : f1
+          }
+          return f
+        }
+      case Regexp.Op.ALTERNATE:
+        if (re.subs.length === 0) {
+          return this.nop()
+        } else {
+          let f = null
+          for (let sub of re.subs) {
+            let f1 = this.compile(sub)
+            f = f ? this.alt(f, f1) : f1
+          }
+          return f
+        }
+      default:
+        throw new Error('regexp: unhandled case in compile')
+    }
   }
 }
 
