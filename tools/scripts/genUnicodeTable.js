@@ -135,7 +135,7 @@ for (const [alias, name] of aliasesToNames.entries()) {
   const codePoints = await getCodePoints('General_Category', name)
   const res = await genRanges(codePoints)
   code = [...code, `  static ${alias} = ${JSON.stringify(res)}`]
-  categoriesCode = [...categoriesCode, `  group.set('${alias}', this.${alias})`]
+  categoriesCode = [...categoriesCode, `  UnicodeTables.CATEGORIES.set('${alias}', this.${alias})`]
   if (alias === 'Lu') {
     code = [...code, `  static Upper = this.${alias}`]
   }
@@ -143,7 +143,7 @@ for (const [alias, name] of aliasesToNames.entries()) {
   const foldRes = addFoldExceptions(codePoints)
   if (foldRes !== null) {
     code = [...code, `  static fold${alias} = ${JSON.stringify(foldRes)}`]
-    foldCategoryCode = [...foldCategoryCode, `  group.set('${alias}', this.fold${alias})`]
+    foldCategoryCode = [...foldCategoryCode, `  UnicodeTables.FOLD_CATEGORIES.set('${alias}', this.fold${alias})`]
   }
 }
 
@@ -151,27 +151,21 @@ for (const name of unicode['Script']) {
   const codePoints = await getCodePoints('Script', name)
   const res = await genRanges(codePoints)
   code = [...code, `  static ${name} = ${JSON.stringify(res)}`]
-  scriptsCode = [...scriptsCode, `  group.set('${name}', this.${name})`]
+  scriptsCode = [...scriptsCode, `  UnicodeTables.SCRIPT.set('${name}', this.${name})`]
 
   const foldRes = addFoldExceptions(codePoints)
   if (foldRes !== null) {
     code = [...code, `  static fold${name} = ${JSON.stringify(foldRes)}`]
-    foldScriptCode = [...foldScriptCode, `  group.set('${name}', this.fold${name})`]
+    foldScriptCode = [...foldScriptCode, `  UnicodeTables.FOLD_SCRIPT.set('${name}', this.fold${name})`]
   }
 }
 
 code = [
   ...code,
   '',
-  '  static Categories() {',
-  "    if (this.memo.has('Categories')) {",
-  "      return this.memo.get('Categories')",
-  '    } else {',
-  '      const group = new Map()',
+  '  static CATEGORIES = new Map()',
+  '  static {',
   ...categoriesCode,
-  "      this.memo.set('Categories', group)",
-  '      return group',
-  '    }',
   '  }',
   ''
 ]
@@ -179,15 +173,9 @@ code = [
 code = [
   ...code,
   '',
-  '  static Scripts() {',
-  "    if (this.memo.has('Scripts')) {",
-  "      return this.memo.get('Scripts')",
-  '    } else {',
-  '      const group = new Map()',
+  '  static SCRIPTS = new Map()',
+  '  static {',
   ...scriptsCode,
-  "      this.memo.set('Scripts', group)",
-  '      return group',
-  '    }',
   '  }',
   ''
 ]
@@ -195,15 +183,9 @@ code = [
 code = [
   ...code,
   '',
-  '  static FoldCategory() {',
-  "    if (this.memo.has('FoldCategory')) {",
-  "      return this.memo.get('FoldCategory')",
-  '    } else {',
-  '      const group = new Map()',
+  '  static FOLD_CATEGORIES = new Map()',
+  '  static {',
   ...foldCategoryCode,
-  "      this.memo.set('FoldCategory', group)",
-  '      return group',
-  '    }',
   '  }',
   ''
 ]
@@ -211,15 +193,9 @@ code = [
 code = [
   ...code,
   '',
-  '  static FoldScript() {',
-  "    if (this.memo.has('FoldScript')) {",
-  "      return this.memo.get('FoldScript')",
-  '    } else {',
-  '      const group = new Map()',
+  '  static FOLD_SCRIPT = new Map()',
+  '  static {',
   ...foldScriptCode,
-  "      this.memo.set('FoldScript', group)",
-  '      return group',
-  '    }',
   '  }',
   ''
 ]
