@@ -28,13 +28,13 @@ class Utils {
   // If |c| is an ASCII hex digit, returns its value, otherwise -1.
   static unhex(c) {
     if (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) {
-      return c.charCodeAt(0) - this.ZERO_CODEPOINT
+      return c - this.ZERO_CODEPOINT
     }
     if (this.A_LOWER_CODEPOINT <= c && c <= this.F_LOWER_CODEPOINT) {
-      return c.charCodeAt(0) - this.A_LOWER_CODEPOINT + 10
+      return c - this.A_LOWER_CODEPOINT + 10
     }
     if (this.A_UPPER_CODEPOINT <= c && c <= this.F_UPPER_CODEPOINT) {
-      return c.charCodeAt(0) - this.A_UPPER_CODEPOINT + 10
+      return c - this.A_UPPER_CODEPOINT + 10
     }
     return -1
   }
@@ -42,12 +42,47 @@ class Utils {
   // Appends a RE2 literal to |out| for rune |rune|,
   // with regexp metacharacters escaped.
   static escapeRune(rune) {
-    let out = ''
-    if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
-      out += '\\'
+    if (Unicode.isPrint(rune)) {
+      let out = ''
+      if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
+        out += '\\'
+      }
+      out += String.fromCodePoint(rune)
+      return out
     }
-    out += String.fromCodePoint(rune)
-    return out
+
+    switch ((rune)) {
+      case '"'.codePointAt(0):
+        return "\\\""
+      case '\\'.codePointAt(0):
+        return "\\\\"
+      case '\t'.codePointAt(0):
+        return "\\t"
+      case '\n'.codePointAt(0):
+        return "\\n"
+      case '\r'.codePointAt(0):
+        return "\\r"
+      case '\b'.codePointAt(0):
+        return "\\b"
+      case '\f'.codePointAt(0):
+        return "\\f"
+      default:
+        {
+          let out = ''
+          const s = Number(rune).toString(16);
+          if (rune < 256) {
+            out += "\\x"
+            if (s.length === 1) {
+              out += '0'
+            }
+            out += s
+          } else {
+            out += `\\x{${s}}`
+          }
+
+          return out
+        }
+    }
   }
 
   // Returns the array of runes in the specified Java UTF-16 string.

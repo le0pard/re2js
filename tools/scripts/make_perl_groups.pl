@@ -76,8 +76,8 @@ sub PrintClass($$@) {
   }
   $name =~ s/\\/\\\\/g;
   $negname =~ s/\\/\\\\/g;
-  return "$groupmap.set(\"$name\",  \tnew CharGroup(+1, code$cname))\n" .
-  	 "$groupmap.set(\"$negname\",  \tnew CharGroup(-1, code$cname))\n";
+  return "[\"$name\",  \tnew CharGroup(+1, code$cname)],\n" .
+  	 "[\"$negname\",  \tnew CharGroup(-1, code$cname)],\n";
 }
 
 my $gen = 0;
@@ -90,11 +90,11 @@ sub PrintClasses($@) {
     my @ranges = ComputeClass($cl);
     push @entries, PrintClass(++$gen, $groupmap, $cl, @ranges);
   }
-  print "const $groupmap = new Map()\n";
+  print "const $groupmap = new Map([\n";
   foreach my $e (@entries) {
     print $e;
   }
-  print "\n";
+  print "])\n";
   my $count = @entries;
 }
 

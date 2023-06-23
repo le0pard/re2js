@@ -24,14 +24,14 @@ const code3 = [ /* \w */
 	0x61, 0x7a
 ]
 
-const PERL_GROUPS = new Map()
-PERL_GROUPS.set('\\d', new CharGroup(+1, code1))
-PERL_GROUPS.set('\\D', new CharGroup(-1, code1))
-PERL_GROUPS.set('\\s', new CharGroup(+1, code2))
-PERL_GROUPS.set('\\S', new CharGroup(-1, code2))
-PERL_GROUPS.set('\\w', new CharGroup(+1, code3))
-PERL_GROUPS.set('\\W', new CharGroup(-1, code3))
-
+const PERL_GROUPS = new Map([
+['\\d', new CharGroup(+1, code1)],
+['\\D', new CharGroup(-1, code1)],
+['\\s', new CharGroup(+1, code2)],
+['\\S', new CharGroup(-1, code2)],
+['\\w', new CharGroup(+1, code3)],
+['\\W', new CharGroup(-1, code3)]
+])
 const code4 = [ /* [:alnum:] */
 	0x30, 0x39,
 	0x41, 0x5a,
@@ -102,34 +102,35 @@ const code17 = [ /* [:xdigit:] */
 	0x61, 0x66
 ]
 
-const POSIX_GROUPS = new Map()
-POSIX_GROUPS.set('[:alnum:]', new CharGroup(+1, code4))
-POSIX_GROUPS.set('[:^alnum:]', new CharGroup(-1, code4))
-POSIX_GROUPS.set('[:alpha:]', new CharGroup(+1, code5))
-POSIX_GROUPS.set('[:^alpha:]', new CharGroup(-1, code5))
-POSIX_GROUPS.set('[:ascii:]', new CharGroup(+1, code6))
-POSIX_GROUPS.set('[:^ascii:]', new CharGroup(-1, code6))
-POSIX_GROUPS.set('[:blank:]', new CharGroup(+1, code7))
-POSIX_GROUPS.set('[:^blank:]', new CharGroup(-1, code7))
-POSIX_GROUPS.set('[:cntrl:]', new CharGroup(+1, code8))
-POSIX_GROUPS.set('[:^cntrl:]', new CharGroup(-1, code8))
-POSIX_GROUPS.set('[:digit:]', new CharGroup(+1, code9))
-POSIX_GROUPS.set('[:^digit:]', new CharGroup(-1, code9))
-POSIX_GROUPS.set('[:graph:]', new CharGroup(+1, code10))
-POSIX_GROUPS.set('[:^graph:]', new CharGroup(-1, code10))
-POSIX_GROUPS.set('[:lower:]', new CharGroup(+1, code11))
-POSIX_GROUPS.set('[:^lower:]', new CharGroup(-1, code11))
-POSIX_GROUPS.set('[:print:]', new CharGroup(+1, code12))
-POSIX_GROUPS.set('[:^print:]', new CharGroup(-1, code12))
-POSIX_GROUPS.set('[:punct:]', new CharGroup(+1, code13))
-POSIX_GROUPS.set('[:^punct:]', new CharGroup(-1, code13))
-POSIX_GROUPS.set('[:space:]', new CharGroup(+1, code14))
-POSIX_GROUPS.set('[:^space:]', new CharGroup(-1, code14))
-POSIX_GROUPS.set('[:upper:]', new CharGroup(+1, code15))
-POSIX_GROUPS.set('[:^upper:]', new CharGroup(-1, code15))
-POSIX_GROUPS.set('[:word:]', new CharGroup(+1, code16))
-POSIX_GROUPS.set('[:^word:]', new CharGroup(-1, code16))
-POSIX_GROUPS.set('[:xdigit:]', new CharGroup(+1, code17))
-POSIX_GROUPS.set('[:^xdigit:]', new CharGroup(-1, code17))
+const POSIX_GROUPS = new Map([
+['[:alnum:]', new CharGroup(+1, code4)],
+['[:^alnum:]', new CharGroup(-1, code4)],
+['[:alpha:]', new CharGroup(+1, code5)],
+['[:^alpha:]', new CharGroup(-1, code5)],
+['[:ascii:]', new CharGroup(+1, code6)],
+['[:^ascii:]', new CharGroup(-1, code6)],
+['[:blank:]', new CharGroup(+1, code7)],
+['[:^blank:]', new CharGroup(-1, code7)],
+['[:cntrl:]', new CharGroup(+1, code8)],
+['[:^cntrl:]', new CharGroup(-1, code8)],
+['[:digit:]', new CharGroup(+1, code9)],
+['[:^digit:]', new CharGroup(-1, code9)],
+['[:graph:]', new CharGroup(+1, code10)],
+['[:^graph:]', new CharGroup(-1, code10)],
+['[:lower:]', new CharGroup(+1, code11)],
+['[:^lower:]', new CharGroup(-1, code11)],
+['[:print:]', new CharGroup(+1, code12)],
+['[:^print:]', new CharGroup(-1, code12)],
+['[:punct:]', new CharGroup(+1, code13)],
+['[:^punct:]', new CharGroup(-1, code13)],
+['[:space:]', new CharGroup(+1, code14)],
+['[:^space:]', new CharGroup(-1, code14)],
+['[:upper:]', new CharGroup(+1, code15)],
+['[:^upper:]', new CharGroup(-1, code15)],
+['[:word:]', new CharGroup(+1, code16)],
+['[:^word:]', new CharGroup(-1, code16)],
+['[:xdigit:]', new CharGroup(+1, code17)],
+['[:^xdigit:]', new CharGroup(-1, code17)]
+])
 
 export { PERL_GROUPS, POSIX_GROUPS }

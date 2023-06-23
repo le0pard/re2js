@@ -3,6 +3,7 @@ import { Unicode } from './Unicode'
 import { Utils } from './Utils'
 
 class Regexp {
+
   static Op = {
     NO_MATCH: 'NO_MATCH', // Matches no strings.
     EMPTY_MATCH: 'EMPTY_MATCH', // Matches empty string.

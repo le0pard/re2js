@@ -119,6 +119,7 @@ class Utf16MatcherInput extends MatcherInput {
 }
 
 export {
+  MatcherInput,
   Utf8MatcherInput,
   Utf16MatcherInput
 }

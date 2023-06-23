@@ -17,8 +17,8 @@ class Inst {
 
   constructor(op) {
     this.op = op
-    this.out = null // all but MATCH, FAIL
-    this.arg = null // ALT, ALT_MATCH, CAPTURE, EMPTY_WIDTH
+    this.out = 0 // all but MATCH, FAIL
+    this.arg = 0 // ALT, ALT_MATCH, CAPTURE, EMPTY_WIDTH
     this.runes = null // length==1 => exact match
   }
 

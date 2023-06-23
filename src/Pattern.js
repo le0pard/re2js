@@ -1,3 +1,4 @@
+import { RE2 } from './RE2'
 import { RE2Flags } from './RE2Flags'
 import { Matcher } from './Matcher'
 import { MatcherInput } from './MatcherInput'

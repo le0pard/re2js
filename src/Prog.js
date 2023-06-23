@@ -41,7 +41,7 @@ class Prog {
     }
 
     while (Inst.isRuneOp(i.op) && i.runes.length === 1 && (i.arg & Re2Flags.FOLD_CASE) === 0) {
-      prefix.appendCodePoint(i.runes[0])
+      prefix += String.fromCodePoint(i.runes[0])
       i = this.skipNop(i.out)
     }
     return i.op === Inst.MATCH
