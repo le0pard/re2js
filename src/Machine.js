@@ -106,8 +106,6 @@ class Machine {
     return this.matchcap.slice(0, this.ncap) // Equivalent of Arrays.copyOf() in Java
   }
 
-  // For the alloc() method, we assume the `Thread` class in Java is represented
-  // as a JavaScript function or class. Here I'm using a function for the same.
   alloc(inst) {
     let t
     if (this.poolSize > 0) {
@@ -120,15 +118,15 @@ class Machine {
     return t
   }
 
-  // For the free() method, we need the Queue class. This Queue class needs to
-  // have a `size` property and `denseThreads` & `clear` methods. Here, I'm
-  // assuming it's a class with those properties and methods.
   free(queue, from = 0) {
+    if (queue instanceof Machine.Thread) {
+      return this.freeThread(queue)
+    }
+
     let numberOfThread = queue.size - from
     let requiredPoolLength = this.poolSize + numberOfThread
     if (this.pool.length < requiredPoolLength) {
-      // This operation expands the array if needed
-      this.pool.length = Math.max(this.pool.length * 2, requiredPoolLength)
+      this.pool = [...this.pool, ...new Array(Math.max(this.pool.length * 2, requiredPoolLength))]
     }
 
     for (let i = from; i < queue.size; ++i) {
@@ -139,6 +137,14 @@ class Machine {
       }
     }
     queue.clear()
+  }
+
+  freeThread(t) {
+    if (this.pool.length <= this.poolSize) {
+      this.pool = [...this.pool, ...new Array(this.pool.length * 2)]
+    }
+    this.pool[this.poolSize] = t
+    this.poolSize++
   }
 
   match(inpt, pos, anchor) {
@@ -178,7 +184,7 @@ class Machine {
           // Have match; finished exploring alternatives.
           break
         }
-        if (!this.re2.prefix.isEmpty() && rune1 !== this.re2.prefixRune && inpt.canCheckPrefix()) {
+        if (!this.re2.prefix.length === 0 && rune1 !== this.re2.prefixRune && inpt.canCheckPrefix()) {
           // Match requires literal prefix; fast search for it.
           let advance = inpt.index(this.re2, pos)
           if (advance < 0) {

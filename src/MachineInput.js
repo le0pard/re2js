@@ -5,11 +5,11 @@ class MachineInput {
     this.EOF = (-1 << 3)
   }
 
-  fromUTF8(b, start, end) {
+  static fromUTF8(b, start, end) {
     return new UTF8Input(b, start, end)
   }
 
-  fromUTF16(s, start, end) {
+  static fromUTF16(s, start, end) {
     return new UTF16Input(s, start, end)
   }
 }

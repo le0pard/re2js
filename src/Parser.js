@@ -1343,7 +1343,7 @@ class Parser {
 
     // Group can have leading negation too.
     //  \p{^Han} == \P{Han}, \P{^Han} == \p{Han}.
-    if (!name.isEmpty() && name.charAt(0) === '^') {
+    if (!(name.length === 0) && name.charAt(0) === '^') {
       sign = -sign
       name = name.substring(1)
     }

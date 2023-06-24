@@ -7,20 +7,45 @@ import { Parser } from './Parser'
 import { Simplify } from './Simplify'
 import { Utils } from './Utils'
 
+class AtomicReference {
+  constructor(initialValue) {
+    this._value = initialValue
+  }
+
+  // Returns the current value
+  get() {
+    return this._value
+  }
+
+  // Sets to the given value
+  set(newValue) {
+    this._value = newValue
+  }
+
+  // Atomically sets to the given value and returns true if the current value == the expected value
+  compareAndSet(expect, update) {
+    if (this._value === expect) {
+      this._value = update
+      return true
+    } else {
+      return false
+    }
+  }
+}
+
 class RE2 {
-  constructor(expr) {
-    let re2 = RE2.compile(expr)
-    // Copy everything.
-    this.expr = re2.expr
-    this.prog = re2.prog
-    this.cond = re2.cond
-    this.numSubexp = re2.numSubexp
-    this.longest = re2.longest
-    this.prefix = re2.prefix
-    this.prefixUTF8 = re2.prefixUTF8
-    this.prefixComplete = re2.prefixComplete
-    this.prefixRune = re2.prefixRune
-    this.pooled = new Machine() // Assuming Machine is also a class in your JavaScript context.
+  constructor(expr, prog, numSubexp, longest) {
+    this.expr = expr
+    this.prog = prog
+    this.numSubexp = numSubexp
+    this.cond = prog.startCond()
+    this.longest = longest
+
+    this.prefix = ''
+    this.prefixUTF8 = ''
+    this.prefixComplete = false
+    this.prefixRune = 0
+    this.pooled = (new AtomicReference())
     this.namedGroups = new Map()
   }
 
@@ -67,51 +92,49 @@ class RE2 {
   }
 
   get() {
-    // Pop a machine off the stack if available.
-    const head = this.pooled
-    if (head != null) {
-      this.pooled = head.next
-    }
+    let head
+    do {
+      {
+        head = this.pooled.get()
+      }
+    } while ((head != null && !this.pooled.compareAndSet(head, head.next)))
     return head
   }
-
   reset() {
-    this.pooled = null
+    this.pooled.set(null)
   }
-
   put(m, isNew) {
-    // To avoid unnecessary operations, reuse a node only if
-    // it was the only element in the stack when it was popped, and it's the only element
-    // in the stack when it's pushed back after use.
-    const head = this.pooled
-    if (!isNew && head != null) {
-      // If an element had a null next pointer and it was previously in the stack,
-      // it needs to be replaced with a new Machine instance to ensure a fresh state.
-      m = new Machine(m)
-      isNew = true
-    }
-
-    m.next = head
-    this.pooled = m
+    let head
+    do {
+      {
+        head = this.pooled.get()
+        if (!isNew && head != null) {
+          m = new Machine(m)
+          isNew = true
+        }
+        if (m.next !== head) {
+          m.next = head
+        }
+      }
+    } while ((!this.pooled.compareAndSet(head, m)))
   }
 
   toString() {
     return this.expr
   }
 
-  doExecute(input, pos, anchor, ncap) {
+  doExecute(__in, pos, anchor, ncap) {
     let m = this.get()
     let isNew = false
-    if (m === null) {
+    if (m == null) {
       m = new Machine(this)
       isNew = true
-    } else if (m.next !== null) {
+    } else if (m.next != null) {
       m = new Machine(m)
       isNew = true
     }
-
     m.init(ncap)
-    const cap = m.match(input, pos, anchor) ? m.submatches() : null
+    const cap = m.match(__in, pos, anchor) ? m.submatches() : null
     this.put(m, isNew)
     return cap
   }
@@ -122,7 +145,7 @@ class RE2 {
         return false
       }
       const machineInput =
-        input.getEncoding() === MatcherInput.Encoding.UTF_16
+        input.getEncoding() === MatcherInput.ENCODING.UTF_16
           ? MachineInput.fromUTF16(input.asCharSequence(), 0, end)
           : MachineInput.fromUTF8(input.asBytes(), 0, end)
       const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)

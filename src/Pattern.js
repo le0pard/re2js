@@ -28,41 +28,29 @@ class Pattern {
     this.re2.reset()
   }
 
-  flags() {
-    return this.flags
-  }
-
-  pattern() {
-    return this.pattern
-  }
-
-  re2() {
-    return this.re2
-  }
-
   static compile(flregex, regex = null, flags = null) {
     if (regex === null && flags === null) {
-      return this.compile(regex, regex, 0)
+      return this.compile(flregex, flregex, 0)
     }
 
     if (flags === null) {
-      let newFlregex = regex
-      if ((flags & RE2Flags.CASE_INSENSITIVE) !== 0) {
+      let newFlregex = flregex
+      if ((regex & RE2Flags.CASE_INSENSITIVE) !== 0) {
         newFlregex = '(?i)' + newFlregex
       }
-      if ((flags & RE2Flags.DOTALL) !== 0) {
+      if ((regex & RE2Flags.DOTALL) !== 0) {
         newFlregex = '(?s)' + newFlregex
       }
-      if ((flags & RE2Flags.MULTILINE) !== 0) {
+      if ((regex & RE2Flags.MULTILINE) !== 0) {
         newFlregex = '(?m)' + newFlregex
       }
-      if ((flags & ~(RE2Flags.MULTILINE | RE2Flags.DOTALL | RE2Flags.CASE_INSENSITIVE | RE2Flags.DISABLE_UNICODE_GROUPS | RE2Flags.LONGEST_MATCH)) !== 0) {
+      if ((regex & ~(RE2Flags.MULTILINE | RE2Flags.DOTALL | RE2Flags.CASE_INSENSITIVE | RE2Flags.DISABLE_UNICODE_GROUPS | RE2Flags.LONGEST_MATCH)) !== 0) {
         throw new Error(
           'Flags should only be a combination '
           + 'of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH'
         )
       }
-      return this.compile(newFlregex, regex, flags)
+      return this.compile(newFlregex, flregex, flags)
     }
 
     let re2Flags = RE2Flags.PERL

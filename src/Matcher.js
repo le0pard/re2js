@@ -7,7 +7,7 @@ class Matcher {
       throw new Error('pattern is null')
     }
     this.pattern = pattern
-    let re2 = pattern.re2()
+    let re2 = pattern.re2
     this.groupCount = re2.numberOfCapturingGroups()
     this.groups = new Array(2 + 2 * this.groupCount)
     this.namedGroups = re2.namedGroups
@@ -142,7 +142,7 @@ class Matcher {
     }
 
     let ok =
-      this.pattern.re2().match(this.matcherInput, this.groups[0], end, this.anchorFlag, this.groups, 1 + this.groupCount())
+      this.pattern.re2.match(this.matcherInput, this.groups[0], end, this.anchorFlag, this.groups, 1 + this.groupCount())
     // Must match - hasMatch says that the last call with these
     // parameters worked just fine.
     if (!ok) {
@@ -186,7 +186,7 @@ class Matcher {
   genMatch(startByte, anchor) {
     // TODO: Is matches/lookingAt supposed to reset the append or input positions?
     // From the JDK docs, looks like no.
-    let ok = this.pattern.re2().match(this.matcherInput, startByte, this.inputLength, anchor, this.groups, 1)
+    let ok = this.pattern.re2.match(this.matcherInput, startByte, this.inputLength, anchor, this.groups, 1)
     if (!ok) {
       return false
     }
