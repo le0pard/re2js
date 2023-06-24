@@ -1,24 +1,25 @@
 import { expect, describe } from '@jest/globals'
 import { Unicode } from '../Unicode'
+import { codePoint } from '../helpers/chars'
 
 const genEqualsIgnoreCases = () => {
   let testCases = [
-    ['{'.codePointAt(0), '{'.codePointAt(0), true],
-    ['é'.codePointAt(0), 'É'.codePointAt(0), true],
-    ['Ú'.codePointAt(0), 'ú'.codePointAt(0), true],
-    ['\u212A'.codePointAt(0), 'K'.codePointAt(0), true],
-    ['\u212A'.codePointAt(0), 'k'.codePointAt(0), true],
-    ['\u212A'.codePointAt(0), 'a'.codePointAt(0), false],
-    ['ü'.codePointAt(0), 'ű'.codePointAt(0), false],
-    ['b'.codePointAt(0), 'k'.codePointAt(0), false],
-    ['C'.codePointAt(0), 'x'.codePointAt(0), false],
-    ['/'.codePointAt(0), '_'.codePointAt(0), false],
-    ['d'.codePointAt(0), ')'.codePointAt(0), false],
-    ['@'.codePointAt(0), '`'.codePointAt(0), false]
+    [codePoint('{'), codePoint('{'), true],
+    [codePoint('é'), codePoint('É'), true],
+    [codePoint('Ú'), codePoint('ú'), true],
+    [codePoint('\u212A'), codePoint('K'), true],
+    [codePoint('\u212A'), codePoint('k'), true],
+    [codePoint('\u212A'), codePoint('a'), false],
+    [codePoint('ü'), codePoint('ű'), false],
+    [codePoint('b'), codePoint('k'), false],
+    [codePoint('C'), codePoint('x'), false],
+    [codePoint('/'), codePoint('_'), false],
+    [codePoint('d'), codePoint(')'), false],
+    [codePoint('@'), codePoint('`'), false]
   ]
 
-  for (let r = 'a'.codePointAt(0); r <= 'z'.codePointAt(0); r++) {
-    const u = r - ('a'.codePointAt(0) - 'A'.codePointAt(0))
+  for (let r = codePoint('a'); r <= codePoint('z'); r++) {
+    const u = r - (codePoint('a') - codePoint('A'))
     testCases = [...testCases, [r, r, true], [u, u, true], [r, u, true], [u, r, true]]
   }
 

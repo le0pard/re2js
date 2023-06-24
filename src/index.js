@@ -9,7 +9,7 @@ const Flags = {
 }
 
 class RE2JS {
-  static compile(regex, flags = null) {
+  static compile(regex, flags = 0) {
     const pattern = Pattern.compile(regex, flags)
 
     return {
