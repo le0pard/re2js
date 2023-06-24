@@ -181,6 +181,10 @@ class Utils {
     }
     return b
   }
+
+  static charCount(codePoint) {
+    return codePoint > 0xffff ? 2 : 1
+  }
 }
 
 export { Utils }

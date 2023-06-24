@@ -1,5 +1,4 @@
 /* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
-import { CharacterHelper } from './CharacterHelper'
 import { Utils } from './Utils'
 /**
  * MachineInput abstracts different representations of the input text supplied to the Machine. It
@@ -267,8 +266,8 @@ MachineInput['__class'] = 'quickstart.MachineInput'
     step(pos) {
       pos += this.start
       if (pos < this.end) {
-        const rune = CharacterHelper.codePointAt(this.str, pos)
-        return (rune << 3) | CharacterHelper.charCount(rune)
+        const rune = this.str.charCodeAt(pos)
+        return (rune << 3) | Utils.charCount(rune)
       } else {
         return MachineInput.EOF_$LI$()
       }
@@ -298,9 +297,8 @@ MachineInput['__class'] = 'quickstart.MachineInput'
      */
     context(pos) {
       pos += this.start
-      const r1 =
-        pos > 0 && pos <= this.str.length ? CharacterHelper.codePointBefore(this.str, pos) : -1
-      const r2 = pos < this.str.length ? CharacterHelper.codePointAt(this.str, pos) : -1
+      const r1 = pos > 0 && pos <= this.str.length ? this.str.codePointAt(pos - 1) : -1
+      const r2 = pos < this.str.length ? this.str.charCodeAt(pos) : -1
       return Utils.emptyOpContext(r1, r2)
     }
     /**

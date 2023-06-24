@@ -1,7 +1,6 @@
 /* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
-import { CharacterHelper } from './CharacterHelper'
 import { UnicodeTables } from './UnicodeTables'
 import { PERL_GROUPS, POSIX_GROUPS } from './CharGroup'
 import { Utils } from './Utils'
@@ -680,7 +679,7 @@ export class Parser {
                     {
                       const codepoint = lit.charCodeAt(j)
                       this.literal(codepoint)
-                      j += CharacterHelper.charCount(codepoint)
+                      j += Utils.charCount(codepoint)
                     }
                   }
                   break bigswitch
@@ -1396,7 +1395,7 @@ Parser['__class'] = 'quickstart.Parser'
     }
     pop() {
       const r = this.str.charCodeAt(this.__pos)
-      this.__pos += CharacterHelper.charCount(r)
+      this.__pos += Utils.charCount(r)
       return r
     }
     lookingAt$char(c) {
