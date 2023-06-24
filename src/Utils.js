@@ -1,3 +1,5 @@
+import { Unicode } from './Unicode'
+
 class Utils {
   static EMPTY_INTS = []
 
@@ -19,6 +21,8 @@ class Utils {
   static Z_LOWER_CODEPOINT = 'z'.codePointAt(0)
   static F_UPPER_CODEPOINT = 'F'.codePointAt(0)
   static F_LOWER_CODEPOINT = 'f'.codePointAt(0)
+  static UNDERSCORE_CODEPOINT = '_'.codePointAt(0)
+  static NEW_LINE_CODEPOINT = '\n'.charCodeAt(0)
 
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
@@ -41,48 +45,56 @@ class Utils {
 
   // Appends a RE2 literal to |out| for rune |rune|,
   // with regexp metacharacters escaped.
-  static escapeRune(rune) {
-    if (Unicode.isPrint(rune)) {
-      let out = ''
-      if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
-        out += '\\'
-      }
-      out += String.fromCodePoint(rune)
-      return out
-    }
-
-    switch ((rune)) {
-      case '"'.codePointAt(0):
-        return "\\\""
-      case '\\'.codePointAt(0):
-        return "\\\\"
-      case '\t'.codePointAt(0):
-        return "\\t"
-      case '\n'.codePointAt(0):
-        return "\\n"
-      case '\r'.codePointAt(0):
-        return "\\r"
-      case '\b'.codePointAt(0):
-        return "\\b"
-      case '\f'.codePointAt(0):
-        return "\\f"
-      default:
-        {
-          let out = ''
-          const s = Number(rune).toString(16);
-          if (rune < 256) {
-            out += "\\x"
-            if (s.length === 1) {
-              out += '0'
-            }
-            out += s
-          } else {
-            out += `\\x{${s}}`
-          }
-
-          return out
+  static escapeRune(str) {
+    let out = ''
+    for (let i = 0; i < str.length; i++) {
+      let rune = str.charCodeAt(i)
+      if (Unicode.isPrint(rune)) {
+        if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
+          out += '\\'
         }
+        out += String.fromCodePoint(rune)
+      } else {
+        switch (rune) {
+          case 34: // '"'
+            out += '\\"'
+            break
+          case 92: // '\\'
+            out += '\\\\'
+            break
+          case 9: // '\t'
+            out += '\\t'
+            break
+          case 10: // '\n'
+            out += '\\n'
+            break
+          case 13: // '\r'
+            out += '\\r'
+            break
+          case 8: // '\b'
+            out += '\\b'
+            break
+          case 12: // '\f'
+            out += '\\f'
+            break
+          default:
+            {
+              let s = rune.toString(16)
+              if (rune < 0x100) {
+                out += '\\x'
+                if (s.length === 1) {
+                  out += '0'
+                }
+                out += s
+              } else {
+                out += '\\x{' + s + '}'
+              }
+              break
+            }
+        }
+      }
     }
+    return out
   }
 
   // Returns the array of runes in the specified Java UTF-16 string.
@@ -114,7 +126,7 @@ class Utils {
   // during the evaluation of the \b and \B zero-width assertions.
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
   static isWordRune(r) {
-    return ((this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) || (this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) || (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) || r === '_')
+    return ((this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) || (this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) || (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) || r === this.UNDERSCORE_CODEPOINT)
   }
 
   // emptyOpContext returns the zero-width assertions satisfied at the position
@@ -128,13 +140,13 @@ class Utils {
     if (r1 < 0) {
       op |= this.EMPTY_BEGIN_TEXT | this.EMPTY_BEGIN_LINE
     }
-    if (r1 === '\n') {
+    if (r1 === this.NEW_LINE_CODEPOINT) {
       op |= this.EMPTY_BEGIN_LINE
     }
     if (r2 < 0) {
       op |= this.EMPTY_END_TEXT | this.EMPTY_END_LINE
     }
-    if (r2 === '\n') {
+    if (r2 === this.NEW_LINE_CODEPOINT) {
       op |= this.EMPTY_END_LINE
     }
     if (this.isWordRune(r1) !== this.isWordRune(r2)) {
@@ -151,15 +163,15 @@ class Utils {
    * {@code quoteMeta("[foo]").equals("\\[foo\\]")}.
    */
   static quoteMeta(s) {
-    let b = "";
+    let b = ''
     for (let i = 0, len = s.length; i < len; i++) {
-      let c = s.charAt(i);
+      let c = s.charAt(i)
       if (this.METACHARACTERS.indexOf(c) >= 0) {
-        b += '\\';
+        b += '\\'
       }
-      b += c;
+      b += c
     }
-    return b;
+    return b
   }
 }
 

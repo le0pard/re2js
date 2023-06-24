@@ -56,7 +56,8 @@ class Unicode {
   static isUpper(r) {
     // See comment in isGraphic.
     if (r <= this.MAX_LATIN1) {
-      return String.fromCodePoint(r).toUpperCase() === String.fromCodePoint(r)
+      const s = String.fromCodePoint(r)
+      return s.toUpperCase() === s
     }
     return this.is(UnicodeTables.Upper, r)
   }
