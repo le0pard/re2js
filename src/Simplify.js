@@ -1,4 +1,4 @@
-import { Re2Flags } from './RE2Flags'
+import { RE2Flags } from './RE2Flags'
 import { Regexp } from './Regexp'
 
 class Simplify {
@@ -101,12 +101,12 @@ class Simplify {
     if (sub.op === Regexp.Op.EMPTY_MATCH) {
       return sub
     }
-    if (op === sub.op && (flags & Re2Flags.NON_GREEDY) === (sub.flags & Re2Flags.NON_GREEDY)) {
+    if (op === sub.op && (flags & RE2Flags.NON_GREEDY) === (sub.flags & RE2Flags.NON_GREEDY)) {
       return sub
     }
     if (re !== null
       && re.op === op
-      && (re.flags & Re2Flags.NON_GREEDY) === (flags & Re2Flags.NON_GREEDY)
+      && (re.flags & RE2Flags.NON_GREEDY) === (flags & RE2Flags.NON_GREEDY)
       && sub.equals(re.subs[0])) {
       return re
     }

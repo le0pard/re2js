@@ -1,4 +1,4 @@
-import { Re2Flags } from './RE2Flags'
+import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { Utils } from './Utils'
 
@@ -62,7 +62,7 @@ class CharClass {
 
   // appendLiteral() appends the literal |x| to this CharClass.
   appendLiteral(x, flags) {
-    return ((flags & Re2Flags.FOLD_CASE) !== 0) ? this.appendFoldedRange(x, x) : this.appendRange(x, x)
+    return ((flags & RE2Flags.FOLD_CASE) !== 0) ? this.appendFoldedRange(x, x) : this.appendRange(x, x)
   }
 
   // appendRange() appends the range [lo-hi] (inclusive) to this CharClass.

@@ -26,7 +26,7 @@ class Utils {
 
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
-    return (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) || (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT) || (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT)
+    return (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) || (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT) || (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT)
   }
 
   // If |c| is an ASCII hex digit, returns its value, otherwise -1.

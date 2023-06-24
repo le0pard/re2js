@@ -133,4 +133,4 @@ const POSIX_GROUPS = new Map([
 ['[:^xdigit:]', new CharGroup(-1, code17)]
 ])
 
-export { PERL_GROUPS, POSIX_GROUPS }
+export { CharGroup, PERL_GROUPS, POSIX_GROUPS }

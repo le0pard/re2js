@@ -1,6 +1,5 @@
 import { Characters } from './Characters'
 import { UnicodeTables } from './UnicodeTables'
-import { Utils } from './Utils'
 
 class Unicode {
   // The highest legal rune value.
@@ -13,6 +12,9 @@ class Unicode {
   // Checked during test.
   static MIN_FOLD = 0x0041
   static MAX_FOLD = 0x1044f
+
+  static A_UPPER_CODEPOINT = 'A'.codePointAt(0)
+  static Z_UPPER_CODEPOINT = 'Z'.codePointAt(0)
 
   // is32 uses binary search to test whether rune is in the specified
   // slice of 32-bit ranges.
@@ -120,11 +122,11 @@ class Unicode {
     // Fast path for the common case where both runes are ASCII characters.
     // Coerces both runes to lowercase if applicable.
     if (r1 <= this.MAX_ASCII && r2 <= this.MAX_ASCII) {
-      if (Utils.A_UPPER_CODEPOINT <= r1 && r1 <= Utils.Z_UPPER_CODEPOINT) {
+      if (Unicode.A_UPPER_CODEPOINT <= r1 && r1 <= Unicode.Z_UPPER_CODEPOINT) {
         r1 |= 0x20
       }
 
-      if (Utils.A_UPPER_CODEPOINT <= r2 && r2 <= Utils.Z_UPPER_CODEPOINT) {
+      if (Unicode.A_UPPER_CODEPOINT <= r2 && r2 <= Unicode.Z_UPPER_CODEPOINT) {
         r2 |= 0x20
       }
 

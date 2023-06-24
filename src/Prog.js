@@ -1,4 +1,4 @@
-import { Re2Flags } from './RE2Flags'
+import { RE2Flags } from './RE2Flags'
 import { Inst } from './Inst'
 
 class Prog {
@@ -40,7 +40,7 @@ class Prog {
       return i.op === Inst.MATCH
     }
 
-    while (Inst.isRuneOp(i.op) && i.runes.length === 1 && (i.arg & Re2Flags.FOLD_CASE) === 0) {
+    while (Inst.isRuneOp(i.op) && i.runes.length === 1 && (i.arg & RE2Flags.FOLD_CASE) === 0) {
       prefix += String.fromCodePoint(i.runes[0])
       i = this.skipNop(i.out)
     }

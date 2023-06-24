@@ -26,13 +26,9 @@ class Pair {
 }
 
 class StringIterator {
-  // a stream of UTF-16 codes
-  str
-  // current position in UTF-16 string
-  pos = 0
-
   constructor(str) {
     this.str = str
+    this.pos = 0
   }
 
   // Returns the cursor position.  Do not interpret the result!

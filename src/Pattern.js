@@ -40,42 +40,56 @@ class Pattern {
     return this.re2
   }
 
-  compile(regex, flags = 0) {
-    let flregex = regex
-    if ((flags & Pattern.CASE_INSENSITIVE) !== 0) {
-      flregex = '(?i)' + flregex
+  static compile(flregex, regex = null, flags = null) {
+    if (regex === null && flags === null) {
+      return this.compile(regex, regex, 0)
     }
-    if ((flags & Pattern.DOTALL) !== 0) {
-      flregex = '(?s)' + flregex
+
+    if (flags === null) {
+      let newFlregex = regex
+      if ((flags & RE2Flags.CASE_INSENSITIVE) !== 0) {
+        newFlregex = '(?i)' + newFlregex
+      }
+      if ((flags & RE2Flags.DOTALL) !== 0) {
+        newFlregex = '(?s)' + newFlregex
+      }
+      if ((flags & RE2Flags.MULTILINE) !== 0) {
+        newFlregex = '(?m)' + newFlregex
+      }
+      if ((flags & ~(RE2Flags.MULTILINE | RE2Flags.DOTALL | RE2Flags.CASE_INSENSITIVE | RE2Flags.DISABLE_UNICODE_GROUPS | RE2Flags.LONGEST_MATCH)) !== 0) {
+        throw new Error(
+          'Flags should only be a combination '
+          + 'of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH'
+        )
+      }
+      return this.compile(newFlregex, regex, flags)
     }
-    if ((flags & Pattern.MULTILINE) !== 0) {
-      flregex = '(?m)' + flregex
-    }
-    if ((flags & ~(Pattern.MULTILINE | Pattern.DOTALL | Pattern.CASE_INSENSITIVE | Pattern.DISABLE_UNICODE_GROUPS | Pattern.LONGEST_MATCH)) !== 0) {
-      throw new Error('Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH')
-    }
+
     let re2Flags = RE2Flags.PERL
-    if ((flags & Pattern.DISABLE_UNICODE_GROUPS) !== 0) {
+    if ((flags & RE2Flags.DISABLE_UNICODE_GROUPS) !== 0) {
       re2Flags &= ~RE2Flags.UNICODE_GROUPS
     }
-    return new Pattern(regex, flags, RE2.compileImpl(flregex, re2Flags, (flags & Pattern.LONGEST_MATCH) !== 0))
+    return new Pattern(
+      regex, flags, RE2.compileImpl(flregex, re2Flags, (flags & RE2Flags.LONGEST_MATCH) !== 0)
+    )
   }
 
-  matches(regex, input) {
-    return Pattern.compile(regex).matcher(input).matches()
+  static matches(regex, input) {
+    return this.compile(regex).matcher(input).matches()
   }
 
-  matchesInput(input) {
+  matches(input) {
     return this.matcher(input).matches()
   }
 
   matcher(input) {
-    // Assumes Matcher and MatcherInput are defined and available in the current scope.
     if (input instanceof Uint8Array) {
       return new Matcher(this, MatcherInput.utf8(input))
+    } else if (typeof input === 'string' || input instanceof String) {
+      return new Matcher(this, input)
+    } else {
+      throw new Error('Invalid input type. Expected string or byte array.')
     }
-
-    return new Matcher(this, input)
   }
 
   split(input, limit = 0) {

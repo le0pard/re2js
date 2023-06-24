@@ -1,4 +1,4 @@
-import { Re2Flags } from './RE2Flags'
+import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { Utils } from './Utils'
 
@@ -123,7 +123,7 @@ class Regexp {
               out += '}'
               break
           }
-          if (this.flags & Re2Flags.NON_GREEDY) {
+          if (this.flags & RE2Flags.NON_GREEDY) {
             out += '?'
           }
           break
@@ -150,13 +150,13 @@ class Regexp {
           break
         }
       case Regexp.Op.LITERAL:
-        if (this.flags & Re2Flags.FOLD_CASE) {
+        if (this.flags & RE2Flags.FOLD_CASE) {
           out += '(?i:'
         }
         this.runes.forEach(rune => {
           out += Utils.escapeRune(rune)
         })
-        if (this.flags & Re2Flags.FOLD_CASE) {
+        if (this.flags & RE2Flags.FOLD_CASE) {
           out += ')'
         }
         break
@@ -181,7 +181,7 @@ class Regexp {
         out += '\\A'
         break
       case Regexp.Op.END_TEXT:
-        if (this.flags & Re2Flags.WAS_DOLLAR) {
+        if (this.flags & RE2Flags.WAS_DOLLAR) {
           out += '(?-m:$)'
         } else {
           out += '\\z'
@@ -262,7 +262,7 @@ class Regexp {
     let hashcode = this.getHashCode(this.op)
     switch (this.op) {
       case Regexp.Op.END_TEXT:
-        hashcode += 31 * (this.flags & Re2Flags.WAS_DOLLAR)
+        hashcode += 31 * (this.flags & RE2Flags.WAS_DOLLAR)
         break
       case Regexp.Op.LITERAL:
       case Regexp.Op.CHAR_CLASS:
@@ -275,7 +275,7 @@ class Regexp {
       case Regexp.Op.STAR:
       case Regexp.Op.PLUS:
       case Regexp.Op.QUEST:
-        hashcode += 31 * (this.flags & Re2Flags.NON_GREEDY) + 31 * this.subs[0].hashCode()
+        hashcode += 31 * (this.flags & RE2Flags.NON_GREEDY) + 31 * this.subs[0].hashCode()
         break
       case Regexp.Op.REPEAT:
         hashcode += 31 * this.min + 31 * this.max + 31 * this.subs[0].hashCode()
@@ -328,7 +328,7 @@ class Regexp {
     switch (x.op) {
       case Regexp.Op.END_TEXT:
         // The parse flags remember whether this is \z or \Z.
-        if ((x.flags & Re2Flags.WAS_DOLLAR) !== (y.flags & Re2Flags.WAS_DOLLAR)) {
+        if ((x.flags & RE2Flags.WAS_DOLLAR) !== (y.flags & RE2Flags.WAS_DOLLAR)) {
           return false
         }
         break
@@ -352,13 +352,13 @@ class Regexp {
       case Regexp.Op.STAR:
       case Regexp.Op.PLUS:
       case Regexp.Op.QUEST:
-        if ((x.flags & Re2Flags.NON_GREEDY) !== (y.flags & Re2Flags.NON_GREEDY)
+        if ((x.flags & RE2Flags.NON_GREEDY) !== (y.flags & RE2Flags.NON_GREEDY)
           || !x.subs[0].equals(y.subs[0])) {
           return false
         }
         break
       case Regexp.Op.REPEAT:
-        if ((x.flags & Re2Flags.NON_GREEDY) !== (y.flags & Re2Flags.NON_GREEDY)
+        if ((x.flags & RE2Flags.NON_GREEDY) !== (y.flags & RE2Flags.NON_GREEDY)
           || x.min !== y.min
           || x.max !== y.max
           || !x.subs[0].equals(y.subs[0])) {
