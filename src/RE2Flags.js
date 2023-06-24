@@ -8,6 +8,8 @@ class RE2Flags {
   static PERL_X = 64
   static UNICODE_GROUPS = 128
   static WAS_DOLLAR = 256
+  static MATCH_NL = RE2Flags.CLASS_NL | RE2Flags.DOT_NL
+  static PERL = RE2Flags.CLASS_NL | RE2Flags.ONE_LINE | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS
   static POSIX = 0
   static UNANCHORED = 0
   static ANCHOR_START = 1

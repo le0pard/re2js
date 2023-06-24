@@ -8,17 +8,17 @@ describe('.match', () => {
     ['a{4}', 'aaaa', true],
     ['a{1}', 'aaaa', false],
     ['[[:ascii:]]+', 'abcdef', true],
-    //['(?i)hello', 'Hello', true]
+    ['(?i)hello', 'Hello', true]
   ]
 
   test.each(cases)('regex %p with input %p, returns %p', (regex, input, expected) => {
     expect(RE2JS.compile(regex).match(input)).toEqual(expected)
   })
 
-  describe.skip('with flags', () => {
+  describe('with flags', () => {
     const flagsCases = [
       ['ab+c', Flags.CASE_INSENSITIVE, 'abBBc', true],
-      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', true],
+      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', false],
       ['^ab.*c$', Flags.DOTALL | Flags.MULTILINE, 'ab\nc', true]
     ]
 
@@ -44,7 +44,7 @@ describe('.extract', () => {
     expect(RE2JS.compile(regex).extract(input)).toEqual(expected)
   })
 
-  describe.skip('with flags', () => {
+  describe('with flags', () => {
     const flagsCases = [
       ['ab+c', Flags.CASE_INSENSITIVE, 'abBBc', 'abBBc'],
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', null]
@@ -75,7 +75,7 @@ describe('.replace', () => {
     }
   )
 
-  describe.skip('with flags', () => {
+  describe('with flags', () => {
     const flagsCases = [
       ['ab+c', Flags.CASE_INSENSITIVE, 'abBBc', '11', '11'],
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', '11', 'cbbba']

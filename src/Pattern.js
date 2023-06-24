@@ -15,6 +15,7 @@
  * @author rsc@google.com (Russ Cox)
  * @class
  */
+import { RE2Flags } from './RE2Flags'
 import { MatcherInput } from './MatcherInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
@@ -127,9 +128,9 @@ export class Pattern {
     return Pattern.compile$java_lang_String$java_lang_String$int(flregex, regex, flags)
   }
   static compile$java_lang_String$java_lang_String$int(flregex, regex, flags) {
-    let re2Flags = RE2.PERL_$LI$()
+    let re2Flags = RE2Flags.PERL
     if ((flags & Pattern.DISABLE_UNICODE_GROUPS) !== 0) {
-      re2Flags &= ~RE2.UNICODE_GROUPS
+      re2Flags &= ~RE2Flags.UNICODE_GROUPS
     }
     return new Pattern(
       regex,

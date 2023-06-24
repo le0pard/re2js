@@ -15,6 +15,7 @@
  * href='package.html'>package-level documentation</a> for an overview of how to use this API.
  * @class
  */
+import { RE2Flags } from './RE2Flags'
 import { Utils } from './Utils'
 import { MatcherInput } from './MatcherInput'
 import { MachineInput } from './MachineInput'
@@ -147,18 +148,6 @@ export class RE2 {
       throw new Error('invalid overload')
     }
   }
-  static MATCH_NL_$LI$() {
-    if (RE2.MATCH_NL == null) {
-      RE2.MATCH_NL = RE2.CLASS_NL | RE2.DOT_NL
-    }
-    return RE2.MATCH_NL
-  }
-  static PERL_$LI$() {
-    if (RE2.PERL == null) {
-      RE2.PERL = RE2.CLASS_NL | RE2.ONE_LINE | RE2.PERL_X | RE2.UNICODE_GROUPS
-    }
-    return RE2.PERL
-  }
   /**
    * Parses a regular expression and returns, if successful, an {@code RE2} instance that can be
    * used to match against text.
@@ -173,7 +162,7 @@ export class RE2 {
    * @return {RE2}
    */
   static compile(expr) {
-    return RE2.compileImpl(expr, RE2.PERL_$LI$(), false)
+    return RE2.compileImpl(expr, RE2Flags.PERL, false)
   }
   /**
    * {@code compilePOSIX} is like {@link #compile} but restricts the regular expression to POSIX ERE
@@ -196,7 +185,7 @@ export class RE2 {
    * @return {RE2}
    */
   static compilePOSIX(expr) {
-    return RE2.compileImpl(expr, RE2.POSIX, true)
+    return RE2.compileImpl(expr, RE2Flags.POSIX, true)
   }
   static compileImpl(expr, mode, longest) {
     let re = Parser.parse(expr, mode)
@@ -290,7 +279,8 @@ export class RE2 {
   }
   match$java_lang_CharSequence(s) {
     return (
-      this.doExecute(MachineInput.fromUTF16$java_lang_CharSequence(s), 0, RE2.UNANCHORED, 0) != null
+      this.doExecute(MachineInput.fromUTF16$java_lang_CharSequence(s), 0, RE2Flags.UNANCHORED, 0) !=
+      null
     )
   }
   match$java_lang_CharSequence$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
@@ -399,7 +389,7 @@ export class RE2 {
    * @return {boolean}
    */
   matchUTF8(b) {
-    return this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2.UNANCHORED, 0) != null
+    return this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, 0) != null
   }
   /**
    * Returns true iff textual regular expression {@code pattern} matches string {@code s}.
@@ -458,7 +448,7 @@ export class RE2 {
     let numReplaces = 0
     while (searchPos <= src.length) {
       {
-        const a = this.doExecute(input, searchPos, RE2.UNANCHORED, 2)
+        const a = this.doExecute(input, searchPos, RE2Flags.UNANCHORED, 2)
         if (a == null || a.length === 0) {
           break
         }
@@ -567,7 +557,7 @@ export class RE2 {
     }
     for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end; ) {
       {
-        const matches = this.doExecute(input, pos, RE2.UNANCHORED, this.prog.numCap)
+        const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
         if (matches == null || matches.length === 0) {
           break
         }
@@ -603,7 +593,7 @@ export class RE2 {
    * @return {byte[]}
    */
   findUTF8(b) {
-    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2.UNANCHORED, 2)
+    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, 2)
     if (a == null) {
       return null
     }
@@ -619,7 +609,7 @@ export class RE2 {
    * @return {int[]}
    */
   findUTF8Index(b) {
-    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2.UNANCHORED, 2)
+    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, 2)
     if (a == null) {
       return null
     }
@@ -637,7 +627,12 @@ export class RE2 {
    * @return {string}
    */
   find(s) {
-    const a = this.doExecute(MachineInput.fromUTF16$java_lang_CharSequence(s), 0, RE2.UNANCHORED, 2)
+    const a = this.doExecute(
+      MachineInput.fromUTF16$java_lang_CharSequence(s),
+      0,
+      RE2Flags.UNANCHORED,
+      2
+    )
     if (a == null) {
       return ''
     }
@@ -654,7 +649,12 @@ export class RE2 {
    * @return {int[]}
    */
   findIndex(s) {
-    return this.doExecute(MachineInput.fromUTF16$java_lang_CharSequence(s), 0, RE2.UNANCHORED, 2)
+    return this.doExecute(
+      MachineInput.fromUTF16$java_lang_CharSequence(s),
+      0,
+      RE2Flags.UNANCHORED,
+      2
+    )
   }
   /**
    * Returns an array of arrays the text of the leftmost match of the regular expression in
@@ -667,7 +667,12 @@ export class RE2 {
    * @return {byte[][]}
    */
   findUTF8Submatch(b) {
-    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2.UNANCHORED, this.prog.numCap)
+    const a = this.doExecute(
+      MachineInput.fromUTF8$byte_A(b),
+      0,
+      RE2Flags.UNANCHORED,
+      this.prog.numCap
+    )
     if (a == null) {
       return null
     }
@@ -699,7 +704,7 @@ export class RE2 {
    */
   findUTF8SubmatchIndex(b) {
     return this.pad(
-      this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2.UNANCHORED, this.prog.numCap)
+      this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
   /**
@@ -716,7 +721,7 @@ export class RE2 {
     const a = this.doExecute(
       MachineInput.fromUTF16$java_lang_CharSequence(s),
       0,
-      RE2.UNANCHORED,
+      RE2Flags.UNANCHORED,
       this.prog.numCap
     )
     if (a == null) {
@@ -753,7 +758,7 @@ export class RE2 {
       this.doExecute(
         MachineInput.fromUTF16$java_lang_CharSequence(s),
         0,
-        RE2.UNANCHORED,
+        RE2Flags.UNANCHORED,
         this.prog.numCap
       )
     )
