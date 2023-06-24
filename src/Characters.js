@@ -1,11 +1,16 @@
-class Characters {
-  static toLowerCase(codePoint) {
-    return String.fromCodePoint(codePoint).toLowerCase().codePointAt(0)
-  }
-
-  static toUpperCase(codePoint) {
-    return String.fromCodePoint(codePoint).toUpperCase().codePointAt(0)
-  }
+/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
+/**
+ * Wraps Character methods to be overridden for GWT.
+ * @class
+ */
+export class Characters {
+    constructor() {
+    }
+    static toLowerCase(codePoint) {
+        return /* codePointAt */ String.fromCharCode.apply(null, [codePoint]).substr(0, 1).toLowerCase().charCodeAt(0)
+    }
+    static toUpperCase(codePoint) {
+        return /* codePointAt */ String.fromCharCode.apply(null, [codePoint]).substr(0, 1).toUpperCase().charCodeAt(0)
+    }
 }
-
-export { Characters }
+Characters['__class'] = 'quickstart.Characters'

@@ -1,29 +1,16 @@
 import { Pattern } from './Pattern'
 
+const Flags = {
+  CASE_INSENSITIVE: Pattern.CASE_INSENSITIVE,
+  DOTALL: Pattern.DOTALL,
+  MULTILINE: Pattern.MULTILINE,
+  DISABLE_UNICODE_GROUPS: Pattern.DISABLE_UNICODE_GROUPS,
+  LONGEST_MATCH: Pattern.LONGEST_MATCH
+}
+
 class RE2JS {
-  static match(regex, input) {
-    const pattern = Pattern.compile(regex)
-    const matcher = pattern.matcher(input)
-    return matcher.matches()
-  }
-
-  static extract(regex, input) {
-    const pattern = Pattern.compile(regex)
-    const matcher = pattern.matcher(input)
-    if (matcher.find()) {
-      return matcher.group()
-    }
-    return null
-  }
-
-  static replace(regex, input, replacement) {
-    const pattern = Pattern.compile(regex)
-    const matcher = pattern.matcher(input)
-    return matcher.replaceAll(replacement)
-  }
-
-  static compile(regex) {
-    const pattern = Pattern.compile(regex)
+  static compile(regex, flags = null) {
+    const pattern = Pattern.compile(regex, flags)
 
     return {
       match: (input) => {
@@ -45,4 +32,4 @@ class RE2JS {
   }
 }
 
-export { RE2JS }
+export { RE2JS, Flags }

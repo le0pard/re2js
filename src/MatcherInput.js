@@ -1,125 +1,119 @@
-class MatcherInput {
-  static ENCODING = Object.freeze({
-    UTF_16: 'UTF-16',
-    UTF_8: 'UTF-8'
-  })
-
-  constructor() {
-    if (new.target === MatcherInput) {
-      throw new TypeError('Abstract class "MatcherInput" cannot be instantiated directly.')
+/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
+/**
+ * Abstract the representations of input text supplied to Matcher.
+ * @class
+ */
+export class MatcherInput {
+    /**
+     * Return the MatcherInput for UTF_16 encoding.
+     * @param {*} charSequence
+     * @return {MatcherInput}
+     */
+    static utf16(charSequence) {
+        return new MatcherInput.Utf16MatcherInput(charSequence)
     }
-  }
-
-  static utf16(charSequence) {
-    return new Utf16MatcherInput(charSequence)
-  }
-
-  static utf8(input) {
-    if (input instanceof Uint8Array) {
-      return new Utf8MatcherInput(input)
-    } else {
-      let encoder = new TextEncoder()
-      return new Utf8MatcherInput(encoder.encode(input))
+    static utf8$byte_A(bytes) {
+        return new MatcherInput.Utf8MatcherInput(bytes)
     }
-  }
-
-  getEncoding() {
-    throw new TypeError('You must implement method "getEncoding"')
-  }
-
-  asCharSequence() {
-    throw new TypeError('You must implement method "asCharSequence"')
-  }
-
-  asBytes() {
-    throw new TypeError('You must implement method "asBytes"')
-  }
-
-  length() {
-    throw new TypeError('You must implement method "length"')
-  }
-}
-
-class Utf8MatcherInput extends MatcherInput {
-  constructor(bytes) {
-    super()
-    this.bytes = bytes
-  }
-
-  getEncoding() {
-    return MatcherInput.ENCODING.UTF_8
-  }
-
-  asCharSequence() {
-    let decoder = new TextDecoder('utf-8')
-    return decoder.decode(this.bytes)
-  }
-
-  asBytes() {
-    return this.bytes
-  }
-
-  length() {
-    return this.bytes.length
-  }
-}
-
-class Utf16MatcherInput extends MatcherInput {
-  constructor(charSequence) {
-    super()
-    this.charSequence = charSequence
-  }
-
-  getEncoding() {
-    return MatcherInput.ENCODING.UTF_16
-  }
-
-  asCharSequence() {
-    return this.charSequence
-  }
-
-  asBytes() {
-    return this._stringToUtf16Bytes(this.charSequence)
-  }
-
-  length() {
-    return this.charSequence.length
-  }
-
-  _stringToUtf16Bytes(str) {
-    let arr = []
-    for (let i = 0; i < str.length; i++) {
-      let codePoint = str.codePointAt(i)
-
-      if (codePoint > 0xFFFF) {
-        arr.push(this.highSurrogate(codePoint))
-        arr.push(this.lowSurrogate(codePoint))
-        i++ // Surrogate pair, so skip one unit
-      } else {
-        arr.push(codePoint)
-      }
+    /**
+     * Return the MatcherInput for UTF_8 encoding.
+     * @param {byte[]} bytes
+     * @return {MatcherInput}
+     */
+    static utf8(bytes) {
+        if (((bytes != null && bytes instanceof Array && (bytes.length == 0 || bytes[0] == null || (typeof bytes[0] === 'number'))) || bytes === null)) {
+            return MatcherInput.utf8$byte_A(bytes)
+        } else if (((typeof bytes === 'string') || bytes === null)) {
+            return MatcherInput.utf8$java_lang_String(bytes)
+        } else {throw new Error('invalid overload')}
     }
-
-    let byteArray = new Uint8Array(arr.length * 2)
-    for (let i = 0; i < arr.length; i++) {
-      let charCode = arr[i]
-      byteArray[i * 2] = charCode & 0xFF
-      byteArray[i * 2 + 1] = charCode >> 8
+    static utf8$java_lang_String(input) {
+        return new MatcherInput.Utf8MatcherInput(/* getBytes */ (input).split('').map(s => s.charCodeAt(0)))
     }
-    return byteArray
-  }
-
-  highSurrogate(codePoint) {
-    return Math.floor((codePoint - 0x10000) / 0x400) + 0xD800
-  }
-
-  lowSurrogate(codePoint) {
-    return ((codePoint - 0x10000) % 0x400) + 0xDC00
-  }
 }
-
-export {
-  MatcherInput,
-  Utf8MatcherInput,
-  Utf16MatcherInput
-}
+MatcherInput['__class'] = 'quickstart.MatcherInput';
+(function(MatcherInput) {
+    let Encoding;
+    (function(Encoding) {
+        Encoding[Encoding['UTF_16'] = 0] = 'UTF_16'
+        Encoding[Encoding['UTF_8'] = 1] = 'UTF_8'
+    })(Encoding = MatcherInput.Encoding || (MatcherInput.Encoding = {}))
+    class Utf8MatcherInput extends MatcherInput {
+        constructor(bytes) {
+            super()
+            if (this.bytes === undefined) {
+                this.bytes = null
+            }
+            this.bytes = bytes
+        }
+        /**
+         *
+         * @return {MatcherInput.Encoding}
+         */
+        getEncoding() {
+            return MatcherInput.Encoding.UTF_8
+        }
+        /**
+         *
+         * @return {*}
+         */
+        asCharSequence() {
+            return String.fromCharCode.apply(null, this.bytes)
+        }
+        /**
+         *
+         * @return {byte[]}
+         */
+        asBytes() {
+            return this.bytes
+        }
+        /**
+         *
+         * @return {number}
+         */
+        length() {
+            return this.bytes.length
+        }
+    }
+    MatcherInput.Utf8MatcherInput = Utf8MatcherInput
+    Utf8MatcherInput['__class'] = 'quickstart.MatcherInput.Utf8MatcherInput'
+    class Utf16MatcherInput extends MatcherInput {
+        constructor(charSequence) {
+            super()
+            if (this.charSequence === undefined) {
+                this.charSequence = null
+            }
+            this.charSequence = charSequence
+        }
+        /**
+         *
+         * @return {MatcherInput.Encoding}
+         */
+        getEncoding() {
+            return MatcherInput.Encoding.UTF_16
+        }
+        /**
+         *
+         * @return {*}
+         */
+        asCharSequence() {
+            return this.charSequence
+        }
+        /**
+         *
+         * @return {byte[]}
+         */
+        asBytes() {
+            return /* getBytes */ (this.charSequence.toString()).split('').map(s => s.charCodeAt(0))
+        }
+        /**
+         *
+         * @return {number}
+         */
+        length() {
+            return this.charSequence.length
+        }
+    }
+    MatcherInput.Utf16MatcherInput = Utf16MatcherInput
+    Utf16MatcherInput['__class'] = 'quickstart.MatcherInput.Utf16MatcherInput'
+})(MatcherInput || (MatcherInput = {}))
