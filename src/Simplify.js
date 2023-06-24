@@ -119,4 +119,3 @@ export class Simplify {
   constructor() {}
 }
 Simplify['__class'] = 'quickstart.Simplify'
-

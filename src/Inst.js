@@ -148,4 +148,3 @@ Inst.RUNE1 = 9
 Inst.RUNE_ANY = 10
 Inst.RUNE_ANY_NOT_NL = 11
 Inst['__class'] = 'quickstart.Inst'
-

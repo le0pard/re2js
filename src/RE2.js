@@ -607,7 +607,7 @@ export class RE2 {
     if (a == null) {
       return null
     }
-    return Utils.subarray$byte_A$int$int(b, a[0], a[1])
+    return Utils.subarray(b, a[0], a[1])
   }
   /**
    * Returns a two-element array of integers defining the location of the leftmost match in
@@ -623,7 +623,7 @@ export class RE2 {
     if (a == null) {
       return null
     }
-    return Utils.subarray$int_A$int$int(a, 0, 2)
+    return Utils.subarray(a, 0, 2)
   }
   /**
    * Returns a string holding the text of the leftmost match in {@code s} of this regular
@@ -681,7 +681,7 @@ export class RE2 {
     for (let i = 0; i < ret.length; i++) {
       {
         if (2 * i < a.length && a[2 * i] >= 0) {
-          ret[i] = Utils.subarray$byte_A$int$int(b, a[2 * i], a[2 * i + 1])
+          ret[i] = Utils.subarray(b, a[2 * i], a[2 * i + 1])
         }
       }
     }
@@ -975,7 +975,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(Utils.subarray$byte_A$int$int(this.b, match[0], match[1])) > 0
+      /* add */ this.result.push(Utils.subarray(this.b, match[0], match[1])) > 0
     }
   }
   RE2.RE2$2 = RE2$2
@@ -990,7 +990,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(Utils.subarray$int_A$int$int(match, 0, 2)) > 0
+      /* add */ this.result.push(Utils.subarray(match, 0, 2)) > 0
     }
   }
   RE2.RE2$3 = RE2$3
@@ -1047,7 +1047,7 @@ RE2['__class'] = 'quickstart.RE2'
       for (let j = 0; j < slice.length; ++j) {
         {
           if (match[2 * j] >= 0) {
-            slice[j] = Utils.subarray$byte_A$int$int(this.b, match[2 * j], match[2 * j + 1])
+            slice[j] = Utils.subarray(this.b, match[2 * j], match[2 * j + 1])
           }
         }
       }
@@ -1117,4 +1117,3 @@ RE2['__class'] = 'quickstart.RE2'
   RE2.RE2$9 = RE2$9
   RE2$9['__interfaces'] = ['quickstart.RE2.DeliverFunc']
 })(RE2 || (RE2 = {}))
-

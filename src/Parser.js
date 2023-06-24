@@ -342,7 +342,7 @@ export class Parser {
         } else {
           const prefix = this.newRegexp(Regexp.Op.LITERAL)
           prefix.flags = strflags
-          prefix.runes = Utils.subarray$int_A$int$int(str, 0, strlen)
+          prefix.runes = Utils.subarray(str, 0, strlen)
           for (let j = start; j < i; j++) {
             {
               array[s + j] = this.removeLeadingString(array[s + j], strlen)
@@ -500,7 +500,7 @@ export class Parser {
       return re
     }
     if (re.op === Regexp.Op.LITERAL) {
-      re.runes = Utils.subarray$int_A$int$int(re.runes, n, re.runes.length)
+      re.runes = Utils.subarray(re.runes, n, re.runes.length)
       if (re.runes.length === 0) {
         re.op = Regexp.Op.EMPTY_MATCH
       }

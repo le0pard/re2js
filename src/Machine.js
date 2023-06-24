@@ -134,7 +134,7 @@ export class Machine {
   }
   submatches() {
     if (this.ncap === 0) {
-      return Utils.EMPTY_INTS_$LI$()
+      return Utils.EMPTY_INTS
     }
     return /* copyOf */ this.matchcap.slice(0, this.ncap)
   }
@@ -555,4 +555,3 @@ Machine['__class'] = 'quickstart.Machine'
   Machine.Queue = Queue
   Queue['__class'] = 'quickstart.Machine.Queue'
 })(Machine || (Machine = {}))
-

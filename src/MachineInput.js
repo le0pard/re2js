@@ -371,4 +371,3 @@ MachineInput['__class'] = 'quickstart.MachineInput'
   MachineInput.UTF16Input = UTF16Input
   UTF16Input['__class'] = 'quickstart.MachineInput.UTF16Input'
 })(MachineInput || (MachineInput = {}))
-

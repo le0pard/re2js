@@ -34,7 +34,7 @@ export class CharClass {
       if (this.len === undefined) {
         this.len = 0
       }
-      this.r = Utils.EMPTY_INTS_$LI$()
+      this.r = Utils.EMPTY_INTS
       this.len = 0
     } else {
       throw new Error('invalid overload')

@@ -449,4 +449,3 @@ Pattern.DISABLE_UNICODE_GROUPS = 8
 Pattern.LONGEST_MATCH = 16
 Pattern.serialVersionUID = 0
 Pattern['__class'] = 'quickstart.Pattern'
-

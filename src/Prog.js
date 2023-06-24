@@ -166,4 +166,3 @@ export class Prog {
   }
 }
 Prog['__class'] = 'quickstart.Prog'
-

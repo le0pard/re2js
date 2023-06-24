@@ -694,4 +694,3 @@ Regexp['__class'] = 'quickstart.Regexp'
     20: new Op_$WRAPPER(20, 'VERTICAL_BAR')
   }
 })(Regexp || (Regexp = {}))
-
