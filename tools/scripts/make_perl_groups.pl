@@ -116,5 +116,5 @@ PrintClasses("posix", @posixclasses);
 
 print <<EOF;
 
-export { CharGroup, PERL_GROUPS, POSIX_GROUPS }
+export { PERL_GROUPS, POSIX_GROUPS }
 EOF

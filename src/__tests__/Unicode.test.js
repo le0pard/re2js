@@ -19,13 +19,7 @@ const genEqualsIgnoreCases = () => {
 
   for (let r = 'a'.codePointAt(0); r <= 'z'.codePointAt(0); r++) {
     const u = r - ('a'.codePointAt(0) - 'A'.codePointAt(0))
-    testCases = [
-      ...testCases,
-      [r, r, true],
-      [u, u, true],
-      [r, u, true],
-      [u, r, true]
-    ]
+    testCases = [...testCases, [r, r, true], [u, u, true], [r, u, true], [u, r, true]]
   }
 
   return testCases
@@ -33,11 +27,8 @@ const genEqualsIgnoreCases = () => {
 
 describe('Unicode', () => {
   describe('#equalsIgnoreCase', () => {
-    test.each(genEqualsIgnoreCases())(
-      '#equalsIgnoreCase(%i, %i) === %p',
-      (r1, r2, expected) => {
-        expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
-      }
-    )
+    test.each(genEqualsIgnoreCases())('#equalsIgnoreCase(%i, %i) === %p', (r1, r2, expected) => {
+      expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
+    })
   })
 })

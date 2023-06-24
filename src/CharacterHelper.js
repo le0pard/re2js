@@ -8,7 +8,7 @@ class CharacterHelper {
   }
 
   static charCount(codePoint) {
-    return codePoint > 0xFFFF ? 2 : 1
+    return codePoint > 0xffff ? 2 : 1
   }
 }
 

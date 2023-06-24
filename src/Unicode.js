@@ -3,11 +3,11 @@ import { UnicodeTables } from './UnicodeTables'
 
 class Unicode {
   // The highest legal rune value.
-  static MAX_RUNE = 0x10FFFF
+  static MAX_RUNE = 0x10ffff
   // The highest legal ASCII value.
   static MAX_ASCII = 0x7f
   // The highest legal Latin-1 value.
-  static MAX_LATIN1 = 0xFF
+  static MAX_LATIN1 = 0xff
   // Minimum and maximum runes involved in folding.
   // Checked during test.
   static MIN_FOLD = 0x0041
@@ -21,11 +21,11 @@ class Unicode {
   // TODO(adonovan): opt: consider using int[n*3] instead of int[n][3].
   static is32(ranges, r) {
     // binary search over ranges
-    for (let lo = 0, hi = ranges.length; lo < hi;) {
+    for (let lo = 0, hi = ranges.length; lo < hi; ) {
       let m = lo + Math.floor((hi - lo) / 2)
       let range = ranges[m]
       if (range[0] <= r && r <= range[1]) {
-        return ((r - range[0]) % range[2]) === 0
+        return (r - range[0]) % range[2] === 0
       }
       if (r < range[0]) {
         hi = m
@@ -40,14 +40,15 @@ class Unicode {
   static is(ranges, r) {
     // common case: rune is ASCII or Latin-1, so use linear search.
     if (r <= this.MAX_LATIN1) {
-      for (let range of ranges) { // range = [lo, hi, stride]
+      for (let range of ranges) {
+        // range = [lo, hi, stride]
         if (r > range[1]) {
           continue
         }
         if (r < range[0]) {
           return false
         }
-        return ((r - range[0]) % range[2]) === 0
+        return (r - range[0]) % range[2] === 0
       }
       return false
     }
@@ -67,13 +68,15 @@ class Unicode {
   // isPrint reports whether the rune is printable (Unicode L/M/N/P/S or ' ').
   static isPrint(r) {
     if (r <= this.MAX_LATIN1) {
-      return (r >= 0x20 && r < 0x7F) || (r >= 0xA1 && r !== 0xAD)
+      return (r >= 0x20 && r < 0x7f) || (r >= 0xa1 && r !== 0xad)
     }
-    return this.is(UnicodeTables.L, r)
-      || this.is(UnicodeTables.M, r)
-      || this.is(UnicodeTables.N, r)
-      || this.is(UnicodeTables.P, r)
-      || this.is(UnicodeTables.S, r)
+    return (
+      this.is(UnicodeTables.L, r) ||
+      this.is(UnicodeTables.M, r) ||
+      this.is(UnicodeTables.N, r) ||
+      this.is(UnicodeTables.P, r) ||
+      this.is(UnicodeTables.S, r)
+    )
   }
 
   // simpleFold iterates over Unicode code points equivalent under

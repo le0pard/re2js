@@ -21,9 +21,12 @@ describe('.match', () => {
       ['^ab.*c$', Flags.DOTALL | Flags.MULTILINE, 'ab\nc', true]
     ]
 
-    test.each(flagsCases)('regex %p with flags %p and input %p, returns %p', (regex, flags, input, expected) => {
-      expect(RE2JS.compile(regex, flags).match(input)).toEqual(expected)
-    })
+    test.each(flagsCases)(
+      'regex %p with flags %p and input %p, returns %p',
+      (regex, flags, input, expected) => {
+        expect(RE2JS.compile(regex, flags).match(input)).toEqual(expected)
+      }
+    )
   })
 })
 
@@ -46,9 +49,12 @@ describe('.extract', () => {
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', null]
     ]
 
-    test.each(flagsCases)('regex %p with flags %p and input %p, returns %p', (regex, flags, input, expected) => {
-      expect(RE2JS.compile(regex, flags).extract(input)).toEqual(expected)
-    })
+    test.each(flagsCases)(
+      'regex %p with flags %p and input %p, returns %p',
+      (regex, flags, input, expected) => {
+        expect(RE2JS.compile(regex, flags).extract(input)).toEqual(expected)
+      }
+    )
   })
 })
 
@@ -61,9 +67,12 @@ describe('.replace', () => {
     ['b{1}', 'aaaa', 'c', 'aaaa']
   ]
 
-  test.each(cases)('regex %p with input %p and replace %p, returns %p', (regex, input, replace, expected) => {
-    expect(RE2JS.compile(regex).replace(input, replace)).toEqual(expected)
-  })
+  test.each(cases)(
+    'regex %p with input %p and replace %p, returns %p',
+    (regex, input, replace, expected) => {
+      expect(RE2JS.compile(regex).replace(input, replace)).toEqual(expected)
+    }
+  )
 
   describe.skip('with flags', () => {
     const flagsCases = [
@@ -71,8 +80,11 @@ describe('.replace', () => {
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', '11', 'cbbba']
     ]
 
-    test.each(flagsCases)('regex %p with input %p and replace %p, returns %p', (regex, flags, input, replace, expected) => {
-      expect(RE2JS.compile(regex, flags).replace(input, replace)).toEqual(expected)
-    })
+    test.each(flagsCases)(
+      'regex %p with input %p and replace %p, returns %p',
+      (regex, flags, input, replace, expected) => {
+        expect(RE2JS.compile(regex, flags).replace(input, replace)).toEqual(expected)
+      }
+    )
   })
 })

@@ -26,7 +26,11 @@ class Utils {
 
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
-    return (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) || (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT) || (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT)
+    return (
+      (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) ||
+      (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT) ||
+      (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT)
+    )
   }
 
   // If |c| is an ASCII hex digit, returns its value, otherwise -1.
@@ -77,20 +81,19 @@ class Utils {
           case 12: // '\f'
             out += '\\f'
             break
-          default:
-            {
-              let s = rune.toString(16)
-              if (rune < 0x100) {
-                out += '\\x'
-                if (s.length === 1) {
-                  out += '0'
-                }
-                out += s
-              } else {
-                out += '\\x{' + s + '}'
+          default: {
+            let s = rune.toString(16)
+            if (rune < 0x100) {
+              out += '\\x'
+              if (s.length === 1) {
+                out += '0'
               }
-              break
+              out += s
+            } else {
+              out += '\\x{' + s + '}'
             }
+            break
+          }
         }
       }
     }
@@ -126,7 +129,12 @@ class Utils {
   // during the evaluation of the \b and \B zero-width assertions.
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
   static isWordRune(r) {
-    return ((this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) || (this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) || (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) || r === this.UNDERSCORE_CODEPOINT)
+    return (
+      (this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) ||
+      (this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) ||
+      (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) ||
+      r === this.UNDERSCORE_CODEPOINT
+    )
   }
 
   // emptyOpContext returns the zero-width assertions satisfied at the position
