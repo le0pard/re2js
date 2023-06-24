@@ -7,8 +7,8 @@ describe('.match', () => {
     ['a*', 'aaaa', true],
     ['a{4}', 'aaaa', true],
     ['a{1}', 'aaaa', false],
-    ['[[:ascii:]]+', 'abcdef', true]
-    // ['(?i)a{2}', 'AA', true]
+    ['[[:ascii:]]+', 'abcdef', true],
+    //['(?i)hello', 'Hello', true]
   ]
 
   test.each(cases)('regex %p with input %p, returns %p', (regex, input, expected) => {
