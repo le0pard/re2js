@@ -5,6 +5,7 @@ class Utils {
 
   static METACHARACTERS = '\\.+*?()|[]{}^$'
 
+  //// EMPTY_* flags
   static EMPTY_BEGIN_LINE = 0x01
   static EMPTY_END_LINE = 0x02
   static EMPTY_BEGIN_TEXT = 0x04

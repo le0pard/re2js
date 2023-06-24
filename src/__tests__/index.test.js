@@ -7,6 +7,7 @@ describe('.match', () => {
     ['a*', 'aaaa', true],
     ['a{4}', 'aaaa', true],
     ['a{1}', 'aaaa', false],
+    ['^ab.*c$', 'ab\nc', false],
     ['[[:ascii:]]+', 'abcdef', true],
     ['(?i)hello', 'Hello', true]
   ]
