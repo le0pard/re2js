@@ -1026,7 +1026,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(Utils.subarray$int_A$int$int(match, 0, 2)) > 0
+      /* add */ this.result.push(Utils.subarray(match, 0, 2)) > 0
     }
   }
   RE2.RE2$5 = RE2$5

@@ -23,7 +23,7 @@ class Utils {
   static F_UPPER_CODEPOINT = 'F'.codePointAt(0)
   static F_LOWER_CODEPOINT = 'f'.codePointAt(0)
   static UNDERSCORE_CODEPOINT = '_'.codePointAt(0)
-  static NEW_LINE_CODEPOINT = '\n'.charCodeAt(0)
+  static NEW_LINE_CODEPOINT = '\n'.codePointAt(0)
 
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
@@ -50,55 +50,50 @@ class Utils {
 
   // Appends a RE2 literal to |out| for rune |rune|,
   // with regexp metacharacters escaped.
-  static escapeRune(str) {
-    let out = ''
-    for (let i = 0; i < str.length; i++) {
-      let rune = str.charCodeAt(i)
-      if (Unicode.isPrint(rune)) {
-        if (this.METACHARACTERS.indexOf(String.fromCharCode(rune)) >= 0) {
-          out += '\\'
-        }
-        out += String.fromCodePoint(rune)
-      } else {
-        switch (rune) {
-          case 34: // '"'
-            out += '\\"'
-            break
-          case 92: // '\\'
-            out += '\\\\'
-            break
-          case 9: // '\t'
-            out += '\\t'
-            break
-          case 10: // '\n'
-            out += '\\n'
-            break
-          case 13: // '\r'
-            out += '\\r'
-            break
-          case 8: // '\b'
-            out += '\\b'
-            break
-          case 12: // '\f'
-            out += '\\f'
-            break
-          default: {
-            let s = rune.toString(16)
-            if (rune < 0x100) {
-              out += '\\x'
-              if (s.length === 1) {
-                out += '0'
-              }
-              out += s
-            } else {
-              out += '\\x{' + s + '}'
+  static escapeRune(out, rune) {
+    if (Unicode.isPrint(rune)) {
+      if (this.METACHARACTERS.indexOf(String.fromCodePoint(rune)) >= 0) {
+        out.str += '\\'
+      }
+      out.str += String.fromCodePoint(rune)
+    } else {
+      switch (rune) {
+        case 34: // '"'
+          out.str += '\\"'
+          break
+        case 92: // '\\'
+          out.str += '\\\\'
+          break
+        case 9: // '\t'
+          out.str += '\\t'
+          break
+        case 10: // '\n'
+          out.str += '\\n'
+          break
+        case 13: // '\r'
+          out.str += '\\r'
+          break
+        case 8: // '\b'
+          out.str += '\\b'
+          break
+        case 12: // '\f'
+          out.str += '\\f'
+          break
+        default: {
+          let s = rune.toString(16)
+          if (rune < 0x100) {
+            out.str += '\\x'
+            if (s.length === 1) {
+              out.str += '0'
             }
-            break
+            out.str += s
+          } else {
+            out.str += '\\x{' + s + '}'
           }
+          break
         }
       }
     }
-    return out
   }
 
   // Returns the array of runes in the specified Java UTF-16 string.
