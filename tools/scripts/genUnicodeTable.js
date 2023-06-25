@@ -1,5 +1,6 @@
 import unicode from '@unicode/unicode-15.0.0'
-import CaseFolding from '@unicode/unicode-15.0.0/Case_Folding/C/code-points.js'
+import CommonCaseFolding from '@unicode/unicode-15.0.0/Case_Folding/C/code-points.js'
+import SimpleCaseFolding from '@unicode/unicode-15.0.0/Case_Folding/S/code-points.js'
 import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 
@@ -14,11 +15,11 @@ const generateCaseFoldOrbits = () => {
   let orbits = new Map()
 
   for (let i = 0; i < 0x10FFFF; i++) {
-    if (!CaseFolding.has(i)) {
+    if (!CommonCaseFolding.has(i) && !SimpleCaseFolding.has(i)) {
       continue
     }
 
-    const f = CaseFolding.get(i)
+    const f = CommonCaseFolding.get(i) || SimpleCaseFolding.get(i)
 
     let orbit = orbits.get(f) || new Set()
     orbit.add(f)

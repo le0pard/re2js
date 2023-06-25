@@ -234,8 +234,27 @@ export class CharClass {
 
     for (let c = lo; c <= hi; c++) {
       this.appendRange(c, c)
+
+      let wasPassedFold = false
+      const foldC = Unicode.simpleFold(c)
+
       for (let f = Unicode.simpleFold(c); f !== c; f = Unicode.simpleFold(f)) {
         this.appendRange(f, f)
+        // issues with unicode
+        // 'İ' -> String.fromCharCode(304)
+        // toLowerCase()
+        // 'i' -> String.fromCodePoint(105)
+        // toUpperCase()
+        // 'I' -> String.fromCodePoint(73)
+        // toLowerCase()
+        // 'i' -> String.fromCodePoint(105) - infinit loop, because 304 !== 73 | 105
+        if (foldC === f) {
+          if (!wasPassedFold) {
+            wasPassedFold = true
+          } else {
+            break
+          }
+        }
       }
     }
     return this
