@@ -7,6 +7,17 @@ import lodash from 'lodash'
 
 import { CodepointRange } from './codepointRange.js'
 
+const MAX_CODE_POINT = 0x10FFFF
+
+const SKIP_CATEGORIES = [
+  'cntrl',
+  'Cn',
+  'LC',
+  'Combining_Mark',
+  'digit',
+  'punct'
+]
+
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
 const toUpperCase = (codepoint) => {
@@ -35,7 +46,7 @@ const toLowerCase = (codepoint) => {
 const generateCaseFoldOrbits = () => {
   let orbits = new Map()
 
-  for (let i = 0; i < 0x10FFFF; i++) {
+  for (let i = 0; i < MAX_CODE_POINT; i++) {
     if (!CommonCaseFolding.has(i) && !SimpleCaseFolding.has(i)) {
       continue
     }
@@ -48,7 +59,7 @@ const generateCaseFoldOrbits = () => {
     orbits.set(f, orbit)
   }
 
-  for (let i = 0; i < 0x10FFFF; i++) {
+  for (let i = 0; i < MAX_CODE_POINT; i++) {
     if(!orbits.has(i)) {
       continue
     }
@@ -153,6 +164,10 @@ for (const [key, value] of sortedOrbits.entries()) {
 code = [...code, '  ])']
 
 for (const [alias, name] of aliasesToNames.entries()) {
+  if (SKIP_CATEGORIES.includes(alias)) {
+    continue
+  }
+
   const codePoints = await getCodePoints('General_Category', name)
   const res = await genRanges(codePoints)
   code = [...code, `  static ${alias} = ${JSON.stringify(res)}`]
@@ -171,6 +186,7 @@ for (const [alias, name] of aliasesToNames.entries()) {
 for (const name of unicode['Script']) {
   const codePoints = await getCodePoints('Script', name)
   const res = await genRanges(codePoints)
+
   code = [...code, `  static ${name} = ${JSON.stringify(res)}`]
   scriptsCode = [...scriptsCode, `  ['${name}', UnicodeTables.${name}],`]
 
