@@ -1,6 +1,6 @@
 import { expect, describe } from '@jest/globals'
 import { Unicode } from '../Unicode'
-import { codePoint } from '../helpers/chars'
+import { codePoint } from '../__utils__/chars'
 
 const genEqualsIgnoreCases = () => {
   let testCases = [
@@ -26,10 +26,8 @@ const genEqualsIgnoreCases = () => {
   return testCases
 }
 
-describe('Unicode', () => {
-  describe('#equalsIgnoreCase', () => {
-    test.each(genEqualsIgnoreCases())('#equalsIgnoreCase(%i, %i) === %p', (r1, r2, expected) => {
-      expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
-    })
+describe('#equalsIgnoreCase', () => {
+  test.each(genEqualsIgnoreCases())('#equalsIgnoreCase(%i, %i) === %p', (r1, r2, expected) => {
+    expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
   })
 })

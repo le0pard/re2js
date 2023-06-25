@@ -62,10 +62,9 @@ class Unicode {
 
   // isUpper reports whether the rune is an upper case letter.
   static isUpper(r) {
-    // See comment in isGraphic.
     if (r <= this.MAX_LATIN1) {
       const s = String.fromCodePoint(r)
-      return s.toUpperCase() === s
+      return s.toUpperCase() === s && s.toLowerCase() !== s
     }
     return this.is(UnicodeTables.Upper, r)
   }

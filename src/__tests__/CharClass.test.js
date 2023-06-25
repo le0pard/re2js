@@ -4,7 +4,7 @@ import { PERL_GROUPS } from '../CharGroup'
 import { CharClass } from '../CharClass'
 import { Unicode } from '../Unicode'
 import { Utils } from '../Utils'
-import { codePoint } from '../helpers/chars'
+import { codePoint } from '../__utils__/chars'
 
 describe('.cleanClass', () => {
   const cases = [

@@ -37,7 +37,7 @@ export class Regexp {
       if (this.name === undefined) {
         this.name = null
       }
-      this.namedGroups = /* emptyMap */ {}
+      this.namedGroups = new Map()
       this.op = op
     } else if ((op != null && op instanceof Regexp) || op === null) {
       let __args = arguments
@@ -66,7 +66,7 @@ export class Regexp {
       if (this.name === undefined) {
         this.name = null
       }
-      this.namedGroups = /* emptyMap */ {}
+      this.namedGroups = new Map()
       this.op = that.op
       this.flags = that.flags
       this.subs = that.subs
@@ -92,7 +92,7 @@ export class Regexp {
     this.min = 0
     this.max = 0
     this.name = null
-    this.namedGroups = /* emptyMap */ {}
+    this.namedGroups = new Map()
   }
   /**
    *

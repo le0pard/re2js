@@ -30,7 +30,7 @@ export class Parser {
       this.free = null
     }
     this.numCap = 0
-    this.namedGroups = {}
+    this.namedGroups = new Map()
     this.wholeRegexp = wholeRegexp
     this.flags = flags
   }
@@ -786,9 +786,10 @@ export class Parser {
       }
       const re = this.op(Regexp.Op.LEFT_PAREN)
       re.cap = ++this.numCap
-      if (/* put */ (this.namedGroups[name] = this.numCap) != null) {
+      if (this.namedGroups.has(name)) {
         throw new PatternSyntaxException(Parser.ERR_DUPLICATE_NAMED_CAPTURE, name)
       }
+      this.namedGroups.set(name, this.numCap)
       re.name = name
       return
     }
@@ -1153,10 +1154,13 @@ export class Parser {
       return Parser.Pair.of(Parser.ANY_TABLE_$LI$(), Parser.ANY_TABLE_$LI$())
     }
     if (UnicodeTables.CATEGORIES.has(name)) {
-      return Parser.Pair.of(table, UnicodeTables.FOLD_CATEGORIES.get(name))
+      return Parser.Pair.of(
+        UnicodeTables.CATEGORIES.get(name),
+        UnicodeTables.FOLD_CATEGORIES.get(name)
+      )
     }
     if (UnicodeTables.SCRIPTS.has(name)) {
-      return Parser.Pair.of(table, UnicodeTables.FOLD_SCRIPT.get(name))
+      return Parser.Pair.of(UnicodeTables.SCRIPTS.get(name), UnicodeTables.FOLD_SCRIPT.get(name))
     }
     return null
   }

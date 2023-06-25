@@ -34,7 +34,9 @@ export class CharClass {
       }
       this.r = Utils.EMPTY_INTS
       this.len = 0
-    } else throw new Error('invalid overload')
+    } else {
+      throw new Error('invalid overload')
+    }
   }
 
   static charClassToString(r, len) {
@@ -239,7 +241,6 @@ export class CharClass {
       const foldC = Unicode.simpleFold(c)
 
       for (let f = Unicode.simpleFold(c); f !== c; f = Unicode.simpleFold(f)) {
-        this.appendRange(f, f)
         // issues with unicode
         // 'İ' -> String.fromCharCode(304)
         // toLowerCase()
@@ -255,6 +256,8 @@ export class CharClass {
             break
           }
         }
+        //append
+        this.appendRange(f, f)
       }
     }
     return this

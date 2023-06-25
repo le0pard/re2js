@@ -385,7 +385,7 @@ export class Pattern {
    * @return {*}
    */
   namedGroups() {
-    return Collections.unmodifiableMap(this.__re2.namedGroups)
+    return this.__re2.namedGroups
   }
   readResolve() {
     return Pattern.compile$java_lang_String$int(this.__pattern, this.__flags)
