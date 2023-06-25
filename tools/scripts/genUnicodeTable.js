@@ -136,7 +136,6 @@ const genRanges = async (codePoints) => {
 let code = [
   'class UnicodeTables {',
   '',
-  '  static memo = new Map()',
   ''
 ]
 

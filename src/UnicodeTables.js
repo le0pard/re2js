@@ -1,6 +1,4 @@
 class UnicodeTables {
-  static memo = new Map()
-
   static CASE_ORBIT = new Map([
     [75, 107],
     [107, 8490],
