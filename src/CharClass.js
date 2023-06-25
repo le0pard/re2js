@@ -9,30 +9,32 @@ import { Utils } from './Utils'
  */
 export class CharClass {
   constructor(r) {
-    if (((r != null && r instanceof Array && (r.length == 0 || r[0] == null || (typeof r[0] === 'number'))) || r === null)) {
-      let __args = arguments;
+    if (
+      (r != null &&
+        r instanceof Array &&
+        (r.length == 0 || r[0] == null || typeof r[0] === 'number')) ||
+      r === null
+    ) {
+      let __args = arguments
       if (this.r === undefined) {
-        this.r = null;
+        this.r = null
       }
       if (this.len === undefined) {
-        this.len = 0;
+        this.len = 0
       }
-      this.r = r;
-      this.len = r.length;
-    }
-    else if (r === undefined) {
-      let __args = arguments;
+      this.r = r
+      this.len = r.length
+    } else if (r === undefined) {
+      let __args = arguments
       if (this.r === undefined) {
-        this.r = null;
+        this.r = null
       }
       if (this.len === undefined) {
-        this.len = 0;
+        this.len = 0
       }
-      this.r = Utils.EMPTY_INTS;
-      this.len = 0;
-    }
-    else
-      throw new Error('invalid overload');
+      this.r = Utils.EMPTY_INTS
+      this.len = 0
+    } else throw new Error('invalid overload')
   }
 
   static charClassToString(r, len) {
