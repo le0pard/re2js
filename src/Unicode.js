@@ -1,4 +1,4 @@
-import { Characters } from './Characters'
+import { Codepoint } from './Codepoint'
 import { UnicodeTables } from './UnicodeTables'
 
 class Unicode {
@@ -109,11 +109,11 @@ class Unicode {
     // No folding specified.  This is a one- or two-element
     // equivalence class containing rune and toLower(rune)
     // and toUpper(rune) if they are different from rune.
-    const l = Characters.toLowerCase(r)
+    const l = Codepoint.toLowerCase(r)
     if (l !== r) {
       return l
     }
-    return Characters.toUpperCase(r)
+    return Codepoint.toUpperCase(r)
   }
 
   // equalsIgnoreCase performs case-insensitive equality comparison

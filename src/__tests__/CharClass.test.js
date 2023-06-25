@@ -1,4 +1,4 @@
-import { expect, describe } from '@jest/globals'
+import { expect, describe, test } from '@jest/globals'
 import { RE2Flags } from '../RE2Flags'
 import { PERL_GROUPS } from '../CharGroup'
 import { CharClass } from '../CharClass'

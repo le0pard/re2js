@@ -1,4 +1,4 @@
-import { expect, describe } from '@jest/globals'
+import { expect, describe, test } from '@jest/globals'
 import { Unicode } from '../Unicode'
 import { codePoint } from '../__utils__/chars'
 

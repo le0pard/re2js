@@ -81,7 +81,7 @@ const generateCaseFoldOrbits = () => {
     }
   }
 
-  let finalResult = new Map()
+  const finalResult = new Map()
   for (let [key, value] of orbits) {
     let orbitWithKey = new Set(value)
     orbitWithKey.add(key)

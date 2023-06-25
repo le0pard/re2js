@@ -1,4 +1,4 @@
-class Characters {
+class Codepoint {
   static toUpperCase(codepoint) {
     const s = String.fromCodePoint(codepoint).toUpperCase()
     if (s.length > 1) {
@@ -24,4 +24,4 @@ class Characters {
   }
 }
 
-export { Characters }
+export { Codepoint }
