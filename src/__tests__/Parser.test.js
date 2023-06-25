@@ -96,29 +96,21 @@ describe('.parse', () => {
     ['[\\pZ]', 'cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}'],
     ['\\p{Lu}', mkCharClass((r) => Unicode.isUpper(r))],
     ['[\\p{Lu}]', mkCharClass((r) => Unicode.isUpper(r))],
-    // ['(?i)[\\p{Lu}]', mkCharClass((r) => {
-    //   if (Unicode.isUpper(r)) {
-    //     return true
-    //   }
+    [
+      '(?i)[\\p{Lu}]',
+      mkCharClass((r) => {
+        if (Unicode.isUpper(r)) {
+          return true
+        }
 
-    //   // let wasPassedFold = false
-    //   // const foldC = Unicode.simpleFold(r)
-
-    //   for (let c = Unicode.simpleFold(r); c !== r; c = Unicode.simpleFold(c)) {
-    //     // if (foldC === c) {
-    //     //   if (!wasPassedFold) {
-    //     //     wasPassedFold = true
-    //     //   } else {
-    //     //     return false
-    //     //   }
-    //     // }
-
-    //     if (Unicode.isUpper(c)) {
-    //       return true
-    //     }
-    //   }
-    //   return false
-    // })],
+        for (let c = Unicode.simpleFold(r); c !== r; c = Unicode.simpleFold(c)) {
+          if (Unicode.isUpper(c)) {
+            return true
+          }
+        }
+        return false
+      })
+    ],
     ['\\p{Any}', 'dot{}'],
     ['\\p{^Any}', 'cc{}'],
 
