@@ -71,9 +71,7 @@ export class Regexp {
       this.flags = that.flags
       this.subs = that.subs
       this.runes = that.runes
-      this.min = that.min
-      this.max = that.max
-      this.cap = that.cap
+      this.cap = this.min = this.max = 0
       this.name = that.name
       this.namedGroups = that.namedGroups
     } else {
@@ -90,7 +88,9 @@ export class Regexp {
     this.flags = 0
     this.subs = Regexp.EMPTY_SUBS_$LI$()
     this.runes = null
-    this.cap = this.min = this.max = 0
+    this.cap = 0
+    this.min = 0
+    this.max = 0
     this.name = null
     this.namedGroups = /* emptyMap */ {}
   }

@@ -645,7 +645,7 @@ export class Parser {
               break
             }
             min = minMax >> 16
-            max = (minMax & 65535) | 0
+            max = (minMax & 0xffff) << 16 >> 16
             this.repeat(Regexp.Op.REPEAT, min, max, repeatPos, t, lastRepeatPos)
             break
           }
@@ -765,7 +765,7 @@ export class Parser {
     if (min < 0 || min > 1000 || max === -2 || max > 1000 || (max >= 0 && min > max)) {
       throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
     }
-    return (min << 16) | (max & 65535)
+    return (min << 16) | (max & 0xffff)
   }
   parsePerlFlags(t) {
     const startPos = t.pos()
@@ -1010,17 +1010,12 @@ export class Parser {
   }
   static parseEscape(t) {
     const startPos = t.pos()
-    t.skip(1)
+    t.skip(1) // '\\'
     if (!t.more()) {
       throw new PatternSyntaxException(Parser.ERR_TRAILING_BACKSLASH)
     }
     let c = t.pop()
     bigswitch: switch (c) {
-      default:
-        if (!Utils.isalnum(c)) {
-          return c
-        }
-        break
       case 49 /* '1' */:
       case 50 /* '2' */:
       case 51 /* '3' */:
@@ -1050,26 +1045,24 @@ export class Parser {
         c = t.pop()
         if (c == '{'.charCodeAt(0)) {
           let nhex = 0
-          r = 0
+          let r = 0
           for (;;) {
-            {
-              if (!t.more()) {
-                break bigswitch
-              }
-              c = t.pop()
-              if (c == '}'.charCodeAt(0)) {
-                break
-              }
-              const v = Utils.unhex(c)
-              if (v < 0) {
-                break bigswitch
-              }
-              r = r * 16 + v
-              if (r > Unicode.MAX_RUNE) {
-                break bigswitch
-              }
-              nhex++
+            if (!t.more()) {
+              break bigswitch
             }
+            c = t.pop()
+            if (c == '}'.charCodeAt(0)) {
+              break
+            }
+            const v = Utils.unhex(c)
+            if (v < 0) {
+              break bigswitch
+            }
+            r = r * 16 + v
+            if (r > Unicode.MAX_RUNE) {
+              break bigswitch
+            }
+            nhex++
           }
           if (nhex === 0) {
             break bigswitch
@@ -1098,6 +1091,11 @@ export class Parser {
         return '\t'.charCodeAt(0)
       case 118 /* 'v' */:
         return 11
+      default:
+        if (!Utils.isalnum(c)) {
+          return c
+        }
+        break
     }
     throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, t.from(startPos))
   }
