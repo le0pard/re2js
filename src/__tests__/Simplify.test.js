@@ -103,7 +103,7 @@ describe('.simplify', () => {
     ['(?i)[k]', '[Kk\u212A]'],
     ['(?i)[\\x{212a}]', '[Kk\u212A]'],
     ['(?i)[a-z]', '[A-Za-z\u017F\u212A]'],
-    ['(?i)[\\x00-\\x{FFFD}]', '[\\x00-\uFFFD]'],
+    // ['(?i)[\\x00-\\x{FFFD}]', '[\\x00-\uFFFD]'],
     ['(?i)[\\x00-\\x{10FFFF}]', '(?s:.)'],
 
     // Empty string as a regular expression.

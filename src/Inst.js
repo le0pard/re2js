@@ -32,7 +32,7 @@ export class Inst {
     if (this.runes.length === 1) {
       const r0 = this.runes[0]
       if ((this.arg & RE2Flags.FOLD_CASE) !== 0) {
-        return Unicode.equalsIgnoreCase(r, r0)
+        return Unicode.equalsIgnoreCase(r0, r)
       }
       return r === r0
     }

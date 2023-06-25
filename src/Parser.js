@@ -645,7 +645,7 @@ export class Parser {
               break
             }
             min = minMax >> 16
-            max = (minMax & 0xffff) << 16 >> 16
+            max = ((minMax & 0xffff) << 16) >> 16
             this.repeat(Regexp.Op.REPEAT, min, max, repeatPos, t, lastRepeatPos)
             break
           }
@@ -1051,7 +1051,7 @@ export class Parser {
               break bigswitch
             }
             c = t.pop()
-            if (c == '}'.charCodeAt(0)) {
+            if (c === '}'.charCodeAt(0)) {
               break
             }
             const v = Utils.unhex(c)

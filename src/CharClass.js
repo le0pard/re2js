@@ -104,33 +104,33 @@ export class CharClass {
     }
   }
 
-  ensureCapacity(newLen) {
-    if (this.r.length < newLen) {
-      if (newLen < this.len * 2) {
-        newLen = this.len * 2
-      }
-      const r2 = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(newLen)
-      /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-        if (srcPts !== dstPts || dstOff >= srcOff + size) {
-          while (--size >= 0) {
-            dstPts[dstOff++] = srcPts[srcOff++]
-          }
-        } else {
-          let tmp = srcPts.slice(srcOff, srcOff + size)
-          for (let i = 0; i < size; i++) {
-            dstPts[dstOff++] = tmp[i]
-          }
-        }
-      })(this.r, 0, r2, 0, this.len)
-      this.r = r2
-    }
-  }
+  // ensureCapacity(newLen) {
+  //   if (this.r.length < newLen) {
+  //     if (newLen < this.len * 2) {
+  //       newLen = this.len * 2
+  //     }
+  //     const r2 = ((s) => {
+  //       let a = []
+  //       while (s-- > 0) {
+  //         a.push(0)
+  //       }
+  //       return a
+  //     })(newLen)
+  //     /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
+  //       if (srcPts !== dstPts || dstOff >= srcOff + size) {
+  //         while (--size >= 0) {
+  //           dstPts[dstOff++] = srcPts[srcOff++]
+  //         }
+  //       } else {
+  //         let tmp = srcPts.slice(srcOff, srcOff + size)
+  //         for (let i = 0; i < size; i++) {
+  //           dstPts[dstOff++] = tmp[i]
+  //         }
+  //       }
+  //     })(this.r, 0, r2, 0, this.len)
+  //     this.r = r2
+  //   }
+  // }
 
   toArray() {
     if (this.len === this.r.length) {
@@ -210,7 +210,7 @@ export class CharClass {
         }
       }
     }
-    this.ensureCapacity(this.len + 2)
+    //this.ensureCapacity(this.len + 2)
     this.r[this.len++] = lo
     this.r[this.len++] = hi
     return this
@@ -231,14 +231,11 @@ export class CharClass {
       this.appendRange(Unicode.MAX_FOLD + 1, hi)
       hi = Unicode.MAX_FOLD
     }
+
     for (let c = lo; c <= hi; c++) {
-      {
-        this.appendRange(c, c)
-        for (let f = Unicode.simpleFold(c); f !== c; f = Unicode.simpleFold(f)) {
-          {
-            this.appendRange(f, f)
-          }
-        }
+      this.appendRange(c, c)
+      for (let f = Unicode.simpleFold(c); f !== c; f = Unicode.simpleFold(f)) {
+        this.appendRange(f, f)
       }
     }
     return this
@@ -353,7 +350,7 @@ export class CharClass {
     }
     this.len = w
     if (nextLo <= Unicode.MAX_RUNE) {
-      this.ensureCapacity(this.len + 2)
+      //this.ensureCapacity(this.len + 2)
       this.r[this.len++] = nextLo
       this.r[this.len++] = Unicode.MAX_RUNE
     }

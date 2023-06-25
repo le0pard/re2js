@@ -123,13 +123,13 @@ let scriptsCode = []
 let foldCategoryCode = []
 let foldScriptCode = []
 
-code = [...code, "  static CASE_ORBIT = Object.freeze({"]
+code = [...code, "  static CASE_ORBIT = new Map(["]
 
 for (const [key, value] of sortedOrbits.entries()) {
-  code = [...code, `    ${key}: ${value},`]
+  code = [...code, `    [${key}, ${value}],`]
 }
 
-code = [...code, '  })']
+code = [...code, '  ])']
 
 for (const [alias, name] of aliasesToNames.entries()) {
   const codePoints = await getCodePoints('General_Category', name)
