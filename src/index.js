@@ -24,7 +24,11 @@ class RE2JS {
         }
         return null
       },
-      replace: (input, replacement) => {
+      replaceFirst: (input, replacement) => {
+        const matcher = pattern.matcher(input)
+        return matcher.replaceFirst(replacement)
+      },
+      replaceAll: (input, replacement) => {
         const matcher = pattern.matcher(input)
         return matcher.replaceAll(replacement)
       }

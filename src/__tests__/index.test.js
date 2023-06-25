@@ -63,7 +63,7 @@ describe('.extract', () => {
   })
 })
 
-describe('.replace', () => {
+describe('.replaceAll', () => {
   const cases = [
     ['a+', 'aaaa1111', 'bb', 'bb1111'],
     ['a*', 'aaaa1111', 'bb', 'bbbb1bb1bb1bb1bb'],
@@ -75,7 +75,7 @@ describe('.replace', () => {
   test.each(cases)(
     'regex %p with input %p and replace %p, returns %p',
     (regex, input, replace, expected) => {
-      expect(RE2JS.compile(regex).replace(input, replace)).toEqual(expected)
+      expect(RE2JS.compile(regex).replaceAll(input, replace)).toEqual(expected)
     }
   )
 
@@ -88,7 +88,7 @@ describe('.replace', () => {
     test.each(flagsCases)(
       'regex %p with input %p and replace %p, returns %p',
       (regex, flags, input, replace, expected) => {
-        expect(RE2JS.compile(regex, flags).replace(input, replace)).toEqual(expected)
+        expect(RE2JS.compile(regex, flags).replaceAll(input, replace)).toEqual(expected)
       }
     )
   })
