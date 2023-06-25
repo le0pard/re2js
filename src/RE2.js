@@ -202,7 +202,7 @@ export class RE2 {
     re2.prefixComplete = prog.prefix(prefixBuilder)
     re2.prefix = /* toString */ prefixBuilder.str
     try {
-      re2.prefixUTF8 = /* getBytes */ re2.prefix.split('').map((s) => s.charCodeAt(0))
+      re2.prefixUTF8 = /* getBytes */ re2.prefix.split('').map((s) => s.codePointAt(0))
     } catch (e) {
       throw Object.defineProperty(new Error("can't happen"), '__classes', {
         configurable: true,
@@ -216,7 +216,7 @@ export class RE2 {
       })
     }
     if (!(re2.prefix.length === 0)) {
-      re2.prefixRune = /* codePointAt */ re2.prefix.charCodeAt(0)
+      re2.prefixRune = /* codePointAt */ re2.prefix.codePointAt(0)
     }
     re2.namedGroups = re.namedGroups
     return re2

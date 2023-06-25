@@ -109,7 +109,7 @@ export class Regexp {
     return /* toString */ out.str
   }
   static quoteIfHyphen(out, rune) {
-    if (rune == '-'.charCodeAt(0)) {
+    if (rune == '-'.codePointAt(0)) {
       /* append */ ;((sb) => {
         sb.str += '\\'
         return sb
@@ -470,7 +470,8 @@ export class Regexp {
                   .toString()
                   .split('')
                   .reduce(
-                    (prevHash, currVal) => ((prevHash << 5) - prevHash + currVal.charCodeAt(0)) | 0,
+                    (prevHash, currVal) =>
+                      ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
                     0
                   )
               }
@@ -489,7 +490,8 @@ export class Regexp {
                   .toString()
                   .split('')
                   .reduce(
-                    (prevHash, currVal) => ((prevHash << 5) - prevHash + currVal.charCodeAt(0)) | 0,
+                    (prevHash, currVal) =>
+                      ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
                     0
                   )
               }
@@ -509,7 +511,7 @@ export class Regexp {
                       .split('')
                       .reduce(
                         (prevHash, currVal) =>
-                          ((prevHash << 5) - prevHash + currVal.charCodeAt(0)) | 0,
+                          ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
                         0
                       )
                   }
@@ -524,7 +526,8 @@ export class Regexp {
                   .toString()
                   .split('')
                   .reduce(
-                    (prevHash, currVal) => ((prevHash << 5) - prevHash + currVal.charCodeAt(0)) | 0,
+                    (prevHash, currVal) =>
+                      ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
                     0
                   )
               }

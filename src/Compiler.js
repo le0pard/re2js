@@ -131,8 +131,8 @@ export class Compiler {
     } else if (
       runes.length === 4 &&
       runes[0] === 0 &&
-      runes[1] === '\n'.charCodeAt(0) - 1 &&
-      runes[2] === '\n'.charCodeAt(0) + 1 &&
+      runes[1] === '\n'.codePointAt(0) - 1 &&
+      runes[2] === '\n'.codePointAt(0) + 1 &&
       runes[3] === Unicode.MAX_RUNE
     ) {
       i.op = Inst.RUNE_ANY_NOT_NL
@@ -161,8 +161,8 @@ export class Compiler {
     if (Compiler.ANY_RUNE_NOT_NL == null) {
       Compiler.ANY_RUNE_NOT_NL = [
         0,
-        '\n'.charCodeAt(0) - 1,
-        '\n'.charCodeAt(0) + 1,
+        '\n'.codePointAt(0) - 1,
+        '\n'.codePointAt(0) + 1,
         Unicode.MAX_RUNE
       ]
     }

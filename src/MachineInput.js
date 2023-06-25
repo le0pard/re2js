@@ -266,7 +266,7 @@ MachineInput['__class'] = 'quickstart.MachineInput'
     step(pos) {
       pos += this.start
       if (pos < this.end) {
-        const rune = this.str.charCodeAt(pos)
+        const rune = this.str.codePointAt(pos)
         return (rune << 3) | Utils.charCount(rune)
       } else {
         return MachineInput.EOF_$LI$()
@@ -298,7 +298,7 @@ MachineInput['__class'] = 'quickstart.MachineInput'
     context(pos) {
       pos += this.start
       const r1 = pos > 0 && pos <= this.str.length ? this.str.codePointAt(pos - 1) : -1
-      const r2 = pos < this.str.length ? this.str.charCodeAt(pos) : -1
+      const r2 = pos < this.str.length ? this.str.codePointAt(pos) : -1
       return Utils.emptyOpContext(r1, r2)
     }
     /**
@@ -332,13 +332,13 @@ MachineInput['__class'] = 'quickstart.MachineInput'
       for (let i = fromIndex; i <= max; i++) {
         {
           if (
-            ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(hayStack.charAt(i)) !=
-            ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(first)
+            ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(hayStack.charAt(i)) !=
+            ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(first)
           ) {
             while (
               ++i <= max &&
-              ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(hayStack.charAt(i)) !=
-                ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(first)
+              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(hayStack.charAt(i)) !=
+                ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(first)
             ) {
               {
               }
@@ -350,8 +350,8 @@ MachineInput['__class'] = 'quickstart.MachineInput'
             for (
               let k = 1;
               j < end &&
-              ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(hayStack.charAt(j)) ==
-                ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(needle.charAt(k));
+              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(hayStack.charAt(j)) ==
+                ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(needle.charAt(k));
               j++, k++
             ) {
               {

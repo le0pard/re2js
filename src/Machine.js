@@ -340,7 +340,7 @@ export class Machine {
             add = true
             break
           case Inst.RUNE_ANY_NOT_NL:
-            add = c != '\n'.charCodeAt(0)
+            add = c != '\n'.codePointAt(0)
             break
           default:
             throw Object.defineProperty(new Error('bad inst'), '__classes', {

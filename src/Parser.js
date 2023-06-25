@@ -232,8 +232,8 @@ export class Parser {
       } else if (
         re.runes.length === 4 &&
         re.runes[0] === 0 &&
-        re.runes[1] === '\n'.charCodeAt(0) - 1 &&
-        re.runes[2] === '\n'.charCodeAt(0) + 1 &&
+        re.runes[1] === '\n'.codePointAt(0) - 1 &&
+        re.runes[2] === '\n'.codePointAt(0) + 1 &&
         re.runes[3] === Unicode.MAX_RUNE
       ) {
         re.runes = null
@@ -677,7 +677,7 @@ export class Parser {
                   t.skipString('\\E')
                   for (let j = 0; j < lit.length; ) {
                     {
-                      const codepoint = lit.charCodeAt(j)
+                      const codepoint = lit.codePointAt(j)
                       this.literal(codepoint)
                       j += Utils.charCount(codepoint)
                     }
@@ -834,7 +834,7 @@ export class Parser {
               }
               flags = ~flags
             }
-            if (c == ':'.charCodeAt(0)) {
+            if (c == ':'.codePointAt(0)) {
               this.op(Regexp.Op.LEFT_PAREN)
             }
             this.flags = flags
@@ -853,8 +853,8 @@ export class Parser {
       {
         const c = name.charAt(i)
         if (
-          ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(c) != '_'.charCodeAt(0) &&
-          !Utils.isalnum(c.charCodeAt(0))
+          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) != '_'.codePointAt(0) &&
+          !Utils.isalnum(c.codePointAt(0))
         ) {
           return false
         }
@@ -865,7 +865,7 @@ export class Parser {
   static parseInt(t) {
     const start = t.pos()
     let c
-    while (t.more() && (c = t.peek()) >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)) {
+    while (t.more() && (c = t.peek()) >= '0'.codePointAt(0) && c <= '9'.codePointAt(0)) {
       {
         t.skip(1)
       }
@@ -875,7 +875,7 @@ export class Parser {
     if (
       /* isEmpty */ n.length === 0 ||
       (n.length > 1 &&
-        ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(n.charAt(0)) == '0'.charCodeAt(0))
+        ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(n.charAt(0)) == '0'.codePointAt(0))
     ) {
       return -1
     }
@@ -906,7 +906,7 @@ export class Parser {
         }
         return false
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        return r != '\n'.charCodeAt(0)
+        return r != '\n'.codePointAt(0)
       case Regexp.Op.ANY_CHAR:
         return true
     }
@@ -923,7 +923,7 @@ export class Parser {
       case Regexp.Op.ANY_CHAR:
         break
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        if (Parser.matchRune(src, '\n'.charCodeAt(0))) {
+        if (Parser.matchRune(src, '\n'.codePointAt(0))) {
           dst.op = Regexp.Op.ANY_CHAR
         }
         break
@@ -1023,17 +1023,17 @@ export class Parser {
       case 53 /* '5' */:
       case 54 /* '6' */:
       case 55 /* '7' */:
-        if (!t.more() || t.peek() < '0'.charCodeAt(0) || t.peek() > '7'.charCodeAt(0)) {
+        if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
           break
         }
       case 48 /* '0' */:
-        let r = c - '0'.charCodeAt(0)
+        let r = c - '0'.codePointAt(0)
         for (let i = 1; i < 3; i++) {
           {
-            if (!t.more() || t.peek() < '0'.charCodeAt(0) || t.peek() > '7'.charCodeAt(0)) {
+            if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
               break
             }
-            r = r * 8 + t.peek() - '0'.charCodeAt(0)
+            r = r * 8 + t.peek() - '0'.codePointAt(0)
             t.skip(1)
           }
         }
@@ -1043,7 +1043,7 @@ export class Parser {
           break
         }
         c = t.pop()
-        if (c == '{'.charCodeAt(0)) {
+        if (c == '{'.codePointAt(0)) {
           let nhex = 0
           let r = 0
           for (;;) {
@@ -1051,7 +1051,7 @@ export class Parser {
               break bigswitch
             }
             c = t.pop()
-            if (c === '}'.charCodeAt(0)) {
+            if (c === '}'.codePointAt(0)) {
               break
             }
             const v = Utils.unhex(c)
@@ -1082,13 +1082,13 @@ export class Parser {
       case 97 /* 'a' */:
         return 7
       case 102 /* 'f' */:
-        return '\f'.charCodeAt(0)
+        return '\f'.codePointAt(0)
       case 110 /* 'n' */:
-        return '\n'.charCodeAt(0)
+        return '\n'.codePointAt(0)
       case 114 /* 'r' */:
-        return '\r'.charCodeAt(0)
+        return '\r'.codePointAt(0)
       case 116 /* 't' */:
-        return '\t'.charCodeAt(0)
+        return '\t'.codePointAt(0)
       case 118 /* 'v' */:
         return 11
       default:
@@ -1113,7 +1113,7 @@ export class Parser {
     if (
       (this.flags & RE2Flags.PERL_X) === 0 ||
       !t.more() ||
-      t.pop() != '\\'.charCodeAt(0) ||
+      t.pop() != '\\'.codePointAt(0) ||
       !t.more()
     ) {
       return false
@@ -1171,7 +1171,7 @@ export class Parser {
     t.skip(1)
     let sign = +1
     let c = t.pop()
-    if (c == 'P'.charCodeAt(0)) {
+    if (c == 'P'.codePointAt(0)) {
       sign = -1
     }
     if (!t.more()) {
@@ -1180,7 +1180,7 @@ export class Parser {
     }
     c = t.pop()
     let name
-    if (c != '{'.charCodeAt(0)) {
+    if (c != '{'.codePointAt(0)) {
       name = Utils.runeToString(c)
     } else {
       const rest = t.rest()
@@ -1195,7 +1195,7 @@ export class Parser {
     }
     if (
       !(name.length === 0) &&
-      ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(name.charAt(0)) == '^'.charCodeAt(0)
+      ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(name.charAt(0)) == '^'.codePointAt(0)
     ) {
       sign = -sign
       name = name.substring(1)
@@ -1225,11 +1225,11 @@ export class Parser {
       sign = -1
       t.skip(1)
       if ((this.flags & RE2Flags.CLASS_NL) === 0) {
-        cc.appendRange('\n'.charCodeAt(0), '\n'.charCodeAt(0))
+        cc.appendRange('\n'.codePointAt(0), '\n'.codePointAt(0))
       }
     }
     let first = true
-    while (!t.more() || t.peek() != ']'.charCodeAt(0) || first) {
+    while (!t.more() || t.peek() != ']'.codePointAt(0) || first) {
       {
         if (t.more() && t.lookingAt$char('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
           const s = t.rest()
@@ -1383,7 +1383,7 @@ Parser['__class'] = 'quickstart.Parser'
       return this.__pos < this.str.length
     }
     peek() {
-      return /* codePointAt */ this.str.charCodeAt(this.__pos)
+      return /* codePointAt */ this.str.codePointAt(this.__pos)
     }
     skip(n) {
       this.__pos += n
@@ -1392,14 +1392,14 @@ Parser['__class'] = 'quickstart.Parser'
       this.__pos += s.length
     }
     pop() {
-      const r = this.str.charCodeAt(this.__pos)
+      const r = this.str.codePointAt(this.__pos)
       this.__pos += Utils.charCount(r)
       return r
     }
     lookingAt$char(c) {
       return (
-        ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(this.str.charAt(this.__pos)) ==
-        ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(c)
+        ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(this.str.charAt(this.__pos)) ==
+        ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c)
       )
     }
     lookingAt$java_lang_String(s) {

@@ -36,7 +36,7 @@ export class MatcherInput {
   }
   static utf8$java_lang_String(input) {
     return new MatcherInput.Utf8MatcherInput(
-      /* getBytes */ input.split('').map((s) => s.charCodeAt(0))
+      /* getBytes */ input.split('').map((s) => s.codePointAt(0))
     )
   }
 }
@@ -116,7 +116,7 @@ MatcherInput['__class'] = 'quickstart.MatcherInput'
       return /* getBytes */ this.charSequence
         .toString()
         .split('')
-        .map((s) => s.charCodeAt(0))
+        .map((s) => s.codePointAt(0))
     }
     /**
      *

@@ -685,8 +685,8 @@ export class Matcher {
       {
         const c = s.charAt(i)
         if (
-          ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(c) == '\\'.charCodeAt(0) ||
-          ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(c) == '$'.charCodeAt(0)
+          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) == '\\'.codePointAt(0) ||
+          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) == '$'.codePointAt(0)
         ) {
           /* append */ ;((sb) => {
             sb.str += '\\'
@@ -773,8 +773,8 @@ export class Matcher {
     for (; i < m - 1; i++) {
       {
         if (
-          ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(replacement.charAt(i)) ==
-          '\\'.charCodeAt(0)
+          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(i)) ==
+          '\\'.codePointAt(0)
         ) {
           if (last < i) {
             /* append */ ;((sb) => {
@@ -787,12 +787,12 @@ export class Matcher {
           continue
         }
         if (
-          ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(replacement.charAt(i)) ==
-          '$'.charCodeAt(0)
+          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(i)) ==
+          '$'.codePointAt(0)
         ) {
-          let c = replacement.charAt(i + 1).charCodeAt(0)
-          if ('0'.charCodeAt(0) <= c && c <= '9'.charCodeAt(0)) {
-            let n = c - '0'.charCodeAt(0)
+          let c = replacement.charAt(i + 1).codePointAt(0)
+          if ('0'.codePointAt(0) <= c && c <= '9'.codePointAt(0)) {
+            let n = c - '0'.codePointAt(0)
             if (last < i) {
               /* append */ ;((sb) => {
                 sb.str += replacement.substring(last, i)
@@ -801,15 +801,15 @@ export class Matcher {
             }
             for (i += 2; i < m; i++) {
               {
-                c = replacement.charAt(i).charCodeAt(0)
+                c = replacement.charAt(i).codePointAt(0)
                 if (
-                  c < '0'.charCodeAt(0) ||
-                  c > '9'.charCodeAt(0) ||
-                  n * 10 + c - '0'.charCodeAt(0) > this.__groupCount
+                  c < '0'.codePointAt(0) ||
+                  c > '9'.codePointAt(0) ||
+                  n * 10 + c - '0'.codePointAt(0) > this.__groupCount
                 ) {
                   break
                 }
-                n = n * 10 + c - '0'.charCodeAt(0)
+                n = n * 10 + c - '0'.codePointAt(0)
               }
             }
             if (n > this.__groupCount) {
@@ -834,7 +834,7 @@ export class Matcher {
             last = i
             i--
             continue
-          } else if (c == '{'.charCodeAt(0)) {
+          } else if (c == '{'.codePointAt(0)) {
             if (last < i) {
               /* append */ ;((sb) => {
                 sb.str += replacement.substring(last, i)
@@ -845,10 +845,10 @@ export class Matcher {
             let j = i + 1
             while (
               j < replacement.length &&
-              ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(replacement.charAt(j)) !=
-                '}'.charCodeAt(0) &&
-              ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(replacement.charAt(j)) !=
-                ' '.charCodeAt(0)
+              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(j)) !=
+                '}'.codePointAt(0) &&
+              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(j)) !=
+                ' '.codePointAt(0)
             ) {
               {
                 j++
@@ -857,8 +857,8 @@ export class Matcher {
 
             if (
               j === replacement.length ||
-              ((c) => (c.charCodeAt == null ? c : c.charCodeAt(0)))(replacement.charAt(j)) !=
-                '}'.charCodeAt(0)
+              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(j)) !=
+                '}'.codePointAt(0)
             ) {
               throw Object.defineProperty(
                 new Error("named capture group is missing trailing '}'"),
