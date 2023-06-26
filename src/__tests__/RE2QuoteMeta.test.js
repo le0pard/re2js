@@ -32,7 +32,7 @@ test.each(cases)(
   'literal prefix: pattern %p quoted to %p and literal %p (isLiteral: %p)',
   (pattern, output, literal, isLiteral) => {
     const re = RE2.compile(pattern)
-    expect(re.prefixComplete).toEqual(isLiteral)
     expect(re.prefix).toEqual(literal)
+    expect(re.prefixComplete).toEqual(isLiteral)
   }
 )
