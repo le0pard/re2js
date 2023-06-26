@@ -130,7 +130,7 @@ export class Matcher {
       if (this.anchorFlag === undefined) {
         this.anchorFlag = 0
       }
-      ;(() => {
+      (() => {
         this.reset$java_lang_CharSequence(input)
       })()
     } else if (
@@ -226,7 +226,7 @@ export class Matcher {
       if (this.anchorFlag === undefined) {
         this.anchorFlag = 0
       }
-      ;(() => {
+      (() => {
         this.reset$quickstart_MatcherInput(input)
       })()
     } else if (
@@ -677,7 +677,7 @@ export class Matcher {
     }
     const sb = {
       str: '',
-      toString: function () {
+      toString: function() {
         return this.str
       }
     }
@@ -688,12 +688,12 @@ export class Matcher {
           ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) == '\\'.codePointAt(0) ||
           ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) == '$'.codePointAt(0)
         ) {
-          /* append */ ;((sb) => {
+          /* append */ ((sb) => {
             sb.str += '\\'
             return sb
           })(sb)
         }
-        /* append */ ;((sb) => {
+        /* append */ ((sb) => {
           sb.str += c
           return sb
         })(sb)
@@ -704,7 +704,7 @@ export class Matcher {
   appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement) {
     const result = {
       str: '',
-      toString: function () {
+      toString: function() {
         return this.str
       }
     }
@@ -757,7 +757,7 @@ export class Matcher {
     const s = this.start$()
     const e = this.end$()
     if (this.appendPos < s) {
-      /* append */ ;((sb) => {
+      /* append */ ((sb) => {
         sb.str += this.substring(this.appendPos, s)
         return sb
       })(sb)
@@ -777,7 +777,7 @@ export class Matcher {
           '\\'.codePointAt(0)
         ) {
           if (last < i) {
-            /* append */ ;((sb) => {
+            /* append */ ((sb) => {
               sb.str += replacement.substring(last, i)
               return sb
             })(sb)
@@ -794,7 +794,7 @@ export class Matcher {
           if ('0'.codePointAt(0) <= c && c <= '9'.codePointAt(0)) {
             let n = c - '0'.codePointAt(0)
             if (last < i) {
-              /* append */ ;((sb) => {
+              /* append */ ((sb) => {
                 sb.str += replacement.substring(last, i)
                 return sb
               })(sb)
@@ -826,7 +826,7 @@ export class Matcher {
             }
             const group = this.group$int(n)
             if (group != null) {
-              /* append */ ;((sb) => {
+              /* append */ ((sb) => {
                 sb.str += group
                 return sb
               })(sb)
@@ -836,7 +836,7 @@ export class Matcher {
             continue
           } else if (c == '{'.codePointAt(0)) {
             if (last < i) {
-              /* append */ ;((sb) => {
+              /* append */ ((sb) => {
                 sb.str += replacement.substring(last, i)
                 return sb
               })(sb)
@@ -886,14 +886,14 @@ export class Matcher {
       }
     }
     if (last < m) {
-      /* append */ ;((sb) => {
+      /* append */ ((sb) => {
         sb.str += replacement.substr(last, m)
         return sb
       })(sb)
     }
   }
   appendTail$java_lang_StringBuffer(sb) {
-    /* append */ ;((sb) => {
+    /* append */ ((sb) => {
       sb.str += this.substring(this.appendPos, this.__inputLength)
       return sb
     })(sb)
@@ -916,7 +916,7 @@ export class Matcher {
     }
   }
   appendTail$java_lang_StringBuilder(sb) {
-    /* append */ ;((sb) => {
+    /* append */ ((sb) => {
       sb.str += this.substring(this.appendPos, this.__inputLength)
       return sb
     })(sb)
@@ -955,7 +955,7 @@ export class Matcher {
     this.reset$()
     const sb = {
       str: '',
-      toString: function () {
+      toString: function() {
         return this.str
       }
     }

@@ -76,7 +76,7 @@ export class MachineInput {
   }
 }
 MachineInput['__class'] = 'quickstart.MachineInput'
-;(function (MachineInput) {
+;(function(MachineInput) {
   class UTF8Input extends MachineInput {
     constructor(b, start, end) {
       if (

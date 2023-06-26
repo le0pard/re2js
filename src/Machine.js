@@ -422,7 +422,7 @@ export class Machine {
           t.inst = inst
         }
         if (this.ncap > 0 && t.cap !== cap) {
-          /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
+          /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
             if (srcPts !== dstPts || dstOff >= srcOff + size) {
               while (--size >= 0) {
                 dstPts[dstOff++] = srcPts[srcOff++]
@@ -443,7 +443,7 @@ export class Machine {
   }
 }
 Machine['__class'] = 'quickstart.Machine'
-;(function (Machine) {
+;(function(Machine) {
   class Thread {
     constructor(n) {
       if (this.cap === undefined) {
@@ -523,7 +523,7 @@ Machine['__class'] = 'quickstart.Machine'
     toString() {
       const out = {
         str: '',
-        toString: function () {
+        toString: function() {
           return this.str
         }
       }
@@ -534,18 +534,18 @@ Machine['__class'] = 'quickstart.Machine'
       for (let i = 0; i < this.size; ++i) {
         {
           if (i !== 0) {
-            /* append */ ;((sb) => {
+            /* append */ ((sb) => {
               sb.str += ', '
               return sb
             })(out)
           }
-          /* append */ ;((sb) => {
+          /* append */ ((sb) => {
             sb.str += this.densePcs[i]
             return sb
           })(out)
         }
       }
-      /* append */ ;((sb) => {
+      /* append */ ((sb) => {
         sb.str += '}'
         return sb
       })(out)
