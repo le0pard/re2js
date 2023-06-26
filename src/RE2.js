@@ -195,7 +195,7 @@ export class RE2 {
     const re2 = new RE2(expr, prog, maxCap, longest)
     const prefixBuilder = {
       str: '',
-      toString: function() {
+      toString: function () {
         return this.str
       }
     }
@@ -368,7 +368,7 @@ export class RE2 {
       return false
     }
     if (group != null) {
-      /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
+      /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
         if (srcPts !== dstPts || dstOff >= srcOff + size) {
           while (--size >= 0) {
             dstPts[dstOff++] = srcPts[srcOff++]
@@ -440,7 +440,7 @@ export class RE2 {
     let searchPos = 0
     const buf = {
       str: '',
-      toString: function() {
+      toString: function () {
         return this.str
       }
     }
@@ -452,12 +452,12 @@ export class RE2 {
         if (a == null || a.length === 0) {
           break
         }
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += src.substring(lastMatchEnd, a[0])
           return sb
         })(buf)
         if (a[1] > lastMatchEnd || a[0] === 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += repl.replace(src.substring(a[0], a[1]))
             return sb
           })(buf)
@@ -478,7 +478,7 @@ export class RE2 {
       }
     }
 
-    /* append */ ((sb) => {
+    /* append */ ;((sb) => {
       sb.str += src.substring(lastMatchEnd)
       return sb
     })(buf)
@@ -494,7 +494,7 @@ export class RE2 {
   static quoteMeta(s) {
     const b = {
       str: '',
-      toString: function() {
+      toString: function () {
         return this.str
       }
     }
@@ -502,12 +502,12 @@ export class RE2 {
       {
         const c = s.charAt(i)
         if ('\\.+*?()|[]{}^$'.indexOf(c) >= 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '\\'
             return sb
           })(b)
         }
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += c
           return sb
         })(b)
@@ -555,7 +555,7 @@ export class RE2 {
     if (n < 0) {
       n = end + 1
     }
-    for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end;) {
+    for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end; ) {
       {
         const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
         if (matches == null || matches.length === 0) {
@@ -936,7 +936,7 @@ export class RE2 {
   }
 }
 RE2['__class'] = 'quickstart.RE2'
-;(function(RE2) {
+;(function (RE2) {
   class RE2$0 {
     constructor(__parent, repl) {
       this.repl = repl

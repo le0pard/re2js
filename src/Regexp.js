@@ -101,7 +101,7 @@ export class Regexp {
   toString() {
     const out = {
       str: '',
-      toString: function() {
+      toString: function () {
         return this.str
       }
     }
@@ -110,7 +110,7 @@ export class Regexp {
   }
   static quoteIfHyphen(out, rune) {
     if (rune == '-'.codePointAt(0)) {
-      /* append */ ((sb) => {
+      /* append */ ;((sb) => {
         sb.str += '\\'
         return sb
       })(out)
@@ -119,13 +119,13 @@ export class Regexp {
   appendTo(out) {
     switch (this.op) {
       case Regexp.Op.NO_MATCH:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '[^\\x00-\\x{10FFFF}]'
           return sb
         })(out)
         break
       case Regexp.Op.EMPTY_MATCH:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '(?:)'
           return sb
         })(out)
@@ -140,7 +140,7 @@ export class Regexp {
             /* Enum.ordinal */ Regexp.Op[Regexp.Op[Regexp.Op.CAPTURE]] ||
           (sub.op === Regexp.Op.LITERAL && sub.runes.length > 1)
         ) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '(?:'
             return sb
           })(out)
@@ -155,25 +155,25 @@ export class Regexp {
         }
         switch (this.op) {
           case Regexp.Op.STAR:
-            /* append */ ((sb) => {
+            /* append */ ;((sb) => {
               sb.str += '*'
               return sb
             })(out)
             break
           case Regexp.Op.PLUS:
-            /* append */ ((sb) => {
+            /* append */ ;((sb) => {
               sb.str += '+'
               return sb
             })(out)
             break
           case Regexp.Op.QUEST:
-            /* append */ ((sb) => {
+            /* append */ ;((sb) => {
               sb.str += '?'
               return sb
             })(out)
             break
           case Regexp.Op.REPEAT:
-            /* append */ ((sb) => {
+            /* append */ ;((sb) => {
               sb.str += this.min
               return sb
             })(
@@ -183,25 +183,25 @@ export class Regexp {
               })(out)
             )
             if (this.min !== this.max) {
-              /* append */ ((sb) => {
+              /* append */ ;((sb) => {
                 sb.str += ','
                 return sb
               })(out)
               if (this.max >= 0) {
-                /* append */ ((sb) => {
+                /* append */ ;((sb) => {
                   sb.str += this.max
                   return sb
                 })(out)
               }
             }
-            /* append */ ((sb) => {
+            /* append */ ;((sb) => {
               sb.str += '}'
               return sb
             })(out)
             break
         }
         if ((this.flags & RE2Flags.NON_GREEDY) !== 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '?'
             return sb
           })(out)
@@ -214,7 +214,7 @@ export class Regexp {
           let sub = this.subs[index]
           {
             if (sub.op === Regexp.Op.ALTERNATE) {
-              /* append */ ((sb) => {
+              /* append */ ;((sb) => {
                 sb.str += '(?:'
                 return sb
               })(out)
@@ -235,7 +235,7 @@ export class Regexp {
         for (let index = 0; index < this.subs.length; index++) {
           let sub = this.subs[index]
           {
-            /* append */ ((sb) => {
+            /* append */ ;((sb) => {
               sb.str += sep
               return sb
             })(out)
@@ -248,7 +248,7 @@ export class Regexp {
 
       case Regexp.Op.LITERAL:
         if ((this.flags & RE2Flags.FOLD_CASE) !== 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '(?i:'
             return sb
           })(out)
@@ -260,32 +260,32 @@ export class Regexp {
           }
         }
         if ((this.flags & RE2Flags.FOLD_CASE) !== 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += ')'
             return sb
           })(out)
         }
         break
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '(?-s:.)'
           return sb
         })(out)
         break
       case Regexp.Op.ANY_CHAR:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '(?s:.)'
           return sb
         })(out)
         break
       case Regexp.Op.CAPTURE:
         if (this.name == null || /* isEmpty */ this.name.length === 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '('
             return sb
           })(out)
         } else {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '(?P<'
             return sb
           })(out)
@@ -303,73 +303,73 @@ export class Regexp {
         if (this.subs[0].op !== Regexp.Op.EMPTY_MATCH) {
           this.subs[0].appendTo(out)
         }
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += ')'
           return sb
         })(out)
         break
       case Regexp.Op.BEGIN_TEXT:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '\\A'
           return sb
         })(out)
         break
       case Regexp.Op.END_TEXT:
         if ((this.flags & RE2Flags.WAS_DOLLAR) !== 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '(?-m:$)'
             return sb
           })(out)
         } else {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '\\z'
             return sb
           })(out)
         }
         break
       case Regexp.Op.BEGIN_LINE:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '^'
           return sb
         })(out)
         break
       case Regexp.Op.END_LINE:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '$'
           return sb
         })(out)
         break
       case Regexp.Op.WORD_BOUNDARY:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '\\b'
           return sb
         })(out)
         break
       case Regexp.Op.NO_WORD_BOUNDARY:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '\\B'
           return sb
         })(out)
         break
       case Regexp.Op.CHAR_CLASS:
         if (this.runes.length % 2 !== 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '[invalid char class]'
             return sb
           })(out)
           break
         }
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '['
           return sb
         })(out)
         if (this.runes.length === 0) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '^\\x00-\\x{10FFFF}'
             return sb
           })(out)
         } else if (this.runes[0] === 0 && this.runes[this.runes.length - 1] === Unicode.MAX_RUNE) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '^'
             return sb
           })(out)
@@ -380,7 +380,7 @@ export class Regexp {
               Regexp.quoteIfHyphen(out, lo)
               Utils.escapeRune(out, lo)
               if (lo !== hi) {
-                /* append */ ((sb) => {
+                /* append */ ;((sb) => {
                   sb.str += '-'
                   return sb
                 })(out)
@@ -397,7 +397,7 @@ export class Regexp {
               Regexp.quoteIfHyphen(out, lo)
               Utils.escapeRune(out, lo)
               if (lo !== hi) {
-                /* append */ ((sb) => {
+                /* append */ ;((sb) => {
                   sb.str += '-'
                   return sb
                 })(out)
@@ -407,13 +407,13 @@ export class Regexp {
             }
           }
         }
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += ']'
           return sb
         })(out)
         break
       default:
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += this.op
           return sb
         })(out)
@@ -627,9 +627,9 @@ export class Regexp {
   }
 }
 Regexp['__class'] = 'quickstart.Regexp'
-;(function(Regexp) {
+;(function (Regexp) {
   let Op
-  ;(function(Op) {
+  ;(function (Op) {
     Op[(Op['NO_MATCH'] = 0)] = 'NO_MATCH'
     Op[(Op['EMPTY_MATCH'] = 1)] = 'EMPTY_MATCH'
     Op[(Op['LITERAL'] = 2)] = 'LITERAL'

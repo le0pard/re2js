@@ -41,9 +41,9 @@ export class MatcherInput {
   }
 }
 MatcherInput['__class'] = 'quickstart.MatcherInput'
-;(function(MatcherInput) {
+;(function (MatcherInput) {
   let Encoding
-  ;(function(Encoding) {
+  ;(function (Encoding) {
     Encoding[(Encoding['UTF_16'] = 0)] = 'UTF_16'
     Encoding[(Encoding['UTF_8'] = 1)] = 'UTF_8'
   })((Encoding = MatcherInput.Encoding || (MatcherInput.Encoding = {})))

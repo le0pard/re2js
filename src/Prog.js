@@ -129,7 +129,7 @@ export class Prog {
   toString() {
     const out = {
       str: '',
-      toString: function() {
+      toString: function () {
         return this.str
       }
     }
@@ -141,12 +141,12 @@ export class Prog {
           return sb
         })(out)
         if (pc === this.start) {
-          /* append */ ((sb) => {
+          /* append */ ;((sb) => {
             sb.str += '*'
             return sb
           })(out)
         }
-        /* append */ ((sb) => {
+        /* append */ ;((sb) => {
           sb.str += '\n'
           return sb
         })(
