@@ -118,7 +118,38 @@ class Utils {
   // Returns the index of the first occurrence of array |target| within
   // array |source| after |fromIndex|, or -1 if not found.
   static indexOf(source, target, fromIndex) {
-    return source.indexOf(target, fromIndex)
+    if (fromIndex >= source.length) {
+      return target.length === 0 ? source.length : -1
+    }
+    if (fromIndex < 0) {
+      fromIndex = 0
+    }
+    if (target.length === 0) {
+      return fromIndex
+    }
+    const first = target[0]
+    for (let i = fromIndex, max = source.length - target.length; i <= max; i++) {
+      {
+        if (source[i] !== first) {
+          while (++i <= max && source[i] !== first) {
+            {
+            }
+          }
+        }
+        if (i <= max) {
+          let j = i + 1
+          const end = j + target.length - 1
+          for (let k = 1; j < end && source[j] === target[k]; j++, k++) {
+            {
+            }
+          }
+          if (j === end) {
+            return i
+          }
+        }
+      }
+    }
+    return -1
   }
 
   // isWordRune reports whether r is consider a ``word character''

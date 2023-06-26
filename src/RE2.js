@@ -193,7 +193,7 @@ export class RE2 {
     re = Simplify.simplify(re)
     const prog = Compiler.compileRegexp(re)
     const re2 = new RE2(expr, prog, maxCap, longest)
-    const prefixBuilder = {
+    let prefixBuilder = {
       str: '',
       toString: function () {
         return this.str

@@ -46,7 +46,9 @@ export class Prog {
     }
     while (Inst.isRuneOp(i.op) && i.runes.length === 1 && (i.arg & RE2Flags.FOLD_CASE) === 0) {
       {
-        prefix += String.fromCodePoint(i.runes[0])
+        ;((sb) => {
+          sb.str += String.fromCodePoint(i.runes[0])
+        })(prefix)
         i = this.skipNop(i.out)
       }
     }
