@@ -27,9 +27,9 @@ const OP_NAMES = new Map([
 export const dumpRegexp = (re) => {
   let b = ''
   if (!OP_NAMES.has(re.op)) {
-    b += 'op' + re.op
+    b += `op${re.op}`
   } else {
-    let name = OP_NAMES.get(re.op)
+    const name = OP_NAMES.get(re.op)
 
     switch (re.op) {
       case Regexp.Op.STAR:
@@ -85,9 +85,7 @@ export const dumpRegexp = (re) => {
       b += dumpRegexp(re.subs[0])
       break
     case Regexp.Op.REPEAT:
-      b += re.min
-      b += ','
-      b += re.max
+      b += `${re.min},${re.max}`
       b += ' '
       b += dumpRegexp(re.subs[0])
       break
@@ -103,8 +101,8 @@ export const dumpRegexp = (re) => {
       for (let i = 0; i < re.runes.length; i += 2) {
         b += sep
         sep = ' '
-        let lo = re.runes[i],
-          hi = re.runes[i + 1]
+        let lo = re.runes[i]
+        let hi = re.runes[i + 1]
         if (lo === hi) {
           b += `0x${lo.toString(16)}`
         } else {
@@ -119,25 +117,22 @@ export const dumpRegexp = (re) => {
 }
 
 export const mkCharClass = (f) => {
-  let re = new Regexp(Regexp.Op.CHAR_CLASS)
+  const re = new Regexp(Regexp.Op.CHAR_CLASS)
   let runes = []
   let lo = -1
-  let MAX_RUNE = 0x10ffff // In JavaScript, Unicode ends at 0x10FFFF.
 
-  for (let i = 0; i <= MAX_RUNE; i++) {
+  for (let i = 0; i <= Unicode.MAX_RUNE; i++) {
     if (f(i)) {
       if (lo < 0) {
         lo = i
       }
     } else if (lo >= 0) {
-      runes.push(lo)
-      runes.push(i - 1)
+      runes = [...runes, lo, i - 1]
       lo = -1
     }
   }
   if (lo >= 0) {
-    runes.push(lo)
-    runes.push(MAX_RUNE)
+    runes = [...runes, lo, Unicode.MAX_RUNE]
   }
 
   re.runes = runes

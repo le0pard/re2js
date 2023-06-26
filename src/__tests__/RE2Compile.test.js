@@ -1,6 +1,5 @@
 import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
-import { PatternSyntaxException } from '../PatternSyntaxException'
 
 describe('.compile', () => {
   const cases = [

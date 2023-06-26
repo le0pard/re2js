@@ -102,20 +102,20 @@ describe('.appendFoldedRange', () => {
     // Range is outside folding possibilities.
     [codePoint(' '), codePoint('&'), [' ', '&'].map(codePoint)],
     // [lo, MIN_FOLD - 1] needs no folding.  Only [...abc] suffix is folded.
-    [codePoint(' '), codePoint('C'), [' ', 'C', 'a', 'c'].map(codePoint)]
-    // // [MAX_FOLD...] needs no folding
-    // [
-    //   0x10400,
-    //   0x104f0,
-    //   [
-    //     0x10450,
-    //     0x104f0,
-    //     0x10400,
-    //     0x10426, // lowercase Deseret
-    //     0x10426,
-    //     0x1044f // uppercase Deseret, abutting.
-    //   ]
-    // ]
+    [codePoint(' '), codePoint('C'), [' ', 'C', 'a', 'c'].map(codePoint)],
+    // [MAX_FOLD...] needs no folding
+    [
+      0x10400,
+      0x104f0,
+      [
+        0x10450,
+        0x104f0,
+        0x10400,
+        0x10426, // lowercase Deseret
+        0x10426,
+        0x1044f // uppercase Deseret, abutting.
+      ]
+    ]
   ]
 
   test.each(cases)('lo %p, hi %p, returns %p', (lo, hi, expected) => {
