@@ -139,7 +139,7 @@ const genRanges = async (codePoints) => {
   return gen.finish()
 }
 
-let code = ['class UnicodeTables {', '', '']
+let code = ['class UnicodeTables {', '']
 
 let categoriesCode = []
 let scriptsCode = []
