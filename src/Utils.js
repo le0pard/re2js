@@ -178,7 +178,7 @@ class Utils {
   }
 
   static charCount(codePoint) {
-    return codePoint > 0xffff ? 2 : 1
+    return codePoint > Unicode.MAX_BMP ? 2 : 1
   }
 }
 

@@ -8,6 +8,8 @@ class Unicode {
   static MAX_ASCII = 0x7f
   // The highest legal Latin-1 value.
   static MAX_LATIN1 = 0xff
+  // The highest legal Basic Multilingual Plane (BMP) value.
+  static MAX_BMP = 0xffff
   // Minimum and maximum runes involved in folding.
   // Checked during test.
   static MIN_FOLD = 0x0041

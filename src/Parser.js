@@ -645,7 +645,7 @@ export class Parser {
               break
             }
             min = minMax >> 16
-            max = ((minMax & 0xffff) << 16) >> 16
+            max = ((minMax & Unicode.MAX_BMP) << 16) >> 16
             this.repeat(Regexp.Op.REPEAT, min, max, repeatPos, t, lastRepeatPos)
             break
           }
@@ -765,7 +765,7 @@ export class Parser {
     if (min < 0 || min > 1000 || max === -2 || max > 1000 || (max >= 0 && min > max)) {
       throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
     }
-    return (min << 16) | (max & 0xffff)
+    return (min << 16) | (max & Unicode.MAX_BMP)
   }
   parsePerlFlags(t) {
     const startPos = t.pos()
