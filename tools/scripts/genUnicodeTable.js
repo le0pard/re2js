@@ -135,7 +135,7 @@ const addFoldExceptions = (codepoints) => {
 
 const getCodePoints =  async (type, name) => {
   const { default: codePoints } = await import(`@unicode/unicode-15.1.0/${type}/${name}/code-points.js`)
-  return codePoints
+  return codePoints.sort((a, b) => a - b)
 }
 
 const genRanges = async (codePoints) => {
