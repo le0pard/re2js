@@ -68,6 +68,7 @@ describe('.replaceAll', () => {
     ['a+', 'aaaa1111', 'bb', 'bb1111'],
     ['a*', 'aaaa1111', 'bb', 'bbbb1bb1bb1bb1bb'],
     ['a{4}', 'aaaa1111', 'bb', 'bb1111'],
+    ['a{4}', 'aaaaaaaa1111', 'bb', 'bbbb1111'],
     ['a{1}', 'aaaa', 'b', 'bbbb'],
     ['b{1}', 'aaaa', 'c', 'aaaa']
   ]
@@ -89,6 +90,37 @@ describe('.replaceAll', () => {
       'regex %p with input %p and replace %p, returns %p',
       (regex, flags, input, replace, expected) => {
         expect(RE2JS.compile(regex, flags).replaceAll(input, replace)).toEqual(expected)
+      }
+    )
+  })
+})
+
+describe('.replaceFirst', () => {
+  const cases = [
+    ['a+', 'aaaa1111', 'bb', 'bb1111'],
+    ['a*', 'aaaa1111', 'bb', 'bb1111'],
+    ['a{4}', 'aaaaaaaa1111', 'bb', 'bbaaaa1111'],
+    ['a{1}', 'aaaa', 'b', 'baaa'],
+    ['b{1}', 'aaaa', 'c', 'aaaa']
+  ]
+
+  test.each(cases)(
+    'regex %p with input %p and replace %p, returns %p',
+    (regex, input, replace, expected) => {
+      expect(RE2JS.compile(regex).replaceFirst(input, replace)).toEqual(expected)
+    }
+  )
+
+  describe('with flags', () => {
+    const flagsCases = [
+      ['ab+c', Flags.CASE_INSENSITIVE, 'abBBcabBBc', '11', '11abBBc'],
+      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbbacbbba', '11', 'cbbbacbbba']
+    ]
+
+    test.each(flagsCases)(
+      'regex %p with input %p and replace %p, returns %p',
+      (regex, flags, input, replace, expected) => {
+        expect(RE2JS.compile(regex, flags).replaceFirst(input, replace)).toEqual(expected)
       }
     )
   })
