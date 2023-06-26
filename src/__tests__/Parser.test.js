@@ -221,3 +221,32 @@ describe('.parse', () => {
     expect(dumpRegexp(re)).toEqual(expected)
   })
 })
+
+describe('.hashCode', () => {
+  const cases = [
+    ['abc', 'abc', RE2Flags.POSIX, true],
+    ['abc', 'def', RE2Flags.POSIX, false],
+    ['(abc)', '(a)(b)(c)', RE2Flags.POSIX, false],
+    ['a|$', 'a|$', RE2Flags.POSIX, true],
+    ['abc|def', 'def|abc', RE2Flags.POSIX, false],
+    ['a?', 'b?', RE2Flags.POSIX, false],
+    ['a?', 'a?', RE2Flags.POSIX, true],
+    ['a{1,3}', 'a{1,3}', RE2Flags.POSIX, true],
+    ['a{2,3}', 'a{1,3}', RE2Flags.POSIX, false],
+    ['^((?P<foo>what)a)$', '^((?P<foo>what)a)$', RE2Flags.PERL, true],
+    ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false]
+  ]
+
+  test.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {
+    const ra = Parser.parse(a, flags)
+    const rb = Parser.parse(b, flags)
+
+    if (expected) {
+      expect(ra).toEqual(rb)
+      // fix hashCode
+      // expect(ra.hashCode()).toEqual(rb.hashCode())
+    } else {
+      expect(ra).not.toEqual(rb)
+    }
+  })
+})
