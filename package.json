@@ -4,6 +4,7 @@
   "description": "RE2 regex engine port for JS",
   "type": "module",
   "keywords": [
+    "re2js",
     "re2",
     "regex engine"
   ],
