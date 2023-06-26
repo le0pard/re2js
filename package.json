@@ -7,13 +7,6 @@
     "re2",
     "regex engine"
   ],
-  "scripts": {
-    "build": "rollup -c --environment production",
-    "dev": "rollup -c -w",
-    "lint": "eslint src/**/*.js babel.config.js jest.config.js",
-    "test": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js",
-    "test:watch": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js --watch"
-  },
   "author": "Alexey Vasiliev",
   "license": "MIT",
   "repository": "github:le0pard/re2js",
@@ -34,6 +27,13 @@
       "import": "./build/index.esm.js",
       "require": "./build/index.cjs.js"
     }
+  },
+  "scripts": {
+    "build": "rollup -c --environment production",
+    "dev": "rollup -c -w",
+    "lint": "eslint src/**/*.js babel.config.js jest.config.js",
+    "test": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js",
+    "test:watch": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js --watch"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",
