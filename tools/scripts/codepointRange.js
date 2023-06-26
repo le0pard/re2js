@@ -1,21 +1,21 @@
 class CodepointRange {
   constructor() {
     this.builder = []
-    this.setStart = -1
-    this.setStride = -1
-    this.lastInSet = -1
+    this.setStart = null
+    this.setStride = null
+    this.lastInSet = null
   }
 
   add(codepoint) {
-    if (this.setStart == -1) {
+    if (this.setStart === null) {
       this.setStart = codepoint
-    } else if (this.setStride == -1) {
+    } else if (this.setStride === null) {
       this.setStride = codepoint - this.lastInSet
     } else if (codepoint - this.lastInSet !== this.setStride) {
       // gotta start a new set
       this.builder.push([this.setStart, this.lastInSet, this.setStride])
       this.setStart = codepoint
-      this.setStride = -1
+      this.setStride = null
     }
     this.lastInSet = codepoint
   }
@@ -28,12 +28,15 @@ class CodepointRange {
   }
 
   finish() {
-    if (this.setStart !== -1) {
-      this.builder.push([this.setStart, this.lastInSet, this.setStride === -1 ? 1 : this.setStride])
+    if (this.setStart !== null) {
+      this.builder.push([
+        this.setStart,
+        this.lastInSet,
+        this.setStride === null ? 1 : this.setStride
+      ])
     }
     return this.builder
   }
-
 }
 
 export { CodepointRange }

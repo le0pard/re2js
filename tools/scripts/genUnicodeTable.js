@@ -7,16 +7,9 @@ import lodash from 'lodash'
 
 import { CodepointRange } from './codepointRange.js'
 
-const MAX_CODE_POINT = 0x10FFFF
+const MAX_CODE_POINT = 0x10ffff
 
-const SKIP_CATEGORIES = [
-  'cntrl',
-  'Cn',
-  'LC',
-  'Combining_Mark',
-  'digit',
-  'punct'
-]
+const SKIP_CATEGORIES = ['cntrl', 'Cn', 'LC', 'Combining_Mark', 'digit', 'punct']
 
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
@@ -60,7 +53,7 @@ const generateCaseFoldOrbits = () => {
   }
 
   for (let i = 0; i < MAX_CODE_POINT; i++) {
-    if(!orbits.has(i)) {
+    if (!orbits.has(i)) {
       continue
     }
 
@@ -131,10 +124,12 @@ const addFoldExceptions = (codepoints) => {
   }
 
   return null
-};
+}
 
-const getCodePoints =  async (type, name) => {
-  const { default: codePoints } = await import(`@unicode/unicode-15.1.0/${type}/${name}/code-points.js`)
+const getCodePoints = async (type, name) => {
+  const { default: codePoints } = await import(
+    `@unicode/unicode-15.1.0/${type}/${name}/code-points.js`
+  )
   return codePoints.sort((a, b) => a - b)
 }
 
@@ -144,18 +139,14 @@ const genRanges = async (codePoints) => {
   return gen.finish()
 }
 
-let code = [
-  'class UnicodeTables {',
-  '',
-  ''
-]
+let code = ['class UnicodeTables {', '', '']
 
 let categoriesCode = []
 let scriptsCode = []
 let foldCategoryCode = []
 let foldScriptCode = []
 
-code = [...code, "  static CASE_ORBIT = new Map(["]
+code = [...code, '  static CASE_ORBIT = new Map([']
 
 for (const [key, value] of sortedOrbits.entries()) {
   code = [...code, `    [${key}, ${value}],`]
@@ -197,47 +188,14 @@ for (const name of unicode['Script']) {
   }
 }
 
-code = [
-  ...code,
-  '',
-  '  static CATEGORIES = new Map([',
-  ...categoriesCode,
-  '  ])',
-  ''
-]
+code = [...code, '', '  static CATEGORIES = new Map([', ...categoriesCode, '  ])', '']
 
-code = [
-  ...code,
-  '',
-  '  static SCRIPTS = new Map([',
-  ...scriptsCode,
-  '  ])',
-  ''
-]
+code = [...code, '', '  static SCRIPTS = new Map([', ...scriptsCode, '  ])', '']
 
-code = [
-  ...code,
-  '',
-  '  static FOLD_CATEGORIES = new Map([',
-  ...foldCategoryCode,
-  '  ])',
-  ''
-]
+code = [...code, '', '  static FOLD_CATEGORIES = new Map([', ...foldCategoryCode, '  ])', '']
 
-code = [
-  ...code,
-  '',
-  '  static FOLD_SCRIPT = new Map([',
-  ...foldScriptCode,
-  '  ])',
-  ''
-]
+code = [...code, '', '  static FOLD_SCRIPT = new Map([', ...foldScriptCode, '  ])', '']
 
-code = [
-  ...code,
-  '}',
-  '',
-  'export { UnicodeTables }'
-]
+code = [...code, '}', '', 'export { UnicodeTables }']
 
-console.log(code.join("\n"))
+console.log(code.join('\n')) // eslint-disable-line no-console
