@@ -15,7 +15,7 @@ describe('.numberOfCapturingGroups', () => {
     ['(.*)(\\(a\\)b)(.*)a', 3]
   ]
 
-  test.each(cases)('input %p get result %p', (input, expected) => {
+  test.concurrent.each(cases)('input %p get result %p', (input, expected) => {
     expect(RE2.compile(input).numberOfCapturingGroups()).toEqual(expected)
   })
 })

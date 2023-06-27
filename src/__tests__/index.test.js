@@ -15,7 +15,7 @@ describe('.match', () => {
     ['(?i)hello', 'Hello', true]
   ]
 
-  test.each(cases)('regex %p with input %p, returns %p', (regex, input, expected) => {
+  test.concurrent.each(cases)('regex %p with input %p, returns %p', (regex, input, expected) => {
     expect(RE2JS.compile(regex).match(input)).toEqual(expected)
   })
 
@@ -26,7 +26,7 @@ describe('.match', () => {
       ['^ab.*c$', Flags.DOTALL | Flags.MULTILINE, 'ab\nc', true]
     ]
 
-    test.each(flagsCases)(
+    test.concurrent.each(flagsCases)(
       'regex %p with flags %p and input %p, returns %p',
       (regex, flags, input, expected) => {
         expect(RE2JS.compile(regex, flags).match(input)).toEqual(expected)
@@ -44,7 +44,7 @@ describe('.extract', () => {
     ['b{1}', 'aaaa', null]
   ]
 
-  test.each(cases)('regex %p with input %p, returns %p', (regex, input, expected) => {
+  test.concurrent.each(cases)('regex %p with input %p, returns %p', (regex, input, expected) => {
     expect(RE2JS.compile(regex).extract(input)).toEqual(expected)
   })
 
@@ -54,7 +54,7 @@ describe('.extract', () => {
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', null]
     ]
 
-    test.each(flagsCases)(
+    test.concurrent.each(flagsCases)(
       'regex %p with flags %p and input %p, returns %p',
       (regex, flags, input, expected) => {
         expect(RE2JS.compile(regex, flags).extract(input)).toEqual(expected)
@@ -73,7 +73,7 @@ describe('.replaceAll', () => {
     ['b{1}', 'aaaa', 'c', 'aaaa']
   ]
 
-  test.each(cases)(
+  test.concurrent.each(cases)(
     'regex %p with input %p and replace %p, returns %p',
     (regex, input, replace, expected) => {
       expect(RE2JS.compile(regex).replaceAll(input, replace)).toEqual(expected)
@@ -86,7 +86,7 @@ describe('.replaceAll', () => {
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', '11', 'cbbba']
     ]
 
-    test.each(flagsCases)(
+    test.concurrent.each(flagsCases)(
       'regex %p with input %p and replace %p, returns %p',
       (regex, flags, input, replace, expected) => {
         expect(RE2JS.compile(regex, flags).replaceAll(input, replace)).toEqual(expected)
@@ -104,7 +104,7 @@ describe('.replaceFirst', () => {
     ['b{1}', 'aaaa', 'c', 'aaaa']
   ]
 
-  test.each(cases)(
+  test.concurrent.each(cases)(
     'regex %p with input %p and replace %p, returns %p',
     (regex, input, replace, expected) => {
       expect(RE2JS.compile(regex).replaceFirst(input, replace)).toEqual(expected)
@@ -117,7 +117,7 @@ describe('.replaceFirst', () => {
       ['ab+c', Flags.CASE_INSENSITIVE, 'cbbbacbbba', '11', 'cbbbacbbba']
     ]
 
-    test.each(flagsCases)(
+    test.concurrent.each(flagsCases)(
       'regex %p with input %p and replace %p, returns %p',
       (regex, flags, input, replace, expected) => {
         expect(RE2JS.compile(regex, flags).replaceFirst(input, replace)).toEqual(expected)

@@ -20,7 +20,7 @@ describe('RE2', () => {
     return [MatcherInput.utf8(s), MatcherInput.utf16(s)]
   }
 
-  test.each(findEndCases())('find end for %p', (input) => {
+  test.concurrent.each(findEndCases())('find end for %p', (input) => {
     const r = new RE2('abc.*def')
 
     expect(r.match(input, 0, 15, RE2Flags.UNANCHORED, null, 0)).toBe(true)

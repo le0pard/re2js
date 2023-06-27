@@ -38,7 +38,7 @@ describe('.compile', () => {
     ['\\p{', 'invalid character class range: `\\p{`']
   ]
 
-  test.each(cases)('input %p compile raise error %p', (input, expected) => {
+  test.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
     const compile = () => {
       try {
         RE2.compile(input)

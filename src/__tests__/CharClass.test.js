@@ -63,7 +63,7 @@ describe('.cleanClass', () => {
     ]
   ]
 
-  test.each(cases)('input %p, returns %p', (input, expected) => {
+  test.concurrent.each(cases)('input %p, returns %p', (input, expected) => {
     expect(new CharClass(input).cleanClass().toArray()).toEqual(expected)
   })
 })
@@ -85,7 +85,7 @@ describe('.appendLiteral', () => {
     [['a', 'f'], ' ', RE2Flags.FOLD_CASE, ['a', 'f', ' ', ' ']]
   ]
 
-  test.each(cases)(
+  test.concurrent.each(cases)(
     'input %p, literal %p, flags %p, returns %p',
     (input, literal, flags, expected) => {
       expect(
@@ -118,7 +118,7 @@ describe('.appendFoldedRange', () => {
     ]
   ]
 
-  test.each(cases)('lo %p, hi %p, returns %p', (lo, hi, expected) => {
+  test.concurrent.each(cases)('lo %p, hi %p, returns %p', (lo, hi, expected) => {
     expect(new CharClass([]).appendFoldedRange(lo, hi).toArray()).toEqual(expected)
   })
 })
@@ -130,7 +130,7 @@ describe('.appendClass', () => {
     [['c', 't'].map(codePoint), ['a', 'f'].map(codePoint), ['a', 't'].map(codePoint)]
   ]
 
-  test.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
+  test.concurrent.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
     expect(new CharClass(input).appendClass(append).toArray()).toEqual(expected)
   })
 })
@@ -164,7 +164,7 @@ describe('.appendFoldedClass', () => {
     ]
   ]
 
-  test.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
+  test.concurrent.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
     expect(new CharClass(input).appendFoldedClass(append).toArray()).toEqual(expected)
   })
 })
@@ -189,7 +189,7 @@ describe('.negateClass', () => {
     ]
   ]
 
-  test.each(cases)('input %p, returns %p', (input, expected) => {
+  test.concurrent.each(cases)('input %p, returns %p', (input, expected) => {
     expect(new CharClass(input).negateClass().toArray()).toEqual(expected)
   })
 })
@@ -216,7 +216,7 @@ describe('.appendTable', () => {
     ]
   ]
 
-  test.each(cases)('input %p, table %p, returns %p', (input, table, expected) => {
+  test.concurrent.each(cases)('input %p, table %p, returns %p', (input, table, expected) => {
     expect(new CharClass(input).appendTable(table).toArray()).toEqual(expected)
   })
 })
@@ -235,7 +235,7 @@ describe('.appendGroup', () => {
     [[], PERL_GROUPS.get('\\D'), [0, codePoint('/'), codePoint(':'), Unicode.MAX_RUNE]]
   ]
 
-  test.each(cases)('input %p, group %p, returns %p', (input, group, expected) => {
+  test.concurrent.each(cases)('input %p, group %p, returns %p', (input, group, expected) => {
     expect(new CharClass(input).appendGroup(group, false).toArray()).toEqual(expected)
   })
 })

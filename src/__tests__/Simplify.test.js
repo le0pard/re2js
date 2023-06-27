@@ -124,7 +124,7 @@ describe('.simplify', () => {
     ['(?:(a){0})', '(?:)']
   ]
 
-  test.each(cases)('regex %p simplify to %p', (input, expected) => {
+  test.concurrent.each(cases)('regex %p simplify to %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.MATCH_NL | (RE2Flags.PERL & ~RE2Flags.ONE_LINE))
     expect(Simplify.simplify(re).toString()).toEqual(expected)
   })

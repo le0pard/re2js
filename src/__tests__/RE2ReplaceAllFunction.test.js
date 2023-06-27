@@ -8,7 +8,7 @@ describe('.replaceAllFunc', () => {
     ['[a-c]*', 'defabcdef', 'xydxyexyfxabcydxyexyfxy']
   ]
 
-  test.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
+  test.concurrent.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
     const replaceFunc = { replace: (s) => `x${s}y` }
     const re = RE2.compile(pattern)
     expect(re.replaceAllFunc(input, replaceFunc, input.length)).toEqual(expected)

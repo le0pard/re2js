@@ -16,7 +16,7 @@ const cases = [
   ]
 ]
 
-test.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
+test.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
   const quoted = RE2.quoteMeta(pattern)
   expect(RE2.quoteMeta(pattern)).toEqual(output)
   // Verify that the quoted string is in fact treated as expected
@@ -28,7 +28,7 @@ test.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
   }
 })
 
-test.each(cases)(
+test.concurrent.each(cases)(
   'literal prefix: pattern %p quoted to %p and literal %p (isLiteral: %p)',
   (pattern, output, literal, isLiteral) => {
     const re = RE2.compile(pattern)

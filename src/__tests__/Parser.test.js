@@ -216,7 +216,7 @@ describe('.parse', () => {
 
   const flags = RE2Flags.MATCH_NL | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS
 
-  test.each(cases)('input %p returns %p', (input, expected) => {
+  test.concurrent.each(cases)('input %p returns %p', (input, expected) => {
     const re = Parser.parse(input, flags)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -237,7 +237,7 @@ describe('.hashCode', () => {
     ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false]
   ]
 
-  test.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {
+  test.concurrent.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {
     const ra = Parser.parse(a, flags)
     const rb = Parser.parse(b, flags)
 

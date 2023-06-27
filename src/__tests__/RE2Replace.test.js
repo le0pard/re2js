@@ -126,7 +126,7 @@ describe('.compile', () => {
     ['[a-c]*', 'abcbcdcdedef', 'x', 'xdcdedef', true]
   ]
 
-  test.each(cases)(
+  test.concurrent.each(cases)(
     'pattern %p with input %p and replacement %p will return %p (only first: %p)',
     (pattern, input, replacement, expected, replaceFirst) => {
       const re = RE2.compile(pattern)
