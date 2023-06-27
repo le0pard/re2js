@@ -5885,7 +5885,7 @@ __metadata:
     jsdom: ^22.1.0
     lodash: ^4.17.21
     prettier: ^2.8.8
-    rollup: ^3.25.2
+    rollup: ^3.25.3
     unicode-property-value-aliases: ^3.7.0
   languageName: unknown
   linkType: soft
@@ -6071,9 +6071,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^3.25.2":
-  version: 3.25.2
-  resolution: "rollup@npm:3.25.2"
+"rollup@npm:^3.25.3":
+  version: 3.25.3
+  resolution: "rollup@npm:3.25.3"
   dependencies:
     fsevents: ~2.3.2
   dependenciesMeta:
@@ -6081,7 +6081,7 @@ __metadata:
       optional: true
   bin:
     rollup: dist/bin/rollup
-  checksum: 80034ec8d71022b816cd31c24455d7b06ab8d8ff49ab9e583ceb03e2ebd0f6ad00824c6257fa4f8d12a12c2dceda999cec9509c1fff956e8a707b0add1bf2d9c
+  checksum: 397965706bb46a217e2815995133c11ce9a843e7b80018a91594d36d7a7708fe3a33acd1635deaa3138c42918397f38b32ca975951519fdfe3b4201875ecfd3d
   languageName: node
   linkType: hard
 

@@ -55,7 +55,7 @@
     "jsdom": "^22.1.0",
     "lodash": "^4.17.21",
     "prettier": "^2.8.8",
-    "rollup": "^3.25.2",
+    "rollup": "^3.25.3",
     "unicode-property-value-aliases": "^3.7.0"
   },
   "packageManager": "yarn@3.6.0"
