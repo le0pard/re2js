@@ -1,6 +1,6 @@
 # RE2JS - RE2 JS port of a linear time regular expression matching [![Test/Build/Deploy](https://github.com/le0pard/re2js/actions/workflows/tests.yml/badge.svg)](https://github.com/le0pard/re2js/actions/workflows/tests.yml)
 
-RE2 is a regular expression engine that runs in time linear in the size of the input. RE2JS is a port of a library RE2 to pure JavaScript.
+RE2 is a regular expression engine that runs in time linear in the size of the input. RE2JS is a port of a library [RE2](https://github.com/google/re2) to pure JavaScript.
 
 JavaScript standard regular expression package, [RegExp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions), and many other widely used regular expression packages such as PCRE, Perl and Python use a backtracking implementation strategy: when a pattern presents two alternatives such as a|b, the engine will try to match subpattern a first, and if that yields no match, it will reset the input stream and try to match b instead.
 
@@ -10,7 +10,7 @@ In contrast, the RE2 algorithm explores all matches simultaneously in a single p
 
 There are certain features of PCRE or Perl regular expressions that cannot be implemented in linear time, for example, backreferences, but the vast majority of regular expressions patterns in practice avoid such features.
 
-### Development
+## Development
 
 Some files like `CharGroup.js` and `UnicodeTables.js` is generated and should be edited in generators, not dirrectly
 
