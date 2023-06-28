@@ -98,11 +98,7 @@ class Utils {
 
   // Returns the array of runes in the specified Java UTF-16 string.
   static stringToRunes(str) {
-    let runes = []
-    for (let i = 0; i < str.length; i++) {
-      runes.push(str.codePointAt(i))
-    }
-    return runes
+    return String(str).split('').map(s => s.codePointAt(0))
   }
 
   // Returns the Java UTF-16 string containing the single rune |r|.
