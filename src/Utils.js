@@ -117,38 +117,23 @@ class Utils {
 
   // Returns the index of the first occurrence of array |target| within
   // array |source| after |fromIndex|, or -1 if not found.
-  static indexOf(source, target, fromIndex) {
-    if (fromIndex >= source.length) {
-      return target.length === 0 ? source.length : -1
+  static indexOf(source, target, fromIndex = 0) {
+    let targetLength = target.length
+    if (targetLength === 0) {
+      return -1
     }
-    if (fromIndex < 0) {
-      fromIndex = 0
-    }
-    if (target.length === 0) {
-      return fromIndex
-    }
-    const first = target[0]
-    for (let i = fromIndex, max = source.length - target.length; i <= max; i++) {
-      {
-        if (source[i] !== first) {
-          while (++i <= max && source[i] !== first) {
-            {
-            }
-          }
-        }
-        if (i <= max) {
-          let j = i + 1
-          const end = j + target.length - 1
-          for (let k = 1; j < end && source[j] === target[k]; j++, k++) {
-            {
-            }
-          }
-          if (j === end) {
-            return i
-          }
+
+    let sourceLength = source.length
+    for (let i = fromIndex; i <= sourceLength - targetLength; i++) {
+      for (let j = 0; j < targetLength; j++) {
+        if (source[i + j] !== target[j]) {
+          break
+        } else if (j === targetLength - 1) {
+          return i
         }
       }
     }
+
     return -1
   }
 
@@ -214,9 +199,9 @@ class Utils {
 
   static stringToUtf8ByteArray(str) {
     if (globalThis.TextEncoder) {
-      let encoder = new TextEncoder()
-      return Array.from(encoder.encode(str))
+      return Array.from(new TextEncoder().encode(str))
     } else {
+      // fallback, if no TextEncoder
       let out = [],
         p = 0
       for (let i = 0; i < str.length; i++) {
@@ -227,9 +212,9 @@ class Utils {
           out[p++] = (c >> 6) | 192
           out[p++] = (c & 63) | 128
         } else if (
-          (c & 0xfc00) == 0xd800 &&
+          (c & 0xfc00) === 0xd800 &&
           i + 1 < str.length &&
-          (str.charCodeAt(i + 1) & 0xfc00) == 0xdc00
+          (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00
         ) {
           // Surrogate Pair
           c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff)
@@ -249,9 +234,9 @@ class Utils {
 
   static utf8ByteArrayToString(bytes) {
     if (globalThis.TextDecoder) {
-      let decoder = new TextDecoder('utf-8')
-      return decoder.decode(new Uint8Array(bytes))
+      return new TextDecoder('utf-8').decode(new Uint8Array(bytes))
     } else {
+      // fallback, if no TextDecoder
       let out = [],
         pos = 0,
         c = 0
