@@ -27,7 +27,10 @@ const genEqualsIgnoreCases = () => {
 }
 
 describe('#equalsIgnoreCase', () => {
-  test.concurrent.each(genEqualsIgnoreCases())('#equalsIgnoreCase(%i, %i) === %p', (r1, r2, expected) => {
-    expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
-  })
+  test.concurrent.each(genEqualsIgnoreCases())(
+    '#equalsIgnoreCase(%i, %i) === %p',
+    (r1, r2, expected) => {
+      expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
+    }
+  )
 })

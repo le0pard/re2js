@@ -237,16 +237,19 @@ describe('.hashCode', () => {
     ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false]
   ]
 
-  test.concurrent.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {
-    const ra = Parser.parse(a, flags)
-    const rb = Parser.parse(b, flags)
+  test.concurrent.each(cases)(
+    'input %p and %p with flags %p expected %p',
+    (a, b, flags, expected) => {
+      const ra = Parser.parse(a, flags)
+      const rb = Parser.parse(b, flags)
 
-    if (expected) {
-      expect(ra).toEqual(rb)
-      // fix hashCode
-      // expect(ra.hashCode()).toEqual(rb.hashCode())
-    } else {
-      expect(ra).not.toEqual(rb)
+      if (expected) {
+        expect(ra).toEqual(rb)
+        // fix hashCode
+        // expect(ra.hashCode()).toEqual(rb.hashCode())
+      } else {
+        expect(ra).not.toEqual(rb)
+      }
     }
-  })
+  )
 })
