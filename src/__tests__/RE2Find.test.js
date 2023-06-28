@@ -6,14 +6,14 @@ const testSubmatchBytes = ({ testPattern, result, pos = 0 } = {}) => {
   const submatches = testPattern.matches[pos]
   expect(submatches.length).toEqual(result.length * 2)
 
-  for (let k = 0; k < submatches.length; k += 2) {
-    if (submatches[k] === -1) {
-      expect(result[k / 2]).toBe(null)
+  for (let k = 0; k < result.length; k++) {
+    if (submatches[k * 2] === -1) {
+      expect(result[k]).toBe(null)
       continue
     }
 
-    const expected = testPattern.submatchString(pos, k / 2)
-    expect(expected).toEqual(result[k / 2])
+    const expected = testPattern.submatchBytes(pos, k)
+    expect(expected).toEqual(result[k])
   }
 }
 
@@ -140,6 +140,7 @@ test.concurrent.each(FIND_TESTS)('findUTF8Submatch %s', (testPattern) => {
   if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
     // ok
   } else {
+    testSubmatchBytes({ testPattern, result, pos: 0 })
     const pos = 0
     const submatches = testPattern.matches[pos]
     expect(submatches.length).toEqual(result.length * 2)
