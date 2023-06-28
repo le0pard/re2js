@@ -2,6 +2,23 @@ import { expect, test } from '@jest/globals'
 import { FIND_TESTS, utf16IndicesToUtf8 } from '../__fixtures__/find'
 import { RE2 } from '../RE2'
 
+// helpers
+
+const testSubmatch = ({ testPattern, result, pos = 0 } = {}) => {
+  const submatches = testPattern.matches[pos]
+  expect(submatches.length).toEqual(result.length * 2)
+
+  for (let k = 0; k < submatches.length; k += 2) {
+    if (submatches[k] === -1) {
+      expect(result[k / 2]).toBe(null)
+      continue
+    }
+
+    const expected = testPattern.submatchString(pos, k / 2)
+    expect(expected).toEqual(result[k / 2])
+  }
+}
+
 const testSubmatchBytes = ({ testPattern, result, pos = 0 } = {}) => {
   const submatches = testPattern.matches[pos]
   expect(submatches.length).toEqual(result.length * 2)
@@ -16,6 +33,26 @@ const testSubmatchBytes = ({ testPattern, result, pos = 0 } = {}) => {
     expect(expected).toEqual(result[k])
   }
 }
+
+const testSubmatchIndices = ({
+  testPattern,
+  result,
+  pos = 0,
+  resultIndicesAreUTF8 = false
+} = {}) => {
+  const expected = testPattern.matches[pos]
+  expect(expected.length).toEqual(result.length)
+
+  if (!resultIndicesAreUTF8) {
+    result = utf16IndicesToUtf8(result, testPattern.text)
+  }
+
+  for (let k = 0; k < expected.length; k++) {
+    expect(expected[k]).toEqual(result[k])
+  }
+}
+
+// tests
 
 test.concurrent.each(FIND_TESTS)('findUTF8 %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
@@ -141,19 +178,6 @@ test.concurrent.each(FIND_TESTS)('findUTF8Submatch %s', (testPattern) => {
     // ok
   } else {
     testSubmatchBytes({ testPattern, result, pos: 0 })
-    const pos = 0
-    const submatches = testPattern.matches[pos]
-    expect(submatches.length).toEqual(result.length * 2)
-
-    for (let k = 0; k < result.length; k++) {
-      if (submatches[k * 2] === -1) {
-        expect(result[k]).toBe(null)
-        continue
-      }
-
-      const expected = testPattern.submatchBytes(pos, k)
-      expect(expected).toEqual(result[k])
-    }
   }
 })
 
@@ -164,19 +188,7 @@ test.concurrent.each(FIND_TESTS)('findSubmatch %s', (testPattern) => {
   if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
     // ok
   } else {
-    const pos = 0
-    const submatches = testPattern.matches[pos]
-    expect(submatches.length).toEqual(result.length * 2)
-
-    for (let k = 0; k < submatches.length; k += 2) {
-      if (submatches[k] === -1) {
-        expect(result[k / 2]).toBe(null)
-        continue
-      }
-
-      const expected = testPattern.submatchString(pos, k / 2)
-      expect(expected).toEqual(result[k / 2])
-    }
+    testSubmatch({ testPattern, result, pos: 0 })
   }
 })
 
@@ -187,13 +199,7 @@ test.concurrent.each(FIND_TESTS)('findUTF8SubmatchIndex %s', (testPattern) => {
   if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
     // ok
   } else {
-    const pos = 0
-    const expected = testPattern.matches[pos]
-    expect(expected.length).toEqual(result.length)
-
-    for (let k = 0; k < expected.length; k++) {
-      expect(expected[k]).toEqual(result[k])
-    }
+    testSubmatchIndices({ testPattern, result, pos: 0, resultIndicesAreUTF8: true })
   }
 })
 
@@ -204,27 +210,58 @@ test.concurrent.each(FIND_TESTS)('findSubmatchIndex %s', (testPattern) => {
   if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
     // ok
   } else {
-    const pos = 0
-    const expected = testPattern.matches[pos]
-    expect(expected.length).toEqual(result.length)
+    testSubmatchIndices({ testPattern, result, pos: 0, resultIndicesAreUTF8: false })
+  }
+})
 
-    const resultUtf8 = utf16IndicesToUtf8(result, testPattern.text)
+test.concurrent.each(FIND_TESTS)('findAllUTF8Submatch %s', (testPattern) => {
+  const re = RE2.compile(testPattern.pat)
+  const result = re.findAllUTF8Submatch(testPattern.textUTF8, -1)
 
-    for (let k = 0; k < expected.length; k++) {
-      expect(expected[k]).toEqual(resultUtf8[k])
+  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
+    // ok
+  } else {
+    for (let k = 0; k < testPattern.matches.length; k++) {
+      testSubmatchBytes({ testPattern, result: result[k], pos: k })
     }
   }
 })
 
-// test.concurrent.each(FIND_TESTS)('findAllUTF8Submatch %s', (testPattern) => {
-//   const re = RE2.compile(testPattern.pat)
-//   const result = re.findAllUTF8Submatch(testPattern.textUTF8, -1)
+test.concurrent.each(FIND_TESTS)('findAllSubmatch %s', (testPattern) => {
+  const re = RE2.compile(testPattern.pat)
+  const result = re.findAllSubmatch(testPattern.text, -1)
 
-//   if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-//     // ok
-//   } else {
-//     for (let k = 0; k < testPattern.matches.length; k++) {
-//       testSubmatchBytes({ testPattern, result: result[k], pos: k })
-//     }
-//   }
-// })
+  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
+    // ok
+  } else {
+    for (let k = 0; k < testPattern.matches.length; k++) {
+      testSubmatch({ testPattern, result: result[k], pos: k })
+    }
+  }
+})
+
+test.concurrent.each(FIND_TESTS)('findAllUTF8SubmatchIndex %s', (testPattern) => {
+  const re = RE2.compile(testPattern.pat)
+  const result = re.findAllUTF8SubmatchIndex(testPattern.textUTF8, -1)
+
+  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
+    // ok
+  } else {
+    for (let k = 0; k < testPattern.matches.length; k++) {
+      testSubmatchIndices({ testPattern, result: result[k], pos: k, resultIndicesAreUTF8: true })
+    }
+  }
+})
+
+test.concurrent.each(FIND_TESTS)('findAllSubmatchIndex %s', (testPattern) => {
+  const re = RE2.compile(testPattern.pat)
+  const result = re.findAllSubmatchIndex(testPattern.text, -1)
+
+  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
+    // ok
+  } else {
+    for (let k = 0; k < testPattern.matches.length; k++) {
+      testSubmatchIndices({ testPattern, result: result[k], pos: k, resultIndicesAreUTF8: false })
+    }
+  }
+})
