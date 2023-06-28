@@ -4,7 +4,7 @@ class Test {
   constructor(pat, text, n, ...x) {
     this.pat = pat
     this.text = text
-    this.textUTF8 = this.toUTF8(text)
+    this.textUTF8 = Utils.stringToUtf8ByteArray(text)
     this.matches = []
 
     if (n > 0) {
@@ -19,73 +19,12 @@ class Test {
     }
   }
 
-  // Converts a string to a UTF8 byte array
-  toUTF8(string) {
-    // TODO(user): Use native implementations if/when available
-    let out = [],
-      p = 0
-    for (let i = 0; i < string.length; i++) {
-      let c = string.codePointAt(i)
-      if (c < 128) {
-        out[p++] = c
-      } else if (c < 2048) {
-        out[p++] = (c >> 6) | 192
-        out[p++] = (c & 63) | 128
-      } else if (
-        (c & 0xfc00) == 0xd800 &&
-        i + 1 < string.length &&
-        (string.codePointAt(i + 1) & 0xfc00) == 0xdc00
-      ) {
-        // Surrogate Pair
-        c = 0x10000 + ((c & 0x03ff) << 10) + (string.codePointAt(++i) & 0x03ff)
-        out[p++] = (c >> 18) | 240
-        out[p++] = ((c >> 12) & 63) | 128
-        out[p++] = ((c >> 6) & 63) | 128
-        out[p++] = (c & 63) | 128
-      } else {
-        out[p++] = (c >> 12) | 224
-        out[p++] = ((c >> 6) & 63) | 128
-        out[p++] = (c & 63) | 128
-      }
-    }
-    return out
-  }
-
-  // Converts a UTF8 byte array to a string
-  fromUTF8(bytes) {
-    let out = [],
-      pos = 0,
-      c = 0
-    while (pos < bytes.length) {
-      let c1 = bytes[pos++]
-      if (c1 < 128) {
-        out[c++] = String.fromCharCode(c1)
-      } else if (c1 > 191 && c1 < 224) {
-        var c2 = bytes[pos++]
-        out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63))
-      } else if (c1 > 239 && c1 < 365) {
-        // Surrogate Pair
-        var c2 = bytes[pos++]
-        var c3 = bytes[pos++]
-        let c4 = bytes[pos++]
-        let u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) - 0x10000
-        out[c++] = String.fromCharCode(0xd800 + (u >> 10))
-        out[c++] = String.fromCharCode(0xdc00 + (u & 1023))
-      } else {
-        var c2 = bytes[pos++]
-        var c3 = bytes[pos++]
-        out[c++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63))
-      }
-    }
-    return out.join('')
-  }
-
   submatchBytes(i, j) {
     return Utils.subarray(this.textUTF8, this.matches[i][2 * j], this.matches[i][2 * j + 1])
   }
 
   submatchString(i, j) {
-    return this.fromUTF8(this.submatchBytes(i, j))
+    return Utils.utf8ByteArrayToString(this.submatchBytes(i, j))
   }
 
   toString() {

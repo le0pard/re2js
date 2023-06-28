@@ -3,65 +3,7 @@
  * Abstract the representations of input text supplied to Matcher.
  * @class
  */
-const stringToUtf8ByteArray = (str) => {
-  // TODO(user): Use native implementations if/when available
-  let out = [],
-    p = 0
-  for (let i = 0; i < str.length; i++) {
-    let c = str.codePointAt(i)
-    if (c < 128) {
-      out[p++] = c
-    } else if (c < 2048) {
-      out[p++] = (c >> 6) | 192
-      out[p++] = (c & 63) | 128
-    } else if (
-      (c & 0xfc00) == 0xd800 &&
-      i + 1 < str.length &&
-      (str.codePointAt(i + 1) & 0xfc00) == 0xdc00
-    ) {
-      // Surrogate Pair
-      c = 0x10000 + ((c & 0x03ff) << 10) + (str.codePointAt(++i) & 0x03ff)
-      out[p++] = (c >> 18) | 240
-      out[p++] = ((c >> 12) & 63) | 128
-      out[p++] = ((c >> 6) & 63) | 128
-      out[p++] = (c & 63) | 128
-    } else {
-      out[p++] = (c >> 12) | 224
-      out[p++] = ((c >> 6) & 63) | 128
-      out[p++] = (c & 63) | 128
-    }
-  }
-  return out
-}
-
-const utf8ByteArrayToString = (bytes) => {
-  // TODO(user): Use native implementations if/when available
-  let out = [],
-    pos = 0,
-    c = 0
-  while (pos < bytes.length) {
-    let c1 = bytes[pos++]
-    if (c1 < 128) {
-      out[c++] = String.fromCharCode(c1)
-    } else if (c1 > 191 && c1 < 224) {
-      var c2 = bytes[pos++]
-      out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63))
-    } else if (c1 > 239 && c1 < 365) {
-      // Surrogate Pair
-      var c2 = bytes[pos++]
-      var c3 = bytes[pos++]
-      let c4 = bytes[pos++]
-      let u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) - 0x10000
-      out[c++] = String.fromCharCode(0xd800 + (u >> 10))
-      out[c++] = String.fromCharCode(0xdc00 + (u & 1023))
-    } else {
-      var c2 = bytes[pos++]
-      var c3 = bytes[pos++]
-      out[c++] = String.fromCharCode(((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63))
-    }
-  }
-  return out.join('')
-}
+import { Utils } from './Utils'
 
 export class MatcherInput {
   /**
@@ -95,7 +37,7 @@ export class MatcherInput {
     }
   }
   static utf8$java_lang_String(input) {
-    return new MatcherInput.Utf8MatcherInput(/* getBytes */ stringToUtf8ByteArray(input))
+    return new MatcherInput.Utf8MatcherInput(/* getBytes */ Utils.stringToUtf8ByteArray(input))
   }
 }
 MatcherInput['__class'] = 'quickstart.MatcherInput'
@@ -125,7 +67,7 @@ MatcherInput['__class'] = 'quickstart.MatcherInput'
      * @return {*}
      */
     asCharSequence() {
-      return utf8ByteArrayToString(this.bytes)
+      return Utils.utf8ByteArrayToString(this.bytes)
       // return this.bytes.map(v => String.fromCodePoint(v)).join('')
       // return String.fromCharCode.apply(null, this.bytes)
     }

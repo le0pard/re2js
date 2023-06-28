@@ -25,37 +25,6 @@ import { Parser } from './Parser'
 import { Machine } from './Machine'
 import { Prog } from './Prog'
 
-const stringToUtf8ByteArray = (str) => {
-  // TODO(user): Use native implementations if/when available
-  let out = [],
-    p = 0
-  for (let i = 0; i < str.length; i++) {
-    let c = str.codePointAt(i)
-    if (c < 128) {
-      out[p++] = c
-    } else if (c < 2048) {
-      out[p++] = (c >> 6) | 192
-      out[p++] = (c & 63) | 128
-    } else if (
-      (c & 0xfc00) == 0xd800 &&
-      i + 1 < str.length &&
-      (str.codePointAt(i + 1) & 0xfc00) == 0xdc00
-    ) {
-      // Surrogate Pair
-      c = 0x10000 + ((c & 0x03ff) << 10) + (str.codePointAt(++i) & 0x03ff)
-      out[p++] = (c >> 18) | 240
-      out[p++] = ((c >> 12) & 63) | 128
-      out[p++] = ((c >> 6) & 63) | 128
-      out[p++] = (c & 63) | 128
-    } else {
-      out[p++] = (c >> 12) | 224
-      out[p++] = ((c >> 6) & 63) | 128
-      out[p++] = (c & 63) | 128
-    }
-  }
-  return out
-}
-
 class AtomicReference {
   constructor(initialValue) {
     this._value = initialValue
@@ -233,7 +202,7 @@ export class RE2 {
     re2.prefixComplete = prog.prefix(prefixBuilder)
     re2.prefix = /* toString */ prefixBuilder.str
     try {
-      re2.prefixUTF8 = stringToUtf8ByteArray(re2.prefix)
+      re2.prefixUTF8 = Utils.stringToUtf8ByteArray(re2.prefix)
     } catch (e) {
       throw Object.defineProperty(new Error("can't happen"), '__classes', {
         configurable: true,
