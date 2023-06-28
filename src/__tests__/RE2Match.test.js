@@ -6,7 +6,7 @@ describe('match', () => {
   test.concurrent.each(FIND_TESTS)('%s', (testPattern) => {
     const re = RE2.compile(testPattern.pat)
     expect(re.match(testPattern.text)).toEqual(testPattern.matches.length > 0)
-    // expect(re.matchUTF8(testPattern.textUTF8)).toEqual(testPattern.matches.length > 0)
+    expect(re.matchUTF8(testPattern.textUTF8)).toEqual(testPattern.matches.length > 0)
   })
 
   test.concurrent.each(FIND_TESTS)('%s', (testPattern) => {

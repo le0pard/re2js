@@ -653,7 +653,8 @@ export class Matcher {
    */
   substring(start, end) {
     if (this.matcherInput.getEncoding() === MatcherInput.Encoding.UTF_8) {
-      return String.fromCharCode.apply(null, this.matcherInput.asBytes()).substr(start, end - start)
+      return this.matcherInput.asBytes().map(v => String.fromCodePoint(v)).join('').substr(start, end - start)
+      // return String.fromCharCode.apply(null, this.matcherInput.asBytes()).substr(start, end - start)
     }
     return /* subSequence */ this.matcherInput.asCharSequence().substring(start, end).toString()
   }

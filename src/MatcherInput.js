@@ -3,6 +3,34 @@
  * Abstract the representations of input text supplied to Matcher.
  * @class
  */
+const stringToUtf8ByteArray = (str) => {
+  // TODO(user): Use native implementations if/when available
+  var out = [], p = 0;
+  for (var i = 0; i < str.length; i++) {
+    var c = str.codePointAt(i);
+    if (c < 128) {
+      out[p++] = c;
+    } else if (c < 2048) {
+      out[p++] = (c >> 6) | 192;
+      out[p++] = (c & 63) | 128;
+    } else if (
+      ((c & 0xFC00) == 0xD800) && (i + 1) < str.length &&
+      ((str.codePointAt(i + 1) & 0xFC00) == 0xDC00)) {
+      // Surrogate Pair
+      c = 0x10000 + ((c & 0x03FF) << 10) + (str.codePointAt(++i) & 0x03FF);
+      out[p++] = (c >> 18) | 240;
+      out[p++] = ((c >> 12) & 63) | 128;
+      out[p++] = ((c >> 6) & 63) | 128;
+      out[p++] = (c & 63) | 128;
+    } else {
+      out[p++] = (c >> 12) | 224;
+      out[p++] = ((c >> 6) & 63) | 128;
+      out[p++] = (c & 63) | 128;
+    }
+  }
+  return out;
+}
+
 export class MatcherInput {
   /**
    * Return the MatcherInput for UTF_16 encoding.
@@ -36,7 +64,7 @@ export class MatcherInput {
   }
   static utf8$java_lang_String(input) {
     return new MatcherInput.Utf8MatcherInput(
-      /* getBytes */ input.split('').map((s) => s.codePointAt(0))
+      /* getBytes */ stringToUtf8ByteArray(input)
     )
   }
 }
@@ -67,7 +95,8 @@ MatcherInput['__class'] = 'quickstart.MatcherInput'
      * @return {*}
      */
     asCharSequence() {
-      return String.fromCharCode.apply(null, this.bytes)
+      return this.bytes.map(v => String.fromCodePoint(v)).join('')
+      // return String.fromCharCode.apply(null, this.bytes)
     }
     /**
      *

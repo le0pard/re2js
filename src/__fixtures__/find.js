@@ -25,7 +25,7 @@ class Test {
     let out = [],
       p = 0
     for (let i = 0; i < string.length; i++) {
-      let c = string.charCodeAt(i)
+      let c = string.codePointAt(i)
       if (c < 128) {
         out[p++] = c
       } else if (c < 2048) {
@@ -34,10 +34,10 @@ class Test {
       } else if (
         (c & 0xfc00) == 0xd800 &&
         i + 1 < string.length &&
-        (string.charCodeAt(i + 1) & 0xfc00) == 0xdc00
+        (string.codePointAt(i + 1) & 0xfc00) == 0xdc00
       ) {
         // Surrogate Pair
-        c = 0x10000 + ((c & 0x03ff) << 10) + (string.charCodeAt(++i) & 0x03ff)
+        c = 0x10000 + ((c & 0x03ff) << 10) + (string.codePointAt(++i) & 0x03ff)
         out[p++] = (c >> 18) | 240
         out[p++] = ((c >> 12) & 63) | 128
         out[p++] = ((c >> 6) & 63) | 128
