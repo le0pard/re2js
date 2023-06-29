@@ -1,7 +1,7 @@
 import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
 
-describe('.compile', () => {
+describe('replaceAll and replaceFirst', () => {
   const cases = [
     // Test empty input and/or replacement,
     // with pattern that matches the empty string.

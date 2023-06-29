@@ -245,6 +245,8 @@ export class Pattern {
       input === null
     ) {
       return this.matcher$java_lang_CharSequence(input)
+    } else if ((input != null && input instanceof MatcherInput) || input === null) {
+      return this.matcher$quickstart_MatcherInput(input)
     } else if (
       (input != null &&
         input instanceof Array &&
@@ -252,8 +254,6 @@ export class Pattern {
       input === null
     ) {
       return this.matcher$byte_A(input)
-    } else if ((input != null && input instanceof MatcherInput) || input === null) {
-      return this.matcher$quickstart_MatcherInput(input)
     } else {
       throw new Error('invalid overload')
     }
