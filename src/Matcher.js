@@ -535,6 +535,7 @@ export class Matcher {
     if (end > this.__inputLength) {
       end = this.__inputLength
     }
+
     const ok = this.__pattern
       .re2()
       .match$quickstart_MatcherInput$int$int$int$int_A$int(

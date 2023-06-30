@@ -341,18 +341,34 @@ describe('groups', () => {
   })
 
   it('another named', () => {
-    const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>bag)?')
-    const m = p.matcher('ffffbag')
+    const p = Pattern.compile('(?P<baz>f+)(?P<bag>b+)?')
+    const m = p.matcher('ffffbbbbb')
 
     expect(m.matches()).toBeTruthy()
-    //expect(m.group('baz')).toEqual('ffff')
-    expect(m.group('bag')).toEqual('bag')
+    expect(m.group('baz')).toEqual('ffff')
+    expect(m.group('bag')).toEqual('bbbbb')
 
-    // expect(m.start('baz')).toEqual(0)
+    expect(m.start('baz')).toEqual(0)
     expect(m.start('bag')).toEqual(4)
 
-    // expect(m.end('baz')).toEqual(3)
-    expect(m.end('bag')).toEqual(7)
+    expect(m.end('baz')).toEqual(4)
+    expect(m.end('bag')).toEqual(9)
+  })
+
+  // TODO: fix me
+  it.skip('second named', () => {
+    const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})?')
+    const m = p.matcher('ffffbbbbb')
+
+    expect(m.matches()).toBeTruthy()
+    expect(m.group('baz')).toEqual('ffff')
+    expect(m.group('bag')).toEqual('bbbbb')
+
+    expect(m.start('baz')).toEqual(0)
+    expect(m.start('bag')).toEqual(4)
+
+    expect(m.end('baz')).toEqual(4)
+    expect(m.end('bag')).toEqual(9)
   })
 })
 

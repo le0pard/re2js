@@ -329,6 +329,9 @@ const testRE2 = async (fileName) => {
         }
 
         const want = parseResult(lineno, res[i]) // UTF-8 indices
+
+        //console.log('regex', regexp.toString(), text, want, have)
+
         expect(want).toEqual(have)
 
         regexp.longest = longest
@@ -348,7 +351,7 @@ it('RE2 search', async () => {
 
 it.skip('RE2 exhaustive', async () => {
   await testRE2('re2-exhaustive.txt.gz')
-}, 1800000) // long running test (~30 min), run only locally
+}, 3600000) // long running test (~60 min), run only locally
 
 it('example', () => {
   const re = RE2.compile('(?i:co(.)a)')

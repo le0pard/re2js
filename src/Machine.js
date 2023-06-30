@@ -77,7 +77,7 @@ export class Machine {
       if (this.next === undefined) {
         this.next = null
       }
-      this.pool = [null, null, null, null, null, null, null, null, null, null]
+      this.pool = []
       this.re2 = copy.re2
       this.prog = copy.prog
       this.q0 = copy.q0
@@ -136,7 +136,14 @@ export class Machine {
     if (this.ncap === 0) {
       return Utils.EMPTY_INTS
     }
-    return /* copyOf */ this.matchcap.slice(0, this.ncap)
+    const copyOfMatchcap = this.matchcap.slice(0, this.ncap)
+
+    // If ncap > matchcap.length, fill the rest of the array with zeros
+    while (copyOfMatchcap.length < this.ncap) {
+      copyOfMatchcap.push(0)
+    }
+    return copyOfMatchcap
+    // return /* copyOf */ this.matchcap.slice(0, this.ncap)
   }
   alloc(inst) {
     let t
