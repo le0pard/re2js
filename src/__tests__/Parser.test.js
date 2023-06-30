@@ -222,6 +222,7 @@ describe('.parse', () => {
   })
 })
 
+// TODO: fix me
 describe('.hashCode', () => {
   const cases = [
     ['abc', 'abc', RE2Flags.POSIX, true],

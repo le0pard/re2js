@@ -35,7 +35,7 @@ export class Machine {
       if (this.next === undefined) {
         this.next = null
       }
-      this.pool = [null, null, null, null, null, null, null, null, null, null]
+      this.pool = []
       this.prog = re2.prog
       this.re2 = re2
       this.q0 = new Machine.Queue(this.prog.numInst())
@@ -312,19 +312,20 @@ export class Machine {
             }
             if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
               t.cap[1] = pos
-              /* arraycopy */
-              ;((srcPts, srcOff, dstPts, dstOff, size) => {
-                if (srcPts !== dstPts || dstOff >= srcOff + size) {
-                  while (--size >= 0) {
-                    dstPts[dstOff++] = srcPts[srcOff++]
-                  }
-                } else {
-                  let tmp = srcPts.slice(srcOff, srcOff + size)
-                  for (let i = 0; i < size; i++) {
-                    dstPts[dstOff++] = tmp[i]
-                  }
-                }
-              })(t.cap, 0, this.matchcap, 0, this.ncap)
+              this.matchcap = t.cap.slice(0, this.ncap)
+              // /* arraycopy */
+              // ;((srcPts, srcOff, dstPts, dstOff, size) => {
+              //   if (srcPts !== dstPts || dstOff >= srcOff + size) {
+              //     while (--size >= 0) {
+              //       dstPts[dstOff++] = srcPts[srcOff++]
+              //     }
+              //   } else {
+              //     let tmp = srcPts.slice(srcOff, srcOff + size)
+              //     for (let i = 0; i < size; i++) {
+              //       dstPts[dstOff++] = tmp[i]
+              //     }
+              //   }
+              // })(t.cap, 0, this.matchcap, 0, this.ncap)
             }
             if (!longest) {
               this.free$quickstart_Machine_Queue$int(runq, j + 1)
@@ -341,7 +342,7 @@ export class Machine {
             add = true
             break
           case Inst.RUNE_ANY_NOT_NL:
-            add = c != '\n'.codePointAt(0)
+            add = c !== '\n'.codePointAt(0)
             break
           default:
             throw Object.defineProperty(new Error('bad inst'), '__classes', {

@@ -45,9 +45,8 @@ class AtomicReference {
     if (this._value === expect) {
       this._value = update
       return true
-    } else {
-      return false
     }
+    return false
   }
 }
 
@@ -265,7 +264,7 @@ export class RE2 {
   doExecute(__in, pos, anchor, ncap) {
     let m = this.get()
     let isNew = false
-    if (m === null || m === undefined) {
+    if (m == null) {
       m = new Machine(this)
       isNew = true
     } else if (m.next !== null) {
