@@ -1,7 +1,29 @@
 import { expect, describe, test } from '@jest/globals'
+import { RE2 } from '../RE2'
 import { MatcherInput } from '../MatcherInput'
+import { Matcher } from '../Matcher'
 import { Pattern } from '../Pattern'
 import { Utils } from '../Utils'
+
+const helperTestMatchEndUTF16 = (string, num, end) => {
+  const pattern = `[${string}]`
+  const RE2Modified = class extends RE2 {
+    match(input, start, e, anchor, group, ngroup) {
+      expect(end).toEqual(e)
+      return super.match(input, start, e, anchor, group, ngroup)
+    }
+  }
+  const re = new RE2Modified(pattern)
+
+  const pat = new Pattern(pattern, 0, re)
+  const m = pat.matcher(string)
+
+  let found = 0
+  while (m.find()) {
+    found += 1
+  }
+  expect(num).toEqual(found)
+}
 
 describe('.lookingAt', () => {
   const cases = [
@@ -199,4 +221,132 @@ describe('.find', () => {
       }
     }
   )
+})
+
+describe('invalid find', () => {
+  it('raise error', () => {
+    const p = Pattern.compile('.*')
+
+    const text = 'abcdef'
+    for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
+      const matchString = p.matcher(input)
+      expect(() => matchString.find(10)).toThrow('start index out of bounds: 10')
+    }
+  })
+})
+
+describe('invalid replacement', () => {
+  it('raise error', () => {
+    const p = Pattern.compile('abc')
+
+    const text = 'abc'
+    for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
+      const matchString = p.matcher(input)
+      expect(() => matchString.replaceFirst('$4')).toThrow('n > number of groups: 4')
+    }
+  })
+})
+
+describe('throws on null input reset', () => {
+  it('raise error', () => {
+    expect(() => new Matcher(Pattern.compile('pattern'), null)).toThrow(
+      'Cannot read properties of null'
+    )
+  })
+})
+
+describe('throws on null input ctor', () => {
+  it('raise error', () => {
+    expect(() => new Matcher(null, 'input')).toThrow('pattern is null')
+  })
+})
+
+describe('start end before find', () => {
+  it('raise error', () => {
+    const m = Pattern.compile('a').matcher('abaca')
+    expect(() => m.start()).toThrow('perhaps no match attempted')
+  })
+})
+
+describe('matches updates match information', () => {
+  it('successfully', () => {
+    const m = Pattern.compile('a+').matcher('aaa')
+    expect(m.matches()).toBeTruthy()
+    expect(m.group(0)).toEqual('aaa')
+  })
+})
+
+describe('alternation matches', () => {
+  it('successfully', () => {
+    const string = '123:foo'
+    expect(Pattern.compile('(?:\\w+|\\d+:foo)').matcher(string).matches()).toBeTruthy()
+    expect(Pattern.compile('(?:\\d+:foo|\\w+)').matcher(string).matches()).toBeTruthy()
+  })
+})
+
+describe('match end UTF16', () => {
+  it('successfully', () => {
+    // Latin alphabetic chars such as these 5 lower-case, acute vowels have multi-byte UTF-8
+    // encodings but fit in a single UTF-16 code, so the final match is at UTF16 offset 5.
+    const vowels = '\u00A5\u00E9\u00DF\u00F3\u00F8'
+    helperTestMatchEndUTF16(vowels, 5, 5)
+
+    const utf16 = String.fromCodePoint(0x10000, 0x10001, 0x10002)
+    expect(utf16).toEqual('\uD800\uDC00\uD800\uDC01\uD800\uDC02')
+    helperTestMatchEndUTF16(utf16, 3, 6)
+  })
+})
+
+describe('groups', () => {
+  it('search', () => {
+    const p = Pattern.compile('b(an)*(.)')
+    const m = p.matcher('by, band, banana')
+    expect(m.lookingAt()).toBeTruthy()
+    m.reset()
+
+    expect(m.find()).toBeTruthy()
+    expect(m.group(0)).toEqual('by')
+    expect(m.group(1)).toBeNull()
+    expect(m.group(2)).toEqual('y')
+
+    expect(m.find()).toBeTruthy()
+    expect(m.group(0)).toEqual('band')
+    expect(m.group(1)).toEqual('an')
+    expect(m.group(2)).toEqual('d')
+
+    expect(m.find()).toBeTruthy()
+    expect(m.group(0)).toEqual('banana')
+    expect(m.group(1)).toEqual('an')
+    expect(m.group(2)).toEqual('a')
+
+    expect(m.find()).toBeFalsy()
+  })
+
+  it('named', () => {
+    const p = Pattern.compile(
+      '(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?'
+    )
+    const m = p.matcher('fbbarrrrrbag')
+
+    expect(m.matches()).toBeTruthy()
+    expect(m.group('baz')).toEqual('fbbarrrrr')
+    expect(m.group('foo')).toEqual('bbarrrrr')
+    expect(m.group('another')).toEqual('rrrrr')
+
+    expect(m.start('baz')).toEqual(0)
+    expect(m.start('foo')).toEqual(1)
+    expect(m.start('another')).toEqual(4)
+    expect(m.end('baz')).toEqual(9)
+    expect(m.end('foo')).toEqual(9)
+
+    expect(m.group('bag')).toEqual('bag')
+    expect(m.start('bag')).toEqual(9)
+    expect(m.end('bag')).toEqual(12)
+
+    expect(m.group('nomatch')).toBeNull()
+    expect(m.start('nomatch')).toEqual(-1)
+    expect(m.end('nomatch')).toEqual(-1)
+
+    expect(() => m.group('nonexistent')).toThrow("group 'nonexistent' not found")
+  })
 })

@@ -364,6 +364,7 @@ export class RE2 {
         ? MachineInput.fromUTF16$java_lang_CharSequence$int$int(input.asCharSequence(), 0, end)
         : MachineInput.fromUTF8$byte_A$int$int(input.asBytes(), 0, end)
     const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)
+
     if (groupMatch == null) {
       return false
     }

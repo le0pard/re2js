@@ -30,7 +30,7 @@ export class Parser {
       this.free = null
     }
     this.numCap = 0
-    this.namedGroups = new Map()
+    this.namedGroups = {}
     this.wholeRegexp = wholeRegexp
     this.flags = flags
   }
@@ -786,10 +786,10 @@ export class Parser {
       }
       const re = this.op(Regexp.Op.LEFT_PAREN)
       re.cap = ++this.numCap
-      if (this.namedGroups.has(name)) {
+      if (this.namedGroups[name]) {
         throw new PatternSyntaxException(Parser.ERR_DUPLICATE_NAMED_CAPTURE, name)
       }
-      this.namedGroups.set(name, this.numCap)
+      this.namedGroups[name] = this.numCap
       re.name = name
       return
     }

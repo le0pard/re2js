@@ -371,7 +371,8 @@ export class Matcher {
     return this.groups[2 * group]
   }
   start$java_lang_String(group) {
-    if (!this.namedGroups.has(group)) {
+    const g = ((m, k) => (m[k] === undefined ? null : m[k]))(this.namedGroups, group)
+    if (g == null) {
       throw Object.defineProperty(new Error("group '" + group + "' not found"), '__classes', {
         configurable: true,
         value: [
@@ -383,7 +384,6 @@ export class Matcher {
         ]
       })
     }
-    const g = this.namedGroups.get(group)
     return this.start$int(g)
   }
   /**
