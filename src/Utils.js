@@ -140,7 +140,9 @@ class Utils {
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
   static isWordRune(r) {
     return (
-      Unicode.isLetter(r) ||
+      //Unicode.isLetter(r) ||
+      (this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) ||
+      (this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) ||
       (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) ||
       r === this.UNDERSCORE_CODEPOINT
     )

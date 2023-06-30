@@ -319,7 +319,7 @@ describe('groups', () => {
     const m = p.matcher('fbbarrrrrbag')
 
     expect(m.matches()).toBeTruthy()
-    // expect(m.group('baz')).toEqual('fbbarrrrr')
+    //expect(m.group('baz')).toEqual('fbbarrrrr')
     expect(m.group('foo')).toEqual('bbarrrrr')
     expect(m.group('another')).toEqual('rrrrr')
 
@@ -345,7 +345,7 @@ describe('groups', () => {
 it('froup zero width assertions', () => {
   const m = Pattern.compile('(\\d{2} ?(\\d|[a-z])?)($|[^a-zA-Z])').matcher('22 bored')
   expect(m.find()).toBeTruthy()
-  // expect(m.group(1)).toEqual('22')
+  //expect(m.group(1)).toEqual('22')
 })
 
 it('pattern longest match', () => {
