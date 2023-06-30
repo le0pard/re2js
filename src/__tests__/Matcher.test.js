@@ -339,6 +339,21 @@ describe('groups', () => {
 
     expect(() => m.group('nonexistent')).toThrow("group 'nonexistent' not found")
   })
+
+  it('another named', () => {
+    const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>bag)?')
+    const m = p.matcher('ffffbag')
+
+    expect(m.matches()).toBeTruthy()
+    //expect(m.group('baz')).toEqual('ffff')
+    expect(m.group('bag')).toEqual('bag')
+
+    // expect(m.start('baz')).toEqual(0)
+    expect(m.start('bag')).toEqual(4)
+
+    // expect(m.end('baz')).toEqual(3)
+    expect(m.end('bag')).toEqual(7)
+  })
 })
 
 // TODO: fix me

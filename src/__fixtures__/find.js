@@ -34,19 +34,6 @@ class Test {
   }
 }
 
-export const utf16IndicesToUtf8 = (idx16, text) => {
-  let idx8 = new Array(idx16.length)
-  for (let i = 0; i < idx16.length; ++i) {
-    if (idx16[i] === -1) {
-      idx8[i] = -1
-    } else {
-      let subText = text.substring(0, idx16[i])
-      idx8[i] = Utils.stringToUtf8ByteArray(subText).length
-    }
-  }
-  return idx8
-}
-
 export const FIND_TESTS = [
   new Test('', '', 1, 0, 0),
   new Test('^abcdefg', 'abcdefg', 1, 0, 7),
@@ -62,6 +49,7 @@ export const FIND_TESTS = [
   new Test('^abcd$', 'abcd', 1, 0, 4),
   new Test("^bcd'", 'abcdef', 0),
   new Test('^abcd$', 'abcde', 0),
+  new Test('h.*od?', 'hello\ngoodbye\n', 1, 0, 5),
   new Test('a+', 'baaab', 1, 1, 4),
   new Test('a*', 'baaab', 3, 0, 0, 1, 4, 5, 5),
   new Test('[a-z]+', 'abcd', 1, 0, 4),

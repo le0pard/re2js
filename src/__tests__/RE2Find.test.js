@@ -1,5 +1,6 @@
 import { expect, test } from '@jest/globals'
-import { FIND_TESTS, utf16IndicesToUtf8 } from '../__fixtures__/find'
+import { FIND_TESTS } from '../__fixtures__/find'
+import { utf16IndicesToUtf8 } from '../__utils__/unicode'
 import { RE2 } from '../RE2'
 
 // helpers
