@@ -149,6 +149,7 @@ MachineInput['__class'] = 'quickstart.MachineInput'
      * @param {number} i
      * @return {number}
      */
+
     step(i) {
       i += this.start
       if (i >= this.end) {

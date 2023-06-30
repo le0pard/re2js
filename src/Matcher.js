@@ -530,6 +530,7 @@ export class Matcher {
     if (group === 0 || this.hasGroups) {
       return
     }
+
     let end = this.groups[1] + 1
     if (end > this.__inputLength) {
       end = this.__inputLength

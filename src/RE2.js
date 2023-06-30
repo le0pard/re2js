@@ -265,10 +265,10 @@ export class RE2 {
   doExecute(__in, pos, anchor, ncap) {
     let m = this.get()
     let isNew = false
-    if (m == null) {
+    if (m === null || m === undefined) {
       m = new Machine(this)
       isNew = true
-    } else if (m.next != null) {
+    } else if (m.next !== null) {
       m = new Machine(m)
       isNew = true
     }

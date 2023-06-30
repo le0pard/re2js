@@ -214,6 +214,7 @@ export class Machine {
         a[i] = v
       }
     })(this.matchcap, 0, this.prog.numCap, -1)
+
     let runq = this.q0
     let nextq = this.q1
     let r = __in.step(pos)

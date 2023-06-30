@@ -92,7 +92,7 @@ export class Regexp {
     this.min = 0
     this.max = 0
     this.name = null
-    this.namedGroups = new Map()
+    this.namedGroups = {}
   }
   /**
    *
