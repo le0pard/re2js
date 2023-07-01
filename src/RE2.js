@@ -305,7 +305,7 @@ export class RE2 {
       (typeof anchor === 'number' || anchor === null) &&
       ((group != null &&
         group instanceof Array &&
-        (group.length == 0 || group[0] == null || typeof group[0] === 'number')) ||
+        (group.length === 0 || group[0] === null || typeof group[0] === 'number')) ||
         group === null) &&
       (typeof ngroup === 'number' || ngroup === null)
     ) {
@@ -362,6 +362,7 @@ export class RE2 {
       input.getEncoding() === MatcherInput.Encoding.UTF_16
         ? MachineInput.fromUTF16$java_lang_CharSequence$int$int(input.asCharSequence(), 0, end)
         : MachineInput.fromUTF8$byte_A$int$int(input.asBytes(), 0, end)
+
     const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)
 
     if (groupMatch == null) {
@@ -780,7 +781,7 @@ export class RE2 {
   findAllUTF8(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$2(this, result, b))
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -799,7 +800,7 @@ export class RE2 {
   findAllUTF8Index(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$3(this, result))
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -822,7 +823,7 @@ export class RE2 {
       n,
       new RE2.RE2$4(this, result, s)
     )
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -845,7 +846,7 @@ export class RE2 {
       n,
       new RE2.RE2$5(this, result)
     )
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -864,7 +865,7 @@ export class RE2 {
   findAllUTF8Submatch(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$6(this, b, result))
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -883,7 +884,7 @@ export class RE2 {
   findAllUTF8SubmatchIndex(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$7(this, result))
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -906,7 +907,7 @@ export class RE2 {
       n,
       new RE2.RE2$8(this, s, result)
     )
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result
@@ -929,7 +930,7 @@ export class RE2 {
       n,
       new RE2.RE2$9(this, result)
     )
-    if (/* isEmpty */ result.length == 0) {
+    if (/* isEmpty */ result.length === 0) {
       return null
     }
     return result

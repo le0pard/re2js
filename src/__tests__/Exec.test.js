@@ -18,10 +18,10 @@ const unquoteChar = (s, i, quote) => {
   i[0] += Array.from(String.fromCodePoint(c)).length
 
   // easy cases
-  if (c == quote && (quote == "'" || quote == '"')) {
+  if (c === quote && (quote === "'" || quote === '"')) {
     throw new Error('unescaped quotation mark in literal')
   }
-  if (c != '\\'.codePointAt(0)) {
+  if (c !== '\\'.codePointAt(0)) {
     return c
   }
 
@@ -70,7 +70,7 @@ const unquoteChar = (s, i, quote) => {
         }
         v = (v << 4) | x
       }
-      if (c == 'x'.codePointAt(0)) {
+      if (c === 'x'.codePointAt(0)) {
         return v
       }
       if (v > 0x10ffff) {
@@ -107,7 +107,7 @@ const unquoteChar = (s, i, quote) => {
       return '\\'.codePointAt(0)
     case "'".codePointAt(0):
     case '"'.codePointAt(0):
-      if (c != quote) {
+      if (c !== quote) {
         throw new Error('unnecessary backslash escape')
       }
       return c
@@ -122,17 +122,17 @@ const unquote = (s) => {
     throw new Error('too short')
   }
   let quote = s.charAt(0)
-  if (quote != s.charAt(n - 1)) {
+  if (quote !== s.charAt(n - 1)) {
     throw new Error("quotes don't match")
   }
   s = s.substring(1, n - 1)
-  if (quote == '`') {
+  if (quote === '`') {
     if (s.indexOf('`') >= 0) {
       throw new Error("backquoted string contains '`'")
     }
     return s
   }
-  if (quote != '"' && quote != "'") {
+  if (quote !== '"' && quote !== "'") {
     throw new Error('invalid quotation mark')
   }
   if (s.indexOf('\n') >= 0) {
@@ -141,8 +141,8 @@ const unquote = (s) => {
   // Is it trivial?  Avoid allocation.
   if (s.indexOf('\\') < 0 && s.indexOf(quote) < 0) {
     if (
-      quote == '"' || // "abc"
-      Array.from(s).length == 1
+      quote === '"' || // "abc"
+      Array.from(s).length === 1
     ) {
       // 'a'
       // if s == "\\" then this return is wrong.
@@ -157,7 +157,7 @@ const unquote = (s) => {
     // The 'unquoteChar' function was not provided in the original code.
     // This should be replaced with the JavaScript version of that function.
     buf += String.fromCodePoint(unquoteChar(s, i, quote))
-    if (quote == "'" && i[0] != len) {
+    if (quote === "'" && i[0] !== len) {
       throw new Error('single-quotation must be one char')
     }
   }
@@ -275,7 +275,7 @@ const testRE2 = async (fileName) => {
           // We don't and likely never will support \C; keep going.
           continue
         }
-        console.log(e)
+        throw e
       }
 
       try {

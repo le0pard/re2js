@@ -12,7 +12,8 @@ describe('.numberOfCapturingGroups', () => {
     ['(.*)(ab)(.*)a', 3],
     ['(.*)((a)b)(.*)a', 4],
     ['(.*)(\\(ab)(.*)a', 3],
-    ['(.*)(\\(a\\)b)(.*)a', 3]
+    ['(.*)(\\(a\\)b)(.*)a', 3],
+    ['(?P<baz>f{0,10})(?P<bag>b{0,10})', 2]
   ]
 
   test.concurrent.each(cases)('input %p get result %p', (input, expected) => {

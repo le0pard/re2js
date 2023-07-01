@@ -136,6 +136,7 @@ export class Machine {
     if (this.ncap === 0) {
       return Utils.EMPTY_INTS
     }
+
     const copyOfMatchcap = this.matchcap.slice(0, this.ncap)
 
     // If ncap > matchcap.length, fill the rest of the array with zeros
@@ -275,7 +276,7 @@ export class Machine {
         }
         const nextPos = pos + width
         flag = __in.context(nextPos)
-        this.step(runq, nextq, pos, nextPos, rune, flag, anchor, pos === __in.endPos())
+        this.step(runq, nextq, pos, nextPos, rune, flag, anchor, pos == __in.endPos())
         if (width === 0) {
           break
         }

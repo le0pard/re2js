@@ -195,7 +195,7 @@ export class Pattern {
       (typeof regex === 'string' || regex === null) &&
       ((input != null &&
         input instanceof Array &&
-        (input.length == 0 || input[0] == null || typeof input[0] === 'number')) ||
+        (input.length === 0 || input[0] === null || typeof input[0] === 'number')) ||
         input === null)
     ) {
       return Pattern.matches$java_lang_String$byte_A(regex, input)
@@ -343,7 +343,7 @@ export class Pattern {
 
       /* add */ result.push(m.substring(last, m.inputLength())) > 0
     }
-    if (limit !== 0 || /* isEmpty */ result.length == 0) {
+    if (limit !== 0 || /* isEmpty */ result.length === 0) {
       /* add */ result.push(m.substring(last, m.inputLength())) > 0
     }
     return /* toArray */ result.slice(0)

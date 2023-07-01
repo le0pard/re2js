@@ -357,7 +357,7 @@ describe('groups', () => {
 
   // TODO: fix me
   it.skip('second named', () => {
-    const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})?')
+    const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})')
     const m = p.matcher('ffffbbbbb')
 
     expect(m.matches()).toBeTruthy()

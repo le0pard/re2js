@@ -162,6 +162,7 @@ describe('.parse', () => {
 
     // Test named captures
     ['(?P<name>a)', 'cap{name:lit{a}}'],
+    ['(?P<baz>f{0,10})(?P<bag>b{0,10})', 'cat{cap{baz:rep{0,10 lit{f}}}cap{bag:rep{0,10 lit{b}}}}'],
 
     // Case-folded literals
     ['[Aa]', 'litfold{A}'],

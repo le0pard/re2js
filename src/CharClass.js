@@ -12,7 +12,7 @@ export class CharClass {
     if (
       (r != null &&
         r instanceof Array &&
-        (r.length == 0 || r[0] == null || typeof r[0] === 'number')) ||
+        (r.length === 0 || r[0] === null || typeof r[0] === 'number')) ||
       r === null
     ) {
       let __args = arguments
