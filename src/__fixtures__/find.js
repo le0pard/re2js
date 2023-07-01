@@ -50,6 +50,8 @@ export const FIND_TESTS = [
   new Test("^bcd'", 'abcdef', 0),
   new Test('^abcd$', 'abcde', 0),
   new Test('h.*od?', 'hello\ngoodbye\n', 1, 0, 5),
+  new Test('a{1,5}', 'baaac', 1, 1, 4),
+  new Test('ac{1,25}', 'bbaaaccccdd', 1, 4, 9),
   new Test('a+', 'baaab', 1, 1, 4),
   new Test('a*', 'baaab', 3, 0, 0, 1, 4, 5, 5),
   new Test('[a-z]+', 'abcd', 1, 0, 4),

@@ -319,20 +319,19 @@ export class Machine {
             }
             if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
               t.cap[1] = pos
-              this.matchcap = t.cap.slice(0, this.ncap)
-              // /* arraycopy */
-              // ;((srcPts, srcOff, dstPts, dstOff, size) => {
-              //   if (srcPts !== dstPts || dstOff >= srcOff + size) {
-              //     while (--size >= 0) {
-              //       dstPts[dstOff++] = srcPts[srcOff++]
-              //     }
-              //   } else {
-              //     let tmp = srcPts.slice(srcOff, srcOff + size)
-              //     for (let i = 0; i < size; i++) {
-              //       dstPts[dstOff++] = tmp[i]
-              //     }
-              //   }
-              // })(t.cap, 0, this.matchcap, 0, this.ncap)
+              /* arraycopy */
+              ;((srcPts, srcOff, dstPts, dstOff, size) => {
+                if (srcPts !== dstPts || dstOff >= srcOff + size) {
+                  while (--size >= 0) {
+                    dstPts[dstOff++] = srcPts[srcOff++]
+                  }
+                } else {
+                  let tmp = srcPts.slice(srcOff, srcOff + size)
+                  for (let i = 0; i < size; i++) {
+                    dstPts[dstOff++] = tmp[i]
+                  }
+                }
+              })(t.cap, 0, this.matchcap, 0, this.ncap)
             }
             if (!longest) {
               this.free$quickstart_Machine_Queue$int(runq, j + 1)
