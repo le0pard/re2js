@@ -230,12 +230,9 @@ export class Compiler {
           return this.nop()
         } else {
           let f = null
-          for (let index = 0; index < re.subs.length; index++) {
-            let sub = re.subs[index]
-            {
-              const f1 = this.compile(sub)
-              f = f == null ? f1 : this.cat(f, f1)
-            }
+          for (let sub of re.subs) {
+            const f1 = this.compile(sub)
+            f = f == null ? f1 : this.cat(f, f1)
           }
           return f
         }
@@ -244,12 +241,9 @@ export class Compiler {
           return this.nop()
         } else {
           let f = null
-          for (let index = 0; index < re.subs.length; index++) {
-            let sub = re.subs[index]
-            {
-              const f1 = this.compile(sub)
-              f = f == null ? f1 : this.alt(f, f1)
-            }
+          for (let sub of re.subs) {
+            const f1 = this.compile(sub)
+            f = f == null ? f1 : this.alt(f, f1)
           }
           return f
         }

@@ -155,6 +155,15 @@ describe('.compileRegexp', () => {
 3       match
 `
     ]
+// TODO: fix me
+//     [
+//       'a{2,6}',
+//       `0       fail
+// 1*      rune "09AZaz" -> 2
+// 2       alt -> 1, 3
+// 3       match
+// `
+//     ]
   ]
 
   test.concurrent.each(cases)('input %p compileRegexp to %p', (input, expected) => {

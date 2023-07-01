@@ -1238,9 +1238,8 @@ export class Parser {
         if (t.more() && t.lookingAt$char('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
           const s = t.rest()
           if (
-            s === '-' ||
-            !((str, searchString, position = 0) =>
-              str.substr(position, searchString.length) === searchString)(s, '-]')
+            s == '-' ||
+            !s.startsWith('-]')
           ) {
             t.rewindTo(startPos)
             throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
