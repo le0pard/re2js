@@ -135,6 +135,15 @@ test.concurrent.each(FIND_TESTS)('findAll %s', (testPattern) => {
   }
 })
 
+it('compilePOSIX + findAll example', () => {
+  expect(RE2.compilePOSIX('[^\t]+').findAll('BE	abracadabra$	abracadabracadabra	(7,18)', -1)).toEqual([
+    'BE',
+    'abracadabra$',
+    'abracadabracadabra',
+    '(7,18)'
+  ])
+})
+
 test.concurrent.each(FIND_TESTS)('findAllUTF8Index %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8Index(testPattern.textUTF8, -1)

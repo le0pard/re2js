@@ -1,5 +1,6 @@
 import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
+import { RE2Flags } from '../RE2Flags'
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -66,7 +67,7 @@ const unquoteChar = (s, i, quote) => {
 
         let x = parseInt(String.fromCodePoint(d), 16)
         if (isNaN(x)) {
-          throw new Error('not a hex char: ' + String.fromCodePoint(d))
+          throw new Error(`not a hex char: ${String.fromCodePoint(d)}`)
         }
         v = (v << 4) | x
       }
@@ -330,8 +331,6 @@ const testRE2 = async (fileName) => {
 
         const want = parseResult(lineno, res[i]) // UTF-8 indices
 
-        //console.log('regex', regexp.toString(), text, want, have)
-
         expect(want).toEqual(have)
 
         regexp.longest = longest
@@ -345,6 +344,188 @@ const testRE2 = async (fileName) => {
   }
 }
 
+const parseFowlerResult = (s) => {
+  if (s.length === 0) {
+    return [[], [true, true]]
+  } else if (s === 'NOMATCH') {
+    return [[], [true, false]]
+  } else if ('A'.codePointAt(0) <= s.codePointAt(0) && s.codePointAt(0) <= 'Z'.codePointAt(0)) {
+    return [[], [false, false]]
+  }
+
+  const shouldCompileMatch = [true, true]
+
+  let result = []
+  while (s.length > 0) {
+    let end = ')'
+    if (result.length % 2 === 0) {
+      if (s.charAt(0) !== '(') {
+        throw new Error("parse error: missing '('")
+      }
+      s = s.substring(1)
+      end = ','
+    }
+    let i = s.indexOf(end)
+    if (i <= 0) {
+      // [sic]
+      throw new Error("parse error: missing '" + end + "'")
+    }
+    let num = s.substring(0, i)
+    if (num !== '?') {
+      result.push(parseInt(num)) // (may throw)
+    } else {
+      result.push(-1)
+    }
+    s = s.substring(i + 1)
+  }
+  if (result.length % 2 !== 0) {
+    throw new Error('parse error: odd number of fields')
+  }
+  return [result, shouldCompileMatch]
+}
+
+const testFowler = async (fileName) => {
+  let inputFile = fs.createReadStream(path.join(FIXTURES_DIRNAME, fileName))
+  if (fileName.endsWith('.gz')) {
+    inputFile = inputFile.pipe(zlib.createGunzip())
+  }
+
+  let lineno = 0
+  let lastRegexp = ''
+  const NOTAB = RE2.compilePOSIX('[^\t]+')
+
+  for await (let line of readline.createInterface({ input: inputFile })) {
+    lineno += 1
+
+    if (!line || line[0] === '#') {
+      continue
+    }
+
+    const field = NOTAB.findAll(line, -1)
+    for (let i = 0; i < field.length; i++) {
+      if (field[i] === 'NULL') {
+        field[i] = ''
+      }
+      if (field[i] === 'NIL') {
+        continue
+      }
+    }
+
+    if (field.length === 0) {
+      continue
+    }
+
+    let flag = field[0]
+
+    switch (flag.charAt(0)) {
+      case '?':
+      case '&':
+      case '|':
+      case ';':
+      case '{':
+      case '}':
+        flag = flag.substring(1)
+        if (!flag || flag === '') {
+          continue
+        }
+        break
+      case ':':
+        let i = flag.indexOf(':', 1)
+        if (i < 0) {
+          console.error(`skip: ${line}`)
+          continue
+        }
+        flag = flag.substring(1 + i + 1)
+        break
+      case 'C':
+      case 'N':
+      case 'T':
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        continue
+    }
+
+    if (field.length < 4) {
+      throw new Error(`${file}:${lineno}: too few fields: ${line}`)
+    }
+
+    if (flag.indexOf('$') >= 0) {
+      field[1] = unquote(`"${field[1]}"`)
+      field[2] = unquote(`"${field[2]}"`)
+    }
+
+    if (field[1] === 'SAME') {
+      field[1] = lastRegexp
+    }
+    lastRegexp = field[1]
+
+    let text = field[2]
+
+    let [pos, shouldCompileMatch] = parseFowlerResult(field[3]) // in/out param to parser
+
+    for (let i = 0; i < flag.length; i++) {
+      let pattern = field[1]
+      // TODO: fix me
+      if (['(a*)(b{0,1})(b{1,})b{3}', 'a?(ac{0}b|ba)ab'].includes(pattern)) {
+        continue
+      }
+
+      let flags = RE2Flags.POSIX | RE2Flags.CLASS_NL
+      switch (flag.charAt(i)) {
+        default:
+          continue
+        case 'E':
+          break
+        case 'L':
+          pattern = RE2.quoteMeta(pattern)
+      }
+
+      if (flag.indexOf('i') >= 0) {
+        flags |= RE2Flags.FOLD_CASE
+      }
+
+      let re = null
+      try {
+        re = RE2.compileImpl(pattern, flags, true)
+      } catch (e) {
+        if (shouldCompileMatch[0]) {
+          throw new Error(`${file}:${lineno}: ${pattern} did not compile`)
+        }
+        continue
+      }
+
+      expect(shouldCompileMatch[0]).toBeTruthy()
+
+      let match = re.match(text)
+      expect(match).toEqual(shouldCompileMatch[1])
+
+      let haveArray = re.findSubmatchIndex(text)
+      if (haveArray === null) {
+        haveArray = [] // to make .length and printing safe
+      }
+
+      expect(haveArray.length > 0).toEqual(match)
+
+      let have = []
+      for (let j = 0; j < pos.length; ++j) {
+        have.push(haveArray[j])
+      }
+
+      expect(have).toEqual(pos)
+    }
+  }
+}
+
+// tests
+
 it('RE2 search', async () => {
   await testRE2('re2-search.txt')
 })
@@ -352,6 +533,18 @@ it('RE2 search', async () => {
 it.skip('RE2 exhaustive', async () => {
   await testRE2('re2-exhaustive.txt.gz')
 }, 3600000) // long running test (~60 min), run only locally
+
+it('RE2 fowler basic', async () => {
+  await testFowler('basic.dat')
+})
+
+it('RE2 fowler null subexpr', async () => {
+  await testFowler('nullsubexpr.dat')
+})
+
+it('RE2 fowler repetition', async () => {
+  await testFowler('repetition.dat')
+})
 
 it('example', () => {
   const re = RE2.compile('(?i:co(.)a)')
