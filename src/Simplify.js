@@ -14,17 +14,15 @@ export class Simplify {
       case Regexp.Op.ALTERNATE: {
         let nre = re
         for (let i = 0; i < re.subs.length; ++i) {
-          {
-            const sub = re.subs[i]
-            const nsub = Simplify.simplify(sub)
-            if (nre === re && nsub !== sub) {
-              nre = new Regexp(re)
-              nre.runes = null
-              nre.subs = Parser.subarray(re.subs, 0, re.subs.length)
-            }
-            if (nre !== re) {
-              nre.subs[i] = nsub
-            }
+          const sub = re.subs[i]
+          const nsub = Simplify.simplify(sub)
+          if (nre == re && nsub != sub) {
+            nre = new Regexp(re)
+            nre.runes = null
+            nre.subs = Parser.subarray(re.subs, 0, re.subs.length)
+          }
+          if (nre != re) {
+            nre.subs[i] = nsub
           }
         }
         return nre

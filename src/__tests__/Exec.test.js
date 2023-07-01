@@ -467,9 +467,9 @@ const testFowler = async (fileName) => {
     }
     lastRegexp = field[1]
 
-    let text = field[2]
+    const text = field[2]
 
-    let [pos, shouldCompileMatch] = parseFowlerResult(field[3]) // in/out param to parser
+    const [pos, shouldCompileMatch] = parseFowlerResult(field[3]) // in/out param to parser
 
     for (let i = 0; i < flag.length; i++) {
       let pattern = field[1]

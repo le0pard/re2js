@@ -26,6 +26,9 @@ describe('replaceAll and replaceFirst', () => {
     ['[a-c]*', '\u65e5', 'x', 'x\u65e5x', false],
     ['[^\u65e5]', 'abc\u65e5def', 'x', 'xxx\u65e5xxx', false],
 
+    ['a{2,10}', 'aabaaa', 'x', 'xbx', false],
+    ['a{5,10}', 'aabaaaaa', 'x', 'aabx', false],
+
     // Start and end of a string.
     ['^[a-c]*', 'abcdabc', 'x', 'xdabc', false],
     ['[a-c]*$', 'abcdabc', 'x', 'abcdx', false],

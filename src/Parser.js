@@ -1298,9 +1298,7 @@ export class Parser {
       return a
     })(end - start)
     for (let i = start; i < end; ++i) {
-      {
-        r[i - start] = array[i]
-      }
+      r[i - start] = array[i]
     }
     return r
   }

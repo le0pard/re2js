@@ -136,15 +136,7 @@ export class Machine {
     if (this.ncap === 0) {
       return Utils.EMPTY_INTS
     }
-
-    const copyOfMatchcap = this.matchcap.slice(0, this.ncap)
-
-    // If ncap > matchcap.length, fill the rest of the array with zeros
-    while (copyOfMatchcap.length < this.ncap) {
-      copyOfMatchcap.push(0)
-    }
-    return copyOfMatchcap
-    // return /* copyOf */ this.matchcap.slice(0, this.ncap)
+    return /* copyOf */ this.matchcap.slice(0, this.ncap)
   }
   alloc(inst) {
     let t

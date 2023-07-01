@@ -12,7 +12,6 @@ import { Utils } from './Utils'
 export class Regexp {
   constructor(op) {
     if (typeof op === 'number' || op === null) {
-      let __args = arguments
       if (this.op === undefined) {
         this.op = null
       }
@@ -40,8 +39,6 @@ export class Regexp {
       this.namedGroups = {}
       this.op = op
     } else if ((op != null && op instanceof Regexp) || op === null) {
-      let __args = arguments
-      let that = __args[0]
       if (this.op === undefined) {
         this.op = null
       }
@@ -67,13 +64,13 @@ export class Regexp {
         this.name = null
       }
       this.namedGroups = {}
-      this.op = that.op
-      this.flags = that.flags
-      this.subs = that.subs
-      this.runes = that.runes
+      this.op = op.op
+      this.flags = op.flags
+      this.subs = op.subs
+      this.runes = op.runes
       this.cap = this.min = this.max = 0
-      this.name = that.name
-      this.namedGroups = that.namedGroups
+      this.name = op.name
+      this.namedGroups = op.namedGroups
     } else {
       throw new Error('invalid overload')
     }
