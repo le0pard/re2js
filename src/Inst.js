@@ -7,7 +7,7 @@ import { RE2Flags } from './RE2Flags'
 import { Utils } from './Utils'
 import { Unicode } from './Unicode'
 
-export class Inst {
+class Inst {
   static ALT = 1
   static ALT_MATCH = 2
   static CAPTURE = 3
@@ -123,3 +123,5 @@ export class Inst {
     }
   }
 }
+
+export { Inst }
