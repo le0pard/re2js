@@ -1,125 +1,92 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
-/**
- * Abstract the representations of input text supplied to Matcher.
- * @class
- */
 import { Utils } from './Utils'
 import { createEnum } from './helpers'
 
-export class MatcherInput {
+/**
+ * Abstract the representations of input text supplied to Matcher.
+ */
+class MatcherInputBase {
   static Encoding = createEnum(['UTF_16', 'UTF_8'])
 
-  /**
-   * Return the MatcherInput for UTF_16 encoding.
-   * @param {*} charSequence
-   * @return {MatcherInput}
-   */
-  static utf16(charSequence) {
-    return new MatcherInput.Utf16MatcherInput(charSequence)
+  getEncoding() {
+    throw Error('not implemented')
   }
-  static utf8$byte_A(bytes) {
-    return new MatcherInput.Utf8MatcherInput(bytes)
+
+  isUTF8Encoding() {
+    return this.getEncoding() === MatcherInputBase.Encoding.UTF_8
   }
-  /**
-   * Return the MatcherInput for UTF_8 encoding.
-   * @param {byte[]} bytes
-   * @return {MatcherInput}
-   */
-  static utf8(bytes) {
-    if (
-      (bytes != null &&
-        bytes instanceof Array &&
-        (bytes.length == 0 || bytes[0] == null || typeof bytes[0] === 'number')) ||
-      bytes === null
-    ) {
-      return MatcherInput.utf8$byte_A(bytes)
-    } else if (typeof bytes === 'string' || bytes === null) {
-      return MatcherInput.utf8$java_lang_String(bytes)
-    } else {
-      throw new Error('invalid overload')
-    }
-  }
-  static utf8$java_lang_String(input) {
-    return new MatcherInput.Utf8MatcherInput(/* getBytes */ Utils.stringToUtf8ByteArray(input))
+
+  isUTF16Encoding() {
+    return this.getEncoding() === MatcherInputBase.Encoding.UTF_16
   }
 }
-MatcherInput['__class'] = 'quickstart.MatcherInput'
-;(function (MatcherInput) {
-  class Utf8MatcherInput extends MatcherInput {
-    constructor(bytes = null) {
-      super()
-      this.bytes = bytes
-    }
-    /**
-     *
-     * @return {MatcherInput.Encoding}
-     */
-    getEncoding() {
-      return MatcherInput.Encoding.UTF_8
-    }
-    /**
-     *
-     * @return {*}
-     */
-    asCharSequence() {
-      return Utils.utf8ByteArrayToString(this.bytes)
-      // return this.bytes.map(v => String.fromCodePoint(v)).join('')
-      // return String.fromCharCode.apply(null, this.bytes)
-    }
-    /**
-     *
-     * @return {byte[]}
-     */
-    asBytes() {
-      return this.bytes
-    }
-    /**
-     *
-     * @return {number}
-     */
-    length() {
-      return this.bytes.length
-    }
+
+class Utf8MatcherInput extends MatcherInputBase {
+  constructor(bytes = null) {
+    super()
+    this.bytes = bytes
   }
-  MatcherInput.Utf8MatcherInput = Utf8MatcherInput
-  Utf8MatcherInput['__class'] = 'quickstart.MatcherInput.Utf8MatcherInput'
-  class Utf16MatcherInput extends MatcherInput {
-    constructor(charSequence = null) {
-      super()
-      this.charSequence = charSequence
-    }
-    /**
-     *
-     * @return {MatcherInput.Encoding}
-     */
-    getEncoding() {
-      return MatcherInput.Encoding.UTF_16
-    }
-    /**
-     *
-     * @return {*}
-     */
-    asCharSequence() {
-      return this.charSequence
-    }
-    /**
-     *
-     * @return {byte[]}
-     */
-    asBytes() {
-      return this.charSequence
-        .toString()
-        .split('')
-        .map((s) => s.codePointAt(0))
-    }
-    /**
-     *
-     * @return {number}
-     */
-    length() {
-      return this.charSequence.length
-    }
+
+  getEncoding() {
+    return MatcherInputBase.Encoding.UTF_8
   }
-  MatcherInput.Utf16MatcherInput = Utf16MatcherInput
-  Utf16MatcherInput['__class'] = 'quickstart.MatcherInput.Utf16MatcherInput'
-})(MatcherInput || (MatcherInput = {}))
+
+  asCharSequence() {
+    return Utils.utf8ByteArrayToString(this.bytes)
+  }
+
+  asBytes() {
+    return this.bytes
+  }
+
+  length() {
+    return this.bytes.length
+  }
+}
+
+class Utf16MatcherInput extends MatcherInputBase {
+  constructor(charSequence = null) {
+    super()
+    this.charSequence = charSequence
+  }
+
+  getEncoding() {
+    return MatcherInputBase.Encoding.UTF_16
+  }
+
+  asCharSequence() {
+    return this.charSequence
+  }
+
+  asBytes() {
+    return this.charSequence
+      .toString()
+      .split('')
+      .map((s) => s.codePointAt(0))
+  }
+
+  length() {
+    return this.charSequence.length
+  }
+}
+
+class MatcherInput {
+  /**
+   * Return the MatcherInput for UTF_16 encoding.
+   */
+  static utf16(charSequence) {
+    return new Utf16MatcherInput(charSequence)
+  }
+
+  /**
+   * Return the MatcherInput for UTF_8 encoding.
+   */
+  static utf8(input) {
+    if (input instanceof Array) {
+      return new Utf8MatcherInput(input)
+    }
+
+    return new Utf8MatcherInput(Utils.stringToUtf8ByteArray(input))
+  }
+}
+
+export { MatcherInput, MatcherInputBase }

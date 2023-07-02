@@ -30,7 +30,7 @@
  */
 import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
-import { MatcherInput } from './MatcherInput'
+import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Utils } from './Utils'
 
 export class Matcher {
@@ -138,7 +138,7 @@ export class Matcher {
     } else if (
       ((pattern != null && pattern.constructor['__class'] === 'quickstart.Pattern') ||
         pattern === null) &&
-      ((input != null && input instanceof MatcherInput) || input === null)
+      ((input != null && input instanceof MatcherInputBase) || input === null)
     ) {
       let __args = arguments
       {
@@ -333,7 +333,7 @@ export class Matcher {
       input === null
     ) {
       return this.reset$byte_A(input)
-    } else if ((input != null && input instanceof MatcherInput) || input === null) {
+    } else if ((input != null && input instanceof MatcherInputBase) || input === null) {
       return this.reset$quickstart_MatcherInput(input)
     } else if (input === undefined) {
       return this.reset$()
@@ -342,7 +342,7 @@ export class Matcher {
     }
   }
   reset$byte_A(bytes) {
-    return this.reset$quickstart_MatcherInput(MatcherInput.utf8$byte_A(bytes))
+    return this.reset$quickstart_MatcherInput(MatcherInput.utf8(bytes))
   }
   /*private*/ reset$quickstart_MatcherInput(input) {
     if (input == null) {
@@ -655,7 +655,7 @@ export class Matcher {
    * @return {string}
    */
   substring(start, end) {
-    if (this.matcherInput.getEncoding() === MatcherInput.Encoding.UTF_8) {
+    if (this.matcherInput.isUTF8Encoding()) {
       return Utils.utf8ByteArrayToString(this.matcherInput.asBytes().slice(start, end))
     }
     return this.matcherInput.asCharSequence().substring(start, end).toString()

@@ -16,7 +16,7 @@
  * @class
  */
 import { RE2Flags } from './RE2Flags'
-import { MatcherInput } from './MatcherInput'
+import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
 import { Utils } from './Utils'
@@ -246,7 +246,7 @@ export class Pattern {
       input === null
     ) {
       return this.matcher$java_lang_CharSequence(input)
-    } else if ((input != null && input instanceof MatcherInput) || input === null) {
+    } else if ((input != null && input instanceof MatcherInputBase) || input === null) {
       return this.matcher$quickstart_MatcherInput(input)
     } else if (
       (input != null &&
@@ -260,7 +260,7 @@ export class Pattern {
     }
   }
   matcher$byte_A(input) {
-    return new Matcher(this, MatcherInput.utf8$byte_A(input))
+    return new Matcher(this, MatcherInput.utf8(input))
   }
   matcher$quickstart_MatcherInput(input) {
     return new Matcher(this, input)

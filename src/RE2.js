@@ -17,7 +17,7 @@
  */
 import { RE2Flags } from './RE2Flags'
 import { Utils } from './Utils'
-import { MatcherInput } from './MatcherInput'
+import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { MachineInput } from './MachineInput'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
@@ -303,7 +303,7 @@ export class RE2 {
         ngroup
       )
     } else if (
-      ((input != null && input instanceof MatcherInput) || input === null) &&
+      ((input != null && input instanceof MatcherInputBase) || input === null) &&
       (typeof start === 'number' || start === null) &&
       (typeof end === 'number' || end === null) &&
       (typeof anchor === 'number' || anchor === null) &&
@@ -343,10 +343,9 @@ export class RE2 {
     if (start > end) {
       return false
     }
-    const machineInput =
-      input.getEncoding() === MatcherInput.Encoding.UTF_16
-        ? MachineInput.fromUTF16$java_lang_CharSequence$int$int(input.asCharSequence(), 0, end)
-        : MachineInput.fromUTF8$byte_A$int$int(input.asBytes(), 0, end)
+    const machineInput = input.isUTF16Encoding()
+      ? MachineInput.fromUTF16$java_lang_CharSequence$int$int(input.asCharSequence(), 0, end)
+      : MachineInput.fromUTF8$byte_A$int$int(input.asBytes(), 0, end)
 
     const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)
 
