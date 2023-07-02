@@ -79,7 +79,7 @@ class Utils {
             }
             out += s
           } else {
-            out += '\\x{' + s + '}'
+            out += `\\x{${s}}`
           }
           break
         }
