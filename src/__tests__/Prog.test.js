@@ -15,7 +15,7 @@ describe('.compileRegexp', () => {
     [
       '[A-M][n-z]',
       `0       fail
-1*      rune "nz" -> 2
+1*      rune "AM" -> 2
 2       rune "nz" -> 3
 3       match
 `

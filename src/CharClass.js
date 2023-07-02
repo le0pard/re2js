@@ -73,9 +73,9 @@ class CharClass {
     }
   }
 
-  constructor(r = null) {
-    this.r = r || Utils.EMPTY_INTS // inclusive ranges, pairs of [lo,hi].  r.length is even.
-    this.len = r?.length || 0 // prefix of |r| that is defined.  Even.
+  constructor(r = Utils.emptyInts()) {
+    this.r = r // inclusive ranges, pairs of [lo,hi].  r.length is even.
+    this.len = r.length // prefix of |r| that is defined.  Even.
   }
 
   // Returns the character class as an int array.  Subsequent CharClass

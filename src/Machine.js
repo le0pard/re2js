@@ -134,7 +134,7 @@ export class Machine {
   }
   submatches() {
     if (this.ncap === 0) {
-      return Utils.EMPTY_INTS
+      return Utils.emptyInts()
     }
     return /* copyOf */ this.matchcap.slice(0, this.ncap)
   }

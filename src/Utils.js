@@ -4,8 +4,6 @@ import { Unicode } from './Unicode'
  * Various constants and helper utilities.
  */
 class Utils {
-  static EMPTY_INTS = []
-
   static METACHARACTERS = '\\.+*?()|[]{}^$'
 
   //// EMPTY_* flags
@@ -16,6 +14,10 @@ class Utils {
   static EMPTY_WORD_BOUNDARY = 0x10
   static EMPTY_NO_WORD_BOUNDARY = 0x20
   static EMPTY_ALL = -1
+
+  static emptyInts() {
+    return []
+  }
 
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
