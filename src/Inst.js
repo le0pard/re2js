@@ -1,117 +1,30 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 /**
  * A single instruction in the regular expression virtual machine.
  *
  * @see http://swtch.com/~rsc/regexp/regexp2.html
- * @class
  */
 import { RE2Flags } from './RE2Flags'
 import { Utils } from './Utils'
 import { Unicode } from './Unicode'
 
 export class Inst {
-  constructor(op) {
-    if (this.op === undefined) {
-      this.op = 0
-    }
-    if (this.out === undefined) {
-      this.out = 0
-    }
-    if (this.arg === undefined) {
-      this.arg = 0
-    }
-    if (this.runes === undefined) {
-      this.runes = null
-    }
-    this.op = op
-  }
+  static ALT = 1
+  static ALT_MATCH = 2
+  static CAPTURE = 3
+  static EMPTY_WIDTH = 4
+  static FAIL = 5
+  static MATCH = 6
+  static NOP = 7
+  static RUNE = 8
+  static RUNE1 = 9
+  static RUNE_ANY = 10
+  static RUNE_ANY_NOT_NL = 11
+
   static isRuneOp(op) {
     return Inst.RUNE <= op && op <= Inst.RUNE_ANY_NOT_NL
   }
-  matchRune(r) {
-    if (this.runes.length === 1) {
-      const r0 = this.runes[0]
-      if ((this.arg & RE2Flags.FOLD_CASE) !== 0) {
-        return Unicode.equalsIgnoreCase(r0, r)
-      }
-      return r === r0
-    }
-    for (let j = 0; j < this.runes.length && j <= 8; j += 2) {
-      {
-        if (r < this.runes[j]) {
-          return false
-        }
-        if (r <= this.runes[j + 1]) {
-          return true
-        }
-      }
-    }
-    for (let lo = 0, hi = (this.runes.length / 2) | 0; lo < hi; ) {
-      {
-        const m = lo + (((hi - lo) / 2) | 0)
-        const c = this.runes[2 * m]
-        if (c <= r) {
-          if (r <= this.runes[2 * m + 1]) {
-            return true
-          }
-          lo = m + 1
-        } else {
-          hi = m
-        }
-      }
-    }
-    return false
-  }
-  /**
-   *
-   * @return {string}
-   */
-  toString() {
-    switch (this.op) {
-      case 1 /* ALT */:
-        return 'alt -> ' + this.out + ', ' + this.arg
-      case 2 /* ALT_MATCH */:
-        return 'altmatch -> ' + this.out + ', ' + this.arg
-      case 3 /* CAPTURE */:
-        return 'cap ' + this.arg + ' -> ' + this.out
-      case 4 /* EMPTY_WIDTH */:
-        return 'empty ' + this.arg + ' -> ' + this.out
-      case 6 /* MATCH */:
-        return 'match'
-      case 5 /* FAIL */:
-        return 'fail'
-      case 7 /* NOP */:
-        return 'nop -> ' + this.out
-      case 8 /* RUNE */:
-        if (this.runes == null) {
-          return 'rune <null>'
-        }
-        return (
-          'rune ' +
-          Inst.escapeRunes(this.runes) +
-          ((this.arg & RE2Flags.FOLD_CASE) !== 0 ? '/i' : '') +
-          ' -> ' +
-          this.out
-        )
-      case 9 /* RUNE1 */:
-        return 'rune1 ' + Inst.escapeRunes(this.runes) + ' -> ' + this.out
-      case 10 /* RUNE_ANY */:
-        return 'any -> ' + this.out
-      case 11 /* RUNE_ANY_NOT_NL */:
-        return 'anynotnl -> ' + this.out
-      default:
-        throw Object.defineProperty(new Error('unhandled case in Inst.toString'), '__classes', {
-          configurable: true,
-          value: [
-            'java.lang.Throwable',
-            'java.lang.IllegalStateException',
-            'java.lang.Object',
-            'java.lang.RuntimeException',
-            'java.lang.Exception'
-          ]
-        })
-    }
-  }
+
+  // Returns an RE2 expression matching exactly |runes|.
   static escapeRunes(runes) {
     let out = '"'
     for (let rune of runes) {
@@ -120,16 +33,93 @@ export class Inst {
     out += '"'
     return out
   }
+
+  constructor(op = 0) {
+    this.op = op
+    this.out = 0 // all but MATCH, FAIL
+    this.arg = 0 // ALT, ALT_MATCH, CAPTURE, EMPTY_WIDTH
+    // length==1 => exact match
+    // otherwise a list of [lo,hi] pairs.  hi is *inclusive*.
+    this.runes = null
+  }
+
+  // MatchRune returns true if the instruction matches (and consumes) r.
+  // It should only be called when op == InstRune.
+  matchRune(r) {
+    // Special case: single-rune slice is from literal string, not char
+    // class.
+    if (this.runes.length === 1) {
+      const r0 = this.runes[0]
+      if ((this.arg & RE2Flags.FOLD_CASE) !== 0) {
+        return Unicode.equalsIgnoreCase(r0, r)
+      }
+      return r === r0
+    }
+    // Peek at the first few pairs.
+    // Should handle ASCII well.
+    for (let j = 0; j < this.runes.length && j <= 8; j += 2) {
+      if (r < this.runes[j]) {
+        return false
+      }
+      if (r <= this.runes[j + 1]) {
+        return true
+      }
+    }
+    // Otherwise binary search.
+    for (let lo = 0, hi = (this.runes.length / 2) | 0; lo < hi; ) {
+      const m = lo + (((hi - lo) / 2) | 0)
+      const c = this.runes[2 * m]
+      if (c <= r) {
+        if (r <= this.runes[2 * m + 1]) {
+          return true
+        }
+        lo = m + 1
+      } else {
+        hi = m
+      }
+    }
+
+    return false
+  }
+  /**
+   *
+   * @return {string}
+   */
+  toString() {
+    switch (this.op) {
+      case Inst.ALT:
+        return `alt -> ${this.out}, ${this.arg}`
+      case Inst.ALT_MATCH:
+        return `altmatch -> ${this.out}, ${this.arg}`
+      case Inst.CAPTURE:
+        return `cap ${this.arg} -> ${this.out}`
+      case Inst.EMPTY_WIDTH:
+        return `empty ${this.arg} -> ${this.out}`
+      case Inst.MATCH:
+        return 'match'
+      case Inst.FAIL:
+        return 'fail'
+      case Inst.NOP:
+        return `nop -> ${this.out}`
+      case Inst.RUNE:
+        if (this.runes === null) {
+          return 'rune <null>'
+        }
+        return [
+          'rune ',
+          Inst.escapeRunes(this.runes),
+          (this.arg & RE2Flags.FOLD_CASE) !== 0 ? '/i' : '',
+          ' -> ',
+          this.out
+        ].join('')
+      case Inst.RUNE1:
+        return `rune1 ${Inst.escapeRunes(this.runes)} -> ${this.out}`
+      case Inst.RUNE_ANY:
+        return `any -> ${this.out}`
+      case Inst.RUNE_ANY_NOT_NL:
+        return `anynotnl -> ${this.out}`
+      default:
+        throw new Error('unhandled case in Inst.toString')
+    }
+  }
 }
-Inst.ALT = 1
-Inst.ALT_MATCH = 2
-Inst.CAPTURE = 3
-Inst.EMPTY_WIDTH = 4
-Inst.FAIL = 5
-Inst.MATCH = 6
-Inst.NOP = 7
-Inst.RUNE = 8
-Inst.RUNE1 = 9
-Inst.RUNE_ANY = 10
-Inst.RUNE_ANY_NOT_NL = 11
-Inst['__class'] = 'quickstart.Inst'
