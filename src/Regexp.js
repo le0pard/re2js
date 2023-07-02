@@ -5,6 +5,7 @@
  * {@code RE2} in Java.
  * @class
  */
+import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { Utils } from './Utils'
@@ -105,13 +106,11 @@ export class Regexp {
     this.appendTo(out)
     return /* toString */ out.str
   }
-  static quoteIfHyphen(out, rune) {
-    if (rune == '-'.codePointAt(0)) {
-      /* append */ ;((sb) => {
-        sb.str += '\\'
-        return sb
-      })(out)
+  static quoteIfHyphen(rune) {
+    if (rune === Codepoint.CODES.get('')) {
+      return '\\'
     }
+    return ''
   }
   appendTo(out) {
     switch (this.op) {
@@ -250,8 +249,7 @@ export class Regexp {
             return sb
           })(out)
         }
-        for (let index = 0; index < this.runes.length; index++) {
-          let rune = this.runes[index]
+        for (let rune of this.runes) {
           out.str += Utils.escapeRune(rune)
         }
         if ((this.flags & RE2Flags.FOLD_CASE) !== 0) {
@@ -372,14 +370,14 @@ export class Regexp {
             {
               const lo = this.runes[i] + 1
               const hi = this.runes[i + 1] - 1
-              Regexp.quoteIfHyphen(out, lo)
+              out.str += Regexp.quoteIfHyphen(lo)
               out.str += Utils.escapeRune(lo)
               if (lo !== hi) {
                 /* append */ ;((sb) => {
                   sb.str += '-'
                   return sb
                 })(out)
-                Regexp.quoteIfHyphen(out, hi)
+                out.str += Regexp.quoteIfHyphen(hi)
                 out.str += Utils.escapeRune(hi)
               }
             }
@@ -389,14 +387,14 @@ export class Regexp {
             {
               const lo = this.runes[i]
               const hi = this.runes[i + 1]
-              Regexp.quoteIfHyphen(out, lo)
+              out.str += Regexp.quoteIfHyphen(lo)
               out.str += Utils.escapeRune(lo)
               if (lo !== hi) {
                 /* append */ ;((sb) => {
                   sb.str += '-'
                   return sb
                 })(out)
-                Regexp.quoteIfHyphen(out, hi)
+                out.str += Regexp.quoteIfHyphen(hi)
                 out.str += Utils.escapeRune(hi)
               }
             }

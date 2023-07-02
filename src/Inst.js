@@ -112,26 +112,13 @@ export class Inst {
         })
     }
   }
-  /*private*/ static escapeRunes(runes) {
-    const out = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
+  static escapeRunes(runes) {
+    let out = '"'
+    for (let rune of runes) {
+      out += Utils.escapeRune(rune)
     }
-    /* append */ ;((sb) => {
-      sb.str += '"'
-      return sb
-    })(out)
-    for (let index = 0; index < runes.length; index++) {
-      let rune = runes[index]
-      out.str += Utils.escapeRune(rune)
-    }
-    /* append */ ;((sb) => {
-      sb.str += '"'
-      return sb
-    })(out)
-    return /* toString */ out.str
+    out += '"'
+    return out
   }
 }
 Inst.ALT = 1

@@ -368,6 +368,7 @@ export class RE2 {
     if (groupMatch == null) {
       return false
     }
+
     if (group != null) {
       /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
         if (srcPts !== dstPts || dstOff >= srcOff + size) {

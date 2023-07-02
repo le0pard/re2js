@@ -2,6 +2,7 @@ class Codepoint {
   // codePointAt(0)
   static CODES = new Map([
     ['\n', 10],
+    ['-', 45],
     ['0', 48],
     ['9', 57],
     ['A', 65],
