@@ -432,7 +432,6 @@ const testFowler = async (fileName) => {
       case ':':
         let i = flag.indexOf(':', 1)
         if (i < 0) {
-          console.error(`skip: ${line}`)
           continue
         }
         flag = flag.substring(1 + i + 1)
@@ -454,7 +453,7 @@ const testFowler = async (fileName) => {
     }
 
     if (field.length < 4) {
-      throw new Error(`${file}:${lineno}: too few fields: ${line}`)
+      throw new Error(`${lineno}: too few fields: ${line}`)
     }
 
     if (flag.indexOf('$') >= 0) {
@@ -497,7 +496,7 @@ const testFowler = async (fileName) => {
         re = RE2.compileImpl(pattern, flags, true)
       } catch (e) {
         if (shouldCompileMatch[0]) {
-          throw new Error(`${file}:${lineno}: ${pattern} did not compile`)
+          throw new Error(`${lineno}: ${pattern} did not compile`)
         }
         continue
       }

@@ -129,42 +129,20 @@ export class Prog {
    * @return {string}
    */
   toString() {
-    const out = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
-    for (let pc = 0; pc < this.instSize; ++pc) {
+    let out = ''
+    for (let pc = 0; pc < this.instSize; pc++) {
       {
-        const len = out.str.length
-        /* append */ ;((sb) => {
-          sb.str += pc
-          return sb
-        })(out)
+        const len = out.length
+        out += pc
         if (pc === this.start) {
-          /* append */ ;((sb) => {
-            sb.str += '*'
-            return sb
-          })(out)
+          out += '*'
         }
-        /* append */ ;((sb) => {
-          sb.str += '\n'
-          return sb
-        })(
-          /* append */ ((sb) => {
-            sb.str += this.inst[pc]
-            return sb
-          })(
-            /* append */ ((sb) => {
-              sb.str += '        '.substring(/* length */ out.str.length - len)
-              return sb
-            })(out)
-          )
-        )
+        out += '        '.substring(out.length - len)
+        out += this.inst[pc]
+        out += '\n'
       }
     }
-    return /* toString */ out.str
+    return out
   }
 }
 Prog['__class'] = 'quickstart.Prog'

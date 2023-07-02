@@ -440,12 +440,8 @@ export class RE2 {
   replaceAllFunc(src, repl, maxReplaces) {
     let lastMatchEnd = 0
     let searchPos = 0
-    const buf = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
+    let out = ''
+
     const input = MachineInput.fromUTF16$java_lang_CharSequence(src)
     let numReplaces = 0
     while (searchPos <= src.length) {
@@ -454,17 +450,13 @@ export class RE2 {
         if (a == null || a.length === 0) {
           break
         }
-        /* append */ ;((sb) => {
-          sb.str += src.substring(lastMatchEnd, a[0])
-          return sb
-        })(buf)
+        out += src.substring(lastMatchEnd, a[0])
+
         if (a[1] > lastMatchEnd || a[0] === 0) {
-          /* append */ ;((sb) => {
-            sb.str += repl.replace(src.substring(a[0], a[1]))
-            return sb
-          })(buf)
-          ++numReplaces
+          out += repl.replace(src.substring(a[0], a[1]))
+          numReplaces++
         }
+
         lastMatchEnd = a[1]
         const width = input.step(searchPos) & 7
         if (searchPos + width > a[1]) {
@@ -480,11 +472,8 @@ export class RE2 {
       }
     }
 
-    /* append */ ;((sb) => {
-      sb.str += src.substring(lastMatchEnd)
-      return sb
-    })(buf)
-    return /* toString */ buf.str
+    out += src.substring(lastMatchEnd)
+    return out
   }
   /**
    * Returns a string that quotes all regular expression metacharacters inside the argument text;
@@ -493,29 +482,16 @@ export class RE2 {
    * @param {string} s
    * @return {string}
    */
-  static quoteMeta(s) {
-    const b = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
-    for (let i = 0, len = s.length; i < len; i++) {
-      {
-        const c = s.charAt(i)
-        if ('\\.+*?()|[]{}^$'.indexOf(c) >= 0) {
-          /* append */ ;((sb) => {
-            sb.str += '\\'
-            return sb
-          })(b)
+  static quoteMeta(str) {
+    return str
+      .split('')
+      .map((s) => {
+        if (Utils.METACHARACTERS.indexOf(s) >= 0) {
+          return `\\${s}`
         }
-        /* append */ ;((sb) => {
-          sb.str += c
-          return sb
-        })(b)
-      }
-    }
-    return /* toString */ b.str
+        return s
+      })
+      .join('')
   }
   pad(a) {
     if (a == null) {
