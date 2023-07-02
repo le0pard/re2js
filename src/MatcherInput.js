@@ -81,7 +81,7 @@ class MatcherInput {
    * Return the MatcherInput for UTF_8 encoding.
    */
   static utf8(input) {
-    if (input instanceof Array) {
+    if (Array.isArray(input)) {
       return new Utf8MatcherInput(input)
     }
 
