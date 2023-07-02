@@ -107,7 +107,7 @@ export class Regexp {
     return /* toString */ out.str
   }
   static quoteIfHyphen(rune) {
-    if (rune === Codepoint.CODES.get('')) {
+    if (rune === Codepoint.CODES.get('-')) {
       return '\\'
     }
     return ''
