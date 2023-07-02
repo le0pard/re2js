@@ -1,5 +1,5 @@
+//// Parser flags.
 class RE2Flags {
-  //// Parser flags.
   // Fold case during matching (case-insensitive).
   static FOLD_CASE = 0x01
   // Treat pattern as a literal string instead of a regexp.
