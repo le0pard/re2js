@@ -11,7 +11,7 @@ import { Prog } from './Prog'
  * The only entry point is {@link #compileRegexp}.
  * @class
  */
-export class Compiler {
+class Compiler {
   constructor() {
     this.prog = new Prog()
     this.newInst(Inst.FAIL)
@@ -415,3 +415,5 @@ Compiler['__class'] = 'quickstart.Compiler'
   Compiler.Frag = Frag
   Frag['__class'] = 'quickstart.Compiler.Frag'
 })(Compiler || (Compiler = {}))
+
+export { Compiler }

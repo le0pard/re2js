@@ -24,12 +24,12 @@ class Simplify {
         for (let i = 0; i < re.subs.length; i++) {
           const sub = re.subs[i]
           const nsub = Simplify.simplify(sub)
-          if (nre == re && nsub != sub) {
+          if (nre === re && nsub !== sub) {
             nre = new Regexp(re)
             nre.runes = null
             nre.subs = Parser.subarray(re.subs, 0, re.subs.length)
           }
-          if (nre != re) {
+          if (nre !== re) {
             nre.subs[i] = nsub
           }
         }

@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { RE2Flags } from '../RE2Flags'
 import { Utils } from '../Utils'
@@ -424,19 +424,21 @@ const testFowler = async (fileName) => {
       case '|':
       case ';':
       case '{':
-      case '}':
+      case '}': {
         flag = flag.substring(1)
         if (!flag || flag === '') {
           continue
         }
         break
-      case ':':
+      }
+      case ':': {
         let i = flag.indexOf(':', 1)
         if (i < 0) {
           continue
         }
         flag = flag.substring(1 + i + 1)
         break
+      }
       case 'C':
       case 'N':
       case 'T':
