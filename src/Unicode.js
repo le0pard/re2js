@@ -56,11 +56,6 @@ class Unicode {
     return ranges.length > 0 && r >= ranges[0][0] && this.is32(ranges, r)
   }
 
-  // isLetter reports whether the rune is a letter.
-  static isLetter(r) {
-    return this.is(UnicodeTables.L, r)
-  }
-
   // isUpper reports whether the rune is an upper case letter.
   static isUpper(r) {
     if (r <= this.MAX_LATIN1) {
