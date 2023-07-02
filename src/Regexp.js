@@ -11,6 +11,15 @@ import { Unicode } from './Unicode'
 import { Utils } from './Utils'
 
 export class Regexp {
+  static EMPTY_SUBS = []
+
+  static quoteIfHyphen(rune) {
+    if (rune === Codepoint.CODES.get('-')) {
+      return '\\'
+    }
+    return ''
+  }
+
   constructor(op) {
     if (typeof op === 'number' || op === null) {
       if (this.op === undefined) {
@@ -76,15 +85,10 @@ export class Regexp {
       throw new Error('invalid overload')
     }
   }
-  static EMPTY_SUBS_$LI$() {
-    if (Regexp.EMPTY_SUBS == null) {
-      Regexp.EMPTY_SUBS = []
-    }
-    return Regexp.EMPTY_SUBS
-  }
+
   reinit() {
     this.flags = 0
-    this.subs = Regexp.EMPTY_SUBS_$LI$()
+    this.subs = Regexp.EMPTY_SUBS
     this.runes = null
     this.cap = 0
     this.min = 0
@@ -97,34 +101,17 @@ export class Regexp {
    * @return {string}
    */
   toString() {
-    const out = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
-    this.appendTo(out)
-    return /* toString */ out.str
+    return this.appendTo()
   }
-  static quoteIfHyphen(rune) {
-    if (rune === Codepoint.CODES.get('-')) {
-      return '\\'
-    }
-    return ''
-  }
-  appendTo(out) {
+
+  appendTo() {
+    let out = ''
     switch (this.op) {
       case Regexp.Op.NO_MATCH:
-        /* append */ ;((sb) => {
-          sb.str += '[^\\x00-\\x{10FFFF}]'
-          return sb
-        })(out)
+        out += '[^\\x00-\\x{10FFFF}]'
         break
       case Regexp.Op.EMPTY_MATCH:
-        /* append */ ;((sb) => {
-          sb.str += '(?:)'
-          return sb
-        })(out)
+        out += '(?:)'
         break
       case Regexp.Op.STAR:
       case Regexp.Op.PLUS:
@@ -136,249 +123,129 @@ export class Regexp {
             /* Enum.ordinal */ Regexp.Op[Regexp.Op[Regexp.Op.CAPTURE]] ||
           (sub.op === Regexp.Op.LITERAL && sub.runes.length > 1)
         ) {
-          /* append */ ;((sb) => {
-            sb.str += '(?:'
-            return sb
-          })(out)
-          sub.appendTo(out)
-          /* append */
-          ;((sb) => {
-            sb.str += ')'
-            return sb
-          })(out)
+          out += `(?:${sub.appendTo()})`
         } else {
-          sub.appendTo(out)
+          out += sub.appendTo()
         }
         switch (this.op) {
           case Regexp.Op.STAR:
-            /* append */ ;((sb) => {
-              sb.str += '*'
-              return sb
-            })(out)
+            out += '*'
             break
           case Regexp.Op.PLUS:
-            /* append */ ;((sb) => {
-              sb.str += '+'
-              return sb
-            })(out)
+            out += '+'
             break
           case Regexp.Op.QUEST:
-            /* append */ ;((sb) => {
-              sb.str += '?'
-              return sb
-            })(out)
+            out += '?'
             break
           case Regexp.Op.REPEAT:
-            /* append */ ;((sb) => {
-              sb.str += this.min
-              return sb
-            })(
-              /* append */ ((sb) => {
-                sb.str += '{'
-                return sb
-              })(out)
-            )
+            out += `{${this.min}`
             if (this.min !== this.max) {
-              /* append */ ;((sb) => {
-                sb.str += ','
-                return sb
-              })(out)
+              out += ','
               if (this.max >= 0) {
-                /* append */ ;((sb) => {
-                  sb.str += this.max
-                  return sb
-                })(out)
+                out += this.max
               }
             }
-            /* append */ ;((sb) => {
-              sb.str += '}'
-              return sb
-            })(out)
+            out += '}'
             break
         }
         if ((this.flags & RE2Flags.NON_GREEDY) !== 0) {
-          /* append */ ;((sb) => {
-            sb.str += '?'
-            return sb
-          })(out)
+          out += '?'
         }
         break
       }
 
       case Regexp.Op.CONCAT:
-        for (let index = 0; index < this.subs.length; index++) {
-          let sub = this.subs[index]
-          {
-            if (sub.op === Regexp.Op.ALTERNATE) {
-              /* append */ ;((sb) => {
-                sb.str += '(?:'
-                return sb
-              })(out)
-              sub.appendTo(out)
-              /* append */
-              ;((sb) => {
-                sb.str += ')'
-                return sb
-              })(out)
-            } else {
-              sub.appendTo(out)
-            }
+        for (let sub of this.subs) {
+          if (sub.op === Regexp.Op.ALTERNATE) {
+            out += `(?:${sub.appendTo()})`
+          } else {
+            out += sub.appendTo()
           }
         }
         break
       case Regexp.Op.ALTERNATE: {
         let sep = ''
-        for (let index = 0; index < this.subs.length; index++) {
-          let sub = this.subs[index]
-          {
-            /* append */ ;((sb) => {
-              sb.str += sep
-              return sb
-            })(out)
-            sep = '|'
-            sub.appendTo(out)
-          }
+        for (let sub of this.subs) {
+          out += sep
+          sep = '|'
+          out += sub.appendTo()
         }
         break
       }
 
       case Regexp.Op.LITERAL:
         if ((this.flags & RE2Flags.FOLD_CASE) !== 0) {
-          /* append */ ;((sb) => {
-            sb.str += '(?i:'
-            return sb
-          })(out)
+          out += '(?i:'
         }
         for (let rune of this.runes) {
-          out.str += Utils.escapeRune(rune)
+          out += Utils.escapeRune(rune)
         }
         if ((this.flags & RE2Flags.FOLD_CASE) !== 0) {
-          /* append */ ;((sb) => {
-            sb.str += ')'
-            return sb
-          })(out)
+          out += ')'
         }
         break
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        /* append */ ;((sb) => {
-          sb.str += '(?-s:.)'
-          return sb
-        })(out)
+        out += '(?-s:.)'
         break
       case Regexp.Op.ANY_CHAR:
-        /* append */ ;((sb) => {
-          sb.str += '(?s:.)'
-          return sb
-        })(out)
+        out += '(?s:.)'
         break
       case Regexp.Op.CAPTURE:
-        if (this.name == null || /* isEmpty */ this.name.length === 0) {
-          /* append */ ;((sb) => {
-            sb.str += '('
-            return sb
-          })(out)
+        if (this.name === null || this.name.length === 0) {
+          out += '('
         } else {
-          /* append */ ;((sb) => {
-            sb.str += '(?P<'
-            return sb
-          })(out)
-          /* append */
-          ;((sb) => {
-            sb.str += this.name
-            return sb
-          })(out)
-          /* append */
-          ;((sb) => {
-            sb.str += '>'
-            return sb
-          })(out)
+          out += `(?P<${this.name}>`
         }
         if (this.subs[0].op !== Regexp.Op.EMPTY_MATCH) {
-          this.subs[0].appendTo(out)
+          out += this.subs[0].appendTo()
         }
-        /* append */ ;((sb) => {
-          sb.str += ')'
-          return sb
-        })(out)
+        out += ')'
         break
       case Regexp.Op.BEGIN_TEXT:
-        /* append */ ;((sb) => {
-          sb.str += '\\A'
-          return sb
-        })(out)
+        out += '\\A'
         break
       case Regexp.Op.END_TEXT:
         if ((this.flags & RE2Flags.WAS_DOLLAR) !== 0) {
-          /* append */ ;((sb) => {
-            sb.str += '(?-m:$)'
-            return sb
-          })(out)
+          out += '(?-m:$)'
         } else {
-          /* append */ ;((sb) => {
-            sb.str += '\\z'
-            return sb
-          })(out)
+          out += '\\z'
         }
         break
       case Regexp.Op.BEGIN_LINE:
-        /* append */ ;((sb) => {
-          sb.str += '^'
-          return sb
-        })(out)
+        out += '^'
         break
       case Regexp.Op.END_LINE:
-        /* append */ ;((sb) => {
-          sb.str += '$'
-          return sb
-        })(out)
+        out += '$'
         break
       case Regexp.Op.WORD_BOUNDARY:
-        /* append */ ;((sb) => {
-          sb.str += '\\b'
-          return sb
-        })(out)
+        out += '\\b'
         break
       case Regexp.Op.NO_WORD_BOUNDARY:
-        /* append */ ;((sb) => {
-          sb.str += '\\B'
-          return sb
-        })(out)
+        out += '\\B'
         break
       case Regexp.Op.CHAR_CLASS:
         if (this.runes.length % 2 !== 0) {
-          /* append */ ;((sb) => {
-            sb.str += '[invalid char class]'
-            return sb
-          })(out)
+          out += '[invalid char class]'
           break
         }
-        /* append */ ;((sb) => {
-          sb.str += '['
-          return sb
-        })(out)
+
+        out += '['
         if (this.runes.length === 0) {
-          /* append */ ;((sb) => {
-            sb.str += '^\\x00-\\x{10FFFF}'
-            return sb
-          })(out)
+          out += '^\\x00-\\x{10FFFF}'
         } else if (this.runes[0] === 0 && this.runes[this.runes.length - 1] === Unicode.MAX_RUNE) {
-          /* append */ ;((sb) => {
-            sb.str += '^'
-            return sb
-          })(out)
+          out += '^'
+
           for (let i = 1; i < this.runes.length - 1; i += 2) {
             {
               const lo = this.runes[i] + 1
               const hi = this.runes[i + 1] - 1
-              out.str += Regexp.quoteIfHyphen(lo)
-              out.str += Utils.escapeRune(lo)
+
+              out += Regexp.quoteIfHyphen(lo)
+              out += Utils.escapeRune(lo)
               if (lo !== hi) {
-                /* append */ ;((sb) => {
-                  sb.str += '-'
-                  return sb
-                })(out)
-                out.str += Regexp.quoteIfHyphen(hi)
-                out.str += Utils.escapeRune(hi)
+                out += '-'
+                out += Regexp.quoteIfHyphen(hi)
+                out += Utils.escapeRune(hi)
               }
             }
           }
@@ -387,45 +254,35 @@ export class Regexp {
             {
               const lo = this.runes[i]
               const hi = this.runes[i + 1]
-              out.str += Regexp.quoteIfHyphen(lo)
-              out.str += Utils.escapeRune(lo)
+              out += Regexp.quoteIfHyphen(lo)
+              out += Utils.escapeRune(lo)
               if (lo !== hi) {
-                /* append */ ;((sb) => {
-                  sb.str += '-'
-                  return sb
-                })(out)
-                out.str += Regexp.quoteIfHyphen(hi)
-                out.str += Utils.escapeRune(hi)
+                out += '-'
+                out += Regexp.quoteIfHyphen(hi)
+                out += Utils.escapeRune(hi)
               }
             }
           }
         }
-        /* append */ ;((sb) => {
-          sb.str += ']'
-          return sb
-        })(out)
+        out += ']'
         break
       default:
-        /* append */ ;((sb) => {
-          sb.str += this.op
-          return sb
-        })(out)
+        out += this.op
         break
     }
+    return out
   }
+
   maxCap() {
     let m = 0
     if (this.op === Regexp.Op.CAPTURE) {
       m = this.cap
     }
-    if (this.subs != null) {
-      for (let index = 0; index < this.subs.length; index++) {
-        let sub = this.subs[index]
-        {
-          const n = sub.maxCap()
-          if (m < n) {
-            m = n
-          }
+    if (this.subs !== null) {
+      for (let sub of this.subs) {
+        const n = sub.maxCap()
+        if (m < n) {
+          m = n
         }
       }
     }
@@ -535,7 +392,7 @@ export class Regexp {
    * @return {boolean}
    */
   equals(that) {
-    if (!(that != null && that instanceof Regexp)) {
+    if (!(that !== null && that instanceof Regexp)) {
       return false
     }
     const x = this
@@ -553,17 +410,17 @@ export class Regexp {
       case Regexp.Op.CHAR_CLASS:
         if (
           !((a1, a2) => {
-            if (a1 == null && a2 == null) {
+            if (a1 === null && a2 === null) {
               return true
             }
-            if (a1 == null || a2 == null) {
+            if (a1 === null || a2 === null) {
               return false
             }
-            if (a1.length != a2.length) {
+            if (a1.length !== a2.length) {
               return false
             }
             for (let i = 0; i < a1.length; i++) {
-              if (a1[i] != a2[i]) {
+              if (a1[i] !== a2[i]) {
                 return false
               }
             }

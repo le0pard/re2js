@@ -528,7 +528,7 @@ export class Parser {
       switch (re.subs.length) {
         case 0:
           re.op = Regexp.Op.EMPTY_MATCH
-          re.subs = Regexp.EMPTY_SUBS_$LI$()
+          re.subs = Regexp.EMPTY_SUBS
           break
         case 1:
           const old = re
