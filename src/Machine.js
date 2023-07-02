@@ -522,35 +522,17 @@ Machine['__class'] = 'quickstart.Machine'
      * @return {string}
      */
     toString() {
-      const out = {
-        str: '',
-        toString: function () {
-          return this.str
-        }
-      }
-      /* append */ ;((sb) => {
-        sb.str += '{'
-        return sb
-      })(out)
+      let out = '{'
       for (let i = 0; i < this.size; ++i) {
         {
           if (i !== 0) {
-            /* append */ ;((sb) => {
-              sb.str += ', '
-              return sb
-            })(out)
+            out += ', '
           }
-          /* append */ ;((sb) => {
-            sb.str += this.densePcs[i]
-            return sb
-          })(out)
+          out += this.densePcs[i]
         }
       }
-      /* append */ ;((sb) => {
-        sb.str += '}'
-        return sb
-      })(out)
-      return /* toString */ out.str
+      out += '}'
+      return out
     }
   }
   Machine.Queue = Queue

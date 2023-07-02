@@ -28,6 +28,7 @@
  * @author rsc@google.com (Russ Cox)
  * @class
  */
+import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { MatcherInput } from './MatcherInput'
 import { Utils } from './Utils'
@@ -675,35 +676,21 @@ export class Matcher {
    * @param {string} s the string to be quoted
    * @return {string} the quoted string
    */
-  static quoteReplacement(s) {
-    if (s.indexOf('\\') < 0 && s.indexOf('$') < 0) {
-      return s
+  static quoteReplacement(str) {
+    if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
+      return str
     }
-    const sb = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
-    for (let i = 0; i < s.length; ++i) {
-      {
-        const c = s.charAt(i)
-        if (
-          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) == '\\'.codePointAt(0) ||
-          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) == '$'.codePointAt(0)
-        ) {
-          /* append */ ;((sb) => {
-            sb.str += '\\'
-            return sb
-          })(sb)
+
+    return str
+      .split('')
+      .map((s) => {
+        const c = s.codePointAt(0)
+        if (c === Codepoint.CODES['\\'] || c === Codepoint.CODES['$']) {
+          return `\\${s}`
         }
-        /* append */ ;((sb) => {
-          sb.str += c
-          return sb
-        })(sb)
-      }
-    }
-    return /* toString */ sb.str
+        return s
+      })
+      .join('')
   }
   appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement) {
     const result = {
