@@ -1,13 +1,13 @@
-import { expect } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { RE2Flags } from '../RE2Flags'
-import { Utils } from '../Utils'
-
 import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
 import readline from 'node:readline'
 import url from 'node:url'
+
+import { expect } from '@jest/globals'
+import { RE2 } from '../RE2'
+import { RE2Flags } from '../RE2Flags'
+import { Utils } from '../Utils'
 import { utf16IndicesToUtf8 } from '../__utils__/unicode'
 
 const FIXTURES_DIRNAME = path.join(

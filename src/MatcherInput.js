@@ -4,8 +4,14 @@
  * @class
  */
 import { Utils } from './Utils'
+import { createEnum } from './helpers'
 
 export class MatcherInput {
+  static Encoding = createEnum([
+    'UTF_16',
+    'UTF_8'
+  ])
+
   /**
    * Return the MatcherInput for UTF_16 encoding.
    * @param {*} charSequence
@@ -41,18 +47,10 @@ export class MatcherInput {
   }
 }
 MatcherInput['__class'] = 'quickstart.MatcherInput'
-;(function (MatcherInput) {
-  let Encoding
-  ;(function (Encoding) {
-    Encoding[(Encoding['UTF_16'] = 0)] = 'UTF_16'
-    Encoding[(Encoding['UTF_8'] = 1)] = 'UTF_8'
-  })((Encoding = MatcherInput.Encoding || (MatcherInput.Encoding = {})))
+;(function(MatcherInput) {
   class Utf8MatcherInput extends MatcherInput {
-    constructor(bytes) {
+    constructor(bytes = null) {
       super()
-      if (this.bytes === undefined) {
-        this.bytes = null
-      }
       this.bytes = bytes
     }
     /**
@@ -89,11 +87,8 @@ MatcherInput['__class'] = 'quickstart.MatcherInput'
   MatcherInput.Utf8MatcherInput = Utf8MatcherInput
   Utf8MatcherInput['__class'] = 'quickstart.MatcherInput.Utf8MatcherInput'
   class Utf16MatcherInput extends MatcherInput {
-    constructor(charSequence) {
+    constructor(charSequence = null) {
       super()
-      if (this.charSequence === undefined) {
-        this.charSequence = null
-      }
       this.charSequence = charSequence
     }
     /**
@@ -115,7 +110,7 @@ MatcherInput['__class'] = 'quickstart.MatcherInput'
      * @return {byte[]}
      */
     asBytes() {
-      return /* getBytes */ this.charSequence
+      return this.charSequence
         .toString()
         .split('')
         .map((s) => s.codePointAt(0))

@@ -423,7 +423,7 @@ export class Machine {
           t.inst = inst
         }
         if (this.ncap > 0 && t.cap !== cap) {
-          /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
+          /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
             if (srcPts !== dstPts || dstOff >= srcOff + size) {
               while (--size >= 0) {
                 dstPts[dstOff++] = srcPts[srcOff++]
@@ -444,7 +444,7 @@ export class Machine {
   }
 }
 Machine['__class'] = 'quickstart.Machine'
-;(function (Machine) {
+;(function(Machine) {
   class Thread {
     constructor(n) {
       if (this.cap === undefined) {
