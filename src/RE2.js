@@ -190,32 +190,17 @@ export class RE2 {
     let re = Parser.parse(expr, mode)
     const maxCap = re.maxCap()
     re = Simplify.simplify(re)
+
     const prog = Compiler.compileRegexp(re)
     const re2 = new RE2(expr, prog, maxCap, longest)
-    let prefixBuilder = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
-    re2.prefixComplete = prog.prefix(prefixBuilder)
-    re2.prefix = /* toString */ prefixBuilder.str
-    try {
-      re2.prefixUTF8 = Utils.stringToUtf8ByteArray(re2.prefix)
-    } catch (e) {
-      throw Object.defineProperty(new Error("can't happen"), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.IllegalStateException',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.Exception'
-        ]
-      })
-    }
-    if (!(re2.prefix.length === 0)) {
-      re2.prefixRune = /* codePointAt */ re2.prefix.codePointAt(0)
+
+    const [prefixCompl, prefixStr] = prog.prefix()
+    re2.prefixComplete = prefixCompl
+    re2.prefix = prefixStr
+    re2.prefixUTF8 = Utils.stringToUtf8ByteArray(re2.prefix)
+
+    if (re2.prefix.length > 0) {
+      re2.prefixRune = re2.prefix.codePointAt(0)
     }
     re2.namedGroups = re.namedGroups
     return re2
