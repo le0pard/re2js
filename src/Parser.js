@@ -60,10 +60,7 @@ export class Parser {
   popToPseudo() {
     const n = this.stack.__delegate.length
     let i = n
-    while (
-      i > 0 &&
-      !Regexp.Op['_$wrappers'][/* get */ this.stack.__delegate[i - 1].op].isPseudo()
-    ) {
+    while (i > 0 && !Regexp.isPseudoOp(this.stack.__delegate[i - 1].op)) {
       {
         i--
       }
@@ -195,7 +192,7 @@ export class Parser {
       throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
     const sub = this.stack.__delegate[n - 1]
-    if (Regexp.Op['_$wrappers'][sub.op].isPseudo()) {
+    if (Regexp.isPseudoOp(sub.op)) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
     const re = this.newRegexp(op)
@@ -528,7 +525,7 @@ export class Parser {
       switch (re.subs.length) {
         case 0:
           re.op = Regexp.Op.EMPTY_MATCH
-          re.subs = Regexp.EMPTY_SUBS
+          re.subs = Regexp.emptySubs()
           break
         case 1:
           const old = re

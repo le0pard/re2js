@@ -9,9 +9,41 @@ import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { Utils } from './Utils'
+import { createEnum } from './helpers'
 
 export class Regexp {
-  static EMPTY_SUBS = []
+  static Op = createEnum([
+    'NO_MATCH', // Matches no strings.
+    'EMPTY_MATCH', // Matches empty string.
+    'LITERAL', // Matches runes[] sequence
+    'CHAR_CLASS', // Matches Runes interpreted as range pair list
+    'ANY_CHAR_NOT_NL', // Matches any character except '\n'
+    'ANY_CHAR', // Matches any character
+    'BEGIN_LINE', // Matches empty string at end of line
+    'END_LINE', // Matches empty string at end of line
+    'BEGIN_TEXT', // Matches empty string at beginning of text
+    'END_TEXT', // Matches empty string at end of text
+    'WORD_BOUNDARY', // Matches word boundary `\b`
+    'NO_WORD_BOUNDARY', // Matches word non-boundary `\B`
+    'CAPTURE', // Capturing subexpr with index cap, optional name name
+    'STAR', // Matches subs[0] zero or more times.
+    'PLUS', // Matches subs[0] one or more times.
+    'QUEST', // Matches subs[0] zero or one times.
+    'REPEAT', // Matches subs[0] [min, max] times; max=-1 => no limit.
+    'CONCAT', // Matches concatenation of subs[]
+    'ALTERNATE', // Matches union of subs[]
+    // Pseudo ops, used internally by Parser for parsing stack:
+    'LEFT_PAREN',
+    'VERTICAL_BAR'
+  ])
+
+  static isPseudoOp(op) {
+    return op >= Regexp.Op.LEFT_PAREN
+  }
+
+  static emptySubs() {
+    return []
+  }
 
   static quoteIfHyphen(rune) {
     if (rune === Codepoint.CODES.get('-')) {
@@ -22,32 +54,15 @@ export class Regexp {
 
   constructor(op) {
     if (typeof op === 'number' || op === null) {
-      if (this.op === undefined) {
-        this.op = null
-      }
-      if (this.flags === undefined) {
-        this.flags = 0
-      }
-      if (this.subs === undefined) {
-        this.subs = null
-      }
-      if (this.runes === undefined) {
-        this.runes = null
-      }
-      if (this.min === undefined) {
-        this.min = 0
-      }
-      if (this.max === undefined) {
-        this.max = 0
-      }
-      if (this.cap === undefined) {
-        this.cap = 0
-      }
-      if (this.name === undefined) {
-        this.name = null
-      }
-      this.namedGroups = {}
       this.op = op
+      this.namedGroups = {}
+      this.flags = 0
+      this.subs = null
+      this.runes = null
+      this.min = 0
+      this.max = 0
+      this.cap = 0
+      this.name = null
     } else if ((op != null && op instanceof Regexp) || op === null) {
       if (this.op === undefined) {
         this.op = null
@@ -88,7 +103,7 @@ export class Regexp {
 
   reinit() {
     this.flags = 0
-    this.subs = Regexp.EMPTY_SUBS
+    this.subs = Regexp.emptySubs()
     this.runes = null
     this.cap = 0
     this.min = 0
@@ -476,74 +491,3 @@ export class Regexp {
     return true
   }
 }
-Regexp['__class'] = 'quickstart.Regexp'
-;(function (Regexp) {
-  let Op
-  ;(function (Op) {
-    Op[(Op['NO_MATCH'] = 0)] = 'NO_MATCH'
-    Op[(Op['EMPTY_MATCH'] = 1)] = 'EMPTY_MATCH'
-    Op[(Op['LITERAL'] = 2)] = 'LITERAL'
-    Op[(Op['CHAR_CLASS'] = 3)] = 'CHAR_CLASS'
-    Op[(Op['ANY_CHAR_NOT_NL'] = 4)] = 'ANY_CHAR_NOT_NL'
-    Op[(Op['ANY_CHAR'] = 5)] = 'ANY_CHAR'
-    Op[(Op['BEGIN_LINE'] = 6)] = 'BEGIN_LINE'
-    Op[(Op['END_LINE'] = 7)] = 'END_LINE'
-    Op[(Op['BEGIN_TEXT'] = 8)] = 'BEGIN_TEXT'
-    Op[(Op['END_TEXT'] = 9)] = 'END_TEXT'
-    Op[(Op['WORD_BOUNDARY'] = 10)] = 'WORD_BOUNDARY'
-    Op[(Op['NO_WORD_BOUNDARY'] = 11)] = 'NO_WORD_BOUNDARY'
-    Op[(Op['CAPTURE'] = 12)] = 'CAPTURE'
-    Op[(Op['STAR'] = 13)] = 'STAR'
-    Op[(Op['PLUS'] = 14)] = 'PLUS'
-    Op[(Op['QUEST'] = 15)] = 'QUEST'
-    Op[(Op['REPEAT'] = 16)] = 'REPEAT'
-    Op[(Op['CONCAT'] = 17)] = 'CONCAT'
-    Op[(Op['ALTERNATE'] = 18)] = 'ALTERNATE'
-    Op[(Op['LEFT_PAREN'] = 19)] = 'LEFT_PAREN'
-    Op[(Op['VERTICAL_BAR'] = 20)] = 'VERTICAL_BAR'
-  })((Op = Regexp.Op || (Regexp.Op = {})))
-  /** @ignore */
-  class Op_$WRAPPER {
-    constructor(_$ordinal, _$name) {
-      this._$ordinal = _$ordinal
-      this._$name = _$name
-    }
-    isPseudo() {
-      return this.ordinal() >= /* Enum.ordinal */ Regexp.Op[Regexp.Op[Op.LEFT_PAREN]]
-    }
-    name() {
-      return this._$name
-    }
-    ordinal() {
-      return this._$ordinal
-    }
-    compareTo(other) {
-      return this._$ordinal - (isNaN(other) ? other._$ordinal : other)
-    }
-  }
-  Regexp.Op_$WRAPPER = Op_$WRAPPER
-  Op['__class'] = 'quickstart.Regexp.Op'
-  Op['_$wrappers'] = {
-    0: new Op_$WRAPPER(0, 'NO_MATCH'),
-    1: new Op_$WRAPPER(1, 'EMPTY_MATCH'),
-    2: new Op_$WRAPPER(2, 'LITERAL'),
-    3: new Op_$WRAPPER(3, 'CHAR_CLASS'),
-    4: new Op_$WRAPPER(4, 'ANY_CHAR_NOT_NL'),
-    5: new Op_$WRAPPER(5, 'ANY_CHAR'),
-    6: new Op_$WRAPPER(6, 'BEGIN_LINE'),
-    7: new Op_$WRAPPER(7, 'END_LINE'),
-    8: new Op_$WRAPPER(8, 'BEGIN_TEXT'),
-    9: new Op_$WRAPPER(9, 'END_TEXT'),
-    10: new Op_$WRAPPER(10, 'WORD_BOUNDARY'),
-    11: new Op_$WRAPPER(11, 'NO_WORD_BOUNDARY'),
-    12: new Op_$WRAPPER(12, 'CAPTURE'),
-    13: new Op_$WRAPPER(13, 'STAR'),
-    14: new Op_$WRAPPER(14, 'PLUS'),
-    15: new Op_$WRAPPER(15, 'QUEST'),
-    16: new Op_$WRAPPER(16, 'REPEAT'),
-    17: new Op_$WRAPPER(17, 'CONCAT'),
-    18: new Op_$WRAPPER(18, 'ALTERNATE'),
-    19: new Op_$WRAPPER(19, 'LEFT_PAREN'),
-    20: new Op_$WRAPPER(20, 'VERTICAL_BAR')
-  }
-})(Regexp || (Regexp = {}))
