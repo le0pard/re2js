@@ -1,3 +1,6 @@
+/**
+ * Utilities for dealing with Unicode better than JS does.
+ */
 import { Codepoint } from './Codepoint'
 import { UnicodeTables } from './UnicodeTables'
 
