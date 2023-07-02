@@ -33,7 +33,7 @@ class Inst {
     return out
   }
 
-  constructor(op = 0) {
+  constructor(op) {
     this.op = op
     this.out = 0 // all but MATCH, FAIL
     this.arg = 0 // ALT, ALT_MATCH, CAPTURE, EMPTY_WIDTH
