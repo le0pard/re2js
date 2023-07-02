@@ -125,9 +125,7 @@ export class Inst {
     })(out)
     for (let index = 0; index < runes.length; index++) {
       let rune = runes[index]
-      {
-        Utils.escapeRune(out, rune)
-      }
+      out.str += Utils.escapeRune(rune)
     }
     /* append */ ;((sb) => {
       sb.str += '"'

@@ -40,50 +40,52 @@ class Utils {
 
   // Appends a RE2 literal to |out| for rune |rune|,
   // with regexp metacharacters escaped.
-  static escapeRune(out, rune) {
+  static escapeRune(rune) {
+    let out = ''
     if (Unicode.isPrint(rune)) {
       if (this.METACHARACTERS.indexOf(String.fromCodePoint(rune)) >= 0) {
-        out.str += '\\'
+        out += '\\'
       }
-      out.str += String.fromCodePoint(rune)
+      out += String.fromCodePoint(rune)
     } else {
       switch (rune) {
         case 34: // '"'
-          out.str += '\\"'
+          out += '\\"'
           break
         case 92: // '\\'
-          out.str += '\\\\'
+          out += '\\\\'
           break
         case 9: // '\t'
-          out.str += '\\t'
+          out += '\\t'
           break
         case 10: // '\n'
-          out.str += '\\n'
+          out += '\\n'
           break
         case 13: // '\r'
-          out.str += '\\r'
+          out += '\\r'
           break
         case 8: // '\b'
-          out.str += '\\b'
+          out += '\\b'
           break
         case 12: // '\f'
-          out.str += '\\f'
+          out += '\\f'
           break
         default: {
           let s = rune.toString(16)
           if (rune < 0x100) {
-            out.str += '\\x'
+            out += '\\x'
             if (s.length === 1) {
-              out.str += '0'
+              out += '0'
             }
-            out.str += s
+            out += s
           } else {
-            out.str += '\\x{' + s + '}'
+            out += '\\x{' + s + '}'
           }
           break
         }
       }
     }
+    return out
   }
 
   // Returns the array of runes in the specified Java UTF-16 string.

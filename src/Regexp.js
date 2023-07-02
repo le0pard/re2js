@@ -252,9 +252,7 @@ export class Regexp {
         }
         for (let index = 0; index < this.runes.length; index++) {
           let rune = this.runes[index]
-          {
-            Utils.escapeRune(out, rune)
-          }
+          out.str += Utils.escapeRune(rune)
         }
         if ((this.flags & RE2Flags.FOLD_CASE) !== 0) {
           /* append */ ;((sb) => {
@@ -375,14 +373,14 @@ export class Regexp {
               const lo = this.runes[i] + 1
               const hi = this.runes[i + 1] - 1
               Regexp.quoteIfHyphen(out, lo)
-              Utils.escapeRune(out, lo)
+              out.str += Utils.escapeRune(lo)
               if (lo !== hi) {
                 /* append */ ;((sb) => {
                   sb.str += '-'
                   return sb
                 })(out)
                 Regexp.quoteIfHyphen(out, hi)
-                Utils.escapeRune(out, hi)
+                out.str += Utils.escapeRune(hi)
               }
             }
           }
@@ -392,14 +390,14 @@ export class Regexp {
               const lo = this.runes[i]
               const hi = this.runes[i + 1]
               Regexp.quoteIfHyphen(out, lo)
-              Utils.escapeRune(out, lo)
+              out.str += Utils.escapeRune(lo)
               if (lo !== hi) {
                 /* append */ ;((sb) => {
                   sb.str += '-'
                   return sb
                 })(out)
                 Regexp.quoteIfHyphen(out, hi)
-                Utils.escapeRune(out, hi)
+                out.str += Utils.escapeRune(hi)
               }
             }
           }
