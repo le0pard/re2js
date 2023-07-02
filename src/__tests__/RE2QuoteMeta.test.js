@@ -1,5 +1,7 @@
 import { expect, test } from '@jest/globals'
 import { RE2 } from '../RE2'
+import { Pattern } from '../Pattern'
+import { Utils } from '../Utils'
 
 const cases = [
   ['', '', '', true],
@@ -17,8 +19,9 @@ const cases = [
 ]
 
 test.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
-  const quoted = RE2.quoteMeta(pattern)
-  expect(RE2.quoteMeta(pattern)).toEqual(output)
+  const quoted = Utils.quoteMeta(pattern)
+  expect(Utils.quoteMeta(pattern)).toEqual(output)
+  expect(Pattern.quote(pattern)).toEqual(output)
   // Verify that the quoted string is in fact treated as expected
   // by compile -- i.e. that it matches the original, unquoted string.
   if (pattern && pattern.length > 0) {

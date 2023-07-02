@@ -1,6 +1,7 @@
 import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { RE2Flags } from '../RE2Flags'
+import { Utils } from '../Utils'
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -484,7 +485,7 @@ const testFowler = async (fileName) => {
         case 'E':
           break
         case 'L':
-          pattern = RE2.quoteMeta(pattern)
+          pattern = Utils.quoteMeta(pattern)
       }
 
       if (flag.indexOf('i') >= 0) {

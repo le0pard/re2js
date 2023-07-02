@@ -19,6 +19,7 @@ import { RE2Flags } from './RE2Flags'
 import { MatcherInput } from './MatcherInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
+import { Utils } from './Utils'
 
 export class Pattern {
   constructor(pattern, flags, re2) {
@@ -357,11 +358,11 @@ export class Pattern {
    * </p>
    * Metacharacters or escape sequences in the input sequence will be given no special meaning.
    *
-   * @param {string} s The string to be literalized
+   * @param {string} str The string to be literalized
    * @return {string} A literal string replacement
    */
-  static quote(s) {
-    return RE2.quoteMeta(s)
+  static quote(str) {
+    return Utils.quoteMeta(str)
   }
   /**
    *

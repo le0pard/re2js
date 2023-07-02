@@ -475,24 +475,7 @@ export class RE2 {
     out += src.substring(lastMatchEnd)
     return out
   }
-  /**
-   * Returns a string that quotes all regular expression metacharacters inside the argument text;
-   * the returned string is a regular expression matching the literal text. For example,
-   * {@code quoteMeta("[foo]").equals("\\[foo\\]")}.
-   * @param {string} s
-   * @return {string}
-   */
-  static quoteMeta(str) {
-    return str
-      .split('')
-      .map((s) => {
-        if (Utils.METACHARACTERS.indexOf(s) >= 0) {
-          return `\\${s}`
-        }
-        return s
-      })
-      .join('')
-  }
+
   pad(a) {
     if (a == null) {
       return null
