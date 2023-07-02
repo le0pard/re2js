@@ -477,9 +477,9 @@ export class Regexp {
   }
 }
 Regexp['__class'] = 'quickstart.Regexp'
-;(function(Regexp) {
+;(function (Regexp) {
   let Op
-  ;(function(Op) {
+  ;(function (Op) {
     Op[(Op['NO_MATCH'] = 0)] = 'NO_MATCH'
     Op[(Op['EMPTY_MATCH'] = 1)] = 'EMPTY_MATCH'
     Op[(Op['LITERAL'] = 2)] = 'LITERAL'

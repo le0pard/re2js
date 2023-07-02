@@ -22,7 +22,7 @@ class Unicode {
   // TODO(adonovan): opt: consider using int[n*3] instead of int[n][3].
   static is32(ranges, r) {
     // binary search over ranges
-    for (let lo = 0, hi = ranges.length; lo < hi;) {
+    for (let lo = 0, hi = ranges.length; lo < hi; ) {
       let m = lo + Math.floor((hi - lo) / 2)
       let range = ranges[m]
       if (range[0] <= r && r <= range[1]) {

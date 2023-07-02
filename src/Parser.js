@@ -264,7 +264,7 @@ export class Parser {
       let sub = subs[index]
       {
         if (sub.op === op) {
-          /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
+          /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
             if (srcPts !== dstPts || dstOff >= srcOff + size) {
               while (--size >= 0) {
                 dstPts[dstOff++] = srcPts[srcOff++]
@@ -675,7 +675,7 @@ export class Parser {
                   }
                   t.skipString(lit)
                   t.skipString('\\E')
-                  for (let j = 0; j < lit.length;) {
+                  for (let j = 0; j < lit.length; ) {
                     {
                       const codepoint = lit.codePointAt(j)
                       this.literal(codepoint)
@@ -1349,7 +1349,7 @@ Parser.ERR_MISSING_REPEAT_ARGUMENT = 'missing argument to repetition operator'
 Parser.ERR_TRAILING_BACKSLASH = 'trailing backslash at end of expression'
 Parser.ERR_DUPLICATE_NAMED_CAPTURE = 'duplicate capture group name'
 Parser['__class'] = 'quickstart.Parser'
-;(function(Parser) {
+;(function (Parser) {
   class Stack {
     /**
      *

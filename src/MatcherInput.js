@@ -7,10 +7,7 @@ import { Utils } from './Utils'
 import { createEnum } from './helpers'
 
 export class MatcherInput {
-  static Encoding = createEnum([
-    'UTF_16',
-    'UTF_8'
-  ])
+  static Encoding = createEnum(['UTF_16', 'UTF_8'])
 
   /**
    * Return the MatcherInput for UTF_16 encoding.
@@ -47,7 +44,7 @@ export class MatcherInput {
   }
 }
 MatcherInput['__class'] = 'quickstart.MatcherInput'
-;(function(MatcherInput) {
+;(function (MatcherInput) {
   class Utf8MatcherInput extends MatcherInput {
     constructor(bytes = null) {
       super()

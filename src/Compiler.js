@@ -264,7 +264,7 @@ class Compiler {
   }
 }
 Compiler['__class'] = 'quickstart.Compiler'
-;(function(Compiler) {
+;(function (Compiler) {
   /**
    * A fragment of a compiled regular expression program.
    *

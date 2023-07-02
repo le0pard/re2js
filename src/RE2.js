@@ -355,7 +355,7 @@ export class RE2 {
     }
 
     if (group != null) {
-      /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
+      /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
         if (srcPts !== dstPts || dstOff >= srcOff + size) {
           while (--size >= 0) {
             dstPts[dstOff++] = srcPts[srcOff++]
@@ -501,7 +501,7 @@ export class RE2 {
     if (n < 0) {
       n = end + 1
     }
-    for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end;) {
+    for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end; ) {
       {
         const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
         if (matches == null || matches.length === 0) {
@@ -882,7 +882,7 @@ export class RE2 {
   }
 }
 RE2['__class'] = 'quickstart.RE2'
-;(function(RE2) {
+;(function (RE2) {
   class RE2$0 {
     constructor(__parent, repl) {
       this.repl = repl
