@@ -15,9 +15,6 @@ class Unicode {
   static MIN_FOLD = 0x0041
   static MAX_FOLD = 0x1044f
 
-  static A_UPPER_CODEPOINT = 'A'.codePointAt(0)
-  static Z_UPPER_CODEPOINT = 'Z'.codePointAt(0)
-
   // is32 uses binary search to test whether rune is in the specified
   // slice of 32-bit ranges.
   // TODO(adonovan): opt: consider using int[n*3] instead of int[n][3].
@@ -131,11 +128,11 @@ class Unicode {
     // Fast path for the common case where both runes are ASCII characters.
     // Coerces both runes to lowercase if applicable.
     if (r1 <= this.MAX_ASCII && r2 <= this.MAX_ASCII) {
-      if (Unicode.A_UPPER_CODEPOINT <= r1 && r1 <= Unicode.Z_UPPER_CODEPOINT) {
+      if (Codepoint.CODES.get('A') <= r1 && r1 <= Codepoint.CODES.get('Z')) {
         r1 |= 0x20
       }
 
-      if (Unicode.A_UPPER_CODEPOINT <= r2 && r2 <= Unicode.Z_UPPER_CODEPOINT) {
+      if (Codepoint.CODES.get('A') <= r2 && r2 <= Codepoint.CODES.get('Z')) {
         r2 |= 0x20
       }
 

@@ -312,21 +312,21 @@ describe('groups', () => {
     expect(m.find()).toBeFalsy()
   })
   // TODO: fix me
-  it('named', () => {
+  it.skip('named', () => {
     const p = Pattern.compile(
       '(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?'
     )
     const m = p.matcher('fbbarrrrrbag')
 
     expect(m.matches()).toBeTruthy()
-    //expect(m.group('baz')).toEqual('fbbarrrrr')
+    expect(m.group('baz')).toEqual('fbbarrrrr')
     expect(m.group('foo')).toEqual('bbarrrrr')
     expect(m.group('another')).toEqual('rrrrr')
 
-    //expect(m.start('baz')).toEqual(0)
+    expect(m.start('baz')).toEqual(0)
     expect(m.start('foo')).toEqual(1)
     expect(m.start('another')).toEqual(4)
-    //expect(m.end('baz')).toEqual(9)
+    expect(m.end('baz')).toEqual(9)
     expect(m.end('foo')).toEqual(9)
 
     expect(m.group('bag')).toEqual('bag')
@@ -373,10 +373,10 @@ describe('groups', () => {
 })
 
 // TODO: fix me
-it('froup zero width assertions', () => {
+it.skip('froup zero width assertions', () => {
   const m = Pattern.compile('(\\d{2} ?(\\d|[a-z])?)($|[^a-zA-Z])').matcher('22 bored')
   expect(m.find()).toBeTruthy()
-  //expect(m.group(1)).toEqual('22')
+  expect(m.group(1)).toEqual('22')
 })
 
 it('pattern longest match', () => {

@@ -1,3 +1,4 @@
+import { Codepoint } from './Codepoint'
 import { Unicode } from './Unicode'
 
 class Utils {
@@ -14,36 +15,25 @@ class Utils {
   static EMPTY_NO_WORD_BOUNDARY = 0x20
   static EMPTY_ALL = -1
 
-  static ZERO_CODEPOINT = '0'.codePointAt(0)
-  static NINE_CODEPOINT = '9'.codePointAt(0)
-  static A_UPPER_CODEPOINT = 'A'.codePointAt(0)
-  static Z_UPPER_CODEPOINT = 'Z'.codePointAt(0)
-  static A_LOWER_CODEPOINT = 'a'.codePointAt(0)
-  static Z_LOWER_CODEPOINT = 'z'.codePointAt(0)
-  static F_UPPER_CODEPOINT = 'F'.codePointAt(0)
-  static F_LOWER_CODEPOINT = 'f'.codePointAt(0)
-  static UNDERSCORE_CODEPOINT = '_'.codePointAt(0)
-  static NEW_LINE_CODEPOINT = '\n'.codePointAt(0)
-
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
     return (
-      (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) ||
-      (this.A_LOWER_CODEPOINT <= c && c <= this.Z_LOWER_CODEPOINT) ||
-      (this.A_UPPER_CODEPOINT <= c && c <= this.Z_UPPER_CODEPOINT)
+      (Codepoint.CODES.get('0') <= c && c <= Codepoint.CODES.get('9')) ||
+      (Codepoint.CODES.get('a') <= c && c <= Codepoint.CODES.get('z')) ||
+      (Codepoint.CODES.get('A') <= c && c <= Codepoint.CODES.get('Z'))
     )
   }
 
   // If |c| is an ASCII hex digit, returns its value, otherwise -1.
   static unhex(c) {
-    if (this.ZERO_CODEPOINT <= c && c <= this.NINE_CODEPOINT) {
-      return c - this.ZERO_CODEPOINT
+    if (Codepoint.CODES.get('0') <= c && c <= Codepoint.CODES.get('9')) {
+      return c - Codepoint.CODES.get('0')
     }
-    if (this.A_LOWER_CODEPOINT <= c && c <= this.F_LOWER_CODEPOINT) {
-      return c - this.A_LOWER_CODEPOINT + 10
+    if (Codepoint.CODES.get('a') <= c && c <= Codepoint.CODES.get('f')) {
+      return c - Codepoint.CODES.get('a') + 10
     }
-    if (this.A_UPPER_CODEPOINT <= c && c <= this.F_UPPER_CODEPOINT) {
-      return c - this.A_UPPER_CODEPOINT + 10
+    if (Codepoint.CODES.get('A') <= c && c <= Codepoint.CODES.get('F')) {
+      return c - Codepoint.CODES.get('A') + 10
     }
     return -1
   }
@@ -141,10 +131,10 @@ class Utils {
   static isWordRune(r) {
     return (
       //Unicode.isLetter(r) ||
-      (this.A_LOWER_CODEPOINT <= r && r <= this.Z_LOWER_CODEPOINT) ||
-      (this.A_UPPER_CODEPOINT <= r && r <= this.Z_UPPER_CODEPOINT) ||
-      (this.ZERO_CODEPOINT <= r && r <= this.NINE_CODEPOINT) ||
-      r === this.UNDERSCORE_CODEPOINT
+      (Codepoint.CODES.get('a') <= r && r <= Codepoint.CODES.get('z')) ||
+      (Codepoint.CODES.get('A') <= r && r <= Codepoint.CODES.get('Z')) ||
+      (Codepoint.CODES.get('0') <= r && r <= Codepoint.CODES.get('9')) ||
+      r === Codepoint.CODES.get('_')
     )
   }
 
@@ -159,13 +149,13 @@ class Utils {
     if (r1 < 0) {
       op |= this.EMPTY_BEGIN_TEXT | this.EMPTY_BEGIN_LINE
     }
-    if (r1 === this.NEW_LINE_CODEPOINT) {
+    if (r1 === Codepoint.CODES.get('\n')) {
       op |= this.EMPTY_BEGIN_LINE
     }
     if (r2 < 0) {
       op |= this.EMPTY_END_TEXT | this.EMPTY_END_LINE
     }
-    if (r2 === this.NEW_LINE_CODEPOINT) {
+    if (r2 === Codepoint.CODES.get('\n')) {
       op |= this.EMPTY_END_LINE
     }
     if (this.isWordRune(r1) !== this.isWordRune(r2)) {

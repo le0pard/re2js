@@ -1,4 +1,18 @@
 class Codepoint {
+  // codePointAt(0)
+  static CODES = new Map([
+    ['\n', 10],
+    ['0', 48],
+    ['9', 57],
+    ['A', 65],
+    ['F', 70],
+    ['Z', 90],
+    ['_', 95],
+    ['a', 97],
+    ['f', 102],
+    ['z', 122]
+  ])
+
   static toUpperCase(codepoint) {
     const s = String.fromCodePoint(codepoint).toUpperCase()
     if (s.length > 1) {
