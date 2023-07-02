@@ -19,7 +19,6 @@ class Unicode {
 
   // is32 uses binary search to test whether rune is in the specified
   // slice of 32-bit ranges.
-  // TODO(adonovan): opt: consider using int[n*3] instead of int[n][3].
   static is32(ranges, r) {
     // binary search over ranges
     for (let lo = 0, hi = ranges.length; lo < hi; ) {
