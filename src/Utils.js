@@ -1,9 +1,8 @@
+import { Codepoint } from './Codepoint'
+import { Unicode } from './Unicode'
 /**
  * Various constants and helper utilities.
  */
-import { Codepoint } from './Codepoint'
-import { Unicode } from './Unicode'
-
 class Utils {
   static EMPTY_INTS = []
 

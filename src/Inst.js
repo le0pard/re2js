@@ -1,12 +1,11 @@
+import { RE2Flags } from './RE2Flags'
+import { Utils } from './Utils'
+import { Unicode } from './Unicode'
 /**
  * A single instruction in the regular expression virtual machine.
  *
  * @see http://swtch.com/~rsc/regexp/regexp2.html
  */
-import { RE2Flags } from './RE2Flags'
-import { Utils } from './Utils'
-import { Unicode } from './Unicode'
-
 class Inst {
   static ALT = 1
   static ALT_MATCH = 2
