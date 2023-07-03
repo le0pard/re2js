@@ -444,7 +444,7 @@ export class Regexp {
       case Regexp.Op.CAPTURE: {
         if (
           this.cap !== that.cap ||
-          (this.name == null ? that.name != null : !(this.name === that.name)) ||
+          (this.name === null ? that.name !== null : this.name !== that.name) ||
           !this.subs[0].equals(that.subs[0])
         ) {
           return false
