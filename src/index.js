@@ -1,14 +1,12 @@
 import { Pattern } from './Pattern'
 
-const Flags = {
-  CASE_INSENSITIVE: Pattern.CASE_INSENSITIVE,
-  DOTALL: Pattern.DOTALL,
-  MULTILINE: Pattern.MULTILINE,
-  DISABLE_UNICODE_GROUPS: Pattern.DISABLE_UNICODE_GROUPS,
-  LONGEST_MATCH: Pattern.LONGEST_MATCH
-}
-
 class RE2JS {
+  static CASE_INSENSITIVE = Pattern.CASE_INSENSITIVE
+  static DOTALL = Pattern.DOTALL
+  static MULTILINE = Pattern.MULTILINE
+  static DISABLE_UNICODE_GROUPS = Pattern.DISABLE_UNICODE_GROUPS
+  static LONGEST_MATCH = Pattern.LONGEST_MATCH
+
   static compile(regex, flags = 0) {
     const pattern = Pattern.compile(regex, flags)
 
@@ -36,4 +34,4 @@ class RE2JS {
   }
 }
 
-export { RE2JS, Flags }
+export { RE2JS }

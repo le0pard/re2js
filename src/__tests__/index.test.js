@@ -1,5 +1,5 @@
 import { expect, describe, test } from '@jest/globals'
-import { RE2JS, Flags } from '../index'
+import { RE2JS } from '../index'
 
 describe('.match', () => {
   const cases = [
@@ -21,9 +21,9 @@ describe('.match', () => {
 
   describe('with flags', () => {
     const flagsCases = [
-      ['ab+c', Flags.CASE_INSENSITIVE, 'abBBc', true],
-      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', false],
-      ['^ab.*c$', Flags.DOTALL | Flags.MULTILINE, 'ab\nc', true]
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'abBBc', true],
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'cbbba', false],
+      ['^ab.*c$', RE2JS.DOTALL | RE2JS.MULTILINE, 'ab\nc', true]
     ]
 
     test.concurrent.each(flagsCases)(
@@ -50,8 +50,8 @@ describe('.extract', () => {
 
   describe('with flags', () => {
     const flagsCases = [
-      ['ab+c', Flags.CASE_INSENSITIVE, 'abBBc', 'abBBc'],
-      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', null]
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'abBBc', 'abBBc'],
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'cbbba', null]
     ]
 
     test.concurrent.each(flagsCases)(
@@ -82,8 +82,8 @@ describe('.replaceAll', () => {
 
   describe('with flags', () => {
     const flagsCases = [
-      ['ab+c', Flags.CASE_INSENSITIVE, 'abBBc', '11', '11'],
-      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbba', '11', 'cbbba']
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'abBBc', '11', '11'],
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'cbbba', '11', 'cbbba']
     ]
 
     test.concurrent.each(flagsCases)(
@@ -113,8 +113,8 @@ describe('.replaceFirst', () => {
 
   describe('with flags', () => {
     const flagsCases = [
-      ['ab+c', Flags.CASE_INSENSITIVE, 'abBBcabBBc', '11', '11abBBc'],
-      ['ab+c', Flags.CASE_INSENSITIVE, 'cbbbacbbba', '11', 'cbbbacbbba']
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'abBBcabBBc', '11', '11abBBc'],
+      ['ab+c', RE2JS.CASE_INSENSITIVE, 'cbbbacbbba', '11', 'cbbbacbbba']
     ]
 
     test.concurrent.each(flagsCases)(
