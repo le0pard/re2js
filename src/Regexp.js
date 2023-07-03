@@ -1,16 +1,14 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
-/**
- * Regular expression abstract syntax tree. Produced by parser, used by compiler. NB, this
- * corresponds to {@code syntax.regexp} in the Go implementation; Go's {@code regexp} is called
- * {@code RE2} in Java.
- * @class
- */
 import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { Utils } from './Utils'
 import { createEnum } from './helpers'
 
+/**
+ * Regular expression abstract syntax tree. Produced by parser, used by compiler. NB, this
+ * corresponds to {@code syntax.regexp} in the Go implementation; Go's {@code regexp} is called
+ * {@code RE2} in Java.
+ */
 export class Regexp {
   static Op = createEnum([
     'NO_MATCH', // Matches no strings.
@@ -66,15 +64,17 @@ export class Regexp {
   }
 
   constructor(op) {
-    this.op = op
-    this.flags = 0
+    this.op = op // operator
+    this.flags = 0 // bitmap of parse flags
+    // subexpressions, if any.  Never null.
+    // subs[0] is used as the freelist.
     this.subs = Regexp.emptySubs()
-    this.runes = null
-    this.min = 0
-    this.max = 0
-    this.cap = 0
-    this.name = null
-    this.namedGroups = {}
+    this.runes = null // matched runes, for LITERAL, CHAR_CLASS
+    this.min = 0 // min for REPEAT
+    this.max = 0 // max for REPEAT
+    this.cap = 0 // capturing index, for CAPTURE
+    this.name = null // capturing name, for CAPTURE
+    this.namedGroups = {} // map of group name -> capturing index
   }
 
   reinit() {
@@ -92,6 +92,7 @@ export class Regexp {
     return this.appendTo()
   }
 
+  // appendTo() appends the Perl syntax for |this| regular expression to out
   appendTo() {
     let out = ''
     switch (this.op) {
@@ -261,6 +262,7 @@ export class Regexp {
     return out
   }
 
+  // maxCap() walks the regexp to find the maximum capture index.
   maxCap() {
     let m = 0
     if (this.op === Regexp.Op.CAPTURE) {
@@ -372,6 +374,7 @@ export class Regexp {
   //   return hashcode
   // }
 
+  // equals() returns true if this and that have identical structure.
   equals(that) {
     if (!(that !== null && that instanceof Regexp)) {
       return false
