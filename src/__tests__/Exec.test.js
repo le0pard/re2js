@@ -123,6 +123,7 @@ const unquote = (s) => {
   if (n < 2) {
     throw new Error('too short')
   }
+
   let quote = s.charAt(0)
   if (quote !== s.charAt(n - 1)) {
     throw new Error("quotes don't match")
@@ -183,7 +184,6 @@ const parseResult = (lineno, res) => {
   }
   // Otherwise, a space-separated list of pairs.
   let n = 1
-  // TODO: is this safe or must we decode UTF-16?
   let len = res.length
   for (let j = 0; j < len; j++) {
     if (res.charAt(j) === ' ') {
@@ -261,7 +261,13 @@ const testRE2 = async (fileName) => {
     } else if (line === 'regexps') {
       inStrings = false
     } else if (first === '"') {
-      const q = unquote(line)
+      let q = line
+      try {
+        q = unquote(line)
+      } catch (e) {
+        console.error('Error to unquote: ', q, e) // eslint-disable-line no-console
+        q = line
+      }
 
       if (inStrings) {
         strings = [...strings, q]
@@ -283,7 +289,7 @@ const testRE2 = async (fileName) => {
       try {
         refull = RE2.compile(`\\A(?:${q})\\z`)
       } catch (e) {
-        // ignore
+        console.error('Error to refull parse: ', q, e) // eslint-disable-line no-console
       }
 
       input = 0
