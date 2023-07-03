@@ -107,11 +107,7 @@ export class Regexp {
       case Regexp.Op.QUEST:
       case Regexp.Op.REPEAT: {
         const sub = this.subs[0]
-        if (
-          /* Enum.ordinal */ Regexp.Op[Regexp.Op[sub.op]] >
-            /* Enum.ordinal */ Regexp.Op[Regexp.Op[Regexp.Op.CAPTURE]] ||
-          (sub.op === Regexp.Op.LITERAL && sub.runes.length > 1)
-        ) {
+        if (sub.op > Regexp.Op.CAPTURE || (sub.op === Regexp.Op.LITERAL && sub.runes.length > 1)) {
           out += `(?:${sub.appendTo()})`
         } else {
           out += sub.appendTo()
