@@ -379,31 +379,29 @@ export class Regexp {
     if (!(that !== null && that instanceof Regexp)) {
       return false
     }
-    const x = this
-    const y = that
-    if (x.op !== y.op) {
+    if (this.op !== that.op) {
       return false
     }
-    switch (x.op) {
+    switch (this.op) {
       case Regexp.Op.END_TEXT: {
-        if ((x.flags & RE2Flags.WAS_DOLLAR) !== (y.flags & RE2Flags.WAS_DOLLAR)) {
+        if ((this.flags & RE2Flags.WAS_DOLLAR) !== (that.flags & RE2Flags.WAS_DOLLAR)) {
           return false
         }
         break
       }
       case Regexp.Op.LITERAL:
       case Regexp.Op.CHAR_CLASS: {
-        if (x.runes === null && y.runes === null) {
+        if (this.runes === null && that.runes === null) {
           break
         }
-        if (x.runes === null || y.runes === null) {
+        if (this.runes === null || that.runes === null) {
           return false
         }
-        if (x.runes.length !== y.runes.length) {
+        if (this.runes.length !== that.runes.length) {
           return false
         }
-        for (let i = 0; i < x.runes.length; i++) {
-          if (x.runes[i] !== y.runes[i]) {
+        for (let i = 0; i < this.runes.length; i++) {
+          if (this.runes[i] !== that.runes[i]) {
             return false
           }
         }
@@ -411,11 +409,11 @@ export class Regexp {
       }
       case Regexp.Op.ALTERNATE:
       case Regexp.Op.CONCAT: {
-        if (x.subs.length !== y.subs.length) {
+        if (this.subs.length !== that.subs.length) {
           return false
         }
-        for (let i = 0; i < x.subs.length; ++i) {
-          if (!x.subs[i].equals(y.subs[i])) {
+        for (let i = 0; i < this.subs.length; ++i) {
+          if (!this.subs[i].equals(that.subs[i])) {
             return false
           }
         }
@@ -425,8 +423,8 @@ export class Regexp {
       case Regexp.Op.PLUS:
       case Regexp.Op.QUEST: {
         if (
-          (x.flags & RE2Flags.NON_GREEDY) !== (y.flags & RE2Flags.NON_GREEDY) ||
-          !x.subs[0].equals(y.subs[0])
+          (this.flags & RE2Flags.NON_GREEDY) !== (that.flags & RE2Flags.NON_GREEDY) ||
+          !this.subs[0].equals(that.subs[0])
         ) {
           return false
         }
@@ -434,10 +432,10 @@ export class Regexp {
       }
       case Regexp.Op.REPEAT: {
         if (
-          (x.flags & RE2Flags.NON_GREEDY) !== (y.flags & RE2Flags.NON_GREEDY) ||
-          x.min !== y.min ||
-          x.max !== y.max ||
-          !x.subs[0].equals(y.subs[0])
+          (this.flags & RE2Flags.NON_GREEDY) !== (that.flags & RE2Flags.NON_GREEDY) ||
+          this.min !== that.min ||
+          this.max !== that.max ||
+          !this.subs[0].equals(that.subs[0])
         ) {
           return false
         }
@@ -445,9 +443,9 @@ export class Regexp {
       }
       case Regexp.Op.CAPTURE: {
         if (
-          x.cap !== y.cap ||
-          (x.name == null ? y.name != null : !(x.name === y.name)) ||
-          !x.subs[0].equals(y.subs[0])
+          this.cap !== that.cap ||
+          (this.name == null ? that.name != null : !(this.name === that.name)) ||
+          !this.subs[0].equals(that.subs[0])
         ) {
           return false
         }
