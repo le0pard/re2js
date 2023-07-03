@@ -15,6 +15,22 @@ const FIXTURES_DIRNAME = path.join(
   '../__fixtures__'
 )
 
+// unquoteChar decodes the first character or byte in the escaped
+// string or character literal represented by the Go literal encoded
+// in UTF-16 in s.
+//
+// On success, it advances the UTF-16 cursor i[0] (an in/out
+// parameter) past the consumed codes and returns the decoded Unicode
+// code point or byte value.  On failure, it throws
+// IllegalArgumentException or StringIndexOutOfBoundsException
+//
+// |quote| specifies the type of literal being parsed
+// and therefore which escaped quote character is permitted.
+// If set to a single quote, it permits the sequence \' and disallows
+// unescaped '.
+// If set to a double quote, it permits \" and disallows unescaped ".
+// If set to zero, it does not permit either escape and allows both
+// quote characters to appear unescaped.
 const unquoteChar = (s, i, quote) => {
   let c = s.codePointAt(i[0])
   i[0] += Array.from(String.fromCodePoint(c)).length
@@ -118,6 +134,11 @@ const unquoteChar = (s, i, quote) => {
   }
 }
 
+// Unquote interprets s as a single-quoted, double-quoted,
+// or backquoted Go string literal, returning the string value
+// that s quotes.  (If s is single-quoted, it would be a Go
+// character literal; Unquote returns the corresponding
+// one-character string.)
 const unquote = (s) => {
   let n = s.length
   if (n < 2) {
@@ -157,8 +178,6 @@ const unquote = (s) => {
   let buf = ''
   let len = s.length
   while (i[0] < len) {
-    // The 'unquoteChar' function was not provided in the original code.
-    // This should be replaced with the JavaScript version of that function.
     buf += String.fromCodePoint(unquoteChar(s, i, quote))
     if (quote === "'" && i[0] !== len) {
       throw new Error('single-quotation must be one char')
@@ -265,8 +284,7 @@ const testRE2 = async (fileName) => {
       try {
         q = unquote(line)
       } catch (e) {
-        console.error('Error to unquote: ', q, e) // eslint-disable-line no-console
-        q = line
+        throw new Error(`${lineno}: Error to unquote: ${line}, error: ${e}`)
       }
 
       if (inStrings) {
