@@ -180,9 +180,9 @@ class Utils {
    */
   static quoteMeta(str) {
     return str
-      .split('')
+      .split('') // A char loop is correct because all metacharacters fit in one UTF-16 code.
       .map((s) => {
-        if (Utils.METACHARACTERS.indexOf(s) >= 0) {
+        if (this.METACHARACTERS.indexOf(s) >= 0) {
           return `\\${s}`
         }
         return s
