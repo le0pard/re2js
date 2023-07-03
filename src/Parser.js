@@ -421,8 +421,7 @@ export class Parser {
               const subMax = array[s + max]
               const subJ = array[s + j]
               if (
-                /* Enum.ordinal */ Regexp.Op[Regexp.Op[subMax.op]] <
-                  /* Enum.ordinal */ Regexp.Op[Regexp.Op[subJ.op]] ||
+                subMax.op < subJ.op ||
                 (subMax.op === subJ.op &&
                   (subMax.runes != null ? subMax.runes.length : 0) <
                     (subJ.runes != null ? subJ.runes.length : 0))
@@ -954,10 +953,7 @@ export class Parser {
     ) {
       let re1 = this.stack.__delegate[n - 1]
       let re3 = this.stack.__delegate[n - 3]
-      if (
-        /* Enum.ordinal */ Regexp.Op[Regexp.Op[re1.op]] >
-        /* Enum.ordinal */ Regexp.Op[Regexp.Op[re3.op]]
-      ) {
+      if (re1.op > re3.op) {
         const tmp = re3
         re3 = re1
         re1 = tmp

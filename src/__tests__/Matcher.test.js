@@ -311,8 +311,8 @@ describe('groups', () => {
 
     expect(m.find()).toBeFalsy()
   })
-  // TODO: fix me
-  it.skip('named', () => {
+
+  it('named', () => {
     const p = Pattern.compile(
       '(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?'
     )
@@ -355,8 +355,7 @@ describe('groups', () => {
     expect(m.end('bag')).toEqual(9)
   })
 
-  // TODO: fix me
-  it.skip('second named', () => {
+  it('second named', () => {
     const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})')
     const m = p.matcher('ffffbbbbb')
 
@@ -372,8 +371,7 @@ describe('groups', () => {
   })
 })
 
-// TODO: fix me
-it.skip('froup zero width assertions', () => {
+it('froup zero width assertions', () => {
   const m = Pattern.compile('(\\d{2} ?(\\d|[a-z])?)($|[^a-zA-Z])').matcher('22 bored')
   expect(m.find()).toBeTruthy()
   expect(m.group(1)).toEqual('22')

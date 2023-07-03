@@ -25,7 +25,7 @@ class Simplify {
           const sub = re.subs[i]
           const nsub = Simplify.simplify(sub)
           if (nre === re && nsub !== sub) {
-            nre = new Regexp(re)
+            nre = Regexp.fromRegexp(re)
             nre.runes = null
             nre.subs = Parser.subarray(re.subs, 0, re.subs.length)
           }

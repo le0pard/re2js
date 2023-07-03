@@ -475,10 +475,6 @@ const testFowler = async (fileName) => {
 
     for (let i = 0; i < flag.length; i++) {
       let pattern = field[1]
-      // TODO: fix me
-      if (['(a*)(b{0,1})(b{1,})b{3}', 'a?(ac{0}b|ba)ab'].includes(pattern)) {
-        continue
-      }
 
       let flags = RE2Flags.POSIX | RE2Flags.CLASS_NL
       switch (flag.charAt(i)) {

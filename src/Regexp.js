@@ -52,53 +52,29 @@ export class Regexp {
     return ''
   }
 
+  static fromRegexp(re) {
+    const regex = new Regexp(re.op)
+    regex.flags = re.flags
+    regex.subs = re.subs
+    regex.runes = re.runes
+    regex.cap = re.cap
+    regex.min = re.min
+    regex.max = re.max
+    regex.name = re.name
+    regex.namedGroups = re.namedGroups
+    return regex
+  }
+
   constructor(op) {
-    if (typeof op === 'number' || op === null) {
-      this.op = op
-      this.namedGroups = {}
-      this.flags = 0
-      this.subs = null
-      this.runes = null
-      this.min = 0
-      this.max = 0
-      this.cap = 0
-      this.name = null
-    } else if ((op != null && op instanceof Regexp) || op === null) {
-      if (this.op === undefined) {
-        this.op = null
-      }
-      if (this.flags === undefined) {
-        this.flags = 0
-      }
-      if (this.subs === undefined) {
-        this.subs = null
-      }
-      if (this.runes === undefined) {
-        this.runes = null
-      }
-      if (this.min === undefined) {
-        this.min = 0
-      }
-      if (this.max === undefined) {
-        this.max = 0
-      }
-      if (this.cap === undefined) {
-        this.cap = 0
-      }
-      if (this.name === undefined) {
-        this.name = null
-      }
-      this.namedGroups = {}
-      this.op = op.op
-      this.flags = op.flags
-      this.subs = op.subs
-      this.runes = op.runes
-      this.cap = this.min = this.max = 0
-      this.name = op.name
-      this.namedGroups = op.namedGroups
-    } else {
-      throw new Error('invalid overload')
-    }
+    this.op = op
+    this.flags = 0
+    this.subs = Regexp.emptySubs()
+    this.runes = null
+    this.min = 0
+    this.max = 0
+    this.cap = 0
+    this.name = null
+    this.namedGroups = {}
   }
 
   reinit() {
@@ -111,10 +87,7 @@ export class Regexp {
     this.name = null
     this.namedGroups = {}
   }
-  /**
-   *
-   * @return {string}
-   */
+
   toString() {
     return this.appendTo()
   }
@@ -303,109 +276,102 @@ export class Regexp {
     }
     return m
   }
-  /**
-   *
-   * @return {number}
-   */
-  hashCode() {
-    let hashcode = Regexp.Op['_$wrappers'][this.op].hashCode()
-    switch (this.op) {
-      case Regexp.Op.END_TEXT:
-        hashcode += 31 * (this.flags & RE2Flags.WAS_DOLLAR)
-        break
-      case Regexp.Op.LITERAL:
-      case Regexp.Op.CHAR_CLASS:
-        hashcode += 31 * Arrays.hashCode(this.runes)
-        break
-      case Regexp.Op.ALTERNATE:
-      case Regexp.Op.CONCAT:
-        hashcode += 31 * Arrays.deepHashCode(this.subs)
-        break
-      case Regexp.Op.STAR:
-      case Regexp.Op.PLUS:
-      case Regexp.Op.QUEST:
-        hashcode +=
-          31 * (this.flags & RE2Flags.NON_GREEDY) +
-          31 *
-            /* hashCode */ ((o) => {
-              if (o.hashCode) {
-                return o.hashCode()
-              } else {
-                return o
-                  .toString()
-                  .split('')
-                  .reduce(
-                    (prevHash, currVal) =>
-                      ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
-                    0
-                  )
-              }
-            })(this.subs[0])
-        break
-      case Regexp.Op.REPEAT:
-        hashcode +=
-          31 * this.min +
-          31 * this.max +
-          31 *
-            /* hashCode */ ((o) => {
-              if (o.hashCode) {
-                return o.hashCode()
-              } else {
-                return o
-                  .toString()
-                  .split('')
-                  .reduce(
-                    (prevHash, currVal) =>
-                      ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
-                    0
-                  )
-              }
-            })(this.subs[0])
-        break
-      case Regexp.Op.CAPTURE:
-        hashcode +=
-          31 * this.cap +
-          31 *
-            (this.name != null
-              ? /* hashCode */ ((o) => {
-                  if (o.hashCode) {
-                    return o.hashCode()
-                  } else {
-                    return o
-                      .toString()
-                      .split('')
-                      .reduce(
-                        (prevHash, currVal) =>
-                          ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
-                        0
-                      )
-                  }
-                })(this.name)
-              : 0) +
-          31 *
-            /* hashCode */ ((o) => {
-              if (o.hashCode) {
-                return o.hashCode()
-              } else {
-                return o
-                  .toString()
-                  .split('')
-                  .reduce(
-                    (prevHash, currVal) =>
-                      ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
-                    0
-                  )
-              }
-            })(this.subs[0])
-        break
-    }
-    return hashcode
-  }
-  /**
-   *
-   * @param {*} that
-   * @return {boolean}
-   */
+
+  // hashCode() {
+  //   let hashcode = Regexp.Op['_$wrappers'][this.op].hashCode()
+  //   switch (this.op) {
+  //     case Regexp.Op.END_TEXT:
+  //       hashcode += 31 * (this.flags & RE2Flags.WAS_DOLLAR)
+  //       break
+  //     case Regexp.Op.LITERAL:
+  //     case Regexp.Op.CHAR_CLASS:
+  //       hashcode += 31 * Arrays.hashCode(this.runes)
+  //       break
+  //     case Regexp.Op.ALTERNATE:
+  //     case Regexp.Op.CONCAT:
+  //       hashcode += 31 * Arrays.deepHashCode(this.subs)
+  //       break
+  //     case Regexp.Op.STAR:
+  //     case Regexp.Op.PLUS:
+  //     case Regexp.Op.QUEST:
+  //       hashcode +=
+  //         31 * (this.flags & RE2Flags.NON_GREEDY) +
+  //         31 *
+  //           /* hashCode */ ((o) => {
+  //             if (o.hashCode) {
+  //               return o.hashCode()
+  //             } else {
+  //               return o
+  //                 .toString()
+  //                 .split('')
+  //                 .reduce(
+  //                   (prevHash, currVal) =>
+  //                     ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
+  //                   0
+  //                 )
+  //             }
+  //           })(this.subs[0])
+  //       break
+  //     case Regexp.Op.REPEAT:
+  //       hashcode +=
+  //         31 * this.min +
+  //         31 * this.max +
+  //         31 *
+  //           /* hashCode */ ((o) => {
+  //             if (o.hashCode) {
+  //               return o.hashCode()
+  //             } else {
+  //               return o
+  //                 .toString()
+  //                 .split('')
+  //                 .reduce(
+  //                   (prevHash, currVal) =>
+  //                     ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
+  //                   0
+  //                 )
+  //             }
+  //           })(this.subs[0])
+  //       break
+  //     case Regexp.Op.CAPTURE:
+  //       hashcode +=
+  //         31 * this.cap +
+  //         31 *
+  //           (this.name != null
+  //             ? /* hashCode */ ((o) => {
+  //                 if (o.hashCode) {
+  //                   return o.hashCode()
+  //                 } else {
+  //                   return o
+  //                     .toString()
+  //                     .split('')
+  //                     .reduce(
+  //                       (prevHash, currVal) =>
+  //                         ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
+  //                       0
+  //                     )
+  //                 }
+  //               })(this.name)
+  //             : 0) +
+  //         31 *
+  //           /* hashCode */ ((o) => {
+  //             if (o.hashCode) {
+  //               return o.hashCode()
+  //             } else {
+  //               return o
+  //                 .toString()
+  //                 .split('')
+  //                 .reduce(
+  //                   (prevHash, currVal) =>
+  //                     ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
+  //                   0
+  //                 )
+  //             }
+  //           })(this.subs[0])
+  //       break
+  //   }
+  //   return hashcode
+  // }
+
   equals(that) {
     if (!(that !== null && that instanceof Regexp)) {
       return false
@@ -416,51 +382,45 @@ export class Regexp {
       return false
     }
     switch (x.op) {
-      case Regexp.Op.END_TEXT:
+      case Regexp.Op.END_TEXT: {
         if ((x.flags & RE2Flags.WAS_DOLLAR) !== (y.flags & RE2Flags.WAS_DOLLAR)) {
           return false
         }
         break
+      }
       case Regexp.Op.LITERAL:
-      case Regexp.Op.CHAR_CLASS:
-        if (
-          !((a1, a2) => {
-            if (a1 === null && a2 === null) {
-              return true
-            }
-            if (a1 === null || a2 === null) {
-              return false
-            }
-            if (a1.length !== a2.length) {
-              return false
-            }
-            for (let i = 0; i < a1.length; i++) {
-              if (a1[i] !== a2[i]) {
-                return false
-              }
-            }
-            return true
-          })(x.runes, y.runes)
-        ) {
+      case Regexp.Op.CHAR_CLASS: {
+        if (x.runes === null && y.runes === null) {
+          break
+        }
+        if (x.runes === null || y.runes === null) {
           return false
         }
+        if (x.runes.length !== y.runes.length) {
+          return false
+        }
+        for (let i = 0; i < x.runes.length; i++) {
+          if (x.runes[i] !== y.runes[i]) {
+            return false
+          }
+        }
         break
+      }
       case Regexp.Op.ALTERNATE:
-      case Regexp.Op.CONCAT:
+      case Regexp.Op.CONCAT: {
         if (x.subs.length !== y.subs.length) {
           return false
         }
         for (let i = 0; i < x.subs.length; ++i) {
-          {
-            if (!x.subs[i].equals(y.subs[i])) {
-              return false
-            }
+          if (!x.subs[i].equals(y.subs[i])) {
+            return false
           }
         }
         break
+      }
       case Regexp.Op.STAR:
       case Regexp.Op.PLUS:
-      case Regexp.Op.QUEST:
+      case Regexp.Op.QUEST: {
         if (
           (x.flags & RE2Flags.NON_GREEDY) !== (y.flags & RE2Flags.NON_GREEDY) ||
           !x.subs[0].equals(y.subs[0])
@@ -468,7 +428,8 @@ export class Regexp {
           return false
         }
         break
-      case Regexp.Op.REPEAT:
+      }
+      case Regexp.Op.REPEAT: {
         if (
           (x.flags & RE2Flags.NON_GREEDY) !== (y.flags & RE2Flags.NON_GREEDY) ||
           x.min !== y.min ||
@@ -478,7 +439,8 @@ export class Regexp {
           return false
         }
         break
-      case Regexp.Op.CAPTURE:
+      }
+      case Regexp.Op.CAPTURE: {
         if (
           x.cap !== y.cap ||
           (x.name == null ? y.name != null : !(x.name === y.name)) ||
@@ -487,6 +449,7 @@ export class Regexp {
           return false
         }
         break
+      }
     }
     return true
   }
