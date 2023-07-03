@@ -139,7 +139,7 @@ export class Regexp {
         break
       }
 
-      case Regexp.Op.CONCAT:
+      case Regexp.Op.CONCAT: {
         for (let sub of this.subs) {
           if (sub.op === Regexp.Op.ALTERNATE) {
             out += `(?:${sub.appendTo()})`
@@ -148,6 +148,8 @@ export class Regexp {
           }
         }
         break
+      }
+
       case Regexp.Op.ALTERNATE: {
         let sep = ''
         for (let sub of this.subs) {
@@ -221,31 +223,27 @@ export class Regexp {
           out += '^'
 
           for (let i = 1; i < this.runes.length - 1; i += 2) {
-            {
-              const lo = this.runes[i] + 1
-              const hi = this.runes[i + 1] - 1
+            const lo = this.runes[i] + 1
+            const hi = this.runes[i + 1] - 1
 
-              out += Regexp.quoteIfHyphen(lo)
-              out += Utils.escapeRune(lo)
-              if (lo !== hi) {
-                out += '-'
-                out += Regexp.quoteIfHyphen(hi)
-                out += Utils.escapeRune(hi)
-              }
+            out += Regexp.quoteIfHyphen(lo)
+            out += Utils.escapeRune(lo)
+            if (lo !== hi) {
+              out += '-'
+              out += Regexp.quoteIfHyphen(hi)
+              out += Utils.escapeRune(hi)
             }
           }
         } else {
           for (let i = 0; i < this.runes.length; i += 2) {
-            {
-              const lo = this.runes[i]
-              const hi = this.runes[i + 1]
-              out += Regexp.quoteIfHyphen(lo)
-              out += Utils.escapeRune(lo)
-              if (lo !== hi) {
-                out += '-'
-                out += Regexp.quoteIfHyphen(hi)
-                out += Utils.escapeRune(hi)
-              }
+            const lo = this.runes[i]
+            const hi = this.runes[i + 1]
+            out += Regexp.quoteIfHyphen(lo)
+            out += Utils.escapeRune(lo)
+            if (lo !== hi) {
+              out += '-'
+              out += Regexp.quoteIfHyphen(hi)
+              out += Utils.escapeRune(hi)
             }
           }
         }
