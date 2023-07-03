@@ -524,7 +524,7 @@ const testFowler = async (fileName) => {
         continue
       }
 
-      expect(shouldCompileMatch[0]).toBeTruthy()
+      expect(shouldCompileMatch[0]).toBe(true)
 
       let match = re.match(text)
       expect(match).toEqual(shouldCompileMatch[1])

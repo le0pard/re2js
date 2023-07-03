@@ -53,10 +53,10 @@ describe('matches no flags', () => {
   ]
 
   test.concurrent.each(cases)('regexp %p match %p and not match %p', (regexp, match, nonMatch) => {
-    expect(Pattern.matches(regexp, match)).toBeTruthy()
-    expect(Pattern.matches(regexp, nonMatch)).toBeFalsy()
-    expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBeTruthy()
-    expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBeFalsy()
+    expect(Pattern.matches(regexp, match)).toBe(true)
+    expect(Pattern.matches(regexp, nonMatch)).toBe(false)
+    expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBe(true)
+    expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBe(false)
   })
 })
 
@@ -79,10 +79,10 @@ describe('matches with flags', () => {
     (regexp, flags, match, nonMatch) => {
       const p = Pattern.compile(regexp, flags)
 
-      expect(p.matches(match)).toBeTruthy()
-      expect(p.matches(Utils.stringToUtf8ByteArray(match))).toBeTruthy()
-      expect(p.matches(nonMatch)).toBeFalsy()
-      expect(p.matches(Utils.stringToUtf8ByteArray(nonMatch))).toBeFalsy()
+      expect(p.matches(match)).toBe(true)
+      expect(p.matches(Utils.stringToUtf8ByteArray(match))).toBe(true)
+      expect(p.matches(nonMatch)).toBe(false)
+      expect(p.matches(Utils.stringToUtf8ByteArray(nonMatch))).toBe(false)
     }
   )
 })
@@ -108,8 +108,8 @@ describe('find', () => {
   test.concurrent.each(cases)(
     'regexp %p with flags %p find %p and not find %p',
     (regexp, flags, match, nonMatch) => {
-      expect(Pattern.compile(regexp, flags).matcher(match).find()).toBeTruthy()
-      expect(Pattern.compile(regexp, flags).matcher(nonMatch).find()).toBeFalsy()
+      expect(Pattern.compile(regexp, flags).matcher(match).find()).toBe(true)
+      expect(Pattern.compile(regexp, flags).matcher(nonMatch).find()).toBe(false)
     }
   )
 })
@@ -212,10 +212,10 @@ it('quote', () => {
   const match = 'ab+c'
   const nonMatch = 'abc'
 
-  expect(Pattern.matches(regexp, match)).toBeTruthy()
-  expect(Pattern.matches(regexp, nonMatch)).toBeFalsy()
-  expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBeTruthy()
-  expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBeFalsy()
+  expect(Pattern.matches(regexp, match)).toBe(true)
+  expect(Pattern.matches(regexp, nonMatch)).toBe(false)
+  expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBe(true)
+  expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBe(false)
 })
 
 // TODO: fix me

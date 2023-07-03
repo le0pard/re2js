@@ -56,13 +56,13 @@ describe('.macthes', () => {
       const nativeRe = new RegExp(regexp)
       const pr = Pattern.compile(regexp)
       expect(match.match(nativeRe)[0]).toEqual(match)
-      expect(pr.matcher(match).matches()).toBeTruthy()
-      expect(pr.matcher(Utils.stringToUtf8ByteArray(match)).matches()).toBeTruthy()
+      expect(pr.matcher(match).matches()).toBe(true)
+      expect(pr.matcher(Utils.stringToUtf8ByteArray(match)).matches()).toBe(true)
 
       const noMatchRes = nativeRe.exec(nonMatch) ? nativeRe.exec(nonMatch)[0] : null
       expect(noMatchRes).not.toEqual(nonMatch)
-      expect(pr.matcher(nonMatch).matches()).toBeFalsy()
-      expect(pr.matcher(Utils.stringToUtf8ByteArray(nonMatch)).matches()).toBeFalsy()
+      expect(pr.matcher(nonMatch).matches()).toBe(false)
+      expect(pr.matcher(Utils.stringToUtf8ByteArray(nonMatch)).matches()).toBe(false)
     }
   )
 })
@@ -172,7 +172,7 @@ describe('.group', () => {
 
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
       const matchString = p.matcher(input)
-      expect(matchString.find()).toBeTruthy()
+      expect(matchString.find()).toBe(true)
       expect(matchString.group()).toEqual(output[0])
       for (let i = 0; i < output.length; i++) {
         expect(matchString.group(i)).toEqual(output[i])
@@ -198,7 +198,7 @@ describe('.find', () => {
 
       for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
         const matchString = p.matcher(input)
-        expect(matchString.find(start)).toBeTruthy()
+        expect(matchString.find(start)).toBe(true)
         expect(matchString.group()).toEqual(output)
       }
     }
@@ -217,7 +217,7 @@ describe('.find', () => {
 
       for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
         const matchString = p.matcher(input)
-        expect(matchString.find(start)).toBeFalsy()
+        expect(matchString.find(start)).toBe(false)
       }
     }
   )
@@ -266,14 +266,14 @@ describe('start end before find', () => {
 
 it('matches updates match information', () => {
   const m = Pattern.compile('a+').matcher('aaa')
-  expect(m.matches()).toBeTruthy()
+  expect(m.matches()).toBe(true)
   expect(m.group(0)).toEqual('aaa')
 })
 
 it('alternation matches', () => {
   const string = '123:foo'
-  expect(Pattern.compile('(?:\\w+|\\d+:foo)').matcher(string).matches()).toBeTruthy()
-  expect(Pattern.compile('(?:\\d+:foo|\\w+)').matcher(string).matches()).toBeTruthy()
+  expect(Pattern.compile('(?:\\w+|\\d+:foo)').matcher(string).matches()).toBe(true)
+  expect(Pattern.compile('(?:\\d+:foo|\\w+)').matcher(string).matches()).toBe(true)
 })
 
 it('match end UTF16', () => {
@@ -291,25 +291,25 @@ describe('groups', () => {
   it('search', () => {
     const p = Pattern.compile('b(an)*(.)')
     const m = p.matcher('by, band, banana')
-    expect(m.lookingAt()).toBeTruthy()
+    expect(m.lookingAt()).toBe(true)
     m.reset()
 
-    expect(m.find()).toBeTruthy()
+    expect(m.find()).toBe(true)
     expect(m.group(0)).toEqual('by')
     expect(m.group(1)).toBeNull()
     expect(m.group(2)).toEqual('y')
 
-    expect(m.find()).toBeTruthy()
+    expect(m.find()).toBe(true)
     expect(m.group(0)).toEqual('band')
     expect(m.group(1)).toEqual('an')
     expect(m.group(2)).toEqual('d')
 
-    expect(m.find()).toBeTruthy()
+    expect(m.find()).toBe(true)
     expect(m.group(0)).toEqual('banana')
     expect(m.group(1)).toEqual('an')
     expect(m.group(2)).toEqual('a')
 
-    expect(m.find()).toBeFalsy()
+    expect(m.find()).toBe(false)
   })
 
   it('named', () => {
@@ -318,7 +318,7 @@ describe('groups', () => {
     )
     const m = p.matcher('fbbarrrrrbag')
 
-    expect(m.matches()).toBeTruthy()
+    expect(m.matches()).toBe(true)
     expect(m.group('baz')).toEqual('fbbarrrrr')
     expect(m.group('foo')).toEqual('bbarrrrr')
     expect(m.group('another')).toEqual('rrrrr')
@@ -344,7 +344,7 @@ describe('groups', () => {
     const p = Pattern.compile('(?P<baz>f+)(?P<bag>b+)?')
     const m = p.matcher('ffffbbbbb')
 
-    expect(m.matches()).toBeTruthy()
+    expect(m.matches()).toBe(true)
     expect(m.group('baz')).toEqual('ffff')
     expect(m.group('bag')).toEqual('bbbbb')
 
@@ -359,7 +359,7 @@ describe('groups', () => {
     const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})')
     const m = p.matcher('ffffbbbbb')
 
-    expect(m.matches()).toBeTruthy()
+    expect(m.matches()).toBe(true)
     expect(m.group('baz')).toEqual('ffff')
     expect(m.group('bag')).toEqual('bbbbb')
 
@@ -373,7 +373,7 @@ describe('groups', () => {
 
 it('froup zero width assertions', () => {
   const m = Pattern.compile('(\\d{2} ?(\\d|[a-z])?)($|[^a-zA-Z])').matcher('22 bored')
-  expect(m.find()).toBeTruthy()
+  expect(m.find()).toBe(true)
   expect(m.group(1)).toEqual('22')
 })
 
@@ -382,10 +382,10 @@ it('pattern longest match', () => {
   const text = 'xxx aaa bbb yyy'
 
   const matcher = Pattern.compile(pattern).matcher(text)
-  expect(matcher.find()).toBeTruthy()
+  expect(matcher.find()).toBe(true)
   expect(text.substring(matcher.start(), matcher.end())).toEqual('aaa')
 
   const longMatcher = Pattern.compile(pattern, Pattern.LONGEST_MATCH).matcher(text)
-  expect(longMatcher.find()).toBeTruthy()
+  expect(longMatcher.find()).toBe(true)
   expect(longMatcher.substring(longMatcher.start(), longMatcher.end())).toEqual('aaa bbb')
 })
