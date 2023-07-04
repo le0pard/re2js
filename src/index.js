@@ -1,4 +1,5 @@
 import { Pattern } from './Pattern'
+import { PatternSyntaxException } from './PatternSyntaxException'
 
 class RE2JS {
   static CASE_INSENSITIVE = Pattern.CASE_INSENSITIVE
@@ -34,4 +35,4 @@ class RE2JS {
   }
 }
 
-export { RE2JS }
+export { RE2JS, PatternSyntaxException }
