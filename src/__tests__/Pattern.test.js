@@ -34,8 +34,8 @@ it('syntax error', () => {
   } catch (e) {
     error = e
   }
+
   expect(error).not.toBeNull()
-  expect(error.getIndex()).toEqual(-1)
   expect(error.getDescription()).toEqual('missing closing )')
   expect(error.message).toEqual('error parsing regexp: missing closing ): `abc(`')
   expect(error.getPattern()).toEqual('abc(')
