@@ -53,25 +53,25 @@ class Utils {
       out += String.fromCodePoint(rune)
     } else {
       switch (rune) {
-        case 34: // '"'
+        case Codepoint.CODES.get('"'): // '"'
           out += '\\"'
           break
-        case 92: // '\\'
+        case Codepoint.CODES.get('\\'): // '\\'
           out += '\\\\'
           break
-        case 9: // '\t'
+        case Codepoint.CODES.get('\t'): // '\t'
           out += '\\t'
           break
-        case 10: // '\n'
+        case Codepoint.CODES.get('\n'): // '\n'
           out += '\\n'
           break
-        case 13: // '\r'
+        case Codepoint.CODES.get('\r'): // '\r'
           out += '\\r'
           break
-        case 8: // '\b'
+        case Codepoint.CODES.get('\b'): // '\b'
           out += '\\b'
           break
-        case 12: // '\f'
+        case Codepoint.CODES.get('\f'): // '\f'
           out += '\\f'
           break
         default: {

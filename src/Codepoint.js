@@ -4,7 +4,12 @@
 class Codepoint {
   // codePointAt(0)
   static CODES = new Map([
+    ['\b', 8],
+    ['\t', 9],
     ['\n', 10],
+    ['\f', 12],
+    ['\r', 13],
+    ['"', 34],
     ['$', 36],
     ['-', 45],
     ['0', 48],
