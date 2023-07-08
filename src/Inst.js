@@ -65,7 +65,9 @@ class Inst {
       }
     }
     // Otherwise binary search.
-    for (let lo = 0, hi = (this.runes.length / 2) | 0; lo < hi; ) {
+    let lo = 0
+    let hi = (this.runes.length / 2) | 0
+    while (lo < hi) {
       const m = lo + (((hi - lo) / 2) | 0)
       const c = this.runes[2 * m]
       if (c <= r) {

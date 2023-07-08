@@ -136,19 +136,17 @@ class CharClass {
     if (this.len > 0) {
       for (let i = 2; i <= 4; i += 2) {
         // twice, using i=2, i=4
-        {
-          if (this.len >= i) {
-            const rlo = this.r[this.len - i]
-            const rhi = this.r[this.len - i + 1]
-            if (lo <= rhi + 1 && rlo <= hi + 1) {
-              if (lo < rlo) {
-                this.r[this.len - i] = lo
-              }
-              if (hi > rhi) {
-                this.r[this.len - i + 1] = hi
-              }
-              return this
+        if (this.len >= i) {
+          const rlo = this.r[this.len - i]
+          const rhi = this.r[this.len - i + 1]
+          if (lo <= rhi + 1 && rlo <= hi + 1) {
+            if (lo < rlo) {
+              this.r[this.len - i] = lo
             }
+            if (hi > rhi) {
+              this.r[this.len - i + 1] = hi
+            }
+            return this
           }
         }
       }

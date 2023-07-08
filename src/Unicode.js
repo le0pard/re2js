@@ -21,7 +21,9 @@ class Unicode {
   // slice of 32-bit ranges.
   static is32(ranges, r) {
     // binary search over ranges
-    for (let lo = 0, hi = ranges.length; lo < hi; ) {
+    let lo = 0
+    let hi = ranges.length
+    while (lo < hi) {
       let m = lo + Math.floor((hi - lo) / 2)
       let range = ranges[m]
       if (range[0] <= r && r <= range[1]) {
