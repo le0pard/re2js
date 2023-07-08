@@ -223,8 +223,7 @@ describe('.parse', () => {
   })
 })
 
-// TODO: fix me
-describe('.hashCode', () => {
+describe('.equals', () => {
   const cases = [
     ['abc', 'abc', RE2Flags.POSIX, true],
     ['abc', 'def', RE2Flags.POSIX, false],
@@ -245,13 +244,7 @@ describe('.hashCode', () => {
       const ra = Parser.parse(a, flags)
       const rb = Parser.parse(b, flags)
 
-      if (expected) {
-        expect(ra).toEqual(rb)
-        // fix hashCode
-        // expect(ra.hashCode()).toEqual(rb.hashCode())
-      } else {
-        expect(ra).not.toEqual(rb)
-      }
+      expect(ra.equals(rb)).toEqual(expected)
     }
   )
 })

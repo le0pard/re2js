@@ -340,9 +340,7 @@ export class Parser {
           prefix.flags = strflags
           prefix.runes = Utils.subarray(str, 0, strlen)
           for (let j = start; j < i; j++) {
-            {
-              array[s + j] = this.removeLeadingString(array[s + j], strlen)
-            }
+            array[s + j] = this.removeLeadingString(array[s + j], strlen)
           }
           const suffix = this.collapse(
             Parser.subarray(array, s + start, s + i),
