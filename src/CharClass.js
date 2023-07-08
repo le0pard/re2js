@@ -10,20 +10,21 @@ import { Utils } from './Utils'
 class CharClass {
   // Exposed, since useful for debugging CharGroups too.
   static charClassToString(r, len) {
-    let result = ['[']
+    let result = '['
     for (let i = 0; i < len; i += 2) {
       if (i > 0) {
-        result = [...result, ' ']
+        result += ' '
       }
       const lo = r[i]
       const hi = r[i + 1]
       if (lo === hi) {
-        result = [...result, `0x${lo.toString(16)}`]
+        result += `0x${lo.toString(16)}`
       } else {
-        result = [...result, `0x${lo.toString(16)}-0x${hi.toString(16)}`]
+        result += `0x${lo.toString(16)}-0x${hi.toString(16)}`
       }
     }
-    return [...result, ']'].join('')
+    result += ']'
+    return result
   }
 
   // cmp() returns the ordering of the pair (a[i], a[i+1]) relative to
