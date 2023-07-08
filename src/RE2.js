@@ -262,10 +262,7 @@ export class RE2 {
     return cap
   }
   match$java_lang_CharSequence(s) {
-    return (
-      this.doExecute(MachineInput.fromUTF16$java_lang_CharSequence(s), 0, RE2Flags.UNANCHORED, 0) !=
-      null
-    )
+    return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) != null
   }
   match$java_lang_CharSequence$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
     return this.match$quickstart_MatcherInput$int$int$int$int_A$int(
@@ -344,8 +341,8 @@ export class RE2 {
       return false
     }
     const machineInput = input.isUTF16Encoding()
-      ? MachineInput.fromUTF16$java_lang_CharSequence$int$int(input.asCharSequence(), 0, end)
-      : MachineInput.fromUTF8$byte_A$int$int(input.asBytes(), 0, end)
+      ? MachineInput.fromUTF16(input.asCharSequence(), 0, end)
+      : MachineInput.fromUTF8(input.asBytes(), 0, end)
 
     const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)
 
@@ -375,7 +372,7 @@ export class RE2 {
    * @return {boolean}
    */
   matchUTF8(b) {
-    return this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, 0) != null
+    return this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 0) != null
   }
   /**
    * Returns true iff textual regular expression {@code pattern} matches string {@code s}.
@@ -426,7 +423,7 @@ export class RE2 {
     let searchPos = 0
     let out = ''
 
-    const input = MachineInput.fromUTF16$java_lang_CharSequence(src)
+    const input = MachineInput.fromUTF16(src)
     let numReplaces = 0
     while (searchPos <= src.length) {
       {
@@ -538,7 +535,7 @@ export class RE2 {
    * @return {byte[]}
    */
   findUTF8(b) {
-    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, 2)
+    const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
     if (a == null) {
       return null
     }
@@ -554,7 +551,7 @@ export class RE2 {
    * @return {int[]}
    */
   findUTF8Index(b) {
-    const a = this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, 2)
+    const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
     if (a == null) {
       return null
     }
@@ -572,12 +569,7 @@ export class RE2 {
    * @return {string}
    */
   find(s) {
-    const a = this.doExecute(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      0,
-      RE2Flags.UNANCHORED,
-      2
-    )
+    const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
     if (a == null) {
       return ''
     }
@@ -594,12 +586,7 @@ export class RE2 {
    * @return {int[]}
    */
   findIndex(s) {
-    return this.doExecute(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      0,
-      RE2Flags.UNANCHORED,
-      2
-    )
+    return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
   }
   /**
    * Returns an array of arrays the text of the leftmost match of the regular expression in
@@ -612,12 +599,7 @@ export class RE2 {
    * @return {byte[][]}
    */
   findUTF8Submatch(b) {
-    const a = this.doExecute(
-      MachineInput.fromUTF8$byte_A(b),
-      0,
-      RE2Flags.UNANCHORED,
-      this.prog.numCap
-    )
+    const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     if (a == null) {
       return null
     }
@@ -649,7 +631,7 @@ export class RE2 {
    */
   findUTF8SubmatchIndex(b) {
     return this.pad(
-      this.doExecute(MachineInput.fromUTF8$byte_A(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
+      this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
   /**
@@ -663,12 +645,7 @@ export class RE2 {
    * @return {java.lang.String[]}
    */
   findSubmatch(s) {
-    const a = this.doExecute(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      0,
-      RE2Flags.UNANCHORED,
-      this.prog.numCap
-    )
+    const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     if (a == null) {
       return null
     }
@@ -700,12 +677,7 @@ export class RE2 {
    */
   findSubmatchIndex(s) {
     return this.pad(
-      this.doExecute(
-        MachineInput.fromUTF16$java_lang_CharSequence(s),
-        0,
-        RE2Flags.UNANCHORED,
-        this.prog.numCap
-      )
+      this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
   /**
@@ -724,8 +696,8 @@ export class RE2 {
    */
   findAllUTF8(b, n) {
     const result = []
-    this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$2(this, result, b))
-    if (/* isEmpty */ result.length === 0) {
+    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$2(this, result, b))
+    if (result.length === 0) {
       return null
     }
     return result
@@ -743,8 +715,8 @@ export class RE2 {
    */
   findAllUTF8Index(b, n) {
     const result = []
-    this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$3(this, result))
-    if (/* isEmpty */ result.length === 0) {
+    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$3(this, result))
+    if (result.length === 0) {
       return null
     }
     return result
@@ -762,11 +734,7 @@ export class RE2 {
    */
   findAll(s, n) {
     const result = []
-    this.allMatches(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      n,
-      new RE2.RE2$4(this, result, s)
-    )
+    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$4(this, result, s))
     if (/* isEmpty */ result.length === 0) {
       return null
     }
@@ -785,11 +753,7 @@ export class RE2 {
    */
   findAllIndex(s, n) {
     const result = []
-    this.allMatches(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      n,
-      new RE2.RE2$5(this, result)
-    )
+    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$5(this, result))
     if (/* isEmpty */ result.length === 0) {
       return null
     }
@@ -808,7 +772,7 @@ export class RE2 {
    */
   findAllUTF8Submatch(b, n) {
     const result = []
-    this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$6(this, b, result))
+    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$6(this, b, result))
     if (/* isEmpty */ result.length === 0) {
       return null
     }
@@ -827,7 +791,7 @@ export class RE2 {
    */
   findAllUTF8SubmatchIndex(b, n) {
     const result = []
-    this.allMatches(MachineInput.fromUTF8$byte_A(b), n, new RE2.RE2$7(this, result))
+    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$7(this, result))
     if (/* isEmpty */ result.length === 0) {
       return null
     }
@@ -846,11 +810,7 @@ export class RE2 {
    */
   findAllSubmatch(s, n) {
     const result = []
-    this.allMatches(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      n,
-      new RE2.RE2$8(this, s, result)
-    )
+    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$8(this, s, result))
     if (/* isEmpty */ result.length === 0) {
       return null
     }
@@ -869,11 +829,7 @@ export class RE2 {
    */
   findAllSubmatchIndex(s, n) {
     const result = []
-    this.allMatches(
-      MachineInput.fromUTF16$java_lang_CharSequence(s),
-      n,
-      new RE2.RE2$9(this, result)
-    )
+    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$9(this, result))
     if (/* isEmpty */ result.length === 0) {
       return null
     }

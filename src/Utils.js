@@ -109,28 +109,6 @@ class Utils {
     return array.slice(start, end)
   }
 
-  // Returns the index of the first occurrence of array |target| within
-  // array |source| after |fromIndex|, or -1 if not found.
-  static indexOf(source, target, fromIndex = 0) {
-    let targetLength = target.length
-    if (targetLength === 0) {
-      return -1
-    }
-
-    let sourceLength = source.length
-    for (let i = fromIndex; i <= sourceLength - targetLength; i++) {
-      for (let j = 0; j < targetLength; j++) {
-        if (source[i + j] !== target[j]) {
-          break
-        } else if (j === targetLength - 1) {
-          return i
-        }
-      }
-    }
-
-    return -1
-  }
-
   // isWordRune reports whether r is consider a ``word character''
   // during the evaluation of the \b and \B zero-width assertions.
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].

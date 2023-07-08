@@ -1,6 +1,6 @@
 /* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 import { RE2Flags } from './RE2Flags'
-import { MachineInput } from './MachineInput'
+import { MachineInput, MachineInputBase } from './MachineInput'
 import { Utils } from './Utils'
 import { Inst } from './Inst'
 
@@ -222,7 +222,7 @@ export class Machine {
     let width = r & 7
     let rune1 = -1
     let width1 = 0
-    if (r !== MachineInput.EOF_$LI$()) {
+    if (r !== MachineInputBase.EOF()) {
       r = __in.step(pos + width)
       rune1 = r >> 3
       width1 = r & 7
