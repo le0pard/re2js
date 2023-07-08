@@ -22,9 +22,9 @@ class MachineInputBase {
 // An implementation of MachineInput for UTF-8 byte arrays.
 // |pos| and |width| are byte indices.
 class MachineUTF8Input extends MachineInputBase {
-  constructor(b, start = 0, end = b.length) {
+  constructor(bytes, start = 0, end = bytes.length) {
     super()
-    this.b = b
+    this.bytes = bytes
     this.start = start
     this.end = end
   }
@@ -40,7 +40,7 @@ class MachineUTF8Input extends MachineInputBase {
     if (i >= this.end) {
       return MachineInputBase.EOF()
     }
-    let x = this.b[i++] & 255
+    let x = this.bytes[i++] & 255
     if ((x & 128) === 0) {
       return (x << 3) | 1
     } else if ((x & 224) === 192) {
@@ -48,24 +48,24 @@ class MachineUTF8Input extends MachineInputBase {
       if (i >= this.end) {
         return MachineInputBase.EOF()
       }
-      x = (x << 6) | (this.b[i++] & 63)
+      x = (x << 6) | (this.bytes[i++] & 63)
       return (x << 3) | 2
     } else if ((x & 240) === 224) {
       x = x & 15
       if (i + 1 >= this.end) {
         return MachineInputBase.EOF()
       }
-      x = (x << 6) | (this.b[i++] & 63)
-      x = (x << 6) | (this.b[i++] & 63)
+      x = (x << 6) | (this.bytes[i++] & 63)
+      x = (x << 6) | (this.bytes[i++] & 63)
       return (x << 3) | 3
     } else {
       x = x & 7
       if (i + 2 >= this.end) {
         return MachineInputBase.EOF()
       }
-      x = (x << 6) | (this.b[i++] & 63)
-      x = (x << 6) | (this.b[i++] & 63)
-      x = (x << 6) | (this.b[i++] & 63)
+      x = (x << 6) | (this.bytes[i++] & 63)
+      x = (x << 6) | (this.bytes[i++] & 63)
+      x = (x << 6) | (this.bytes[i++] & 63)
       return (x << 3) | 4
     }
   }
@@ -74,7 +74,7 @@ class MachineUTF8Input extends MachineInputBase {
   // in this input stream, or a negative value if not found.
   index(re2, pos) {
     pos += this.start
-    const i = this.indexOf(this.b, re2.prefixUTF8, pos)
+    const i = this.indexOf(this.bytes, re2.prefixUTF8, pos)
     return i < 0 ? i : i - pos
   }
 
@@ -84,13 +84,13 @@ class MachineUTF8Input extends MachineInputBase {
     let r1 = -1
     if (pos > this.start && pos <= this.end) {
       let start = pos - 1
-      r1 = this.b[start--]
+      r1 = this.bytes[start--]
       if (r1 >= 128) {
         let lim = pos - 4
         if (lim < this.start) {
           lim = this.start
         }
-        while (start >= lim && (this.b[start] & 192) === 128) {
+        while (start >= lim && (this.bytes[start] & 192) === 128) {
           start--
         }
 
@@ -129,9 +129,9 @@ class MachineUTF8Input extends MachineInputBase {
 
 // |pos| and |width| are in JS "char" units.
 class MachineUTF16Input extends MachineInputBase {
-  constructor(str, start = 0, end = str.length) {
+  constructor(charSequence, start = 0, end = charSequence.length) {
     super()
-    this.str = str
+    this.charSequence = charSequence
     this.start = start
     this.end = end
   }
@@ -145,7 +145,7 @@ class MachineUTF16Input extends MachineInputBase {
   step(pos) {
     pos += this.start
     if (pos < this.end) {
-      const rune = this.str.codePointAt(pos)
+      const rune = this.charSequence.codePointAt(pos)
       return (rune << 3) | Utils.charCount(rune)
     } else {
       return MachineInputBase.EOF()
@@ -156,26 +156,26 @@ class MachineUTF16Input extends MachineInputBase {
   // in this input stream, or a negative value if not found.
   index(re2, pos) {
     pos += this.start
-    const i = this.str.indexOf(re2.prefix, pos)
+    const i = this.charSequence.indexOf(re2.prefix, pos)
     return i < 0 ? i : i - pos
   }
 
   // Returns a bitmask of EMPTY_* flags.
   context(pos) {
     pos += this.start
-    const r1 = pos > 0 && pos <= this.str.length ? this.str.codePointAt(pos - 1) : -1
-    const r2 = pos < this.str.length ? this.str.codePointAt(pos) : -1
+    const r1 = pos > 0 && pos <= this.charSequence.length ? this.charSequence.codePointAt(pos - 1) : -1
+    const r2 = pos < this.charSequence.length ? this.charSequence.codePointAt(pos) : -1
     return Utils.emptyOpContext(r1, r2)
   }
 }
 
 class MachineInput {
-  static fromUTF8(b, start = 0, end = b.length) {
-    return new MachineUTF8Input(b, start, end)
+  static fromUTF8(bytes, start = 0, end = bytes.length) {
+    return new MachineUTF8Input(bytes, start, end)
   }
 
-  static fromUTF16(s, start = 0, end = s.length) {
-    return new MachineUTF16Input(s, start, end)
+  static fromUTF16(charSequence, start = 0, end = charSequence.length) {
+    return new MachineUTF16Input(charSequence, start, end)
   }
 }
 

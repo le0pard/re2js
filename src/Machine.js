@@ -1,6 +1,6 @@
 /* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 import { RE2Flags } from './RE2Flags'
-import { MachineInput, MachineInputBase } from './MachineInput'
+import { MachineInputBase } from './MachineInput'
 import { Utils } from './Utils'
 import { Inst } from './Inst'
 
