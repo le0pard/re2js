@@ -1,4 +1,3 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 /**
  * An RE2 class instance is a compiled representation of an RE2 regular expression, independent of
  * the public Java-like Pattern/Matcher API.

@@ -1,4 +1,3 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 /**
  * A stateful iterator that interprets a regex {@code Pattern} on a specific input. Its interface
  * mimics the JDK 1.4.2 {@code java.util.regex.Matcher}.

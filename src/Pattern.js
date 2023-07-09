@@ -1,4 +1,3 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 /**
  * A compiled representation of an RE2 regular expression, mimicking the
  * {@code java.util.regex.Pattern} API.
