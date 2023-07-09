@@ -8,7 +8,7 @@ import { Inst } from './Inst'
 class Thread {
   constructor(n) {
     this.inst = null
-    this.cap = Array(n).fill(0)
+    this.cap = []
   }
 }
 
@@ -241,6 +241,7 @@ class Machine {
       if (this.ncap === 0 && this.matched) {
         break
       }
+
       pos += width
       rune = rune1
       width = width1
@@ -259,7 +260,7 @@ class Machine {
 
   step(runq, nextq, pos, nextPos, c, nextCond, anchor, atEnd) {
     const longest = this.re2.longest
-    for (let j = 0; j < runq.size; ++j) {
+    for (let j = 0; j < runq.size; j++) {
       let t = runq.denseThreads[j]
       if (t == null) {
         continue
