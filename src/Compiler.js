@@ -200,12 +200,9 @@ class Compiler {
           return this.nop()
         } else {
           let f = null
-          for (let index = 0; index < re.runes.length; index++) {
-            let r = re.runes[index]
-            {
-              const f1 = this.rune([r], re.flags)
-              f = f == null ? f1 : this.cat(f, f1)
-            }
+          for (let r of re.runes) {
+            const f1 = this.rune([r], re.flags)
+            f = f == null ? f1 : this.cat(f, f1)
           }
           return f
         }
