@@ -7,7 +7,8 @@
     "rollup.config.js"
   ],
   "extends": [
-    "eslint:recommended"
+    "eslint:recommended",
+    "plugin:import/recommended"
   ],
   "rules": {
     "array-bracket-spacing": 2,
@@ -251,5 +252,8 @@
     "es6": true,
     "jest": true,
     "es2022": true
-  }
+  },
+  "plugins": [
+    "import"
+  ]
 }
