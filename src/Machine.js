@@ -184,17 +184,20 @@ class Machine {
     let width = r & 7
     let rune1 = -1
     let width1 = 0
+
     if (r !== MachineInputBase.EOF()) {
       r = input.step(pos + width)
       rune1 = r >> 3
       width1 = r & 7
     }
+
     let flag
     if (pos === 0) {
       flag = Utils.emptyOpContext(-1, rune)
     } else {
       flag = input.context(pos)
     }
+
     while (true) {
       if (runq.isEmpty()) {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) {
@@ -227,9 +230,11 @@ class Machine {
         }
         this.add(runq, this.prog.start, pos, this.matchcap, flag, null)
       }
+
       const nextPos = pos + width
       flag = input.context(nextPos)
       this.step(runq, nextq, pos, nextPos, rune, flag, anchor, pos === input.endPos())
+
       if (width === 0) {
         break
       }
@@ -263,6 +268,7 @@ class Machine {
         this.freeThread(t)
         continue
       }
+
       const i = t.inst
       let add = false
       switch (i.op) {
@@ -272,19 +278,7 @@ class Machine {
           }
           if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
             t.cap[1] = pos
-              /* arraycopy */
-              ; ((srcPts, srcOff, dstPts, dstOff, size) => {
-                if (srcPts !== dstPts || dstOff >= srcOff + size) {
-                  while (--size >= 0) {
-                    dstPts[dstOff++] = srcPts[srcOff++]
-                  }
-                } else {
-                  let tmp = srcPts.slice(srcOff, srcOff + size)
-                  for (let i = 0; i < size; i++) {
-                    dstPts[dstOff++] = tmp[i]
-                  }
-                }
-              })(t.cap, 0, this.matchcap, 0, this.ncap)
+            this.matchcap = t.cap.slice(0, this.ncap)
           }
           if (!longest) {
             this.freeQueue(runq, j + 1)
@@ -324,6 +318,7 @@ class Machine {
     if (q.contains(pc)) {
       return t
     }
+
     const d = q.add(pc)
     const inst = this.prog.inst[pc]
     switch (inst.op) {
@@ -363,18 +358,7 @@ class Machine {
           t.inst = inst
         }
         if (this.ncap > 0 && t.cap !== cap) {
-          /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-            if (srcPts !== dstPts || dstOff >= srcOff + size) {
-              while (--size >= 0) {
-                dstPts[dstOff++] = srcPts[srcOff++]
-              }
-            } else {
-              let tmp = srcPts.slice(srcOff, srcOff + size)
-              for (let i = 0; i < size; i++) {
-                dstPts[dstOff++] = tmp[i]
-              }
-            }
-          })(cap, 0, t.cap, 0, this.ncap)
+          t.cap = cap.slice(0, this.ncap)
         }
         q.denseThreads[d] = t
         t = null
