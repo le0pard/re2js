@@ -264,7 +264,7 @@ class Parser {
   static parseInt(t) {
     const start = t.pos()
     let c
-    while (t.more() && (c = t.peek()) >= Codepoint.CODES.get('0') && c <= Codepoint.CODES.get('9')) {
+    while (t.more() && t.peek() >= Codepoint.CODES.get('0') && t.peek() <= Codepoint.CODES.get('9')) {
       t.skip(1)
     }
 
@@ -300,15 +300,13 @@ class Parser {
         return re.runes.length === 1 && re.runes[0] === r
       case Regexp.Op.CHAR_CLASS:
         for (let i = 0; i < re.runes.length; i += 2) {
-          {
-            if (re.runes[i] <= r && r <= re.runes[i + 1]) {
-              return true
-            }
+          if (re.runes[i] <= r && r <= re.runes[i + 1]) {
+            return true
           }
         }
         return false
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        return r != '\n'.codePointAt(0)
+        return r !== Codepoint.CODES.get('\n')
       case Regexp.Op.ANY_CHAR:
         return true
     }
@@ -323,7 +321,7 @@ class Parser {
       case Regexp.Op.ANY_CHAR:
         break
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        if (Parser.matchRune(src, '\n'.codePointAt(0))) {
+        if (Parser.matchRune(src, Codepoint.CODES.get('\n'))) {
           dst.op = Regexp.Op.ANY_CHAR
         }
         break
@@ -358,26 +356,24 @@ class Parser {
     }
     let c = t.pop()
     bigswitch: switch (c) {
-      case 49 /* '1' */:
-      case 50 /* '2' */:
-      case 51 /* '3' */:
-      case 52 /* '4' */:
-      case 53 /* '5' */:
-      case 54 /* '6' */:
-      case 55 /* '7' */:
-        if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
+      case Codepoint.CODES.get('1'):
+      case Codepoint.CODES.get('2'):
+      case Codepoint.CODES.get('3'):
+      case Codepoint.CODES.get('4'):
+      case Codepoint.CODES.get('5'):
+      case Codepoint.CODES.get('6'):
+      case Codepoint.CODES.get('7'):
+        if (!t.more() || t.peek() < Codepoint.CODES.get('0') || t.peek() > Codepoint.CODES.get('7')) {
           break
         }
-      case 48 /* '0' */:
-        let r = c - '0'.codePointAt(0)
+      case Codepoint.CODES.get('0'):
+        let r = c - Codepoint.CODES.get('0')
         for (let i = 1; i < 3; i++) {
-          {
-            if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
-              break
-            }
-            r = r * 8 + t.peek() - '0'.codePointAt(0)
-            t.skip(1)
+          if (!t.more() || t.peek() < Codepoint.CODES.get('0') || t.peek() > Codepoint.CODES.get('7')) {
+            break
           }
+          r = r * 8 + t.peek() - Codepoint.CODES.get('0')
+          t.skip(1)
         }
         return r
       case 120 /* 'x' */:
