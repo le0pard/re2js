@@ -104,11 +104,6 @@ class Utils {
     return String.fromCodePoint(r)
   }
 
-  // Returns a new copy of the specified subarray.
-  static subarray(array, start, end) {
-    return array.slice(start, end)
-  }
-
   // isWordRune reports whether r is consider a ``word character''
   // during the evaluation of the \b and \B zero-width assertions.
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].

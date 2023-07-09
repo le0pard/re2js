@@ -491,36 +491,35 @@ export class RE2 {
     }
     return a
   }
+
   allMatches(input, n, deliver) {
     const end = input.endPos()
     if (n < 0) {
       n = end + 1
     }
     for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end; ) {
-      {
-        const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
-        if (matches == null || matches.length === 0) {
-          break
+      const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
+      if (matches == null || matches.length === 0) {
+        break
+      }
+      let accept = true
+      if (matches[1] === pos) {
+        if (matches[0] === prevMatchEnd) {
+          accept = false
         }
-        let accept = true
-        if (matches[1] === pos) {
-          if (matches[0] === prevMatchEnd) {
-            accept = false
-          }
-          const r = input.step(pos)
-          if (r < 0) {
-            pos = end + 1
-          } else {
-            pos += r & 7
-          }
+        const r = input.step(pos)
+        if (r < 0) {
+          pos = end + 1
         } else {
-          pos = matches[1]
+          pos += r & 7
         }
-        prevMatchEnd = matches[1]
-        if (accept) {
-          deliver.deliver(this.pad(matches))
-          i++
-        }
+      } else {
+        pos = matches[1]
+      }
+      prevMatchEnd = matches[1]
+      if (accept) {
+        deliver.deliver(this.pad(matches))
+        i++
       }
     }
   }
@@ -535,10 +534,10 @@ export class RE2 {
    */
   findUTF8(b) {
     const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
-    if (a == null) {
+    if (a === null) {
       return null
     }
-    return Utils.subarray(b, a[0], a[1])
+    return b.slice(a[0], a[1])
   }
   /**
    * Returns a two-element array of integers defining the location of the leftmost match in
@@ -551,10 +550,10 @@ export class RE2 {
    */
   findUTF8Index(b) {
     const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
-    if (a == null) {
+    if (a === null) {
       return null
     }
-    return Utils.subarray(a, 0, 2)
+    return a.slice(0, 2)
   }
   /**
    * Returns a string holding the text of the leftmost match in {@code s} of this regular
@@ -569,7 +568,7 @@ export class RE2 {
    */
   find(s) {
     const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
-    if (a == null) {
+    if (a === null) {
       return ''
     }
     return s.substring(a[0], a[1])
@@ -610,10 +609,8 @@ export class RE2 {
       return a
     })(1 + this.numSubexp)
     for (let i = 0; i < ret.length; i++) {
-      {
-        if (2 * i < a.length && a[2 * i] >= 0) {
-          ret[i] = Utils.subarray(b, a[2 * i], a[2 * i + 1])
-        }
+      if (2 * i < a.length && a[2 * i] >= 0) {
+        ret[i] = b.slice(a[2 * i], a[2 * i + 1])
       }
     }
     return ret
@@ -656,10 +653,8 @@ export class RE2 {
       return a
     })(1 + this.numSubexp)
     for (let i = 0; i < ret.length; i++) {
-      {
-        if (2 * i < a.length && a[2 * i] >= 0) {
-          ret[i] = s.substring(a[2 * i], a[2 * i + 1])
-        }
+      if (2 * i < a.length && a[2 * i] >= 0) {
+        ret[i] = s.substring(a[2 * i], a[2 * i + 1])
       }
     }
     return ret
@@ -734,7 +729,7 @@ export class RE2 {
   findAll(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$4(this, result, s))
-    if (/* isEmpty */ result.length === 0) {
+    if (result.length === 0) {
       return null
     }
     return result
@@ -753,7 +748,7 @@ export class RE2 {
   findAllIndex(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$5(this, result))
-    if (/* isEmpty */ result.length === 0) {
+    if (result.length === 0) {
       return null
     }
     return result
@@ -772,7 +767,7 @@ export class RE2 {
   findAllUTF8Submatch(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$6(this, b, result))
-    if (/* isEmpty */ result.length === 0) {
+    if (result.length === 0) {
       return null
     }
     return result
@@ -791,7 +786,7 @@ export class RE2 {
   findAllUTF8SubmatchIndex(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$7(this, result))
-    if (/* isEmpty */ result.length === 0) {
+    if (result.length === 0) {
       return null
     }
     return result
@@ -810,7 +805,7 @@ export class RE2 {
   findAllSubmatch(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$8(this, s, result))
-    if (/* isEmpty */ result.length === 0) {
+    if (result.length === 0) {
       return null
     }
     return result
@@ -829,7 +824,7 @@ export class RE2 {
   findAllSubmatchIndex(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$9(this, result))
-    if (/* isEmpty */ result.length === 0) {
+    if (result.length === 0) {
       return null
     }
     return result
@@ -880,7 +875,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(Utils.subarray(this.b, match[0], match[1])) > 0
+      this.result.push(this.b.slice(match[0], match[1]))
     }
   }
   RE2.RE2$2 = RE2$2
@@ -895,7 +890,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(Utils.subarray(match, 0, 2)) > 0
+      this.result.push(match.slice(0, 2))
     }
   }
   RE2.RE2$3 = RE2$3
@@ -911,7 +906,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(this.s.substring(match[0], match[1])) > 0
+      this.result.push(this.s.substring(match[0], match[1]))
     }
   }
   RE2.RE2$4 = RE2$4
@@ -926,7 +921,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(Utils.subarray(match, 0, 2)) > 0
+      this.result.push(match.slice(0, 2))
     }
   }
   RE2.RE2$5 = RE2$5
@@ -950,13 +945,11 @@ RE2['__class'] = 'quickstart.RE2'
         return a
       })((match.length / 2) | 0)
       for (let j = 0; j < slice.length; ++j) {
-        {
-          if (match[2 * j] >= 0) {
-            slice[j] = Utils.subarray(this.b, match[2 * j], match[2 * j + 1])
-          }
+        if (match[2 * j] >= 0) {
+          slice[j] = this.b.slice(match[2 * j], match[2 * j + 1])
         }
       }
-      /* add */ this.result.push(slice) > 0
+      this.result.push(slice)
     }
   }
   RE2.RE2$6 = RE2$6
@@ -971,7 +964,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(match) > 0
+      this.result.push(match)
     }
   }
   RE2.RE2$7 = RE2$7
@@ -1001,7 +994,7 @@ RE2['__class'] = 'quickstart.RE2'
           }
         }
       }
-      /* add */ this.result.push(slice) > 0
+      this.result.push(slice)
     }
   }
   RE2.RE2$8 = RE2$8
@@ -1016,7 +1009,7 @@ RE2['__class'] = 'quickstart.RE2'
      * @param {int[]} match
      */
     deliver(match) {
-      /* add */ this.result.push(match) > 0
+      this.result.push(match)
     }
   }
   RE2.RE2$9 = RE2$9
