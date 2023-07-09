@@ -1,9 +1,9 @@
-import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { MatcherInput } from '../MatcherInput'
 import { Matcher } from '../Matcher'
 import { Pattern } from '../Pattern'
 import { Utils } from '../Utils'
+import { expect, describe, test } from '@jest/globals'
 
 const helperTestMatchEndUTF16 = (string, num, end) => {
   const pattern = `[${string}]`

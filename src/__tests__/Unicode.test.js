@@ -1,6 +1,6 @@
-import { expect, describe, test } from '@jest/globals'
 import { Unicode } from '../Unicode'
 import { codePoint } from '../__utils__/chars'
+import { expect, describe, test } from '@jest/globals'
 
 const genEqualsIgnoreCases = () => {
   let testCases = [

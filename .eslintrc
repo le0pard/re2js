@@ -243,7 +243,9 @@
       2,
       "inside"
     ],
-    "yoda": 0
+    "yoda": 0,
+    "import/order": 2,
+    "import/no-default-export": 2
   },
   "globals": {},
   "env": {

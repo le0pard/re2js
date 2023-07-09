@@ -1,6 +1,6 @@
-import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { FIND_TESTS } from '../__fixtures__/find'
+import { expect, describe, test } from '@jest/globals'
 
 describe('match', () => {
   test.concurrent.each(FIND_TESTS)('%s', (testPattern) => {

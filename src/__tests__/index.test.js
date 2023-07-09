@@ -1,5 +1,5 @@
-import { expect, describe, test } from '@jest/globals'
 import { RE2JS } from '../index'
+import { expect, describe, test } from '@jest/globals'
 
 describe('.match', () => {
   const cases = [

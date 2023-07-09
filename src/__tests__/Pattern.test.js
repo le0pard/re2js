@@ -1,6 +1,6 @@
-import { expect, describe, test } from '@jest/globals'
 import { Pattern } from '../Pattern'
 import { Utils } from '../Utils'
+import { expect, describe, test } from '@jest/globals'
 
 it('compile', () => {
   const p = Pattern.compile('abc')

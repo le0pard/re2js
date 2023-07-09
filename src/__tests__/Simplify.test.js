@@ -1,7 +1,7 @@
-import { expect, describe, test } from '@jest/globals'
 import { RE2Flags } from '../RE2Flags'
 import { Parser } from '../Parser'
 import { Simplify } from '../Simplify'
+import { expect, describe, test } from '@jest/globals'
 
 describe('.simplify', () => {
   const cases = [

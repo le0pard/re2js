@@ -1,7 +1,7 @@
-import { expect, describe, test } from '@jest/globals'
 import { MatcherInput } from '../MatcherInput'
 import { RE2Flags } from '../RE2Flags'
 import { RE2 } from '../RE2'
+import { expect, describe, test } from '@jest/globals'
 
 describe('RE2', () => {
   test('full match', () => {
