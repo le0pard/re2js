@@ -376,20 +376,20 @@ class Parser {
           t.skip(1)
         }
         return r
-      case 120 /* 'x' */:
+      case Codepoint.CODES.get('x'):
         if (!t.more()) {
           break
         }
         c = t.pop()
-        if (c == '{'.codePointAt(0)) {
+        if (c === Codepoint.CODES.get('{')) {
           let nhex = 0
           let r = 0
-          for (; ;) {
+          while (true) {
             if (!t.more()) {
               break bigswitch
             }
             c = t.pop()
-            if (c === '}'.codePointAt(0)) {
+            if (c === Codepoint.CODES.get('}')) {
               break
             }
             const v = Utils.unhex(c)
@@ -417,18 +417,18 @@ class Parser {
           break
         }
         return x * 16 + y
-      case 97 /* 'a' */:
-        return 7
-      case 102 /* 'f' */:
-        return '\f'.codePointAt(0)
-      case 110 /* 'n' */:
-        return '\n'.codePointAt(0)
-      case 114 /* 'r' */:
-        return '\r'.codePointAt(0)
-      case 116 /* 't' */:
-        return '\t'.codePointAt(0)
-      case 118 /* 'v' */:
-        return 11
+      case Codepoint.CODES.get('a'):
+        return Codepoint.CODES.get('\x07')
+      case Codepoint.CODES.get('f'):
+        return Codepoint.CODES.get('\f')
+      case Codepoint.CODES.get('n'):
+        return Codepoint.CODES.get('\n')
+      case Codepoint.CODES.get('r'):
+        return Codepoint.CODES.get('\r')
+      case Codepoint.CODES.get('t'):
+        return Codepoint.CODES.get('\t')
+      case Codepoint.CODES.get('v'):
+        return Codepoint.CODES.get('\v')
       default:
         if (!Utils.isalnum(c)) {
           return c

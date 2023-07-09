@@ -4,9 +4,11 @@
 class Codepoint {
   // codePointAt(0)
   static CODES = new Map([
+    ['\x07', 7],
     ['\b', 8],
     ['\t', 9],
     ['\n', 10],
+    ['\v', 11],
     ['\f', 12],
     ['\r', 13],
     ['"', 34],
@@ -29,7 +31,14 @@ class Codepoint {
     ['_', 95],
     ['a', 97],
     ['f', 102],
-    ['z', 122]
+    ['n', 110],
+    ['r', 114],
+    ['t', 116],
+    ['v', 118],
+    ['x', 120],
+    ['z', 122],
+    ['{', 123],
+    ['}', 125]
   ])
 
   // convert unicode codepoint to upper case codepoint
