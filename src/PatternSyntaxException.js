@@ -5,7 +5,7 @@ class PatternSyntaxException extends Error {
   constructor(error, input = null) {
     let message = `error parsing regexp: ${error}`
     if (input) {
-      message = `error parsing regexp: ${error}: \`${input}\``
+      message += `: \`${input}\``
     }
 
     super(message)
