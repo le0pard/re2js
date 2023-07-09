@@ -1,4 +1,3 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { UnicodeTables } from './UnicodeTables'
@@ -11,9 +10,22 @@ import { Regexp } from './Regexp'
  * A parser of regular expression patterns.
  *
  * The only public entry point is {@link #parse(String pattern, int flags)}.
- * @class
  */
-export class Parser {
+class Parser {
+  static ERR_INTERNAL_ERROR = 'regexp/syntax: internal error'
+  static ERR_INVALID_CHAR_CLASS = 'invalid character class'
+  static ERR_INVALID_CHAR_RANGE = 'invalid character class range'
+  static ERR_INVALID_ESCAPE = 'invalid escape sequence'
+  static ERR_INVALID_NAMED_CAPTURE = 'invalid named capture'
+  static ERR_INVALID_PERL_OP = 'invalid or unsupported Perl syntax'
+  static ERR_INVALID_REPEAT_OP = 'invalid nested repetition operator'
+  static ERR_INVALID_REPEAT_SIZE = 'invalid repeat count'
+  static ERR_MISSING_BRACKET = 'missing closing ]'
+  static ERR_MISSING_PAREN = 'missing closing )'
+  static ERR_MISSING_REPEAT_ARGUMENT = 'missing argument to repetition operator'
+  static ERR_TRAILING_BACKSLASH = 'trailing backslash at end of expression'
+  static ERR_DUPLICATE_NAMED_CAPTURE = 'duplicate capture group name'
+
   constructor(wholeRegexp, flags) {
     if (this.wholeRegexp === undefined) {
       this.wholeRegexp = null
@@ -1326,19 +1338,7 @@ export class Parser {
     return z
   }
 }
-Parser.ERR_INTERNAL_ERROR = 'regexp/syntax: internal error'
-Parser.ERR_INVALID_CHAR_CLASS = 'invalid character class'
-Parser.ERR_INVALID_CHAR_RANGE = 'invalid character class range'
-Parser.ERR_INVALID_ESCAPE = 'invalid escape sequence'
-Parser.ERR_INVALID_NAMED_CAPTURE = 'invalid named capture'
-Parser.ERR_INVALID_PERL_OP = 'invalid or unsupported Perl syntax'
-Parser.ERR_INVALID_REPEAT_OP = 'invalid nested repetition operator'
-Parser.ERR_INVALID_REPEAT_SIZE = 'invalid repeat count'
-Parser.ERR_MISSING_BRACKET = 'missing closing ]'
-Parser.ERR_MISSING_PAREN = 'missing closing )'
-Parser.ERR_MISSING_REPEAT_ARGUMENT = 'missing argument to repetition operator'
-Parser.ERR_TRAILING_BACKSLASH = 'trailing backslash at end of expression'
-Parser.ERR_DUPLICATE_NAMED_CAPTURE = 'duplicate capture group name'
+
 Parser['__class'] = 'quickstart.Parser'
 ;(function (Parser) {
   class Stack {
@@ -1438,3 +1438,5 @@ Parser['__class'] = 'quickstart.Parser'
   Parser.Pair = Pair
   Pair['__class'] = 'quickstart.Parser.Pair'
 })(Parser || (Parser = {}))
+
+export { Parser }
