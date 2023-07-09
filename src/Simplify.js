@@ -27,7 +27,7 @@ class Simplify {
           if (nre === re && nsub !== sub) {
             nre = Regexp.fromRegexp(re)
             nre.runes = null
-            nre.subs = Parser.subarray(re.subs, 0, re.subs.length)
+            nre.subs = re.subs.slice(0, re.subs.length)
           }
           if (nre !== re) {
             nre.subs[i] = nsub

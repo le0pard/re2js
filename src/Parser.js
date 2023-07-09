@@ -461,21 +461,6 @@ class Parser {
     return t.pop()
   }
 
-  // Returns a new copy of the specified subarray.
-  static subarray(array, start, end) {
-    const r = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(null)
-      }
-      return a
-    })(end - start)
-    for (let i = start; i < end; ++i) {
-      r[i - start] = array[i]
-    }
-    return r
-  }
-
   static concatRunes(x, y) {
     const z = ((s) => {
       let a = []
@@ -825,10 +810,7 @@ class Parser {
           for (let j = start; j < i; j++) {
             array[s + j] = this.removeLeadingString(array[s + j], strlen)
           }
-          const suffix = this.collapse(
-            Parser.subarray(array, s + start, s + i),
-            Regexp.Op.ALTERNATE
-          )
+          const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
           const re = this.newRegexp(Regexp.Op.CONCAT)
           re.subs = [prefix, suffix]
           array[lenout++] = re
@@ -871,10 +853,7 @@ class Parser {
               array[s + j] = this.removeLeadingRegexp(array[s + j], reuse)
             }
           }
-          const suffix = this.collapse(
-            Parser.subarray(array, s + start, s + i),
-            Regexp.Op.ALTERNATE
-          )
+          const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
           const re = this.newRegexp(Regexp.Op.CONCAT)
           re.subs = [prefix, suffix]
           array[lenout++] = re
@@ -941,7 +920,7 @@ class Parser {
     }
     lensub = lenout
     s = 0
-    return Parser.subarray(array, s, lensub)
+    return array.slice(s, lensub)
   }
 
   removeLeadingString(re, n) {
@@ -964,7 +943,7 @@ class Parser {
           }
 
           default:
-            re.subs = Parser.subarray(re.subs, 1, re.subs.length)
+            re.subs = re.subs.slice(1, re.subs.length)
             break
         }
       }
@@ -984,7 +963,7 @@ class Parser {
       if (reuse) {
         this.reuse(re.subs[0])
       }
-      re.subs = Parser.subarray(re.subs, 1, re.subs.length)
+      re.subs = re.subs.slice(1, re.subs.length)
       switch (re.subs.length) {
         case 0: {
           re.op = Regexp.Op.EMPTY_MATCH

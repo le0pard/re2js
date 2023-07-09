@@ -20,7 +20,7 @@ class Test {
   }
 
   submatchBytes(i, j) {
-    return Utils.subarray(this.textUTF8, this.matches[i][2 * j], this.matches[i][2 * j + 1])
+    return this.textUTF8.slice(this.matches[i][2 * j], this.matches[i][2 * j + 1])
   }
 
   submatchString(i, j) {
