@@ -248,10 +248,7 @@ class Parser {
 
     for (let i = 0; i < name.length; i++) {
       const c = name?.charAt(i)?.codePointAt(0)
-      if (
-        c !== Codepoint.CODES.get('_') &&
-        !Utils.isalnum(c)
-      ) {
+      if (c !== Codepoint.CODES.get('_') && !Utils.isalnum(c)) {
         return false
       }
     }
@@ -263,16 +260,18 @@ class Parser {
   // -1 => bad format.  -2 => format ok, but integer overflow.
   static parseInt(t) {
     const start = t.pos()
-    let c
-    while (t.more() && t.peek() >= Codepoint.CODES.get('0') && t.peek() <= Codepoint.CODES.get('9')) {
+    while (
+      t.more() &&
+      t.peek() >= Codepoint.CODES.get('0') &&
+      t.peek() <= Codepoint.CODES.get('9')
+    ) {
       t.skip(1)
     }
 
     const n = t.from(start)
     if (
       n.length === 0 ||
-      (n.length > 1 &&
-        n?.charAt(0)?.codePointAt(0) === Codepoint.CODES.get('0'))
+      (n.length > 1 && n?.charAt(0)?.codePointAt(0) === Codepoint.CODES.get('0'))
     ) {
       return -1
     }
@@ -363,13 +362,21 @@ class Parser {
       case Codepoint.CODES.get('5'):
       case Codepoint.CODES.get('6'):
       case Codepoint.CODES.get('7'):
-        if (!t.more() || t.peek() < Codepoint.CODES.get('0') || t.peek() > Codepoint.CODES.get('7')) {
+        if (
+          !t.more() ||
+          t.peek() < Codepoint.CODES.get('0') ||
+          t.peek() > Codepoint.CODES.get('7')
+        ) {
           break
         }
       case Codepoint.CODES.get('0'):
         let r = c - Codepoint.CODES.get('0')
         for (let i = 1; i < 3; i++) {
-          if (!t.more() || t.peek() < Codepoint.CODES.get('0') || t.peek() > Codepoint.CODES.get('7')) {
+          if (
+            !t.more() ||
+            t.peek() < Codepoint.CODES.get('0') ||
+            t.peek() > Codepoint.CODES.get('7')
+          ) {
             break
           }
           r = r * 8 + t.peek() - Codepoint.CODES.get('0')
@@ -474,7 +481,7 @@ class Parser {
       }
       return a
     })(x.length + y.length)
-    /* arraycopy */; ((srcPts, srcOff, dstPts, dstOff, size) => {
+    /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
       if (srcPts !== dstPts || dstOff >= srcOff + size) {
         while (--size >= 0) {
           dstPts[dstOff++] = srcPts[srcOff++]
@@ -486,19 +493,19 @@ class Parser {
         }
       }
     })(x, 0, z, 0, x.length)
-      /* arraycopy */
-      ; ((srcPts, srcOff, dstPts, dstOff, size) => {
-        if (srcPts !== dstPts || dstOff >= srcOff + size) {
-          while (--size >= 0) {
-            dstPts[dstOff++] = srcPts[srcOff++]
-          }
-        } else {
-          let tmp = srcPts.slice(srcOff, srcOff + size)
-          for (let i = 0; i < size; i++) {
-            dstPts[dstOff++] = tmp[i]
-          }
+    /* arraycopy */
+    ;((srcPts, srcOff, dstPts, dstOff, size) => {
+      if (srcPts !== dstPts || dstOff >= srcOff + size) {
+        while (--size >= 0) {
+          dstPts[dstOff++] = srcPts[srcOff++]
         }
-      })(y, 0, z, x.length, y.length)
+      } else {
+        let tmp = srcPts.slice(srcOff, srcOff + size)
+        for (let i = 0; i < size; i++) {
+          dstPts[dstOff++] = tmp[i]
+        }
+      }
+    })(y, 0, z, x.length, y.length)
     return z
   }
 
@@ -657,14 +664,17 @@ class Parser {
         throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_OP, t.from(lastRepeatPos))
       }
     }
+
     const n = this.stack.length
     if (n === 0) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
+
     const sub = this.stack[n - 1]
     if (Regexp.isPseudoOp(sub.op)) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
+
     const re = this.newRegexp(op)
     re.min = min
     re.max = max
@@ -717,11 +727,8 @@ class Parser {
       return subs[0]
     }
     let len = 0
-    for (let index = 0; index < subs.length; index++) {
-      let sub = subs[index]
-      {
-        len += sub.op === op ? sub.subs.length : 1
-      }
+    for (let sub of subs) {
+      len += sub.op === op ? sub.subs.length : 1
     }
     const newsubs = ((s) => {
       let a = []
@@ -731,29 +738,27 @@ class Parser {
       return a
     })(len)
     let i = 0
-    for (let index = 0; index < subs.length; index++) {
-      let sub = subs[index]
-      {
-        if (sub.op === op) {
-          /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-            if (srcPts !== dstPts || dstOff >= srcOff + size) {
-              while (--size >= 0) {
-                dstPts[dstOff++] = srcPts[srcOff++]
-              }
-            } else {
-              let tmp = srcPts.slice(srcOff, srcOff + size)
-              for (let i = 0; i < size; i++) {
-                dstPts[dstOff++] = tmp[i]
-              }
+    for (let sub of subs) {
+      if (sub.op === op) {
+        /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
+          if (srcPts !== dstPts || dstOff >= srcOff + size) {
+            while (--size >= 0) {
+              dstPts[dstOff++] = srcPts[srcOff++]
             }
-          })(sub.subs, 0, newsubs, i, sub.subs.length)
-          i += sub.subs.length
-          this.reuse(sub)
-        } else {
-          newsubs[i++] = sub
-        }
+          } else {
+            let tmp = srcPts.slice(srcOff, srcOff + size)
+            for (let i = 0; i < size; i++) {
+              dstPts[dstOff++] = tmp[i]
+            }
+          }
+        })(sub.subs, 0, newsubs, i, sub.subs.length)
+        i += sub.subs.length
+        this.reuse(sub)
+      } else {
+        newsubs[i++] = sub
       }
     }
+
     let re = this.newRegexp(op)
     re.subs = newsubs
     if (op === Regexp.Op.ALTERNATE) {
@@ -1001,7 +1006,6 @@ class Parser {
     }
     return this.newRegexp(Regexp.Op.EMPTY_MATCH)
   }
-
 
   parseInternal() {
     if ((this.flags & RE2Flags.LITERAL) !== 0) {
