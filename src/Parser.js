@@ -743,7 +743,7 @@ class Parser {
     let i = 0
     for (let sub of subs) {
       if (sub.op === op) {
-        /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
+        /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
           if (srcPts !== dstPts || dstOff >= srcOff + size) {
             while (--size >= 0) {
               dstPts[dstOff++] = srcPts[srcOff++]
@@ -986,15 +986,17 @@ class Parser {
       }
       re.subs = Parser.subarray(re.subs, 1, re.subs.length)
       switch (re.subs.length) {
-        case 0:
+        case 0: {
           re.op = Regexp.Op.EMPTY_MATCH
           re.subs = Regexp.emptySubs()
           break
-        case 1:
+        }
+        case 1: {
           const old = re
           re = re.subs[0]
           this.reuse(old)
           break
+        }
       }
       return re
     }
