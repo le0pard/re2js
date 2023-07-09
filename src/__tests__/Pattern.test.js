@@ -218,7 +218,6 @@ it('quote', () => {
   expect(Pattern.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBe(false)
 })
 
-// TODO: fix me
 it('equals', () => {
   const pattern1 = Pattern.compile('abc')
   const pattern2 = Pattern.compile('abc')
@@ -226,7 +225,6 @@ it('equals', () => {
   const pattern4 = Pattern.compile('abc', Pattern.CASE_INSENSITIVE)
 
   expect(pattern1).toEqual(pattern2)
-  // expect(pattern1.hashCode()).toEqual(pattern2.hashCode())
   expect(pattern1).not.toEqual(pattern3)
   expect(pattern1).not.toEqual(pattern4)
 })

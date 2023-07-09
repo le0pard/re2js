@@ -406,27 +406,6 @@ export class Pattern {
     const other = o
     return this.__flags === other.__flags && this.__pattern === other.__pattern
   }
-  /**
-   *
-   * @return {number}
-   */
-  hashCode() {
-    let result = ((o) => {
-      if (o.hashCode) {
-        return o.hashCode()
-      } else {
-        return o
-          .toString()
-          .split('')
-          .reduce(
-            (prevHash, currVal) => ((prevHash << 5) - prevHash + currVal.codePointAt(0)) | 0,
-            0
-          )
-      }
-    })(this.__pattern)
-    result = 31 * result + this.__flags
-    return result
-  }
 }
 /**
  * Flag: case insensitive matching.
