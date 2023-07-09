@@ -6,6 +6,87 @@ import { Utils } from './Utils'
 import { CharClass } from './CharClass'
 import { PatternSyntaxException } from './PatternSyntaxException'
 import { Regexp } from './Regexp'
+
+// StringIterator: a stream of runes with an opaque cursor, permitting
+// rewinding.  The units of the cursor are not specified beyond the
+// fact that ASCII characters are single width.  (Cursor positions
+// could be UTF-8 byte indices, UTF-16 code indices or rune indices.)
+//
+// In particular, be careful with:
+// - skip: only use this to advance over ASCII characters
+//   since these always have a width of 1.
+// - skipString: only use this to advance over strings which are
+//   known to be at the current position, e.g. due to prior call to
+//   lookingAt().
+// Only use pop() to advance over possibly non-ASCII runes.
+class StringIterator {
+  constructor(str) {
+    this.str = str
+    this.position = 0
+  }
+
+  // Returns the cursor position.  Do not interpret the result!
+  pos() {
+    return this.position
+  }
+
+  // Resets the cursor position to a previous value returned by pos().
+  rewindTo(pos) {
+    this.position = pos
+  }
+
+  // Returns true unless the stream is exhausted.
+  more() {
+    return this.position < this.str.length
+  }
+
+  // Returns the rune at the cursor position.
+  // Precondition: |more()|.
+  peek() {
+    return this.str.codePointAt(this.position)
+  }
+
+  // Advances the cursor by |n| positions, which must be ASCII runes.
+  //
+  // (In practise, this is only ever used to skip over regexp
+  // metacharacters that are ASCII, so there is no numeric difference
+  // between indices into  UTF-8 bytes, UTF-16 codes and runes.)
+  skip(n) {
+    this.position += n
+  }
+
+  // Advances the cursor by the number of cursor positions in |s|.
+  skipString(s) {
+    this.position += s.length
+  }
+
+  // Returns the rune at the cursor position, and advances the cursor
+  // past it.  Precondition: |more()|.
+  pop() {
+    const r = this.str.codePointAt(this.position)
+    this.position += Utils.charCount(r)
+    return r
+  }
+
+  lookingAt(s) {
+    return this.rest().startsWith(s)
+  }
+
+  // Returns the rest of the pattern as a Java UTF-16 string.
+  rest() {
+    return this.str.substring(this.position)
+  }
+
+  // Returns the substring from |beforePos| to the current position.
+    // |beforePos| must have been previously returned by |pos()|.
+  from(beforePos) {
+    return this.str.substring(beforePos, this.position)
+  }
+
+  toString() {
+    return this.rest()
+  }
+}
 /**
  * A parser of regular expression patterns.
  *
@@ -191,7 +272,7 @@ class Parser {
   repeat(op, min, max, beforePos, t, lastRepeatPos) {
     let flags = this.flags
     if ((flags & RE2Flags.PERL_X) !== 0) {
-      if (t.more() && t.lookingAt$char('?')) {
+      if (t.more() && t.lookingAt('?')) {
         t.skip(1)
         flags ^= RE2Flags.NON_GREEDY
       }
@@ -571,7 +652,7 @@ class Parser {
     let lastRepeatPos = -1
     let min = -1
     let max = -1
-    const t = new Parser.StringIterator(this.wholeRegexp)
+    const t = new StringIterator(this.wholeRegexp)
     while (t.more()) {
       {
         let repeatPos = -1
@@ -580,7 +661,7 @@ class Parser {
             this.literal(t.pop())
             break
           case 40 /* '(' */:
-            if ((this.flags & RE2Flags.PERL_X) !== 0 && t.lookingAt$java_lang_String('(?')) {
+            if ((this.flags & RE2Flags.PERL_X) !== 0 && t.lookingAt('(?')) {
               this.parsePerlFlags(t)
               break
             }
@@ -701,7 +782,7 @@ class Parser {
             }
             const re = this.newRegexp(Regexp.Op.CHAR_CLASS)
             re.flags = this.flags
-            if (t.lookingAt$java_lang_String('\\p') || t.lookingAt$java_lang_String('\\P')) {
+            if (t.lookingAt('\\p') || t.lookingAt('\\P')) {
               const cc = new CharClass()
               if (this.parseUnicodeClass(t, cc)) {
                 re.runes = cc.toArray()
@@ -739,7 +820,7 @@ class Parser {
   }
   static parseRepeat(t) {
     const start = t.pos()
-    if (!t.more() || !t.lookingAt$char('{')) {
+    if (!t.more() || !t.lookingAt('{')) {
       return -1
     }
     t.skip(1)
@@ -751,20 +832,20 @@ class Parser {
       return -1
     }
     let max
-    if (!t.lookingAt$char(',')) {
+    if (!t.lookingAt(',')) {
       max = min
     } else {
       t.skip(1)
       if (!t.more()) {
         return -1
       }
-      if (t.lookingAt$char('}')) {
+      if (t.lookingAt('}')) {
         max = -1
       } else if ((max = Parser.parseInt(t)) === -1) {
         return -1
       }
     }
-    if (!t.more() || !t.lookingAt$char('}')) {
+    if (!t.more() || !t.lookingAt('}')) {
       return -1
     }
     t.skip(1)
@@ -1107,7 +1188,7 @@ class Parser {
     if (!t.more()) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_BRACKET, t.from(wholeClassPos))
     }
-    if (t.lookingAt$char('\\')) {
+    if (t.lookingAt('\\')) {
       return Parser.parseEscape(t)
     }
     return t.pop()
@@ -1171,7 +1252,7 @@ class Parser {
     const startPos = t.pos()
     if (
       (this.flags & RE2Flags.UNICODE_GROUPS) === 0 ||
-      (!t.lookingAt$java_lang_String('\\p') && !t.lookingAt$java_lang_String('\\P'))
+      (!t.lookingAt('\\p') && !t.lookingAt('\\P'))
     ) {
       return false
     }
@@ -1228,7 +1309,7 @@ class Parser {
     re.flags = this.flags
     const cc = new CharClass()
     let sign = +1
-    if (t.more() && t.lookingAt$char('^')) {
+    if (t.more() && t.lookingAt('^')) {
       sign = -1
       t.skip(1)
       if ((this.flags & RE2Flags.CLASS_NL) === 0) {
@@ -1238,7 +1319,7 @@ class Parser {
     let first = true
     while (!t.more() || t.peek() != ']'.codePointAt(0) || first) {
       {
-        if (t.more() && t.lookingAt$char('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
+        if (t.more() && t.lookingAt('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
           const s = t.rest()
           if (s == '-' || !s.startsWith('-]')) {
             t.rewindTo(startPos)
@@ -1247,7 +1328,7 @@ class Parser {
         }
         first = false
         const beforePos = t.pos()
-        if (t.lookingAt$java_lang_String('[:')) {
+        if (t.lookingAt('[:')) {
           if (this.parseNamedClass(t, cc)) {
             continue
           }
@@ -1262,9 +1343,9 @@ class Parser {
         t.rewindTo(beforePos)
         const lo = Parser.parseClassChar(t, startPos)
         let hi = lo
-        if (t.more() && t.lookingAt$char('-')) {
+        if (t.more() && t.lookingAt('-')) {
           t.skip(1)
-          if (t.more() && t.lookingAt$char(']')) {
+          if (t.more() && t.lookingAt(']')) {
             t.skip(-1)
           } else {
             hi = Parser.parseClassChar(t, startPos)
@@ -1354,72 +1435,6 @@ Parser['__class'] = 'quickstart.Parser'
   }
   Parser.Stack = Stack
   Stack['__class'] = 'quickstart.Parser.Stack'
-  class StringIterator {
-    constructor(str) {
-      if (this.str === undefined) {
-        this.str = null
-      }
-      this.__pos = 0
-      this.str = str
-    }
-    pos() {
-      return this.__pos
-    }
-    rewindTo(pos) {
-      this.__pos = pos
-    }
-    more() {
-      return this.__pos < this.str.length
-    }
-    peek() {
-      return /* codePointAt */ this.str.codePointAt(this.__pos)
-    }
-    skip(n) {
-      this.__pos += n
-    }
-    skipString(s) {
-      this.__pos += s.length
-    }
-    pop() {
-      const r = this.str.codePointAt(this.__pos)
-      this.__pos += Utils.charCount(r)
-      return r
-    }
-    lookingAt$char(c) {
-      return (
-        ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(this.str.charAt(this.__pos)) ==
-        ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c)
-      )
-    }
-    lookingAt$java_lang_String(s) {
-      return /* startsWith */ ((str, searchString, position = 0) =>
-        str.substr(position, searchString.length) === searchString)(this.rest(), s)
-    }
-    lookingAt(s) {
-      if (typeof s === 'string' || s === null) {
-        return this.lookingAt$java_lang_String(s)
-      } else if (typeof s === 'string' || s === null) {
-        return this.lookingAt$char(s)
-      } else {
-        throw new Error('invalid overload')
-      }
-    }
-    rest() {
-      return this.str.substring(this.__pos)
-    }
-    from(beforePos) {
-      return this.str.substring(beforePos, this.__pos)
-    }
-    /**
-     *
-     * @return {string}
-     */
-    toString() {
-      return this.rest()
-    }
-  }
-  Parser.StringIterator = StringIterator
-  StringIterator['__class'] = 'quickstart.Parser.StringIterator'
   class Pair {
     constructor(first, second) {
       if (this.first === undefined) {
