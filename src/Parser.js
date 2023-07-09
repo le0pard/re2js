@@ -273,10 +273,7 @@ class Parser {
     }
 
     const n = t.from(start)
-    if (
-      n.length === 0 ||
-      (n.length > 1 && n?.codePointAt(0) === Codepoint.CODES.get('0'))
-    ) {
+    if (n.length === 0 || (n.length > 1 && n.codePointAt(0) === Codepoint.CODES.get('0'))) {
       return -1
     }
     if (n.length > 8) {
@@ -373,7 +370,7 @@ class Parser {
         ) {
           break
         }
-      case Codepoint.CODES.get('0'):
+      case Codepoint.CODES.get('0'): {
         let r = c - Codepoint.CODES.get('0')
         for (let i = 1; i < 3; i++) {
           if (
@@ -387,7 +384,8 @@ class Parser {
           t.skip(1)
         }
         return r
-      case Codepoint.CODES.get('x'):
+      }
+      case Codepoint.CODES.get('x'): {
         if (!t.more()) {
           break
         }
@@ -428,6 +426,7 @@ class Parser {
           break
         }
         return x * 16 + y
+      }
       case Codepoint.CODES.get('a'):
         return Codepoint.CODES.get('\x07')
       case Codepoint.CODES.get('f'):
@@ -776,7 +775,7 @@ class Parser {
     return re
   }
 
-  factor(array, flags) {
+  factor(array, _flags) {
     if (array.length < 2) {
       return array
     }
@@ -894,7 +893,6 @@ class Parser {
           continue
         }
         if (i === start) {
-
         } else if (i === start + 1) {
           array[lenout++] = array[s + start]
         } else {
@@ -906,7 +904,7 @@ class Parser {
               subMax.op < subJ.op ||
               (subMax.op === subJ.op &&
                 (subMax.runes != null ? subMax.runes.length : 0) <
-                (subJ.runes != null ? subJ.runes.length : 0))
+                  (subJ.runes != null ? subJ.runes.length : 0))
             ) {
               max = j
             }
@@ -1183,9 +1181,7 @@ class Parser {
   parsePerlFlags(t) {
     const startPos = t.pos()
     const s = t.rest()
-    if (
-      s.startsWith('(?P<')
-    ) {
+    if (s.startsWith('(?P<')) {
       const end = s.indexOf('>')
       if (end < 0) {
         throw new PatternSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s)
@@ -1206,6 +1202,7 @@ class Parser {
       return
     }
     t.skip(2)
+
     let flags = this.flags
     let sign = +1
     let sawFlag = false
@@ -1213,25 +1210,23 @@ class Parser {
       {
         const c = t.pop()
         switch (c) {
-          default:
-            break loop
-          case 105 /* 'i' */:
+          case Codepoint.CODES.get('i'):
             flags |= RE2Flags.FOLD_CASE
             sawFlag = true
             break
-          case 109 /* 'm' */:
+          case Codepoint.CODES.get('m'):
             flags &= ~RE2Flags.ONE_LINE
             sawFlag = true
             break
-          case 115 /* 's' */:
+          case Codepoint.CODES.get('s'):
             flags |= RE2Flags.DOT_NL
             sawFlag = true
             break
-          case 85 /* 'U' */:
+          case Codepoint.CODES.get('U'):
             flags |= RE2Flags.NON_GREEDY
             sawFlag = true
             break
-          case 45 /* '-' */:
+          case Codepoint.CODES.get('-'):
             if (sign < 0) {
               break loop
             }
@@ -1239,19 +1234,21 @@ class Parser {
             flags = ~flags
             sawFlag = false
             break
-          case 58 /* ':' */:
-          case 41 /* ')' */:
+          case Codepoint.CODES.get(':'):
+          case Codepoint.CODES.get(')'):
             if (sign < 0) {
               if (!sawFlag) {
                 break loop
               }
               flags = ~flags
             }
-            if (c == ':'.codePointAt(0)) {
+            if (c === Codepoint.CODES.get(':')) {
               this.op(Regexp.Op.LEFT_PAREN)
             }
             this.flags = flags
             return
+          default:
+            break loop
         }
       }
     }
@@ -1332,7 +1329,7 @@ class Parser {
     if (
       (this.flags & RE2Flags.PERL_X) === 0 ||
       !t.more() ||
-      t.pop() != '\\'.codePointAt(0) ||
+      t.pop() !== Codepoint.CODES.get('\\') ||
       !t.more()
     ) {
       return false
@@ -1346,6 +1343,7 @@ class Parser {
     cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0)
     return true
   }
+
   parseNamedClass(t, cc) {
     const cls = t.rest()
     const i = cls.indexOf(':]')
@@ -1373,7 +1371,7 @@ class Parser {
     t.skip(1)
     let sign = +1
     let c = t.pop()
-    if (c == 'P'.codePointAt(0)) {
+    if (c === Codepoint.CODES.get('P')) {
       sign = -1
     }
     if (!t.more()) {
@@ -1396,11 +1394,8 @@ class Parser {
       t.skipString(name)
       t.skip(1)
     }
-    if (
-      !(name.length === 0) &&
-      name.codePointAt(0) === Codepoint.CODES.get('^')
-    ) {
-      sign = -sign
+    if (!(name.length === 0) && name.codePointAt(0) === Codepoint.CODES.get('^')) {
+      sign = 0 - sign // -sign
       name = name.substring(1)
     }
     const pair = Parser.unicodeTable(name)
@@ -1433,48 +1428,46 @@ class Parser {
       }
     }
     let first = true
-    while (!t.more() || t.peek() != ']'.codePointAt(0) || first) {
-      {
-        if (t.more() && t.lookingAt('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
-          const s = t.rest()
-          if (s == '-' || !s.startsWith('-]')) {
-            t.rewindTo(startPos)
-            throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
-          }
+    while (!t.more() || t.peek() !== Codepoint.CODES.get(']') || first) {
+      if (t.more() && t.lookingAt('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
+        const s = t.rest()
+        if (s === '-' || !s.startsWith('-]')) {
+          t.rewindTo(startPos)
+          throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
         }
-        first = false
-        const beforePos = t.pos()
-        if (t.lookingAt('[:')) {
-          if (this.parseNamedClass(t, cc)) {
-            continue
-          }
-          t.rewindTo(beforePos)
-        }
-        if (this.parseUnicodeClass(t, cc)) {
-          continue
-        }
-        if (this.parsePerlClassEscape(t, cc)) {
+      }
+      first = false
+      const beforePos = t.pos()
+      if (t.lookingAt('[:')) {
+        if (this.parseNamedClass(t, cc)) {
           continue
         }
         t.rewindTo(beforePos)
-        const lo = Parser.parseClassChar(t, startPos)
-        let hi = lo
-        if (t.more() && t.lookingAt('-')) {
-          t.skip(1)
-          if (t.more() && t.lookingAt(']')) {
-            t.skip(-1)
-          } else {
-            hi = Parser.parseClassChar(t, startPos)
-            if (hi < lo) {
-              throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(beforePos))
-            }
+      }
+      if (this.parseUnicodeClass(t, cc)) {
+        continue
+      }
+      if (this.parsePerlClassEscape(t, cc)) {
+        continue
+      }
+      t.rewindTo(beforePos)
+      const lo = Parser.parseClassChar(t, startPos)
+      let hi = lo
+      if (t.more() && t.lookingAt('-')) {
+        t.skip(1)
+        if (t.more() && t.lookingAt(']')) {
+          t.skip(-1)
+        } else {
+          hi = Parser.parseClassChar(t, startPos)
+          if (hi < lo) {
+            throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(beforePos))
           }
         }
-        if ((this.flags & RE2Flags.FOLD_CASE) === 0) {
-          cc.appendRange(lo, hi)
-        } else {
-          cc.appendFoldedRange(lo, hi)
-        }
+      }
+      if ((this.flags & RE2Flags.FOLD_CASE) === 0) {
+        cc.appendRange(lo, hi)
+      } else {
+        cc.appendFoldedRange(lo, hi)
       }
     }
 
