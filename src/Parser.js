@@ -205,6 +205,7 @@ class Parser {
       return -1
     }
     t.skip(1)
+
     const min = Parser.parseInt(t)
     if (min === -1) {
       return -1
@@ -212,6 +213,7 @@ class Parser {
     if (!t.more()) {
       return -1
     }
+
     let max
     if (!t.lookingAt(',')) {
       max = min
@@ -226,6 +228,7 @@ class Parser {
         return -1
       }
     }
+
     if (!t.more() || !t.lookingAt('}')) {
       return -1
     }
@@ -233,6 +236,7 @@ class Parser {
     if (min < 0 || min > 1000 || max === -2 || max > 1000 || (max >= 0 && min > max)) {
       throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
     }
+
     return (min << 16) | (max & Unicode.MAX_BMP)
   }
 
@@ -247,7 +251,7 @@ class Parser {
     }
 
     for (let i = 0; i < name.length; i++) {
-      const c = name?.charAt(i)?.codePointAt(0)
+      const c = name.codePointAt(i)
       if (c !== Codepoint.CODES.get('_') && !Utils.isalnum(c)) {
         return false
       }
@@ -271,7 +275,7 @@ class Parser {
     const n = t.from(start)
     if (
       n.length === 0 ||
-      (n.length > 1 && n?.charAt(0)?.codePointAt(0) === Codepoint.CODES.get('0'))
+      (n.length > 1 && n?.codePointAt(0) === Codepoint.CODES.get('0'))
     ) {
       return -1
     }
@@ -542,7 +546,7 @@ class Parser {
   }
 
   pop() {
-    return this.stack.splice(this.stack.length - 1, 1)[0]
+    return this.stack.pop()
   }
 
   popToPseudo() {
@@ -712,8 +716,8 @@ class Parser {
       } else if (
         re.runes.length === 4 &&
         re.runes[0] === 0 &&
-        re.runes[1] === '\n'.codePointAt(0) - 1 &&
-        re.runes[2] === '\n'.codePointAt(0) + 1 &&
+        re.runes[1] === Codepoint.CODES.get('\n') - 1 &&
+        re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
         re.runes[3] === Unicode.MAX_RUNE
       ) {
         re.runes = null
@@ -890,32 +894,29 @@ class Parser {
           continue
         }
         if (i === start) {
+
         } else if (i === start + 1) {
           array[lenout++] = array[s + start]
         } else {
           let max = start
           for (let j = start + 1; j < i; j++) {
-            {
-              const subMax = array[s + max]
-              const subJ = array[s + j]
-              if (
-                subMax.op < subJ.op ||
-                (subMax.op === subJ.op &&
-                  (subMax.runes != null ? subMax.runes.length : 0) <
-                    (subJ.runes != null ? subJ.runes.length : 0))
-              ) {
-                max = j
-              }
+            const subMax = array[s + max]
+            const subJ = array[s + j]
+            if (
+              subMax.op < subJ.op ||
+              (subMax.op === subJ.op &&
+                (subMax.runes != null ? subMax.runes.length : 0) <
+                (subJ.runes != null ? subJ.runes.length : 0))
+            ) {
+              max = j
             }
           }
           const tmp = array[s + start]
           array[s + start] = array[s + max]
           array[s + max] = tmp
           for (let j = start + 1; j < i; j++) {
-            {
-              Parser.mergeCharClass(array[s + start], array[s + j])
-              this.reuse(array[s + j])
-            }
+            Parser.mergeCharClass(array[s + start], array[s + j])
+            this.reuse(array[s + j])
           }
           this.cleanAlt(array[s + start])
           array[lenout++] = array[s + start]
@@ -931,16 +932,14 @@ class Parser {
     start = 0
     lenout = 0
     for (let i = 0; i < lensub; ++i) {
-      {
-        if (
-          i + 1 < lensub &&
-          array[s + i].op === Regexp.Op.EMPTY_MATCH &&
-          array[s + i + 1].op === Regexp.Op.EMPTY_MATCH
-        ) {
-          continue
-        }
-        array[lenout++] = array[s + i]
+      if (
+        i + 1 < lensub &&
+        array[s + i].op === Regexp.Op.EMPTY_MATCH &&
+        array[s + i + 1].op === Regexp.Op.EMPTY_MATCH
+      ) {
+        continue
       }
+      array[lenout++] = array[s + i]
     }
     lensub = lenout
     s = 0
@@ -1019,10 +1018,7 @@ class Parser {
       {
         let repeatPos = -1
         bigswitch: switch (t.peek()) {
-          default:
-            this.literal(t.pop())
-            break
-          case 40 /* '(' */:
+          case Codepoint.CODES.get('('):
             if ((this.flags & RE2Flags.PERL_X) !== 0 && t.lookingAt('(?')) {
               this.parsePerlFlags(t)
               break
@@ -1030,15 +1026,15 @@ class Parser {
             this.op(Regexp.Op.LEFT_PAREN).cap = ++this.numCap
             t.skip(1)
             break
-          case 124 /* '|' */:
+          case Codepoint.CODES.get('|'):
             this.parseVerticalBar()
             t.skip(1)
             break
-          case 41 /* ')' */:
+          case Codepoint.CODES.get(')'):
             this.parseRightParen()
             t.skip(1)
             break
-          case 94 /* '^' */:
+          case Codepoint.CODES.get('^'):
             if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
               this.op(Regexp.Op.BEGIN_TEXT)
             } else {
@@ -1046,7 +1042,7 @@ class Parser {
             }
             t.skip(1)
             break
-          case 36 /* '$' */:
+          case Codepoint.CODES.get('$'):
             if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
               this.op(Regexp.Op.END_TEXT).flags |= RE2Flags.WAS_DOLLAR
             } else {
@@ -1054,7 +1050,7 @@ class Parser {
             }
             t.skip(1)
             break
-          case 46 /* '.' */:
+          case Codepoint.CODES.get('.'):
             if ((this.flags & RE2Flags.DOT_NL) !== 0) {
               this.op(Regexp.Op.ANY_CHAR)
             } else {
@@ -1062,22 +1058,22 @@ class Parser {
             }
             t.skip(1)
             break
-          case 91 /* '[' */:
+          case Codepoint.CODES.get('['):
             this.parseClass(t)
             break
-          case 42 /* '*' */:
-          case 43 /* '+' */:
-          case 63 /* '?' */: {
+          case Codepoint.CODES.get('*'):
+          case Codepoint.CODES.get('+'):
+          case Codepoint.CODES.get('?'): {
             repeatPos = t.pos()
             let op = null
             switch (t.pop()) {
-              case 42 /* '*' */:
+              case Codepoint.CODES.get('*'):
                 op = Regexp.Op.STAR
                 break
-              case 43 /* '+' */:
+              case Codepoint.CODES.get('+'):
                 op = Regexp.Op.PLUS
                 break
-              case 63 /* '?' */:
+              case Codepoint.CODES.get('?'):
                 op = Regexp.Op.QUEST
                 break
             }
@@ -1085,7 +1081,7 @@ class Parser {
             break
           }
 
-          case 123 /* '{' */: {
+          case Codepoint.CODES.get('{'): {
             repeatPos = t.pos()
             const minMax = Parser.parseRepeat(t)
             if (minMax < 0) {
@@ -1099,24 +1095,24 @@ class Parser {
             break
           }
 
-          case 92 /* '\\' */: {
+          case Codepoint.CODES.get('\\'): {
             const savedPos = t.pos()
             t.skip(1)
             if ((this.flags & RE2Flags.PERL_X) !== 0 && t.more()) {
               const c = t.pop()
               switch (c) {
-                case 65 /* 'A' */:
+                case Codepoint.CODES.get('A'):
                   this.op(Regexp.Op.BEGIN_TEXT)
                   break bigswitch
-                case 98 /* 'b' */:
+                case Codepoint.CODES.get('b'):
                   this.op(Regexp.Op.WORD_BOUNDARY)
                   break bigswitch
-                case 66 /* 'B' */:
+                case Codepoint.CODES.get('B'):
                   this.op(Regexp.Op.NO_WORD_BOUNDARY)
                   break bigswitch
-                case 67 /* 'C' */:
+                case Codepoint.CODES.get('C'):
                   throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, '\\C')
-                case 81 /* 'Q' */: {
+                case Codepoint.CODES.get('Q'): {
                   let lit = t.rest()
                   const i = lit.indexOf('\\E')
                   if (i >= 0) {
@@ -1124,17 +1120,17 @@ class Parser {
                   }
                   t.skipString(lit)
                   t.skipString('\\E')
-                  for (let j = 0; j < lit.length; ) {
-                    {
-                      const codepoint = lit.codePointAt(j)
-                      this.literal(codepoint)
-                      j += Utils.charCount(codepoint)
-                    }
+
+                  let j = 0
+                  while (j < lit.length) {
+                    const codepoint = lit.codePointAt(j)
+                    this.literal(codepoint)
+                    j += Utils.charCount(codepoint)
                   }
                   break bigswitch
                 }
 
-                case 122 /* 'z' */:
+                case Codepoint.CODES.get('z'):
                   this.op(Regexp.Op.END_TEXT)
                   break bigswitch
                 default:
@@ -1163,6 +1159,9 @@ class Parser {
             this.literal(Parser.parseEscape(t))
             break
           }
+          default:
+            this.literal(t.pop())
+            break
         }
         lastRepeatPos = repeatPos
       }
@@ -1185,8 +1184,7 @@ class Parser {
     const startPos = t.pos()
     const s = t.rest()
     if (
-      /* startsWith */ ((str, searchString, position = 0) =>
-        str.substr(position, searchString.length) === searchString)(s, '(?P<')
+      s.startsWith('(?P<')
     ) {
       const end = s.indexOf('>')
       if (end < 0) {
@@ -1384,7 +1382,8 @@ class Parser {
     }
     c = t.pop()
     let name
-    if (c != '{'.codePointAt(0)) {
+
+    if (c !== Codepoint.CODES.get('{')) {
       name = Utils.runeToString(c)
     } else {
       const rest = t.rest()
@@ -1399,7 +1398,7 @@ class Parser {
     }
     if (
       !(name.length === 0) &&
-      ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(name.charAt(0)) == '^'.codePointAt(0)
+      name.codePointAt(0) === Codepoint.CODES.get('^')
     ) {
       sign = -sign
       name = name.substring(1)
@@ -1430,7 +1429,7 @@ class Parser {
       sign = -1
       t.skip(1)
       if ((this.flags & RE2Flags.CLASS_NL) === 0) {
-        cc.appendRange('\n'.codePointAt(0), '\n'.codePointAt(0))
+        cc.appendRange(Codepoint.CODES.get('\n'), Codepoint.CODES.get('\n'))
       }
     }
     let first = true

@@ -1,4 +1,4 @@
-/* Generated from Java with JSweet 3.1.0 - http://www.jsweet.org */
+import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { MachineInputBase } from './MachineInput'
 import { Utils } from './Utils'
@@ -293,7 +293,7 @@ class Machine {
           add = true
           break
         case Inst.RUNE_ANY_NOT_NL:
-          add = c !== '\n'.codePointAt(0)
+          add = c !== Codepoint.CODES.get('\n')
           break
         default:
           throw new Error('bad inst')
