@@ -4,93 +4,93 @@ import { MachineInputBase } from './MachineInput'
 import { Utils } from './Utils'
 import { Inst } from './Inst'
 
-export class Machine {
-  constructor(re2) {
-    if ((re2 != null && re2.constructor['__class'] === 'quickstart.RE2') || re2 === null) {
-      let __args = arguments
-      if (this.re2 === undefined) {
-        this.re2 = null
-      }
-      if (this.prog === undefined) {
-        this.prog = null
-      }
-      if (this.q0 === undefined) {
-        this.q0 = null
-      }
-      if (this.q1 === undefined) {
-        this.q1 = null
-      }
-      if (this.poolSize === undefined) {
-        this.poolSize = 0
-      }
-      if (this.matched === undefined) {
-        this.matched = false
-      }
-      if (this.matchcap === undefined) {
-        this.matchcap = null
-      }
-      if (this.ncap === undefined) {
-        this.ncap = 0
-      }
-      if (this.next === undefined) {
-        this.next = null
-      }
-      this.pool = []
-      this.prog = re2.prog
-      this.re2 = re2
-      this.q0 = new Machine.Queue(this.prog.numInst())
-      this.q1 = new Machine.Queue(this.prog.numInst())
-      this.matchcap = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(this.prog.numCap < 2 ? 2 : this.prog.numCap)
-    } else if ((re2 != null && re2 instanceof Machine) || re2 === null) {
-      let __args = arguments
-      let copy = __args[0]
-      if (this.re2 === undefined) {
-        this.re2 = null
-      }
-      if (this.prog === undefined) {
-        this.prog = null
-      }
-      if (this.q0 === undefined) {
-        this.q0 = null
-      }
-      if (this.q1 === undefined) {
-        this.q1 = null
-      }
-      if (this.poolSize === undefined) {
-        this.poolSize = 0
-      }
-      if (this.matched === undefined) {
-        this.matched = false
-      }
-      if (this.matchcap === undefined) {
-        this.matchcap = null
-      }
-      if (this.ncap === undefined) {
-        this.ncap = 0
-      }
-      if (this.next === undefined) {
-        this.next = null
-      }
-      this.pool = []
-      this.re2 = copy.re2
-      this.prog = copy.prog
-      this.q0 = copy.q0
-      this.q1 = copy.q1
-      this.pool = copy.pool
-      this.poolSize = copy.poolSize
-      this.matched = copy.matched
-      this.matchcap = copy.matchcap
-      this.ncap = copy.ncap
-    } else {
-      throw new Error('invalid overload')
-    }
+// A logical thread in the NFA.
+class Thread {
+  constructor(n) {
+    this.inst = null
+    this.cap = Array(n).fill(0)
   }
+}
+
+// A queue is a 'sparse array' holding pending threads of execution.  See:
+// research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
+class Queue {
+  constructor() {
+    this.sparse = [] // may contain stale but in-bounds values.
+    this.densePcs = [] // may contain stale pc in slots >= size
+    this.denseThreads = [] // may contain stale Thread in slots >= size
+    this.size = 0
+  }
+
+  contains(pc) {
+    const j = this.sparse[pc]
+    return j < this.size && this.densePcs[j] === pc
+  }
+
+  isEmpty() {
+    return this.size === 0
+  }
+
+  add(pc) {
+    const j = this.size++
+    this.sparse[pc] = j
+    this.denseThreads[j] = null
+    this.densePcs[j] = pc
+    return j
+  }
+
+  clear() {
+    this.sparse = []
+    this.densePcs = []
+    this.denseThreads = []
+    this.size = 0
+  }
+
+  toString() {
+    let out = '{'
+    for (let i = 0; i < this.size; i++) {
+      if (i !== 0) {
+        out += ', '
+      }
+      out += this.densePcs[i]
+    }
+    out += '}'
+    return out
+  }
+}
+// A Machine matches an input string of Unicode characters against an
+// RE2 instance using a simple NFA.
+//
+// Called by RE2.doExecute.
+class Machine {
+  static fromRE2(re2) {
+    const m = new Machine()
+    m.prog = re2.prog
+    m.re2 = re2
+    m.q0 = new Queue(m.prog.numInst())
+    m.q1 = new Queue(m.prog.numInst())
+    m.pool = []
+    m.poolSize = 0
+    m.matched = false
+    m.matchcap = Array(m.prog.numCap < 2 ? 2 : m.prog.numCap).fill(0)
+    m.ncap = 0
+    return m
+  }
+
+  static fromMachine(machine) {
+    const m = new Machine()
+    m.re2 = machine.re2
+    m.prog = machine.prog
+    m.q0 = machine.q0
+    m.q1 = machine.q1
+    m.pool = machine.pool
+    m.poolSize = machine.poolSize
+    m.matched = machine.matched
+    m.matchcap = machine.matchcap
+    m.ncap = machine.ncap
+    return m
+  }
+
   init(ncap) {
     this.ncap = ncap
     if (ncap > this.matchcap.length) {
@@ -99,59 +99,45 @@ export class Machine {
       this.resetCap(ncap)
     }
   }
+
   resetCap(ncap) {
     for (let i = 0; i < this.poolSize; i++) {
-      {
-        const t = this.pool[i]
-        /* fill */ ;((a, start, end, v) => {
-          for (let i = start; i < end; i++) {
-            a[i] = v
-          }
-        })(t.cap, 0, ncap, 0)
-      }
+      const t = this.pool[i]
+      t.cap = Array(ncap).fill(0)
     }
   }
+
   initNewCap(ncap) {
     for (let i = 0; i < this.poolSize; i++) {
-      {
-        const t = this.pool[i]
-        t.cap = ((s) => {
-          let a = []
-          while (s-- > 0) {
-            a.push(0)
-          }
-          return a
-        })(ncap)
-      }
+      const t = this.pool[i]
+      t.cap = Array(ncap).fill(0)
     }
-    this.matchcap = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(0)
-      }
-      return a
-    })(ncap)
+    this.matchcap = Array(ncap).fill(0)
   }
+
   submatches() {
     if (this.ncap === 0) {
       return Utils.emptyInts()
     }
-    return /* copyOf */ this.matchcap.slice(0, this.ncap)
+    return this.matchcap.slice(0, this.ncap)
   }
+
   alloc(inst) {
     let t
     if (this.poolSize > 0) {
       this.poolSize--
       t = this.pool[this.poolSize]
     } else {
-      t = new Machine.Thread(this.matchcap.length)
+      t = new Thread(this.matchcap.length)
     }
     t.inst = inst
     return t
   }
+
   free$quickstart_Machine_Queue(queue) {
     this.free$quickstart_Machine_Queue$int(queue, 0)
   }
+
   free$quickstart_Machine_Queue$int(queue, from) {
     const numberOfThread = queue.size - from
     const requiredPoolLength = this.poolSize + numberOfThread
@@ -172,6 +158,7 @@ export class Machine {
     }
     queue.clear()
   }
+
   free(queue, from) {
     if (
       ((queue != null && queue instanceof Machine.Queue) || queue === null) &&
@@ -192,6 +179,7 @@ export class Machine {
       throw new Error('invalid overload')
     }
   }
+
   free$quickstart_Machine_Thread(t) {
     if (this.pool.length <= this.poolSize) {
       this.pool = /* copyOf */ this.pool.slice(0, this.pool.length * 2)
@@ -199,6 +187,7 @@ export class Machine {
     this.pool[this.poolSize] = t
     this.poolSize++
   }
+
   match(__in, pos, anchor) {
     const startCond = this.re2.cond
     if (startCond === Utils.EMPTY_ALL) {
@@ -268,7 +257,7 @@ export class Machine {
         }
         const nextPos = pos + width
         flag = __in.context(nextPos)
-        this.step(runq, nextq, pos, nextPos, rune, flag, anchor, pos == __in.endPos())
+        this.step(runq, nextq, pos, nextPos, rune, flag, anchor, pos === __in.endPos())
         if (width === 0) {
           break
         }
@@ -291,6 +280,7 @@ export class Machine {
     this.free$quickstart_Machine_Queue(nextq)
     return this.matched
   }
+
   step(runq, nextq, pos, nextPos, c, nextCond, anchor, atEnd) {
     const longest = this.re2.longest
     for (let j = 0; j < runq.size; ++j) {
@@ -366,6 +356,7 @@ export class Machine {
     }
     runq.clear()
   }
+
   add(q, pc, pos, cap, cond, t) {
     if (pc === 0) {
       return t
@@ -443,98 +434,5 @@ export class Machine {
     return t
   }
 }
-Machine['__class'] = 'quickstart.Machine'
-;(function (Machine) {
-  class Thread {
-    constructor(n) {
-      if (this.cap === undefined) {
-        this.cap = null
-      }
-      if (this.inst === undefined) {
-        this.inst = null
-      }
-      this.cap = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(n)
-    }
-  }
-  Machine.Thread = Thread
-  Thread['__class'] = 'quickstart.Machine.Thread'
-  class Queue {
-    constructor(n) {
-      if (this.denseThreads === undefined) {
-        this.denseThreads = null
-      }
-      if (this.densePcs === undefined) {
-        this.densePcs = null
-      }
-      if (this.sparse === undefined) {
-        this.sparse = null
-      }
-      if (this.size === undefined) {
-        this.size = 0
-      }
-      this.sparse = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(n)
-      this.densePcs = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(n)
-      this.denseThreads = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(null)
-        }
-        return a
-      })(n)
-    }
-    contains(pc) {
-      const j = this.sparse[pc]
-      return j < this.size && this.densePcs[j] === pc
-    }
-    isEmpty() {
-      return this.size === 0
-    }
-    add(pc) {
-      const j = this.size++
-      this.sparse[pc] = j
-      this.denseThreads[j] = null
-      this.densePcs[j] = pc
-      return j
-    }
-    clear() {
-      this.size = 0
-    }
-    /**
-     *
-     * @return {string}
-     */
-    toString() {
-      let out = '{'
-      for (let i = 0; i < this.size; ++i) {
-        {
-          if (i !== 0) {
-            out += ', '
-          }
-          out += this.densePcs[i]
-        }
-      }
-      out += '}'
-      return out
-    }
-  }
-  Machine.Queue = Queue
-  Queue['__class'] = 'quickstart.Machine.Queue'
-})(Machine || (Machine = {}))
+
+export { Machine }

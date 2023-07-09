@@ -230,7 +230,7 @@ export class RE2 {
       {
         head = this.pooled.get()
         if (!isNew && head != null) {
-          m = new Machine(m)
+          m = Machine.fromMachine(m)
           isNew = true
         }
         if (m.next !== head) {
@@ -250,10 +250,10 @@ export class RE2 {
     let m = this.get()
     let isNew = false
     if (m == null) {
-      m = new Machine(this)
+      m = Machine.fromRE2(this)
       isNew = true
     } else if (m.next !== null) {
-      m = new Machine(m)
+      m = Machine.fromMachine(m)
       isNew = true
     }
     m.init(ncap)
