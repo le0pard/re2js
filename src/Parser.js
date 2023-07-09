@@ -743,7 +743,7 @@ class Parser {
     let i = 0
     for (let sub of subs) {
       if (sub.op === op) {
-        /* arraycopy */ ((srcPts, srcOff, dstPts, dstOff, size) => {
+        /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
           if (srcPts !== dstPts || dstOff >= srcOff + size) {
             while (--size >= 0) {
               dstPts[dstOff++] = srcPts[srcOff++]
