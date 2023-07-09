@@ -1,3 +1,4 @@
+import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { UnicodeTables } from './UnicodeTables'
@@ -6,6 +7,17 @@ import { Utils } from './Utils'
 import { CharClass } from './CharClass'
 import { PatternSyntaxException } from './PatternSyntaxException'
 import { Regexp } from './Regexp'
+
+class Pair {
+  static of(first, second) {
+    return new Pair(first, second)
+  }
+
+  constructor(first, second) {
+    this.first = first
+    this.second = second
+  }
+}
 
 // StringIterator: a stream of runes with an opaque cursor, permitting
 // rewinding.  The units of the cursor are not specified beyond the
@@ -78,7 +90,7 @@ class StringIterator {
   }
 
   // Returns the substring from |beforePos| to the current position.
-    // |beforePos| must have been previously returned by |pos()|.
+  // |beforePos| must have been previously returned by |pos()|.
   from(beforePos) {
     return this.str.substring(beforePos, this.position)
   }
@@ -93,7 +105,10 @@ class StringIterator {
  * The only public entry point is {@link #parse(String pattern, int flags)}.
  */
 class Parser {
+  // Unexpected error
   static ERR_INTERNAL_ERROR = 'regexp/syntax: internal error'
+
+  // Parse errors
   static ERR_INVALID_CHAR_CLASS = 'invalid character class'
   static ERR_INVALID_CHAR_RANGE = 'invalid character class range'
   static ERR_INVALID_ESCAPE = 'invalid escape sequence'
@@ -107,26 +122,403 @@ class Parser {
   static ERR_TRAILING_BACKSLASH = 'trailing backslash at end of expression'
   static ERR_DUPLICATE_NAMED_CAPTURE = 'duplicate capture group name'
 
-  constructor(wholeRegexp, flags) {
-    if (this.wholeRegexp === undefined) {
-      this.wholeRegexp = null
+  // RangeTables are represented as int[][], a list of triples (start, end,
+  // stride).
+  static ANY_TABLE() {
+    return [[0, Unicode.MAX_RUNE, 1]]
+  }
+
+  // unicodeTable() returns the Unicode RangeTable identified by name
+  // and the table of additional fold-equivalent code points.
+  // Returns null if |name| does not identify a Unicode character range.
+  static unicodeTable(name) {
+    if (name === 'Any') {
+      return Pair.of(Parser.ANY_TABLE(), Parser.ANY_TABLE())
     }
-    if (this.flags === undefined) {
-      this.flags = 0
+    if (UnicodeTables.CATEGORIES.has(name)) {
+      return Pair.of(UnicodeTables.CATEGORIES.get(name), UnicodeTables.FOLD_CATEGORIES.get(name))
     }
-    this.stack = (() => {
-      let __o = new Parser.Stack()
-      __o.__delegate = []
-      return __o
-    })()
-    if (this.free === undefined) {
-      this.free = null
+    if (UnicodeTables.SCRIPTS.has(name)) {
+      return Pair.of(UnicodeTables.SCRIPTS.get(name), UnicodeTables.FOLD_SCRIPT.get(name))
     }
+    return null
+  }
+
+  // minFoldRune returns the minimum rune fold-equivalent to r.
+  static minFoldRune(r) {
+    if (r < Unicode.MIN_FOLD || r > Unicode.MAX_FOLD) {
+      return r
+    }
+
+    let min = r
+    const r0 = r
+    for (r = Unicode.simpleFold(r); r !== r0; r = Unicode.simpleFold(r)) {
+      if (min > r) {
+        min = r
+      }
+    }
+    return min
+  }
+
+  // leadingRegexp returns the leading regexp that re begins with.
+  // The regexp refers to storage in re or its children.
+  static leadingRegexp(re) {
+    if (re.op === Regexp.Op.EMPTY_MATCH) {
+      return null
+    }
+    if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
+      const sub = re.subs[0]
+      if (sub.op === Regexp.Op.EMPTY_MATCH) {
+        return null
+      }
+      return sub
+    }
+    return re
+  }
+
+  static literalRegexp(s, flags) {
+    const re = new Regexp(Regexp.Op.LITERAL)
+    re.flags = flags
+    re.runes = Utils.stringToRunes(s)
+    return re
+  }
+  /**
+   * Parse regular expression pattern {@code pattern} with mode flags {@code flags}.
+   */
+  static parse(pattern, flags) {
+    return new Parser(pattern, flags).parseInternal()
+  }
+
+  // parseRepeat parses {min} (max=min) or {min,} (max=-1) or {min,max}.
+  // If |t| is not of that form, it returns -1.
+  // If |t| has the right form but the values are negative or too big,
+  // it returns -2.
+  // On success, returns a nonnegative number encoding min/max in the
+  // high/low signed halfwords of the result.  (Note: min >= 0; max may
+  // be -1.)
+  //
+  // On success, advances |t| beyond the repeat; otherwise |t.pos()| is
+  // undefined.
+  static parseRepeat(t) {
+    const start = t.pos()
+    if (!t.more() || !t.lookingAt('{')) {
+      return -1
+    }
+    t.skip(1)
+    const min = Parser.parseInt(t)
+    if (min === -1) {
+      return -1
+    }
+    if (!t.more()) {
+      return -1
+    }
+    let max
+    if (!t.lookingAt(',')) {
+      max = min
+    } else {
+      t.skip(1)
+      if (!t.more()) {
+        return -1
+      }
+      if (t.lookingAt('}')) {
+        max = -1
+      } else if ((max = Parser.parseInt(t)) === -1) {
+        return -1
+      }
+    }
+    if (!t.more() || !t.lookingAt('}')) {
+      return -1
+    }
+    t.skip(1)
+    if (min < 0 || min > 1000 || max === -2 || max > 1000 || (max >= 0 && min > max)) {
+      throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
+    }
+    return (min << 16) | (max & Unicode.MAX_BMP)
+  }
+
+  // isValidCaptureName reports whether name
+  // is a valid capture name: [A-Za-z0-9_]+.
+  // PCRE limits names to 32 bytes.
+  // Python rejects names starting with digits.
+  // We don't enforce either of those.
+  static isValidCaptureName(name) {
+    if (name.length === 0) {
+      return false
+    }
+
+    for (let i = 0; i < name.length; i++) {
+      const c = name?.charAt(i)?.codePointAt(0)
+      if (
+        c !== Codepoint.CODES.get('_') &&
+        !Utils.isalnum(c)
+      ) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  // parseInt parses a nonnegative decimal integer.
+  // -1 => bad format.  -2 => format ok, but integer overflow.
+  static parseInt(t) {
+    const start = t.pos()
+    let c
+    while (t.more() && (c = t.peek()) >= Codepoint.CODES.get('0') && c <= Codepoint.CODES.get('9')) {
+      t.skip(1)
+    }
+
+    const n = t.from(start)
+    if (
+      n.length === 0 ||
+      (n.length > 1 &&
+        n?.charAt(0)?.codePointAt(0) === Codepoint.CODES.get('0'))
+    ) {
+      return -1
+    }
+    if (n.length > 8) {
+      return -2
+    }
+    return parseFloat(n, 10)
+  }
+
+  // can this be represented as a character class?
+  // single-rune literal string, char class, ., and .|\n.
+  static isCharClass(re) {
+    return (
+      (re.op === Regexp.Op.LITERAL && re.runes.length === 1) ||
+      re.op === Regexp.Op.CHAR_CLASS ||
+      re.op === Regexp.Op.ANY_CHAR_NOT_NL ||
+      re.op === Regexp.Op.ANY_CHAR
+    )
+  }
+
+  // does re match r?
+  static matchRune(re, r) {
+    switch (re.op) {
+      case Regexp.Op.LITERAL:
+        return re.runes.length === 1 && re.runes[0] === r
+      case Regexp.Op.CHAR_CLASS:
+        for (let i = 0; i < re.runes.length; i += 2) {
+          {
+            if (re.runes[i] <= r && r <= re.runes[i + 1]) {
+              return true
+            }
+          }
+        }
+        return false
+      case Regexp.Op.ANY_CHAR_NOT_NL:
+        return r != '\n'.codePointAt(0)
+      case Regexp.Op.ANY_CHAR:
+        return true
+    }
+    return false
+  }
+
+  // mergeCharClass makes dst = dst|src.
+  // The caller must ensure that dst.Op >= src.Op,
+  // to reduce the amount of copying.
+  static mergeCharClass(dst, src) {
+    switch (dst.op) {
+      case Regexp.Op.ANY_CHAR:
+        break
+      case Regexp.Op.ANY_CHAR_NOT_NL:
+        if (Parser.matchRune(src, '\n'.codePointAt(0))) {
+          dst.op = Regexp.Op.ANY_CHAR
+        }
+        break
+      case Regexp.Op.CHAR_CLASS:
+        if (src.op === Regexp.Op.LITERAL) {
+          dst.runes = new CharClass(dst.runes).appendLiteral(src.runes[0], src.flags).toArray()
+        } else {
+          dst.runes = new CharClass(dst.runes).appendClass(src.runes).toArray()
+        }
+        break
+      case Regexp.Op.LITERAL:
+        if (src.runes[0] === dst.runes[0] && src.flags === dst.flags) {
+          break
+        }
+        dst.op = Regexp.Op.CHAR_CLASS
+        dst.runes = new CharClass()
+          .appendLiteral(dst.runes[0], dst.flags)
+          .appendLiteral(src.runes[0], src.flags)
+          .toArray()
+        break
+    }
+  }
+
+  // parseEscape parses an escape sequence at the beginning of s
+  // and returns the rune.
+  // Pre: t at '\\'.  Post: after escape.
+  static parseEscape(t) {
+    const startPos = t.pos()
+    t.skip(1) // '\\'
+    if (!t.more()) {
+      throw new PatternSyntaxException(Parser.ERR_TRAILING_BACKSLASH)
+    }
+    let c = t.pop()
+    bigswitch: switch (c) {
+      case 49 /* '1' */:
+      case 50 /* '2' */:
+      case 51 /* '3' */:
+      case 52 /* '4' */:
+      case 53 /* '5' */:
+      case 54 /* '6' */:
+      case 55 /* '7' */:
+        if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
+          break
+        }
+      case 48 /* '0' */:
+        let r = c - '0'.codePointAt(0)
+        for (let i = 1; i < 3; i++) {
+          {
+            if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
+              break
+            }
+            r = r * 8 + t.peek() - '0'.codePointAt(0)
+            t.skip(1)
+          }
+        }
+        return r
+      case 120 /* 'x' */:
+        if (!t.more()) {
+          break
+        }
+        c = t.pop()
+        if (c == '{'.codePointAt(0)) {
+          let nhex = 0
+          let r = 0
+          for (; ;) {
+            if (!t.more()) {
+              break bigswitch
+            }
+            c = t.pop()
+            if (c === '}'.codePointAt(0)) {
+              break
+            }
+            const v = Utils.unhex(c)
+            if (v < 0) {
+              break bigswitch
+            }
+            r = r * 16 + v
+            if (r > Unicode.MAX_RUNE) {
+              break bigswitch
+            }
+            nhex++
+          }
+          if (nhex === 0) {
+            break bigswitch
+          }
+          return r
+        }
+        const x = Utils.unhex(c)
+        if (!t.more()) {
+          break
+        }
+        c = t.pop()
+        const y = Utils.unhex(c)
+        if (x < 0 || y < 0) {
+          break
+        }
+        return x * 16 + y
+      case 97 /* 'a' */:
+        return 7
+      case 102 /* 'f' */:
+        return '\f'.codePointAt(0)
+      case 110 /* 'n' */:
+        return '\n'.codePointAt(0)
+      case 114 /* 'r' */:
+        return '\r'.codePointAt(0)
+      case 116 /* 't' */:
+        return '\t'.codePointAt(0)
+      case 118 /* 'v' */:
+        return 11
+      default:
+        if (!Utils.isalnum(c)) {
+          return c
+        }
+        break
+    }
+    throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, t.from(startPos))
+  }
+
+  // parseClassChar parses a character class character and returns it.
+  // wholeClassPos is the position of the start of the entire class "[...".
+  // Pre: t at class char; Post: t after it.
+  static parseClassChar(t, wholeClassPos) {
+    if (!t.more()) {
+      throw new PatternSyntaxException(Parser.ERR_MISSING_BRACKET, t.from(wholeClassPos))
+    }
+    if (t.lookingAt('\\')) {
+      return Parser.parseEscape(t)
+    }
+    return t.pop()
+  }
+
+  // Returns a new copy of the specified subarray.
+  static subarray(array, start, end) {
+    const r = ((s) => {
+      let a = []
+      while (s-- > 0) {
+        a.push(null)
+      }
+      return a
+    })(end - start)
+    for (let i = start; i < end; ++i) {
+      r[i - start] = array[i]
+    }
+    return r
+  }
+
+  static concatRunes(x, y) {
+    const z = ((s) => {
+      let a = []
+      while (s-- > 0) {
+        a.push(0)
+      }
+      return a
+    })(x.length + y.length)
+    /* arraycopy */; ((srcPts, srcOff, dstPts, dstOff, size) => {
+      if (srcPts !== dstPts || dstOff >= srcOff + size) {
+        while (--size >= 0) {
+          dstPts[dstOff++] = srcPts[srcOff++]
+        }
+      } else {
+        let tmp = srcPts.slice(srcOff, srcOff + size)
+        for (let i = 0; i < size; i++) {
+          dstPts[dstOff++] = tmp[i]
+        }
+      }
+    })(x, 0, z, 0, x.length)
+      /* arraycopy */
+      ; ((srcPts, srcOff, dstPts, dstOff, size) => {
+        if (srcPts !== dstPts || dstOff >= srcOff + size) {
+          while (--size >= 0) {
+            dstPts[dstOff++] = srcPts[srcOff++]
+          }
+        } else {
+          let tmp = srcPts.slice(srcOff, srcOff + size)
+          for (let i = 0; i < size; i++) {
+            dstPts[dstOff++] = tmp[i]
+          }
+        }
+      })(y, 0, z, x.length, y.length)
+    return z
+  }
+
+  constructor(wholeRegexp, flags = 0) {
+    this.wholeRegexp = wholeRegexp
+    // Flags control the behavior of the parser and record information about
+    // regexp context.
+    this.flags = flags
+    // number of capturing groups seen
     this.numCap = 0
     this.namedGroups = {}
-    this.wholeRegexp = wholeRegexp
-    this.flags = flags
+    // Stack of parsed expressions.
+    this.stack = []
+    this.free = null
   }
+
   newRegexp(op) {
     let re = this.free
     if (re != null && re.subs != null && re.subs.length > 0) {
@@ -138,25 +530,23 @@ class Parser {
     }
     return re
   }
+
   reuse(re) {
     if (re.subs != null && re.subs.length > 0) {
       re.subs[0] = this.free
     }
     this.free = re
   }
+
   pop() {
-    return /* remove */ this.stack.__delegate.splice(
-      /* size */ this.stack.__delegate.length - 1,
-      1
-    )[0]
+    return this.stack.splice(this.stack.length - 1, 1)[0]
   }
+
   popToPseudo() {
-    const n = this.stack.__delegate.length
+    const n = this.stack.length
     let i = n
-    while (i > 0 && !Regexp.isPseudoOp(this.stack.__delegate[i - 1].op)) {
-      {
-        i--
-      }
+    while (i > 0 && !Regexp.isPseudoOp(this.stack[i - 1].op)) {
+      i--
     }
 
     const r = ((a1, a2) => {
@@ -175,11 +565,12 @@ class Parser {
         }
         return a
       })(n - i),
-      /* subList */ this.stack.__delegate.slice(i, n)
+      this.stack.slice(i, n)
     )
-    this.stack.removeRange(i, n)
+    this.stack.splice(i, n - i) // remove range
     return r
   }
+
   push(re) {
     if (re.op === Regexp.Op.CHAR_CLASS && re.runes.length === 2 && re.runes[0] === re.runes[1]) {
       if (this.maybeConcat(re.runes[0], this.flags & ~RE2Flags.FOLD_CASE)) {
@@ -210,16 +601,17 @@ class Parser {
     } else {
       this.maybeConcat(-1, 0)
     }
-    /* add */ this.stack.__delegate.push(re) > 0
+    this.stack.push(re)
     return re
   }
+
   maybeConcat(r, flags) {
-    const n = this.stack.__delegate.length
+    const n = this.stack.length
     if (n < 2) {
       return false
     }
-    const re1 = this.stack.__delegate[n - 1]
-    const re2 = this.stack.__delegate[n - 2]
+    const re1 = this.stack[n - 1]
+    const re2 = this.stack[n - 2]
     if (
       re1.op !== Regexp.Op.LITERAL ||
       re2.op !== Regexp.Op.LITERAL ||
@@ -237,6 +629,7 @@ class Parser {
     this.reuse(re1)
     return false
   }
+
   newLiteral(r, flags) {
     const re = this.newRegexp(Regexp.Op.LITERAL)
     re.flags = flags
@@ -246,29 +639,17 @@ class Parser {
     re.runes = [r]
     return re
   }
-  static minFoldRune(r) {
-    if (r < Unicode.MIN_FOLD || r > Unicode.MAX_FOLD) {
-      return r
-    }
-    let min = r
-    const r0 = r
-    for (r = Unicode.simpleFold(r); r !== r0; r = Unicode.simpleFold(r)) {
-      {
-        if (min > r) {
-          min = r
-        }
-      }
-    }
-    return min
-  }
+
   literal(r) {
     this.push(this.newLiteral(r, this.flags))
   }
+
   op(op) {
     const re = this.newRegexp(op)
     re.flags = this.flags
     return this.push(re)
   }
+
   repeat(op, min, max, beforePos, t, lastRepeatPos) {
     let flags = this.flags
     if ((flags & RE2Flags.PERL_X) !== 0) {
@@ -280,11 +661,11 @@ class Parser {
         throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_OP, t.from(lastRepeatPos))
       }
     }
-    const n = this.stack.__delegate.length
+    const n = this.stack.length
     if (n === 0) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
-    const sub = this.stack.__delegate[n - 1]
+    const sub = this.stack[n - 1]
     if (Regexp.isPseudoOp(sub.op)) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
@@ -293,8 +674,9 @@ class Parser {
     re.max = max
     re.flags = flags
     re.subs = [sub]
-    /* set */ this.stack.__delegate[n - 1] = re
+    this.stack[n - 1] = re
   }
+
   concat() {
     this.maybeConcat(-1, 0)
     const subs = this.popToPseudo()
@@ -303,6 +685,7 @@ class Parser {
     }
     return this.push(this.collapse(subs, Regexp.Op.CONCAT))
   }
+
   alternate() {
     const subs = this.popToPseudo()
     if (subs.length > 0) {
@@ -313,6 +696,7 @@ class Parser {
     }
     return this.push(this.collapse(subs, Regexp.Op.ALTERNATE))
   }
+
   cleanAlt(re) {
     if (re.op === Regexp.Op.CHAR_CLASS) {
       re.runes = new CharClass(re.runes).cleanClass().toArray()
@@ -331,6 +715,7 @@ class Parser {
       }
     }
   }
+
   collapse(subs, op) {
     if (subs.length === 1) {
       return subs[0]
@@ -385,6 +770,7 @@ class Parser {
     }
     return re
   }
+
   factor(array, flags) {
     if (array.length < 2) {
       return array
@@ -559,6 +945,7 @@ class Parser {
     s = 0
     return Parser.subarray(array, s, lensub)
   }
+
   removeLeadingString(re, n) {
     if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
       const sub = this.removeLeadingString(re.subs[0], n)
@@ -593,19 +980,7 @@ class Parser {
     }
     return re
   }
-  static leadingRegexp(re) {
-    if (re.op === Regexp.Op.EMPTY_MATCH) {
-      return null
-    }
-    if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
-      const sub = re.subs[0]
-      if (sub.op === Regexp.Op.EMPTY_MATCH) {
-        return null
-      }
-      return sub
-    }
-    return re
-  }
+
   removeLeadingRegexp(re, reuse) {
     if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
       if (reuse) {
@@ -630,21 +1005,8 @@ class Parser {
     }
     return this.newRegexp(Regexp.Op.EMPTY_MATCH)
   }
-  static literalRegexp(s, flags) {
-    const re = new Regexp(Regexp.Op.LITERAL)
-    re.flags = flags
-    re.runes = Utils.stringToRunes(s)
-    return re
-  }
-  /**
-   * Parse regular expression pattern {@code pattern} with mode flags {@code flags}.
-   * @param {string} pattern
-   * @param {number} flags
-   * @return {Regexp}
-   */
-  static parse(pattern, flags) {
-    return new Parser(pattern, flags).parseInternal()
-  }
+
+
   parseInternal() {
     if ((this.flags & RE2Flags.LITERAL) !== 0) {
       return Parser.literalRegexp(this.wholeRegexp, this.flags)
@@ -811,49 +1173,14 @@ class Parser {
       this.pop()
     }
     this.alternate()
-    const n = this.stack.__delegate.length
+    const n = this.stack.length
     if (n !== 1) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
     }
-    /* get */ this.stack.__delegate[0].namedGroups = this.namedGroups
-    return /* get */ this.stack.__delegate[0]
+    this.stack[0].namedGroups = this.namedGroups
+    return this.stack[0]
   }
-  static parseRepeat(t) {
-    const start = t.pos()
-    if (!t.more() || !t.lookingAt('{')) {
-      return -1
-    }
-    t.skip(1)
-    const min = Parser.parseInt(t)
-    if (min === -1) {
-      return -1
-    }
-    if (!t.more()) {
-      return -1
-    }
-    let max
-    if (!t.lookingAt(',')) {
-      max = min
-    } else {
-      t.skip(1)
-      if (!t.more()) {
-        return -1
-      }
-      if (t.lookingAt('}')) {
-        max = -1
-      } else if ((max = Parser.parseInt(t)) === -1) {
-        return -1
-      }
-    }
-    if (!t.more() || !t.lookingAt('}')) {
-      return -1
-    }
-    t.skip(1)
-    if (min < 0 || min > 1000 || max === -2 || max > 1000 || (max >= 0 && min > max)) {
-      throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
-    }
-    return (min << 16) | (max & Unicode.MAX_BMP)
-  }
+
   parsePerlFlags(t) {
     const startPos = t.pos()
     const s = t.rest()
@@ -933,122 +1260,29 @@ class Parser {
 
     throw new PatternSyntaxException(Parser.ERR_INVALID_PERL_OP, t.from(startPos))
   }
-  static isValidCaptureName(name) {
-    if (/* isEmpty */ name.length === 0) {
-      return false
-    }
-    for (let i = 0; i < name.length; ++i) {
-      {
-        const c = name.charAt(i)
-        if (
-          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(c) != '_'.codePointAt(0) &&
-          !Utils.isalnum(c.codePointAt(0))
-        ) {
-          return false
-        }
-      }
-    }
-    return true
-  }
-  static parseInt(t) {
-    const start = t.pos()
-    let c
-    while (t.more() && (c = t.peek()) >= '0'.codePointAt(0) && c <= '9'.codePointAt(0)) {
-      {
-        t.skip(1)
-      }
-    }
 
-    const n = t.from(start)
-    if (
-      /* isEmpty */ n.length === 0 ||
-      (n.length > 1 &&
-        ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(n.charAt(0)) == '0'.codePointAt(0))
-    ) {
-      return -1
-    }
-    if (n.length > 8) {
-      return -2
-    }
-    return parseFloat(n, 10)
-  }
-  static isCharClass(re) {
-    return (
-      (re.op === Regexp.Op.LITERAL && re.runes.length === 1) ||
-      re.op === Regexp.Op.CHAR_CLASS ||
-      re.op === Regexp.Op.ANY_CHAR_NOT_NL ||
-      re.op === Regexp.Op.ANY_CHAR
-    )
-  }
-  static matchRune(re, r) {
-    switch (re.op) {
-      case Regexp.Op.LITERAL:
-        return re.runes.length === 1 && re.runes[0] === r
-      case Regexp.Op.CHAR_CLASS:
-        for (let i = 0; i < re.runes.length; i += 2) {
-          {
-            if (re.runes[i] <= r && r <= re.runes[i + 1]) {
-              return true
-            }
-          }
-        }
-        return false
-      case Regexp.Op.ANY_CHAR_NOT_NL:
-        return r != '\n'.codePointAt(0)
-      case Regexp.Op.ANY_CHAR:
-        return true
-    }
-    return false
-  }
   parseVerticalBar() {
     this.concat()
     if (!this.swapVerticalBar()) {
       this.op(Regexp.Op.VERTICAL_BAR)
     }
   }
-  static mergeCharClass(dst, src) {
-    switch (dst.op) {
-      case Regexp.Op.ANY_CHAR:
-        break
-      case Regexp.Op.ANY_CHAR_NOT_NL:
-        if (Parser.matchRune(src, '\n'.codePointAt(0))) {
-          dst.op = Regexp.Op.ANY_CHAR
-        }
-        break
-      case Regexp.Op.CHAR_CLASS:
-        if (src.op === Regexp.Op.LITERAL) {
-          dst.runes = new CharClass(dst.runes).appendLiteral(src.runes[0], src.flags).toArray()
-        } else {
-          dst.runes = new CharClass(dst.runes).appendClass(src.runes).toArray()
-        }
-        break
-      case Regexp.Op.LITERAL:
-        if (src.runes[0] === dst.runes[0] && src.flags === dst.flags) {
-          break
-        }
-        dst.op = Regexp.Op.CHAR_CLASS
-        dst.runes = new CharClass()
-          .appendLiteral(dst.runes[0], dst.flags)
-          .appendLiteral(src.runes[0], src.flags)
-          .toArray()
-        break
-    }
-  }
+
   swapVerticalBar() {
-    const n = this.stack.__delegate.length
+    const n = this.stack.length
     if (
       n >= 3 &&
-      /* get */ this.stack.__delegate[n - 2].op === Regexp.Op.VERTICAL_BAR &&
-      Parser.isCharClass(/* get */ this.stack.__delegate[n - 1]) &&
-      Parser.isCharClass(/* get */ this.stack.__delegate[n - 3])
+      this.stack[n - 2].op === Regexp.Op.VERTICAL_BAR &&
+      Parser.isCharClass(this.stack[n - 1]) &&
+      Parser.isCharClass(this.stack[n - 3])
     ) {
-      let re1 = this.stack.__delegate[n - 1]
-      let re3 = this.stack.__delegate[n - 3]
+      let re1 = this.stack[n - 1]
+      let re3 = this.stack[n - 3]
       if (re1.op > re3.op) {
         const tmp = re3
         re3 = re1
         re1 = tmp
-        /* set */ this.stack.__delegate[n - 3] = re3
+        this.stack[n - 3] = re3
       }
       Parser.mergeCharClass(re3, re1)
       this.reuse(re1)
@@ -1056,26 +1290,27 @@ class Parser {
       return true
     }
     if (n >= 2) {
-      const re1 = this.stack.__delegate[n - 1]
-      const re2 = this.stack.__delegate[n - 2]
+      const re1 = this.stack[n - 1]
+      const re2 = this.stack[n - 2]
       if (re2.op === Regexp.Op.VERTICAL_BAR) {
         if (n >= 3) {
-          this.cleanAlt(/* get */ this.stack.__delegate[n - 3])
+          this.cleanAlt(this.stack[n - 3])
         }
-        /* set */ this.stack.__delegate[n - 2] = re1
-        /* set */ this.stack.__delegate[n - 1] = re2
+        this.stack[n - 2] = re1
+        this.stack[n - 1] = re2
         return true
       }
     }
     return false
   }
+
   parseRightParen() {
     this.concat()
     if (this.swapVerticalBar()) {
       this.pop()
     }
     this.alternate()
-    const n = this.stack.__delegate.length
+    const n = this.stack.length
     if (n < 2) {
       throw new PatternSyntaxException(Parser.ERR_INTERNAL_ERROR, 'stack underflow')
     }
@@ -1093,106 +1328,7 @@ class Parser {
       this.push(re2)
     }
   }
-  static parseEscape(t) {
-    const startPos = t.pos()
-    t.skip(1) // '\\'
-    if (!t.more()) {
-      throw new PatternSyntaxException(Parser.ERR_TRAILING_BACKSLASH)
-    }
-    let c = t.pop()
-    bigswitch: switch (c) {
-      case 49 /* '1' */:
-      case 50 /* '2' */:
-      case 51 /* '3' */:
-      case 52 /* '4' */:
-      case 53 /* '5' */:
-      case 54 /* '6' */:
-      case 55 /* '7' */:
-        if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
-          break
-        }
-      case 48 /* '0' */:
-        let r = c - '0'.codePointAt(0)
-        for (let i = 1; i < 3; i++) {
-          {
-            if (!t.more() || t.peek() < '0'.codePointAt(0) || t.peek() > '7'.codePointAt(0)) {
-              break
-            }
-            r = r * 8 + t.peek() - '0'.codePointAt(0)
-            t.skip(1)
-          }
-        }
-        return r
-      case 120 /* 'x' */:
-        if (!t.more()) {
-          break
-        }
-        c = t.pop()
-        if (c == '{'.codePointAt(0)) {
-          let nhex = 0
-          let r = 0
-          for (;;) {
-            if (!t.more()) {
-              break bigswitch
-            }
-            c = t.pop()
-            if (c === '}'.codePointAt(0)) {
-              break
-            }
-            const v = Utils.unhex(c)
-            if (v < 0) {
-              break bigswitch
-            }
-            r = r * 16 + v
-            if (r > Unicode.MAX_RUNE) {
-              break bigswitch
-            }
-            nhex++
-          }
-          if (nhex === 0) {
-            break bigswitch
-          }
-          return r
-        }
-        const x = Utils.unhex(c)
-        if (!t.more()) {
-          break
-        }
-        c = t.pop()
-        const y = Utils.unhex(c)
-        if (x < 0 || y < 0) {
-          break
-        }
-        return x * 16 + y
-      case 97 /* 'a' */:
-        return 7
-      case 102 /* 'f' */:
-        return '\f'.codePointAt(0)
-      case 110 /* 'n' */:
-        return '\n'.codePointAt(0)
-      case 114 /* 'r' */:
-        return '\r'.codePointAt(0)
-      case 116 /* 't' */:
-        return '\t'.codePointAt(0)
-      case 118 /* 'v' */:
-        return 11
-      default:
-        if (!Utils.isalnum(c)) {
-          return c
-        }
-        break
-    }
-    throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, t.from(startPos))
-  }
-  static parseClassChar(t, wholeClassPos) {
-    if (!t.more()) {
-      throw new PatternSyntaxException(Parser.ERR_MISSING_BRACKET, t.from(wholeClassPos))
-    }
-    if (t.lookingAt('\\')) {
-      return Parser.parseEscape(t)
-    }
-    return t.pop()
-  }
+
   parsePerlClassEscape(t, cc) {
     const beforePos = t.pos()
     if (
@@ -1227,27 +1363,7 @@ class Parser {
     cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0)
     return true
   }
-  static ANY_TABLE_$LI$() {
-    if (Parser.ANY_TABLE == null) {
-      Parser.ANY_TABLE = [[0, Unicode.MAX_RUNE, 1]]
-    }
-    return Parser.ANY_TABLE
-  }
-  static unicodeTable(name) {
-    if (name === 'Any') {
-      return Parser.Pair.of(Parser.ANY_TABLE_$LI$(), Parser.ANY_TABLE_$LI$())
-    }
-    if (UnicodeTables.CATEGORIES.has(name)) {
-      return Parser.Pair.of(
-        UnicodeTables.CATEGORIES.get(name),
-        UnicodeTables.FOLD_CATEGORIES.get(name)
-      )
-    }
-    if (UnicodeTables.SCRIPTS.has(name)) {
-      return Parser.Pair.of(UnicodeTables.SCRIPTS.get(name), UnicodeTables.FOLD_SCRIPT.get(name))
-    }
-    return null
-  }
+
   parseUnicodeClass(t, cc) {
     const startPos = t.pos()
     if (
@@ -1302,6 +1418,7 @@ class Parser {
     }
     return true
   }
+
   parseClass(t) {
     const startPos = t.pos()
     t.skip(1)
@@ -1370,88 +1487,6 @@ class Parser {
     re.runes = cc.toArray()
     this.push(re)
   }
-  static subarray(array, start, end) {
-    const r = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(null)
-      }
-      return a
-    })(end - start)
-    for (let i = start; i < end; ++i) {
-      r[i - start] = array[i]
-    }
-    return r
-  }
-  static concatRunes(x, y) {
-    const z = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(0)
-      }
-      return a
-    })(x.length + y.length)
-    /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-      if (srcPts !== dstPts || dstOff >= srcOff + size) {
-        while (--size >= 0) {
-          dstPts[dstOff++] = srcPts[srcOff++]
-        }
-      } else {
-        let tmp = srcPts.slice(srcOff, srcOff + size)
-        for (let i = 0; i < size; i++) {
-          dstPts[dstOff++] = tmp[i]
-        }
-      }
-    })(x, 0, z, 0, x.length)
-    /* arraycopy */
-    ;((srcPts, srcOff, dstPts, dstOff, size) => {
-      if (srcPts !== dstPts || dstOff >= srcOff + size) {
-        while (--size >= 0) {
-          dstPts[dstOff++] = srcPts[srcOff++]
-        }
-      } else {
-        let tmp = srcPts.slice(srcOff, srcOff + size)
-        for (let i = 0; i < size; i++) {
-          dstPts[dstOff++] = tmp[i]
-        }
-      }
-    })(y, 0, z, x.length, y.length)
-    return z
-  }
 }
-
-Parser['__class'] = 'quickstart.Parser'
-;(function (Parser) {
-  class Stack {
-    /**
-     *
-     * @param {number} fromIndex
-     * @param {number} toIndex
-     */
-    removeRange(fromIndex, toIndex) {
-      return this.__delegate.splice(fromIndex, toIndex - fromIndex)
-    }
-    constructor() {}
-  }
-  Parser.Stack = Stack
-  Stack['__class'] = 'quickstart.Parser.Stack'
-  class Pair {
-    constructor(first, second) {
-      if (this.first === undefined) {
-        this.first = null
-      }
-      if (this.second === undefined) {
-        this.second = null
-      }
-      this.first = first
-      this.second = second
-    }
-    static of(first, second) {
-      return new Parser.Pair(first, second)
-    }
-  }
-  Parser.Pair = Pair
-  Pair['__class'] = 'quickstart.Parser.Pair'
-})(Parser || (Parser = {}))
 
 export { Parser }
