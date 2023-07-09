@@ -6,7 +6,7 @@ import { Inst } from './Inst'
 
 // A logical thread in the NFA.
 class Thread {
-  constructor(n) {
+  constructor() {
     this.inst = null
     this.cap = []
   }
@@ -131,7 +131,7 @@ class Machine {
       this.poolSize--
       t = this.pool[this.poolSize]
     } else {
-      t = new Thread(this.matchcap.length)
+      t = new Thread()
     }
     t.inst = inst
     return t
@@ -142,10 +142,7 @@ class Machine {
     const numberOfThread = queue.size - from
     const requiredPoolLength = this.poolSize + numberOfThread
     if (this.pool.length < requiredPoolLength) {
-      this.pool = this.pool.slice(
-        0,
-        Math.max(this.pool.length * 2, requiredPoolLength)
-      )
+      this.pool = this.pool.slice(0, Math.max(this.pool.length * 2, requiredPoolLength))
     }
     for (let i = from; i < queue.size; i++) {
       const t = queue.denseThreads[i]
