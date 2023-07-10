@@ -257,10 +257,16 @@ const testRE2 = async (fileName) => {
   let re = null
   let refull = null
 
-  for await (let line of readline.createInterface({ input: inputFile })) {
+  for await (let line of readline.createInterface({
+    input: inputFile,
+    crlfDelay: Infinity
+  })) {
     lineno += 1
+    if (line.length === 0) {
+      throw new Error(`${lineno}: unexpected blank line`)
+    }
 
-    const first = line[0]
+    const first = line.charAt(0)
     const firstCodePoint = first.codePointAt(0)
     if (first === '#') {
       continue

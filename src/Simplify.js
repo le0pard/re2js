@@ -1,5 +1,4 @@
 import { RE2Flags } from './RE2Flags'
-import { Parser } from './Parser'
 import { Regexp } from './Regexp'
 
 class Simplify {
