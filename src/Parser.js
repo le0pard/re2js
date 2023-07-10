@@ -462,39 +462,7 @@ class Parser {
   }
 
   static concatRunes(x, y) {
-    const z = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(0)
-      }
-      return a
-    })(x.length + y.length)
-    /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-      if (srcPts !== dstPts || dstOff >= srcOff + size) {
-        while (--size >= 0) {
-          dstPts[dstOff++] = srcPts[srcOff++]
-        }
-      } else {
-        let tmp = srcPts.slice(srcOff, srcOff + size)
-        for (let i = 0; i < size; i++) {
-          dstPts[dstOff++] = tmp[i]
-        }
-      }
-    })(x, 0, z, 0, x.length)
-    /* arraycopy */
-    ;((srcPts, srcOff, dstPts, dstOff, size) => {
-      if (srcPts !== dstPts || dstOff >= srcOff + size) {
-        while (--size >= 0) {
-          dstPts[dstOff++] = srcPts[srcOff++]
-        }
-      } else {
-        let tmp = srcPts.slice(srcOff, srcOff + size)
-        for (let i = 0; i < size; i++) {
-          dstPts[dstOff++] = tmp[i]
-        }
-      }
-    })(y, 0, z, x.length, y.length)
-    return z
+    return [...x, ...y]
   }
 
   constructor(wholeRegexp, flags = 0) {
