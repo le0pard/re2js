@@ -245,7 +245,7 @@ export class RE2 {
   toString() {
     return this.expr
   }
-  doExecute(__in, pos, anchor, ncap) {
+  doExecute(input, pos, anchor, ncap) {
     let m = this.get()
     let isNew = false
     if (m == null) {
@@ -256,7 +256,7 @@ export class RE2 {
       isNew = true
     }
     m.init(ncap)
-    const cap = m.match(__in, pos, anchor) ? m.submatches() : null
+    const cap = m.match(input, pos, anchor) ? m.submatches() : null
     this.put(m, isNew)
     return cap
   }
