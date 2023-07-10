@@ -367,6 +367,8 @@ const testRE2 = async (fileName) => {
         regexp.longest = longest
         expect(regexp.match(text)).toEqual(want !== null)
       }
+    } else {
+      throw new Error(`${lineno}: out of sync`)
     }
   }
 
