@@ -624,13 +624,7 @@ export class Matcher {
   /*private*/ genMatch(startByte, anchor) {
     const res = this.__pattern
       .re2()
-      .matchMachineInput(
-        this.matcherInput,
-        startByte,
-        this.__inputLength,
-        anchor,
-        1
-      )
+      .matchMachineInput(this.matcherInput, startByte, this.__inputLength, anchor, 1)
 
     const ok = res[0]
     if (!ok) {

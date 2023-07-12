@@ -5,13 +5,31 @@ import { expect, describe, test } from '@jest/globals'
 
 describe('RE2', () => {
   test('full match', () => {
-    expect(RE2.initTest('ab+c').matchWithGroup('abbbbbc', 0, 7, RE2Flags.ANCHOR_BOTH, 0)).toEqual([true, []])
-    expect(RE2.initTest('ab+c').matchWithGroup('xabbbbbc', 0, 8, RE2Flags.ANCHOR_BOTH, 0)).toEqual([false, null])
+    expect(RE2.initTest('ab+c').matchWithGroup('abbbbbc', 0, 7, RE2Flags.ANCHOR_BOTH, 0)).toEqual([
+      true,
+      []
+    ])
+    expect(RE2.initTest('ab+c').matchWithGroup('xabbbbbc', 0, 8, RE2Flags.ANCHOR_BOTH, 0)).toEqual([
+      false,
+      null
+    ])
     expect(
-      RE2.initTest('ab+c').matchWithGroup(MatcherInput.utf8('abbbbbc'), 0, 7, RE2Flags.ANCHOR_BOTH, 0)
+      RE2.initTest('ab+c').matchWithGroup(
+        MatcherInput.utf8('abbbbbc'),
+        0,
+        7,
+        RE2Flags.ANCHOR_BOTH,
+        0
+      )
     ).toEqual([true, []])
     expect(
-      RE2.initTest('ab+c').matchWithGroup(MatcherInput.utf8('xabbbbbc'), 0, 8, RE2Flags.ANCHOR_BOTH, 0)
+      RE2.initTest('ab+c').matchWithGroup(
+        MatcherInput.utf8('xabbbbbc'),
+        0,
+        8,
+        RE2Flags.ANCHOR_BOTH,
+        0
+      )
     ).toEqual([false, null])
   })
 

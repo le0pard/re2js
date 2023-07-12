@@ -266,13 +266,7 @@ class RE2 {
       input = MatcherInput.utf16(input)
     }
 
-    return this.matchMachineInput(
-      input,
-      start,
-      end,
-      anchor,
-      ngroup
-    )
+    return this.matchMachineInput(input, start, end, anchor, ngroup)
   }
 
   matchMachineInput(input, start, end, anchor, ngroup) {
@@ -399,6 +393,7 @@ class RE2 {
       if (matches == null || matches.length === 0) {
         break
       }
+
       let accept = true
       if (matches[1] === pos) {
         if (matches[0] === prevMatchEnd) {
