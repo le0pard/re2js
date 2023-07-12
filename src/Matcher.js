@@ -538,7 +538,7 @@ export class Matcher {
 
     const ok = this.__pattern
       .re2()
-      .match$quickstart_MatcherInput$int$int$int$int_A$int(
+      .matchMachineInput(
         this.matcherInput,
         this.groups[0],
         end,
@@ -631,7 +631,7 @@ export class Matcher {
   /*private*/ genMatch(startByte, anchor) {
     const ok = this.__pattern
       .re2()
-      .match$quickstart_MatcherInput$int$int$int$int_A$int(
+      .matchMachineInput(
         this.matcherInput,
         startByte,
         this.__inputLength,

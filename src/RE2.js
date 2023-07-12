@@ -248,7 +248,7 @@ class RE2 {
   }
 
   match$java_lang_CharSequence$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
-    return this.match$quickstart_MatcherInput$int$int$int$int_A$int(
+    return this.matchMachineInput(
       MatcherInput.utf16(input),
       start,
       end,
@@ -308,7 +308,7 @@ class RE2 {
         group === null) &&
       (typeof ngroup === 'number' || ngroup === null)
     ) {
-      return this.match$quickstart_MatcherInput$int$int$int$int_A$int(
+      return this.matchMachineInput(
         input,
         start,
         end,
@@ -335,7 +335,7 @@ class RE2 {
     }
   }
 
-  match$quickstart_MatcherInput$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
+  matchMachineInput(input, start, end, anchor, group, ngroup) {
     if (start > end) {
       return false
     }
