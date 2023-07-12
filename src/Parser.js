@@ -543,7 +543,7 @@ class Parser {
       if (this.maybeConcat(re.runes[0], this.flags | RE2Flags.FOLD_CASE)) {
         return null
       }
-       // Rewrite as (case-insensitive) literal.
+      // Rewrite as (case-insensitive) literal.
       re.op = Regexp.Op.LITERAL
       re.runes = [re.runes[0]]
       re.flags = this.flags | RE2Flags.FOLD_CASE
@@ -733,7 +733,8 @@ class Parser {
     let re = this.newRegexp(op)
     re.subs = newsubs
     if (op === Regexp.Op.ALTERNATE) {
-      re.subs = this.factor(re.subs, re.flags)
+      // re.subs = this.factor(re.subs, re.flags)
+      re.subs = this.factor(re.subs)
       if (re.subs.length === 1) {
         const old = re
         re = re.subs[0]
@@ -754,7 +755,7 @@ class Parser {
   // which simplifies by character class introduction to
   //     A(B[CD]|EF)|BC[XY]
   //
-  factor(array, _flags) {
+  factor(array) {
     if (array.length < 2) {
       return array
     }
@@ -939,7 +940,7 @@ class Parser {
             subMax.op < subJ.op ||
             (subMax.op === subJ.op &&
               (subMax.runes != null ? subMax.runes.length : 0) <
-              (subJ.runes != null ? subJ.runes.length : 0))
+                (subJ.runes != null ? subJ.runes.length : 0))
           ) {
             max = j
           }
@@ -1270,7 +1271,7 @@ class Parser {
       t.skipString(name)
       t.skip(5) // "(?P<>"
       if (!Parser.isValidCaptureName(name)) {
-         // "(?P<name>"
+        // "(?P<name>"
         throw new PatternSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s.substring(0, end))
       }
       // Like ordinary capture, but named.
@@ -1345,15 +1346,25 @@ class Parser {
     throw new PatternSyntaxException(Parser.ERR_INVALID_PERL_OP, t.from(startPos))
   }
 
+  // parseVerticalBar handles a | in the input.
   parseVerticalBar() {
     this.concat()
+    // The concatenation we just parsed is on top of the stack.
+    // If it sits above an opVerticalBar, swap it below
+    // (things below an opVerticalBar become an alternation).
+    // Otherwise, push a new vertical bar.
     if (!this.swapVerticalBar()) {
       this.op(Regexp.Op.VERTICAL_BAR)
     }
   }
 
+  // If the top of the stack is an element followed by an opVerticalBar
+  // swapVerticalBar swaps the two and returns true.
+  // Otherwise it returns false.
   swapVerticalBar() {
     const n = this.stack.length
+    // If above and below vertical bar are literal or char class,
+    // can merge into a single char class.
     if (
       n >= 3 &&
       this.stack[n - 2].op === Regexp.Op.VERTICAL_BAR &&
@@ -1362,6 +1373,7 @@ class Parser {
     ) {
       let re1 = this.stack[n - 1]
       let re3 = this.stack[n - 3]
+      // Make re3 the more complex of the two.
       if (re1.op > re3.op) {
         const tmp = re3
         re3 = re1
@@ -1378,6 +1390,8 @@ class Parser {
       const re2 = this.stack[n - 2]
       if (re2.op === Regexp.Op.VERTICAL_BAR) {
         if (n >= 3) {
+          // Now out of reach.
+          // Clean opportunistically.
           this.cleanAlt(this.stack[n - 3])
         }
         this.stack[n - 2] = re1
@@ -1388,23 +1402,27 @@ class Parser {
     return false
   }
 
+  // parseRightParen handles a ')' in the input.
   parseRightParen() {
     this.concat()
     if (this.swapVerticalBar()) {
-      this.pop()
+      this.pop() // pop vertical bar
     }
     this.alternate()
     const n = this.stack.length
     if (n < 2) {
       throw new PatternSyntaxException(Parser.ERR_INTERNAL_ERROR, 'stack underflow')
     }
+
     const re1 = this.pop()
     const re2 = this.pop()
     if (re2.op !== Regexp.Op.LEFT_PAREN) {
       throw new PatternSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
     }
+    // Restore flags at time of paren.
     this.flags = re2.flags
     if (re2.cap === 0) {
+      // Just for grouping.
       this.push(re1)
     } else {
       re2.op = Regexp.Op.CAPTURE
@@ -1413,6 +1431,10 @@ class Parser {
     }
   }
 
+  // parsePerlClassEscape parses a leading Perl character class escape like \d
+  // from the beginning of |t|.  If one is present, it appends the characters
+  // to cc and returns true.  The iterator is advanced past the escape
+  // on success, undefined on failure, in which case false is returned.
   parsePerlClassEscape(t, cc) {
     const beforePos = t.pos()
     if (
@@ -1423,7 +1445,7 @@ class Parser {
     ) {
       return false
     }
-    t.pop()
+    t.pop() // e.g. advance past 'd' in "\\d"
     const p = t.from(beforePos)
     const g = PERL_GROUPS.has(p) ? PERL_GROUPS.get(p) : null
     if (g == null) {
@@ -1433,13 +1455,21 @@ class Parser {
     return true
   }
 
+  // parseNamedClass parses a leading POSIX named character class like
+  // [:alnum:] from the beginning of t.  If one is present, it appends the
+  // characters to cc, advances the iterator, and returns true.
+  // Pre: t at "[:".  Post: t after ":]".
+  // On failure (no class of than name), throws PatternSyntaxException.
+  // On misparse, returns false; t.pos() is undefined.
   parseNamedClass(t, cc) {
+    // (Go precondition check deleted.)
     const cls = t.rest()
     const i = cls.indexOf(':]')
     if (i < 0) {
       return false
     }
-    const name = cls.substring(0, i + 2)
+
+    const name = cls.substring(0, i + 2) // "[:alnum:]"
     t.skipString(name)
     const g = POSIX_GROUPS.has(name) ? POSIX_GROUPS.get(name) : null
     if (g == null) {
@@ -1449,6 +1479,13 @@ class Parser {
     return true
   }
 
+  // parseUnicodeClass() parses a leading Unicode character class like \p{Han}
+  // from the beginning of t.  If one is present, it appends the characters to
+  // to |cc|, advances |t| and returns true.
+  //
+  // Returns false if such a pattern is not present or UNICODE_GROUPS
+  // flag is not enabled; |t.pos()| is not advanced in this case.
+  // Indicates error by throwing PatternSyntaxException.
   parseUnicodeClass(t, cc) {
     const startPos = t.pos()
     if (
@@ -1457,9 +1494,11 @@ class Parser {
     ) {
       return false
     }
-    t.skip(1)
+
+    t.skip(1) // '\\'
+    // Committed to parse or throw exception.
     let sign = +1
-    let c = t.pop()
+    let c = t.pop() // 'p' or 'P'
     if (c === Codepoint.CODES.get('P')) {
       sign = -1
     }
@@ -1467,57 +1506,81 @@ class Parser {
       t.rewindTo(startPos)
       throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
     }
+
     c = t.pop()
     let name
 
     if (c !== Codepoint.CODES.get('{')) {
+      // Single-letter name.
       name = Utils.runeToString(c)
     } else {
+      // Name is in braces.
       const rest = t.rest()
       const end = rest.indexOf('}')
       if (end < 0) {
         t.rewindTo(startPos)
         throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
       }
-      name = rest.substring(0, end)
+      name = rest.substring(0, end) // e.g. "Han"
       t.skipString(name)
       t.skip(1)
+      // Don't use skip(end) because it assumes UTF-16 coding, and
+      // StringIterator doesn't guarantee that.
     }
+    // Group can have leading negation too.
+    //  \p{^Han} == \P{Han}, \P{^Han} == \p{Han}.
     if (!(name.length === 0) && name.codePointAt(0) === Codepoint.CODES.get('^')) {
       sign = 0 - sign // -sign
       name = name.substring(1)
     }
+
     const pair = Parser.unicodeTable(name)
     if (pair == null) {
       throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(startPos))
     }
+
     const tab = pair.first
-    const fold = pair.second
+    const fold = pair.second // fold-equivalent table
+    // Variation of CharClass.appendGroup() for tables.
     if ((this.flags & RE2Flags.FOLD_CASE) === 0 || fold == null) {
       cc.appendTableWithSign(tab, sign)
     } else {
+      // Merge and clean tab and fold in a temporary buffer.
+      // This is necessary for the negative case and just tidy
+      // for the positive case.
       const tmp = new CharClass().appendTable(tab).appendTable(fold).cleanClass().toArray()
       cc.appendClassWithSign(tmp, sign)
     }
     return true
   }
 
+  // parseClass parses a character class and pushes it onto the parse stack.
+  //
+  // NOTES:
+  // Pre: at '['; Post: after ']'.
+  // Mutates stack.  Advances iterator.  May throw.
   parseClass(t) {
     const startPos = t.pos()
-    t.skip(1)
+    t.skip(1) // '['
     const re = this.newRegexp(Regexp.Op.CHAR_CLASS)
     re.flags = this.flags
     const cc = new CharClass()
     let sign = +1
+
     if (t.more() && t.lookingAt('^')) {
       sign = -1
-      t.skip(1)
+      t.skip(1) // '^'
+      // If character class does not match \n, add it here,
+      // so that negation later will do the right thing.
       if ((this.flags & RE2Flags.CLASS_NL) === 0) {
         cc.appendRange(Codepoint.CODES.get('\n'), Codepoint.CODES.get('\n'))
       }
     }
-    let first = true
+
+    let first = true // ']' and '-' are okay as first char in class
     while (!t.more() || t.peek() !== Codepoint.CODES.get(']') || first) {
+      // POSIX: - is only okay unescaped as first or last in class.
+      // Perl: - is okay anywhere.
       if (t.more() && t.lookingAt('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {
         const s = t.rest()
         if (s === '-' || !s.startsWith('-]')) {
@@ -1525,26 +1588,35 @@ class Parser {
           throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
         }
       }
+
       first = false
       const beforePos = t.pos()
+      // Look for POSIX [:alnum:] etc.
       if (t.lookingAt('[:')) {
         if (this.parseNamedClass(t, cc)) {
           continue
         }
         t.rewindTo(beforePos)
       }
+
+      // Look for Unicode character group like \p{Han}.
       if (this.parseUnicodeClass(t, cc)) {
         continue
       }
+
+      // Look for Perl character class symbols (extension).
       if (this.parsePerlClassEscape(t, cc)) {
         continue
       }
       t.rewindTo(beforePos)
+
+      // Single character or simple range.
       const lo = Parser.parseClassChar(t, startPos)
       let hi = lo
       if (t.more() && t.lookingAt('-')) {
         t.skip(1)
         if (t.more() && t.lookingAt(']')) {
+          // [a-] means (a|-) so check for final ].
           t.skip(-1)
         } else {
           hi = Parser.parseClassChar(t, startPos)
@@ -1559,8 +1631,8 @@ class Parser {
         cc.appendFoldedRange(lo, hi)
       }
     }
+    t.skip(1) // ']'
 
-    t.skip(1)
     cc.cleanClass()
     if (sign < 0) {
       cc.negateClass()
