@@ -26,23 +26,23 @@ import { Prog } from './Prog'
 
 class AtomicReference {
   constructor(initialValue) {
-    this._value = initialValue
+    this.value = initialValue
   }
 
   // Returns the current value
   get() {
-    return this._value
+    return this.value
   }
 
   // Sets to the given value
   set(newValue) {
-    this._value = newValue
+    this.value = newValue
   }
 
   // Atomically sets to the given value and returns true if the current value == the expected value
   compareAndSet(expect, update) {
-    if (this._value === expect) {
-      this._value = update
+    if (this.value === expect) {
+      this.value = update
       return true
     }
     return false
