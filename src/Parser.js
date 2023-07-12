@@ -478,6 +478,7 @@ class Parser {
     this.free = null
   }
 
+  // Allocate a Regexp, from the free list if possible.
   newRegexp(op) {
     let re = this.free
     if (re != null && re.subs != null && re.subs.length > 0) {
@@ -497,6 +498,8 @@ class Parser {
     this.free = re
   }
 
+  // Parse stack manipulation.
+
   pop() {
     return this.stack.pop()
   }
@@ -508,28 +511,13 @@ class Parser {
       i--
     }
 
-    const r = ((a1, a2) => {
-      if (a1.length >= a2.length) {
-        a1.length = 0
-        a1.push.apply(a1, a2)
-        return a1
-      } else {
-        return a2.slice(0)
-      }
-    })(
-      ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(null)
-        }
-        return a
-      })(n - i),
-      this.stack.slice(i, n)
-    )
-    this.stack.splice(i, n - i) // remove range
+    const r = this.stack.slice(i, n)
+    this.stack = this.stack.slice(0, i)
     return r
   }
 
+  // push pushes the regexp re onto the parse stack and returns the regexp.
+  // Returns null for a CHAR_CLASS that can be merged with the top-of-stack.
   push(re) {
     if (re.op === Regexp.Op.CHAR_CLASS && re.runes.length === 2 && re.runes[0] === re.runes[1]) {
       if (this.maybeConcat(re.runes[0], this.flags & ~RE2Flags.FOLD_CASE)) {
@@ -551,19 +539,31 @@ class Parser {
         Unicode.simpleFold(re.runes[0]) === re.runes[1] &&
         Unicode.simpleFold(re.runes[1]) === re.runes[0])
     ) {
+      // Case-insensitive rune like [Aa] or [Δδ].
       if (this.maybeConcat(re.runes[0], this.flags | RE2Flags.FOLD_CASE)) {
         return null
       }
+       // Rewrite as (case-insensitive) literal.
       re.op = Regexp.Op.LITERAL
       re.runes = [re.runes[0]]
       re.flags = this.flags | RE2Flags.FOLD_CASE
     } else {
+      // Incremental concatenation.
       this.maybeConcat(-1, 0)
     }
     this.stack.push(re)
     return re
   }
 
+  // maybeConcat implements incremental concatenation
+  // of literal runes into string nodes.  The parser calls this
+  // before each push, so only the top fragment of the stack
+  // might need processing.  Since this is called before a push,
+  // the topmost literal is no longer subject to operators like *
+  // (Otherwise ab* would turn into (ab)*.)
+  // If (r >= 0 and there's a node left over, maybeConcat uses it
+  // to push r with the given flags.
+  // maybeConcat reports whether r was pushed.
   maybeConcat(r, flags) {
     const n = this.stack.length
     if (n < 2) {
@@ -578,7 +578,9 @@ class Parser {
     ) {
       return false
     }
+    // Push re1 into re2.
     re2.runes = Parser.concatRunes(re2.runes, re1.runes)
+    // Reuse re1 if possible.
     if (r >= 0) {
       re1.runes = [r]
       re1.flags = flags
@@ -586,9 +588,10 @@ class Parser {
     }
     this.pop()
     this.reuse(re1)
-    return false
+    return false // did not push r
   }
 
+  // newLiteral returns a new LITERAL Regexp with the given flags
   newLiteral(r, flags) {
     const re = this.newRegexp(Regexp.Op.LITERAL)
     re.flags = flags
@@ -599,16 +602,25 @@ class Parser {
     return re
   }
 
+  // literal pushes a literal regexp for the rune r on the stack
+  // and returns that regexp.
   literal(r) {
     this.push(this.newLiteral(r, this.flags))
   }
 
+  // op pushes a regexp with the given op onto the stack
+  // and returns that regexp.
   op(op) {
     const re = this.newRegexp(op)
     re.flags = this.flags
     return this.push(re)
   }
 
+  // repeat replaces the top stack element with itself repeated according to
+  // op, min, max.  beforePos is the start position of the repetition operator.
+  // Pre: t is positioned after the initial repetition operator.
+  // Post: t advances past an optional perl-mode '?', or stays put.
+  //       Or, it fails with PatternSyntaxException.
   repeat(op, min, max, beforePos, t, lastRepeatPos) {
     let flags = this.flags
     if ((flags & RE2Flags.PERL_X) !== 0) {
@@ -617,6 +629,9 @@ class Parser {
         flags ^= RE2Flags.NON_GREEDY
       }
       if (lastRepeatPos !== -1) {
+        // In Perl it is not allowed to stack repetition operators:
+        // a** is a syntax error, not a doubled star, and a++ means
+        // something else entirely, which we don't support!
         throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_OP, t.from(lastRepeatPos))
       }
     }
@@ -639,6 +654,8 @@ class Parser {
     this.stack[n - 1] = re
   }
 
+  // concat replaces the top of the stack (above the topmost '|' or '(') with
+  // its concatenation.
   concat() {
     this.maybeConcat(-1, 0)
     const subs = this.popToPseudo()
@@ -648,17 +665,26 @@ class Parser {
     return this.push(this.collapse(subs, Regexp.Op.CONCAT))
   }
 
+  // alternate replaces the top of the stack (above the topmost '(') with its
+  // alternation.
   alternate() {
+    // Scan down to find pseudo-operator (.
+    // There are no | above (.
     const subs = this.popToPseudo()
+    // Make sure top class is clean.
+    // All the others already are (see swapVerticalBar).
     if (subs.length > 0) {
       this.cleanAlt(subs[subs.length - 1])
     }
+    // Empty alternate is special case
+    // (shouldn't happen but easy to handle).
     if (subs.length === 0) {
       return this.push(this.newRegexp(Regexp.Op.NO_MATCH))
     }
     return this.push(this.collapse(subs, Regexp.Op.ALTERNATE))
   }
 
+  // cleanAlt cleans re for eventual inclusion in an alternation.
   cleanAlt(re) {
     if (re.op === Regexp.Op.CHAR_CLASS) {
       re.runes = new CharClass(re.runes).cleanClass().toArray()
@@ -678,36 +704,25 @@ class Parser {
     }
   }
 
+  // collapse returns the result of applying op to subs[start:end].
+  // If (sub contains op nodes, they all get hoisted up
+  // so that there is never a concat of a concat or an
+  // alternate of an alternate.
   collapse(subs, op) {
     if (subs.length === 1) {
       return subs[0]
     }
+    // Concatenate subs iff op is same.
+    // Compute length in first pass.
     let len = 0
     for (let sub of subs) {
       len += sub.op === op ? sub.subs.length : 1
     }
-    const newsubs = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(null)
-      }
-      return a
-    })(len)
+    let newsubs = new Array(len).fill(null)
     let i = 0
     for (let sub of subs) {
       if (sub.op === op) {
-        /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-          if (srcPts !== dstPts || dstOff >= srcOff + size) {
-            while (--size >= 0) {
-              dstPts[dstOff++] = srcPts[srcOff++]
-            }
-          } else {
-            let tmp = srcPts.slice(srcOff, srcOff + size)
-            for (let i = 0; i < size; i++) {
-              dstPts[dstOff++] = tmp[i]
-            }
-          }
-        })(sub.subs, 0, newsubs, i, sub.subs.length)
+        newsubs.splice(i, sub.subs.length, ...sub.subs)
         i += sub.subs.length
         this.reuse(sub)
       } else {
@@ -728,6 +743,17 @@ class Parser {
     return re
   }
 
+  // factor factors common prefixes from the alternation list sub.  It
+  // returns a replacement list that reuses the same storage and frees
+  // (passes to p.reuse) any removed *Regexps.
+  //
+  // For example,
+  //     ABC|ABD|AEF|BCX|BCY
+  // simplifies by literal prefix extraction to
+  //     A(B(C|D)|EF)|BC(X|Y)
+  // which simplifies by character class introduction to
+  //     A(B[CD]|EF)|BC[XY]
+  //
   factor(array, _flags) {
     if (array.length < 2) {
       return array
