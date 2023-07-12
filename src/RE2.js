@@ -120,6 +120,17 @@ export class RE2 {
     return re2
   }
 
+  /**
+   * Returns true iff textual regular expression {@code pattern} matches string {@code s}.
+   *
+   * <p>
+   * More complicated queries need to use {@link #compile} and the full {@code RE2} interface.
+   */
+  // This is visible for testing.
+  static match(pattern, s) {
+    return RE2.compile(pattern).match$java_lang_CharSequence(s)
+  }
+
   constructor(expr, prog, numSubexp = 0, longest = 0) {
     this.expr = expr // as passed to Compile
     this.prog = prog // compiled program
@@ -178,36 +189,65 @@ export class RE2 {
         m = Machine.fromMachine(m)
         isNew = true
       }
+
+      // Without this comparison, TSAN will complain about a race condition:
+      // Thread A, B, and C all attempt to do a match on the same pattern.
+      //
+      // A: Allocates Machine 1; executes match; put machine 1. State is now:
+      //
+      // pooled -> machine 1 -> null
+      //
+      // B reads pooled, sees machine 1
+      //
+      // C reads pooled, sees machine 1
+      //
+      // B successfully CASes pooled to null
+      //
+      // B executes match; put machine 1, which involves setting machine1.next to
+      // null (even though it's already null); preempted before CAS
+      //
+      // C resumes, and reads machine1.next in order to execute cas(head, head.next)
+      //
+      // There is no happens-before relationship between B's redundant null write
+      // and C's read, thus triggering TSAN.
+      //
+      // Not needed for JS code
       if (m.next !== head) {
         m.next = head
       }
     } while (!this.pooled.compareAndSet(head, m))
   }
-  /**
-   *
-   * @return {string}
-   */
+
   toString() {
     return this.expr
   }
+
+  // doExecute() finds the leftmost match in the input and returns
+  // the position of its subexpressions.
+  // Derived from exec.go.
   doExecute(input, pos, anchor, ncap) {
     let m = this.get()
+    // The Treiber stack cannot reuse nodes, unless the node to be reused has only ever been at
+    // the bottom of the stack (i.e., next == null).
     let isNew = false
-    if (m == null) {
+    if (!m) {
       m = Machine.fromRE2(this)
       isNew = true
     } else if (m.next !== null) {
       m = Machine.fromMachine(m)
       isNew = true
     }
+
     m.init(ncap)
     const cap = m.match(input, pos, anchor) ? m.submatches() : null
     this.put(m, isNew)
     return cap
   }
+
   match$java_lang_CharSequence(s) {
     return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) != null
   }
+
   match$java_lang_CharSequence$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
     return this.match$quickstart_MatcherInput$int$int$int$int_A$int(
       MatcherInput.utf16(input),
@@ -218,6 +258,21 @@ export class RE2 {
       ngroup
     )
   }
+
+  /**
+   * Matches the regular expression against input starting at position start and ending at position
+   * end, with the given anchoring. Records the submatch boundaries in group, which is [start, end)
+   * pairs of byte offsets. The number of boundaries needed is inferred from the size of the group
+   * array. It is most efficient not to ask for submatch boundaries.
+   *
+   * @param input the input byte array
+   * @param start the beginning position in the input
+   * @param end the end position in the input
+   * @param anchor the anchoring flag (UNANCHORED, ANCHOR_START, ANCHOR_BOTH)
+   * @param group the array to fill with submatch positions
+   * @param ngroup the number of array pairs to fill in
+   * @return true if a match was found
+   */
   match(input, start, end, anchor, group, ngroup) {
     if (
       ((input != null &&
@@ -280,6 +335,7 @@ export class RE2 {
       throw new Error('invalid overload')
     }
   }
+
   match$quickstart_MatcherInput$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
     if (start > end) {
       return false
@@ -310,58 +366,42 @@ export class RE2 {
     }
     return true
   }
+
   /**
    * Returns true iff this regexp matches the UTF-8 byte array {@code b}.
-   * @param {byte[]} b
-   * @return {boolean}
    */
+  // This is visible for testing.
   matchUTF8(b) {
     return this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 0) != null
   }
-  /**
-   * Returns true iff textual regular expression {@code pattern} matches string {@code s}.
-   *
-   * <p>
-   * More complicated queries need to use {@link #compile} and the full {@code RE2} interface.
-   * @param {string} pattern
-   * @param {*} s
-   * @return {boolean}
-   */
-  static match(pattern, s) {
-    return RE2.compile(pattern).match$java_lang_CharSequence(s)
-  }
+
   /**
    * Returns a copy of {@code src} in which all matches for this regexp have been replaced by
    * {@code repl}. No support is provided for expressions (e.g. {@code \1} or {@code $1}) in the
    * replacement string.
-   * @param {string} src
-   * @param {string} repl
-   * @return {string}
    */
+  // This is visible for testing.
   replaceAll(src, repl) {
     return this.replaceAllFunc(src, new RE2.RE2$0(this, repl), 2 * src.length + 1)
   }
+
   /**
    * Returns a copy of {@code src} in which only the first match for this regexp has been replaced
    * by {@code repl}. No support is provided for expressions (e.g. {@code \1} or {@code $1}) in the
    * replacement string.
-   * @param {string} src
-   * @param {string} repl
-   * @return {string}
    */
+  // This is visible for testing.
   replaceFirst(src, repl) {
     return this.replaceAllFunc(src, new RE2.RE2$1(this, repl), 1)
   }
+
   /**
    * Returns a copy of {@code src} in which at most {@code maxReplaces} matches for this regexp have
    * been replaced by the return value of of function {@code repl} (whose first argument is the
    * matched string). No support is provided for expressions (e.g. {@code \1} or {@code $1}) in the
    * replacement string.
-   * @param {string} src
-   * @param {*} repl
-   * @param {number} maxReplaces
-   * @return {string}
    */
+  // This is visible for testing.
   replaceAllFunc(src, repl, maxReplaces) {
     let lastMatchEnd = 0
     let searchPos = 0
@@ -370,30 +410,28 @@ export class RE2 {
     const input = MachineInput.fromUTF16(src)
     let numReplaces = 0
     while (searchPos <= src.length) {
-      {
-        const a = this.doExecute(input, searchPos, RE2Flags.UNANCHORED, 2)
-        if (a == null || a.length === 0) {
-          break
-        }
-        out += src.substring(lastMatchEnd, a[0])
+      const a = this.doExecute(input, searchPos, RE2Flags.UNANCHORED, 2)
+      if (a == null || a.length === 0) {
+        break
+      }
+      out += src.substring(lastMatchEnd, a[0])
 
-        if (a[1] > lastMatchEnd || a[0] === 0) {
-          out += repl.replace(src.substring(a[0], a[1]))
-          numReplaces++
-        }
+      if (a[1] > lastMatchEnd || a[0] === 0) {
+        out += repl.replace(src.substring(a[0], a[1]))
+        numReplaces++
+      }
 
-        lastMatchEnd = a[1]
-        const width = input.step(searchPos) & 7
-        if (searchPos + width > a[1]) {
-          searchPos += width
-        } else if (searchPos + 1 > a[1]) {
-          searchPos++
-        } else {
-          searchPos = a[1]
-        }
-        if (numReplaces >= maxReplaces) {
-          break
-        }
+      lastMatchEnd = a[1]
+      const width = input.step(searchPos) & 7
+      if (searchPos + width > a[1]) {
+        searchPos += width
+      } else if (searchPos + 1 > a[1]) {
+        searchPos++
+      } else {
+        searchPos = a[1]
+      }
+      if (numReplaces >= maxReplaces) {
+        break
       }
     }
 
@@ -401,6 +439,12 @@ export class RE2 {
     return out
   }
 
+  // The number of capture values in the program may correspond
+  // to fewer capturing expressions than are in the regexp.
+  // For example, "(a){0}" turns into an empty program, so the
+  // maximum capture in the program is 0 but we need to return
+  // an expression for \1.  Pad returns a with -1s appended as needed;
+  // the result may alias a.
   pad(a) {
     if (a == null) {
       return null
@@ -437,6 +481,7 @@ export class RE2 {
     return a
   }
 
+  // Find matches in input.
   allMatches(input, n, deliver) {
     const end = input.endPos()
     if (n < 0) {
@@ -468,15 +513,51 @@ export class RE2 {
       }
     }
   }
+
+  // Legacy Go-style interface; preserved (package-private) for better
+  // test coverage.
+  //
+  // There are 16 methods of RE2 that match a regular expression and
+  // identify the matched text.  Their names are matched by this regular
+  // expression:
+  //
+  //    find(All)?(UTF8)?(Submatch)?(Index)?
+  //
+  // If 'All' is present, the routine matches successive non-overlapping
+  // matches of the entire expression.  Empty matches abutting a
+  // preceding match are ignored.  The return value is an array
+  // containing the successive return values of the corresponding
+  // non-All routine.  These routines take an extra integer argument, n;
+  // if n >= 0, the function returns at most n matches/submatches.
+  //
+  // If 'UTF8' is present, the argument is a UTF-8 encoded byte[] array;
+  // otherwise it is a UTF-16 encoded java.lang.String; return values
+  // are adjusted as appropriate.
+  //
+  // If 'Submatch' is present, the return value is an list identifying
+  // the successive submatches of the expression.  Submatches are
+  // matches of parenthesized subexpressions within the regular
+  // expression, numbered from left to right in order of opening
+  // parenthesis.  Submatch 0 is the match of the entire expression,
+  // submatch 1 the match of the first parenthesized subexpression, and
+  // so on.
+  //
+  // If 'Index' is present, matches and submatches are identified by
+  // byte index pairs within the input string: result[2*n:2*n+1]
+  // identifies the indexes of the nth submatch.  The pair for n==0
+  // identifies the match of the entire expression.  If 'Index' is not
+  // present, the match is identified by the text of the match/submatch.
+  // If an index is negative, it means that subexpression did not match
+  // any string in the input.
+
   /**
    * Returns an array holding the text of the leftmost match in {@code b} of this regular
    * expression.
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @return {byte[]}
    */
+  // This is visible for testing.
   findUTF8(b) {
     const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
     if (a === null) {
@@ -484,15 +565,15 @@ export class RE2 {
     }
     return b.slice(a[0], a[1])
   }
+
   /**
    * Returns a two-element array of integers defining the location of the leftmost match in
    * {@code b} of this regular expression. The match itself is at {@code b[loc[0]...loc[1]]}.
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @return {int[]}
    */
+  // This is visible for testing.
   findUTF8Index(b) {
     const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
     if (a === null) {
@@ -500,6 +581,7 @@ export class RE2 {
     }
     return a.slice(0, 2)
   }
+
   /**
    * Returns a string holding the text of the leftmost match in {@code s} of this regular
    * expression.
@@ -508,9 +590,8 @@ export class RE2 {
    * If there is no match, the return value is an empty string, but it will also be empty if the
    * regular expression successfully matches an empty string. Use {@link #findIndex} or
    * {@link #findSubmatch} if it is necessary to distinguish these cases.
-   * @param {string} s
-   * @return {string}
    */
+  // This is visible for testing.
   find(s) {
     const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
     if (a === null) {
@@ -518,6 +599,7 @@ export class RE2 {
     }
     return s.substring(a[0], a[1])
   }
+
   /**
    * Returns a two-element array of integers defining the location of the leftmost match in
    * {@code s} of this regular expression. The match itself is at
@@ -525,12 +607,12 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @return {int[]}
    */
+  // This is visible for testing.
   findIndex(s) {
     return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
   }
+
   /**
    * Returns an array of arrays the text of the leftmost match of the regular expression in
    * {@code b} and the matches, if any, of its subexpressions, as defined by the <a
@@ -538,9 +620,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @return {byte[][]}
    */
+  // This is visible for testing.
   findUTF8Submatch(b) {
     const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     if (a == null) {
@@ -560,6 +641,7 @@ export class RE2 {
     }
     return ret
   }
+
   /**
    * Returns an array holding the index pairs identifying the leftmost match of this regular
    * expression in {@code b} and the matches, if any, of its subexpressions, as defined by the the
@@ -567,14 +649,14 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @return {int[]}
    */
+  // This is visible for testing.
   findUTF8SubmatchIndex(b) {
     return this.pad(
       this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
+
   /**
    * Returns an array of strings holding the text of the leftmost match of the regular expression in
    * {@code s} and the matches, if any, of its subexpressions, as defined by the <a
@@ -582,9 +664,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @return {java.lang.String[]}
    */
+  // This is visible for testing.
   findSubmatch(s) {
     const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     if (a == null) {
@@ -604,6 +685,7 @@ export class RE2 {
     }
     return ret
   }
+
   /**
    * Returns an array holding the index pairs identifying the leftmost match of this regular
    * expression in {@code s} and the matches, if any, of its subexpressions, as defined by the <a
@@ -611,14 +693,14 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @return {int[]}
    */
+  // This is visible for testing.
   findSubmatchIndex(s) {
     return this.pad(
       this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
+
   /**
    * {@code findAllUTF8()} is the <a href='#all'>All</a> version of {@link #findUTF8}; it returns a
    * list of up to {@code n} successive matches of the expression, as defined by the <a
@@ -629,10 +711,8 @@ export class RE2 {
    *
    * TODO(adonovan): think about defining a byte slice view class, like a read-only Go slice backed
    * by |b|.
-   * @param {byte[]} b
-   * @param {number} n
-   * @return {byte[][]}
    */
+  // This is visible for testing.
   findAllUTF8(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$2(this, result, b))
@@ -641,6 +721,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAllUTF8Index} is the <a href='#all'>All</a> version of {@link #findUTF8Index}; it
    * returns a list of up to {@code n} successive matches of the expression, as defined by the <a
@@ -648,10 +729,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @param {number} n
-   * @return {int[][]}
    */
+  // This is visible for testing.
   findAllUTF8Index(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$3(this, result))
@@ -660,6 +739,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAll} is the <a href='#all'>All</a> version of {@link #find}; it returns a list of up
    * to {@code n} successive matches of the expression, as defined by the <a href='#all'>All</a>
@@ -667,10 +747,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @param {number} n
-   * @return {string[]}
    */
+  // This is visible for testing.
   findAll(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$4(this, result, s))
@@ -679,6 +757,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAllIndex} is the <a href='#all'>All</a> version of {@link #findIndex}; it returns a
    * list of up to {@code n} successive matches of the expression, as defined by the <a
@@ -686,10 +765,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @param {number} n
-   * @return {int[][]}
    */
+  // This is visible for testing.
   findAllIndex(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$5(this, result))
@@ -698,6 +775,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAllUTF8Submatch} is the <a href='#all'>All</a> version of {@link #findUTF8Submatch};
    * it returns a list of up to {@code n} successive matches of the expression, as defined by the <a
@@ -705,10 +783,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @param {number} n
-   * @return {byte[][][]}
    */
+  // This is visible for testing.
   findAllUTF8Submatch(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$6(this, b, result))
@@ -717,6 +793,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAllUTF8SubmatchIndex} is the <a href='#all'>All</a> version of
    * {@link #findUTF8SubmatchIndex}; it returns a list of up to {@code n} successive matches of the
@@ -724,10 +801,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {byte[]} b
-   * @param {number} n
-   * @return {int[][]}
    */
+  // This is visible for testing.
   findAllUTF8SubmatchIndex(b, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$7(this, result))
@@ -736,6 +811,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAllSubmatch} is the <a href='#all'>All</a> version of {@link #findSubmatch}; it
    * returns a list of up to {@code n} successive matches of the expression, as defined by the <a
@@ -743,10 +819,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @param {number} n
-   * @return {java.lang.String[][]}
    */
+  // This is visible for testing.
   findAllSubmatch(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$8(this, s, result))
@@ -755,6 +829,7 @@ export class RE2 {
     }
     return result
   }
+
   /**
    * {@code findAllSubmatchIndex} is the <a href='#all'>All</a> version of
    * {@link #findSubmatchIndex}; it returns a list of up to {@code n} successive matches of the
@@ -762,10 +837,8 @@ export class RE2 {
    *
    * <p>
    * A return value of null indicates no match.
-   * @param {string} s
-   * @param {number} n
-   * @return {int[][]}
    */
+  // This is visible for testing.
   findAllSubmatchIndex(s, n) {
     const result = []
     this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$9(this, result))
