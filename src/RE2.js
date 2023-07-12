@@ -50,102 +50,18 @@ class AtomicReference {
 }
 
 export class RE2 {
-  constructor(expr, prog, numSubexp, longest) {
-    if (
-      (typeof expr === 'string' || expr === null) &&
-      ((prog != null && prog instanceof Prog) || prog === null) &&
-      (typeof numSubexp === 'number' || numSubexp === null) &&
-      (typeof longest === 'boolean' || longest === null)
-    ) {
-      let __args = arguments
-      if (this.expr === undefined) {
-        this.expr = null
-      }
-      if (this.prog === undefined) {
-        this.prog = null
-      }
-      if (this.cond === undefined) {
-        this.cond = 0
-      }
-      if (this.numSubexp === undefined) {
-        this.numSubexp = 0
-      }
-      if (this.longest === undefined) {
-        this.longest = false
-      }
-      if (this.prefix === undefined) {
-        this.prefix = null
-      }
-      if (this.prefixUTF8 === undefined) {
-        this.prefixUTF8 = null
-      }
-      if (this.prefixComplete === undefined) {
-        this.prefixComplete = false
-      }
-      if (this.prefixRune === undefined) {
-        this.prefixRune = 0
-      }
-      if (this.namedGroups === undefined) {
-        this.namedGroups = null
-      }
-      this.pooled = new AtomicReference()
-      this.expr = expr
-      this.prog = prog
-      this.numSubexp = numSubexp
-      this.cond = prog.startCond()
-      this.longest = longest
-    } else if (
-      (typeof expr === 'string' || expr === null) &&
-      prog === undefined &&
-      numSubexp === undefined &&
-      longest === undefined
-    ) {
-      let __args = arguments
-      if (this.expr === undefined) {
-        this.expr = null
-      }
-      if (this.prog === undefined) {
-        this.prog = null
-      }
-      if (this.cond === undefined) {
-        this.cond = 0
-      }
-      if (this.numSubexp === undefined) {
-        this.numSubexp = 0
-      }
-      if (this.longest === undefined) {
-        this.longest = false
-      }
-      if (this.prefix === undefined) {
-        this.prefix = null
-      }
-      if (this.prefixUTF8 === undefined) {
-        this.prefixUTF8 = null
-      }
-      if (this.prefixComplete === undefined) {
-        this.prefixComplete = false
-      }
-      if (this.prefixRune === undefined) {
-        this.prefixRune = 0
-      }
-      if (this.namedGroups === undefined) {
-        this.namedGroups = null
-      }
-      this.pooled = new AtomicReference()
-      const re2 = RE2.compile(expr)
-      this.expr = re2.expr
-      this.prog = re2.prog
-      this.cond = re2.cond
-      this.numSubexp = re2.numSubexp
-      this.longest = re2.longest
-      this.prefix = re2.prefix
-      this.prefixUTF8 = re2.prefixUTF8
-      this.prefixComplete = re2.prefixComplete
-      this.prefixRune = re2.prefixRune
-    } else {
-      throw new Error('invalid overload')
-    }
+  // This is visible for testing.
+  static initTest(expr) {
+    const re2 = RE2.compile(expr)
+    const res = new RE2(re2.expr, re2.prog, re2.numSubexp, re2.longest)
+    res.cond = re2.cond
+    res.prefix = re2.prefix
+    res.prefixUTF8 = re2.prefixUTF8
+    res.prefixComplete = re2.prefixComplete
+    res.prefixRune = re2.prefixRune
+    return res
   }
+
   /**
    * Parses a regular expression and returns, if successful, an {@code RE2} instance that can be
    * used to match against text.
@@ -156,12 +72,11 @@ export class RE2 {
    * found first. This so-called leftmost-first matching is the same semantics that Perl, Python,
    * and other implementations use, although this package implements it without the expense of
    * backtracking. For POSIX leftmost-longest matching, see {@link #compilePOSIX}.
-   * @param {string} expr
-   * @return {RE2}
    */
   static compile(expr) {
     return RE2.compileImpl(expr, RE2Flags.PERL, false)
   }
+
   /**
    * {@code compilePOSIX} is like {@link #compile} but restricts the regular expression to POSIX ERE
    * (egrep) syntax and changes the match semantics to leftmost-longest.
@@ -179,12 +94,12 @@ export class RE2 {
    * specifies that the match be chosen to maximize the length of the first subexpression, then the
    * second, and so on from left to right. The POSIX rule is computationally prohibitive and not
    * even well-defined. See http://swtch.com/~rsc/regexp/regexp2.html#posix
-   * @param {string} expr
-   * @return {RE2}
    */
   static compilePOSIX(expr) {
     return RE2.compileImpl(expr, RE2Flags.POSIX, true)
   }
+
+  // Exposed to ExecTests.
   static compileImpl(expr, mode, longest) {
     let re = Parser.parse(expr, mode)
     const maxCap = re.maxCap()
@@ -204,20 +119,37 @@ export class RE2 {
     re2.namedGroups = re.namedGroups
     return re2
   }
+
+  constructor(expr, prog, numSubexp = 0, longest = 0) {
+    this.expr = expr // as passed to Compile
+    this.prog = prog // compiled program
+    this.numSubexp = numSubexp
+    this.longest = longest
+    this.cond = prog.startCond() // EMPTY_* bitmask: empty-width conditions
+    this.prefix = null // required UTF-16 prefix in unanchored matches
+    this.prefixUTF8 = null // required UTF-8 prefix in unanchored matches
+    this.prefixComplete = false // true if prefix is the entire regexp
+    this.prefixRune = 0 // first rune in prefix
+    this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
+  }
+
   /**
    * Returns the number of parenthesized subexpressions in this regular expression.
-   * @return {number}
    */
   numberOfCapturingGroups() {
     return this.numSubexp
   }
+
+  // get() returns a machine to use for matching |this|.  It uses |this|'s
+  // machine cache if possible, to avoid unnecessary allocation.
   get() {
-    let head
-    do {
-      {
-        head = this.pooled.get()
-      }
-    } while (head != null && !this.pooled.compareAndSet(head, head.next))
+    // Pop a machine off the stack if available.
+    let head = this.pooled.get()
+
+    while (head && !this.pooled.compareAndSet(head, head.next)) {
+      head = this.pooled.get()
+    }
+
     return head
   }
   reset() {

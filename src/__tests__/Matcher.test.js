@@ -13,7 +13,7 @@ const helperTestMatchEndUTF16 = (string, num, end) => {
       return super.match(input, start, e, anchor, group, ngroup)
     }
   }
-  const re = new RE2Modified(pattern)
+  const re = RE2Modified.initTest(pattern)
 
   const pat = new Pattern(pattern, 0, re)
   const m = pat.matcher(string)

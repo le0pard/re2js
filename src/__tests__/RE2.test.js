@@ -5,13 +5,13 @@ import { expect, describe, test } from '@jest/globals'
 
 describe('RE2', () => {
   test('full match', () => {
-    expect(new RE2('ab+c').match('abbbbbc', 0, 7, RE2Flags.ANCHOR_BOTH, null, 0)).toBe(true)
-    expect(new RE2('ab+c').match('xabbbbbc', 0, 8, RE2Flags.ANCHOR_BOTH, null, 0)).toBe(false)
+    expect(RE2.initTest('ab+c').match('abbbbbc', 0, 7, RE2Flags.ANCHOR_BOTH, null, 0)).toBe(true)
+    expect(RE2.initTest('ab+c').match('xabbbbbc', 0, 8, RE2Flags.ANCHOR_BOTH, null, 0)).toBe(false)
     expect(
-      new RE2('ab+c').match(MatcherInput.utf8('abbbbbc'), 0, 7, RE2Flags.ANCHOR_BOTH, null, 0)
+      RE2.initTest('ab+c').match(MatcherInput.utf8('abbbbbc'), 0, 7, RE2Flags.ANCHOR_BOTH, null, 0)
     ).toBe(true)
     expect(
-      new RE2('ab+c').match(MatcherInput.utf8('xabbbbbc'), 0, 8, RE2Flags.ANCHOR_BOTH, null, 0)
+      RE2.initTest('ab+c').match(MatcherInput.utf8('xabbbbbc'), 0, 8, RE2Flags.ANCHOR_BOTH, null, 0)
     ).toBe(false)
   })
 
@@ -21,7 +21,7 @@ describe('RE2', () => {
   }
 
   test.concurrent.each(findEndCases())('find end for %p', (input) => {
-    const r = new RE2('abc.*def')
+    const r = RE2.initTest('abc.*def')
 
     expect(r.match(input, 0, 15, RE2Flags.UNANCHORED, null, 0)).toBe(true)
     expect(r.match(input, 0, 12, RE2Flags.UNANCHORED, null, 0)).toBe(true)
