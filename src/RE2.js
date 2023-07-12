@@ -144,29 +144,42 @@ export class RE2 {
   // machine cache if possible, to avoid unnecessary allocation.
   get() {
     // Pop a machine off the stack if available.
-    let head = this.pooled.get()
+    let head
 
-    while (head && !this.pooled.compareAndSet(head, head.next)) {
+    do {
       head = this.pooled.get()
-    }
+    } while (head && !this.pooled.compareAndSet(head, head.next))
 
     return head
   }
+
+  // Clears the memory associated with this machine.
   reset() {
     this.pooled.set(null)
   }
+
+  // put() returns a machine to |this|'s machine cache.  There is no attempt to
+  // limit the size of the cache, so it will grow to the maximum number of
+  // simultaneous matches run using |this|.  (The cache empties when |this|
+  // gets garbage collected or reset is called.)
   put(m, isNew) {
-    let head
+    // To avoid allocation in the single-thread or uncontended case, reuse a node only if
+    // it was the only element in the stack when it was popped, and it's the only element
+    // in the stack when it's pushed back after use.
+    let head = this.pooled.get()
     do {
-      {
-        head = this.pooled.get()
-        if (!isNew && head != null) {
-          m = Machine.fromMachine(m)
-          isNew = true
-        }
-        if (m.next !== head) {
-          m.next = head
-        }
+      head = this.pooled.get()
+      if (!isNew && head) {
+        // If an element had a null next pointer and it was previously in the stack, another thread
+        // might be trying to pop it out right now, and if it sees the same node now in the
+        // stack the pop will succeed, but the new top of the stack will be the stale (null) value
+        // of next. Allocate a new Machine so that the CAS will not succeed if this node has been
+        // popped and re-pushed.
+        m = Machine.fromMachine(m)
+        isNew = true
+      }
+      if (m.next !== head) {
+        m.next = head
       }
     } while (!this.pooled.compareAndSet(head, m))
   }
