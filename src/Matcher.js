@@ -536,28 +536,21 @@ export class Matcher {
       end = this.__inputLength
     }
 
-    const ok = this.__pattern
+    const res = this.__pattern
       .re2()
       .matchMachineInput(
         this.matcherInput,
         this.groups[0],
         end,
         this.anchorFlag,
-        this.groups,
         1 + this.__groupCount
       )
+
+    const ok = res[0]
     if (!ok) {
-      throw Object.defineProperty(new Error('inconsistency in matching group data'), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.IllegalStateException',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.Exception'
-        ]
-      })
+      throw new Error('inconsistency in matching group data')
     }
+    this.groups = res[1]
     this.hasGroups = true
   }
   /**
@@ -629,19 +622,21 @@ export class Matcher {
    * @private
    */
   /*private*/ genMatch(startByte, anchor) {
-    const ok = this.__pattern
+    const res = this.__pattern
       .re2()
       .matchMachineInput(
         this.matcherInput,
         startByte,
         this.__inputLength,
         anchor,
-        this.groups,
         1
       )
+
+    const ok = res[0]
     if (!ok) {
       return false
     }
+    this.groups = res[1]
     this.hasMatch = true
     this.hasGroups = false
     this.anchorFlag = anchor

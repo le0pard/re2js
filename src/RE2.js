@@ -127,7 +127,7 @@ class RE2 {
    */
   // This is visible for testing.
   static match(pattern, s) {
-    return RE2.compile(pattern).match$java_lang_CharSequence(s)
+    return RE2.compile(pattern).match(s)
   }
 
   constructor(expr, prog, numSubexp = 0, longest = 0) {
@@ -243,19 +243,8 @@ class RE2 {
     return cap
   }
 
-  match$java_lang_CharSequence(s) {
-    return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) != null
-  }
-
-  match$java_lang_CharSequence$int$int$int$int_A$int(input, start, end, anchor, group, ngroup) {
-    return this.matchMachineInput(
-      MatcherInput.utf16(input),
-      start,
-      end,
-      anchor,
-      group,
-      ngroup
-    )
+  match(s) {
+    return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) !== null
   }
 
   /**
@@ -272,72 +261,23 @@ class RE2 {
    * @param ngroup the number of array pairs to fill in
    * @return true if a match was found
    */
-  match(input, start, end, anchor, group, ngroup) {
-    if (
-      ((input != null &&
-        ((input.constructor != null &&
-          input.constructor['__interfaces'] != null &&
-          input.constructor['__interfaces'].indexOf('java.lang.CharSequence') >= 0) ||
-          typeof input === 'string')) ||
-        input === null) &&
-      (typeof start === 'number' || start === null) &&
-      (typeof end === 'number' || end === null) &&
-      (typeof anchor === 'number' || anchor === null) &&
-      ((group != null &&
-        group instanceof Array &&
-        (group.length === 0 || group[0] === null || typeof group[0] === 'number')) ||
-        group === null) &&
-      (typeof ngroup === 'number' || ngroup === null)
-    ) {
-      return this.match$java_lang_CharSequence$int$int$int$int_A$int(
-        input,
-        start,
-        end,
-        anchor,
-        group,
-        ngroup
-      )
-    } else if (
-      ((input != null && input instanceof MatcherInputBase) || input === null) &&
-      (typeof start === 'number' || start === null) &&
-      (typeof end === 'number' || end === null) &&
-      (typeof anchor === 'number' || anchor === null) &&
-      ((group != null &&
-        group instanceof Array &&
-        (group.length == 0 || group[0] == null || typeof group[0] === 'number')) ||
-        group === null) &&
-      (typeof ngroup === 'number' || ngroup === null)
-    ) {
-      return this.matchMachineInput(
-        input,
-        start,
-        end,
-        anchor,
-        group,
-        ngroup
-      )
-    } else if (
-      ((input != null &&
-        ((input.constructor != null &&
-          input.constructor['__interfaces'] != null &&
-          input.constructor['__interfaces'].indexOf('java.lang.CharSequence') >= 0) ||
-          typeof input === 'string')) ||
-        input === null) &&
-      start === undefined &&
-      end === undefined &&
-      anchor === undefined &&
-      group === undefined &&
-      ngroup === undefined
-    ) {
-      return this.match$java_lang_CharSequence(input)
-    } else {
-      throw new Error('invalid overload')
+  matchWithGroup(input, start, end, anchor, ngroup) {
+    if (!(input instanceof MatcherInputBase)) {
+      input = MatcherInput.utf16(input)
     }
+
+    return this.matchMachineInput(
+      input,
+      start,
+      end,
+      anchor,
+      ngroup
+    )
   }
 
-  matchMachineInput(input, start, end, anchor, group, ngroup) {
+  matchMachineInput(input, start, end, anchor, ngroup) {
     if (start > end) {
-      return false
+      return [false, null]
     }
     const machineInput = input.isUTF16Encoding()
       ? MachineInput.fromUTF16(input.asCharSequence(), 0, end)
@@ -345,25 +285,10 @@ class RE2 {
 
     const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)
 
-    if (groupMatch == null) {
-      return false
+    if (groupMatch === null) {
+      return [false, null]
     }
-
-    if (group != null) {
-      /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-        if (srcPts !== dstPts || dstOff >= srcOff + size) {
-          while (--size >= 0) {
-            dstPts[dstOff++] = srcPts[srcOff++]
-          }
-        } else {
-          let tmp = srcPts.slice(srcOff, srcOff + size)
-          for (let i = 0; i < size; i++) {
-            dstPts[dstOff++] = tmp[i]
-          }
-        }
-      })(groupMatch, 0, group, 0, groupMatch.length)
-    }
-    return true
+    return [true, groupMatch]
   }
 
   /**

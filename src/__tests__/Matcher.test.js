@@ -8,9 +8,9 @@ import { expect, describe, test } from '@jest/globals'
 const helperTestMatchEndUTF16 = (string, num, end) => {
   const pattern = `[${string}]`
   const RE2Modified = class extends RE2 {
-    match(input, start, e, anchor, group, ngroup) {
+    matchWithGroup(input, start, e, anchor, group, ngroup) {
       expect(end).toEqual(e)
-      return super.match(input, start, e, anchor, group, ngroup)
+      return super.matchWithGroup(input, start, e, anchor, group, ngroup)
     }
   }
   const re = RE2Modified.initTest(pattern)
