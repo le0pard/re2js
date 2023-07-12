@@ -758,148 +758,213 @@ class Parser {
     if (array.length < 2) {
       return array
     }
-    let s = 0
-    let lensub = array.length
-    let lenout = 0
+    // The following code is subtle, because it's a literal JS
+    // translation of code that makes clever use of Go "slices".
+    // A slice is a triple (array, offset, length), and the Go
+    // implementation uses two slices, |sub| and |out| backed by the
+    // same array.  In JS, we have to be explicit about all of these
+    // variables, so:
+    //
+    // Go    JS
+    // sub   (array, s, lensub)
+    // out   (array, 0, lenout)   // (always a prefix of |array|)
+    //
+    // In the comments we'll use the logical notation of go slices, e.g. sub[i]
+    // even though the JS code will read array[s + i].
+
+    let s = 0 // offset of first |sub| within array.
+    let lensub = array.length // = len(sub)
+    let lenout = 0 // = len(out)
+    // Round 1: Factor out common literal prefixes.
+    // Note: (str, strlen) and (istr, istrlen) are like Go slices
+    // onto a prefix of some Regexp's runes array (hence offset=0).
     let str = null
     let strlen = 0
     let strflags = 0
     let start = 0
     for (let i = 0; i <= lensub; i++) {
-      {
-        let istr = null
-        let istrlen = 0
-        let iflags = 0
-        if (i < lensub) {
-          let re = array[s + i]
-          if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
-            re = re.subs[0]
+      // Invariant: the Regexps that were in sub[0:start] have been
+      // used or marked for reuse, and the slice space has been reused
+      // for out (len <= start).
+      //
+      // Invariant: sub[start:i] consists of regexps that all begin
+      // with str as modified by strflags.
+      let istr = null
+      let istrlen = 0
+      let iflags = 0
+      if (i < lensub) {
+        // NB, we inlined Go's leadingString() since Java has no pair return.
+        let re = array[s + i]
+        if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
+          re = re.subs[0]
+        }
+        if (re.op === Regexp.Op.LITERAL) {
+          istr = re.runes
+          istrlen = re.runes.length
+          iflags = re.flags & RE2Flags.FOLD_CASE
+        }
+        // istr is the leading literal string that re begins with.
+        // The string refers to storage in re or its children.
+        if (iflags === strflags) {
+          let same = 0
+          while (same < strlen && same < istrlen && str[same] === istr[same]) {
+            same++
           }
-          if (re.op === Regexp.Op.LITERAL) {
-            istr = re.runes
-            istrlen = re.runes.length
-            iflags = re.flags & RE2Flags.FOLD_CASE
-          }
-          if (iflags === strflags) {
-            let same = 0
-            while (same < strlen && same < istrlen && str[same] === istr[same]) {
-              {
-                same++
-              }
-            }
 
-            if (same > 0) {
-              strlen = same
-              continue
-            }
+          if (same > 0) {
+            // Matches at least one rune in current range.
+            // Keep going around.
+            strlen = same
+            continue
           }
         }
-        if (i === start) {
-        } else if (i === start + 1) {
-          array[lenout++] = array[s + start]
-        } else {
-          const prefix = this.newRegexp(Regexp.Op.LITERAL)
-          prefix.flags = strflags
-          prefix.runes = str.slice(0, strlen)
-          for (let j = start; j < i; j++) {
-            array[s + j] = this.removeLeadingString(array[s + j], strlen)
-          }
-          const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
-          const re = this.newRegexp(Regexp.Op.CONCAT)
-          re.subs = [prefix, suffix]
-          array[lenout++] = re
-        }
-        start = i
-        str = istr
-        strlen = istrlen
-        strflags = iflags
       }
+      // Found end of a run with common leading literal string:
+      // sub[start:i] all begin with str[0:strlen], but sub[i]
+      // does not even begin with str[0].
+      //
+      // Factor out common string and append factored expression to out.
+      if (i === start) {
+        // Nothing to do - run of length 0.
+      } else if (i === start + 1) {
+        // Just one: don't bother factoring.
+        array[lenout++] = array[s + start]
+      } else {
+        // Construct factored form: prefix(suffix1|suffix2|...)
+        const prefix = this.newRegexp(Regexp.Op.LITERAL)
+        prefix.flags = strflags
+        prefix.runes = str.slice(0, strlen)
+        for (let j = start; j < i; j++) {
+          array[s + j] = this.removeLeadingString(array[s + j], strlen)
+        }
+        // Recurse.
+        const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
+        const re = this.newRegexp(Regexp.Op.CONCAT)
+        re.subs = [prefix, suffix]
+        array[lenout++] = re
+      }
+      // Prepare for next iteration.
+      start = i
+      str = istr
+      strlen = istrlen
+      strflags = iflags
     }
+    // In Go: sub = out
     lensub = lenout
     s = 0
+    // Round 2: Factor out common complex prefixes,
+    // just the first piece of each concatenation,
+    // whatever it is.  This is good enough a lot of the time.
     start = 0
     lenout = 0
     let first = null
     for (let i = 0; i <= lensub; i++) {
-      {
-        let ifirst = null
-        if (i < lensub) {
-          ifirst = Parser.leadingRegexp(array[s + i])
-          if (
-            first != null &&
-            first.equals(ifirst) &&
-            (Parser.isCharClass(first) ||
-              (first.op === Regexp.Op.REPEAT &&
-                first.min === first.max &&
-                Parser.isCharClass(first.subs[0])))
-          ) {
-            continue
-          }
+      // Invariant: the Regexps that were in sub[0:start] have been
+      // used or marked for reuse, and the slice space has been reused
+      // for out (lenout <= start).
+      //
+      // Invariant: sub[start:i] consists of regexps that all begin with
+      // ifirst.
+      let ifirst = null
+      if (i < lensub) {
+        ifirst = Parser.leadingRegexp(array[s + i])
+        if (
+          first != null &&
+          first.equals(ifirst) &&
+          (Parser.isCharClass(first) ||
+            (first.op === Regexp.Op.REPEAT &&
+              first.min === first.max &&
+              Parser.isCharClass(first.subs[0])))
+        ) {
+          continue
         }
-        if (i === start) {
-        } else if (i === start + 1) {
-          array[lenout++] = array[s + start]
-        } else {
-          const prefix = first
-          for (let j = start; j < i; j++) {
-            {
-              const reuse = j !== start
-              array[s + j] = this.removeLeadingRegexp(array[s + j], reuse)
-            }
-          }
-          const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
-          const re = this.newRegexp(Regexp.Op.CONCAT)
-          re.subs = [prefix, suffix]
-          array[lenout++] = re
-        }
-        start = i
-        first = ifirst
       }
+      // Found end of a run with common leading regexp:
+      // sub[start:i] all begin with first but sub[i] does not.
+      //
+      // Factor out common regexp and append factored expression to out.
+      if (i === start) {
+        // Nothing to do - run of length 0.
+      } else if (i === start + 1) {
+        // Just one: don't bother factoring.
+        array[lenout++] = array[s + start]
+      } else {
+        // Construct factored form: prefix(suffix1|suffix2|...)
+        const prefix = first
+        for (let j = start; j < i; j++) {
+          const reuse = j !== start // prefix came from sub[start]
+          array[s + j] = this.removeLeadingRegexp(array[s + j], reuse)
+        }
+        // recurse
+        const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
+        const re = this.newRegexp(Regexp.Op.CONCAT)
+        re.subs = [prefix, suffix]
+        array[lenout++] = re
+      }
+      // Prepare for next iteration.
+      start = i
+      first = ifirst
     }
+    // In Go: sub = out
     lensub = lenout
     s = 0
+    // Round 3: Collapse runs of single literals into character classes.
     start = 0
     lenout = 0
     for (let i = 0; i <= lensub; i++) {
-      {
-        if (i < lensub && Parser.isCharClass(array[s + i])) {
-          continue
-        }
-        if (i === start) {
-        } else if (i === start + 1) {
-          array[lenout++] = array[s + start]
-        } else {
-          let max = start
-          for (let j = start + 1; j < i; j++) {
-            const subMax = array[s + max]
-            const subJ = array[s + j]
-            if (
-              subMax.op < subJ.op ||
-              (subMax.op === subJ.op &&
-                (subMax.runes != null ? subMax.runes.length : 0) <
-                  (subJ.runes != null ? subJ.runes.length : 0))
-            ) {
-              max = j
-            }
-          }
-          const tmp = array[s + start]
-          array[s + start] = array[s + max]
-          array[s + max] = tmp
-          for (let j = start + 1; j < i; j++) {
-            Parser.mergeCharClass(array[s + start], array[s + j])
-            this.reuse(array[s + j])
-          }
-          this.cleanAlt(array[s + start])
-          array[lenout++] = array[s + start]
-        }
-        if (i < lensub) {
-          array[lenout++] = array[s + i]
-        }
-        start = i + 1
+      // Invariant: the Regexps that were in sub[0:start] have been
+      // used or marked for reuse, and the slice space has been reused
+      // for out (lenout <= start).
+      //
+      // Invariant: sub[start:i] consists of regexps that are either
+      // literal runes or character classes.
+      if (i < lensub && Parser.isCharClass(array[s + i])) {
+        continue
       }
+      // sub[i] is not a char or char class;
+      // emit char class for sub[start:i]...
+      if (i === start) {
+        // Nothing to do - run of length 0.
+      } else if (i === start + 1) {
+        // Just one: don't bother factoring.
+        array[lenout++] = array[s + start]
+      } else {
+        // Make new char class.
+        // Start with most complex regexp in sub[start].
+        let max = start
+        for (let j = start + 1; j < i; j++) {
+          const subMax = array[s + max]
+          const subJ = array[s + j]
+          if (
+            subMax.op < subJ.op ||
+            (subMax.op === subJ.op &&
+              (subMax.runes != null ? subMax.runes.length : 0) <
+              (subJ.runes != null ? subJ.runes.length : 0))
+          ) {
+            max = j
+          }
+        }
+        // swap sub[start], sub[max].
+        const tmp = array[s + start]
+        array[s + start] = array[s + max]
+        array[s + max] = tmp
+        for (let j = start + 1; j < i; j++) {
+          Parser.mergeCharClass(array[s + start], array[s + j])
+          this.reuse(array[s + j])
+        }
+        this.cleanAlt(array[s + start])
+        array[lenout++] = array[s + start]
+      }
+      // ... and then emit sub[i].
+      if (i < lensub) {
+        array[lenout++] = array[s + i]
+      }
+      start = i + 1
     }
+    // In Go: sub = out
     lensub = lenout
     s = 0
+    // Round 4: Collapse runs of empty matches into a single empty match.
     start = 0
     lenout = 0
     for (let i = 0; i < lensub; ++i) {
@@ -912,13 +977,18 @@ class Parser {
       }
       array[lenout++] = array[s + i]
     }
+    // In Go: sub = out
     lensub = lenout
     s = 0
     return array.slice(s, lensub)
   }
 
+  // removeLeadingString removes the first n leading runes
+  // from the beginning of re.  It returns the replacement for re.
   removeLeadingString(re, n) {
     if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
+      // Removing a leading string in a concatenation
+      // might simplify the concatenation.
       const sub = this.removeLeadingString(re.subs[0], n)
       re.subs[0] = sub
       if (sub.op === Regexp.Op.EMPTY_MATCH) {
@@ -926,6 +996,7 @@ class Parser {
         switch (re.subs.length) {
           case 0:
           case 1:
+            // Impossible but handle.
             re.op = Regexp.Op.EMPTY_MATCH
             re.subs = null
             break
@@ -935,7 +1006,6 @@ class Parser {
             this.reuse(old)
             break
           }
-
           default:
             re.subs = re.subs.slice(1, re.subs.length)
             break
@@ -952,6 +1022,10 @@ class Parser {
     return re
   }
 
+  // removeLeadingRegexp removes the leading regexp in re.
+  // It returns the replacement for re.
+  // If reuse is true, it passes the removed regexp (if no longer needed) to
+  // reuse.
   removeLeadingRegexp(re, reuse) {
     if (re.op === Regexp.Op.CONCAT && re.subs.length > 0) {
       if (reuse) {
@@ -981,8 +1055,10 @@ class Parser {
 
   parseInternal() {
     if ((this.flags & RE2Flags.LITERAL) !== 0) {
+      // Trivial parser for literal string.
       return Parser.literalRegexp(this.wholeRegexp, this.flags)
     }
+    // Otherwise, must do real work.
     let lastRepeatPos = -1
     let min = -1
     let max = -1
@@ -993,19 +1069,20 @@ class Parser {
         bigswitch: switch (t.peek()) {
           case Codepoint.CODES.get('('):
             if ((this.flags & RE2Flags.PERL_X) !== 0 && t.lookingAt('(?')) {
+              // Flag changes and non-capturing groups.
               this.parsePerlFlags(t)
               break
             }
             this.op(Regexp.Op.LEFT_PAREN).cap = ++this.numCap
-            t.skip(1)
+            t.skip(1) // '('
             break
           case Codepoint.CODES.get('|'):
-            this.parseVerticalBar()
-            t.skip(1)
+            this.parseVerticalBar() // '|'
+            t.skip(1) // '|'
             break
           case Codepoint.CODES.get(')'):
             this.parseRightParen()
-            t.skip(1)
+            t.skip(1) // ')'
             break
           case Codepoint.CODES.get('^'):
             if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
@@ -1013,7 +1090,7 @@ class Parser {
             } else {
               this.op(Regexp.Op.BEGIN_LINE)
             }
-            t.skip(1)
+            t.skip(1) // '^'
             break
           case Codepoint.CODES.get('$'):
             if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
@@ -1021,7 +1098,7 @@ class Parser {
             } else {
               this.op(Regexp.Op.END_LINE)
             }
-            t.skip(1)
+            t.skip(1) // '$'
             break
           case Codepoint.CODES.get('.'):
             if ((this.flags & RE2Flags.DOT_NL) !== 0) {
@@ -1029,7 +1106,7 @@ class Parser {
             } else {
               this.op(Regexp.Op.ANY_CHAR_NOT_NL)
             }
-            t.skip(1)
+            t.skip(1) // '.'
             break
           case Codepoint.CODES.get('['):
             this.parseClass(t)
@@ -1051,6 +1128,7 @@ class Parser {
                 break
             }
             this.repeat(op, min, max, repeatPos, t, lastRepeatPos)
+            // (min and max are now dead.)
             break
           }
 
@@ -1058,8 +1136,9 @@ class Parser {
             repeatPos = t.pos()
             const minMax = Parser.parseRepeat(t)
             if (minMax < 0) {
+              // If the repeat cannot be parsed, { is a literal.
               t.rewindTo(repeatPos)
-              this.literal(t.pop())
+              this.literal(t.pop()) // '{'
               break
             }
             min = minMax >> 16
@@ -1070,7 +1149,7 @@ class Parser {
 
           case Codepoint.CODES.get('\\'): {
             const savedPos = t.pos()
-            t.skip(1)
+            t.skip(1) // '\\'
             if ((this.flags & RE2Flags.PERL_X) !== 0 && t.more()) {
               const c = t.pop()
               switch (c) {
@@ -1084,8 +1163,10 @@ class Parser {
                   this.op(Regexp.Op.NO_WORD_BOUNDARY)
                   break bigswitch
                 case Codepoint.CODES.get('C'):
+                  // any byte; not supported
                   throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, '\\C')
                 case Codepoint.CODES.get('Q'): {
+                  // \Q ... \E: the ... is always literals
                   let lit = t.rest()
                   const i = lit.indexOf('\\E')
                   if (i >= 0) {
@@ -1111,8 +1192,10 @@ class Parser {
                   break
               }
             }
+
             const re = this.newRegexp(Regexp.Op.CHAR_CLASS)
             re.flags = this.flags
+            // Look for Unicode character group like \p{Han}
             if (t.lookingAt('\\p') || t.lookingAt('\\P')) {
               const cc = new CharClass()
               if (this.parseUnicodeClass(t, cc)) {
@@ -1121,6 +1204,7 @@ class Parser {
                 break bigswitch
               }
             }
+            // Perl character class escape.
             const cc = new CharClass()
             if (this.parsePerlClassEscape(t, cc)) {
               re.runes = cc.toArray()
@@ -1129,6 +1213,7 @@ class Parser {
             }
             t.rewindTo(savedPos)
             this.reuse(re)
+            // Ordinary single-character escape.
             this.literal(Parser.parseEscape(t))
             break
           }
@@ -1142,7 +1227,7 @@ class Parser {
 
     this.concat()
     if (this.swapVerticalBar()) {
-      this.pop()
+      this.pop() // pop vertical bar
     }
     this.alternate()
     const n = this.stack.length
@@ -1153,20 +1238,42 @@ class Parser {
     return this.stack[0]
   }
 
+  // parsePerlFlags parses a Perl flag setting or non-capturing group or both,
+  // like (?i) or (?: or (?i:.
+  // Pre: t at "(?".  Post: t after ")".
+  // Sets numCap.
   parsePerlFlags(t) {
     const startPos = t.pos()
+    // Check for named captures, first introduced in Python's regexp library.
+    // As usual, there are three slightly different syntaxes:
+    //
+    //   (?P<name>expr)   the original, introduced by Python
+    //   (?<name>expr)    the .NET alteration, adopted by Perl 5.10
+    //   (?'name'expr)    another .NET alteration, adopted by Perl 5.10
+    //
+    // Perl 5.10 gave in and implemented the Python version too,
+    // but they claim that the last two are the preferred forms.
+    // PCRE and languages based on it (specifically, PHP and Ruby)
+    // support all three as well.  EcmaScript 4 uses only the Python form.
+    //
+    // In both the open source world (via Code Search) and the
+    // Google source tree, (?P<expr>name) is the dominant form,
+    // so that's the one we implement.  One is enough.
     const s = t.rest()
     if (s.startsWith('(?P<')) {
+      // Pull out name.
       const end = s.indexOf('>')
       if (end < 0) {
         throw new PatternSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s)
       }
-      const name = s.substring(4, end)
+      const name = s.substring(4, end) // "name"
       t.skipString(name)
-      t.skip(5)
+      t.skip(5) // "(?P<>"
       if (!Parser.isValidCaptureName(name)) {
+         // "(?P<name>"
         throw new PatternSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s.substring(0, end))
       }
+      // Like ordinary capture, but named.
       const re = this.op(Regexp.Op.LEFT_PAREN)
       re.cap = ++this.numCap
       if (this.namedGroups[name]) {
@@ -1176,7 +1283,8 @@ class Parser {
       re.name = name
       return
     }
-    t.skip(2)
+    // Non-capturing group.  Might also twiddle Perl flags.
+    t.skip(2) // "(?"
 
     let flags = this.flags
     let sign = +1
@@ -1201,14 +1309,18 @@ class Parser {
             flags |= RE2Flags.NON_GREEDY
             sawFlag = true
             break
+          // Switch to negation.
           case Codepoint.CODES.get('-'):
             if (sign < 0) {
               break loop
             }
             sign = -1
+            // Invert flags so that | above turn into &~ and vice versa.
+            // We'll invert flags again before using it below.
             flags = ~flags
             sawFlag = false
             break
+          // End of flags, starting group or not.
           case Codepoint.CODES.get(':'):
           case Codepoint.CODES.get(')'):
             if (sign < 0) {
@@ -1218,11 +1330,13 @@ class Parser {
               flags = ~flags
             }
             if (c === Codepoint.CODES.get(':')) {
+              // Open new group
               this.op(Regexp.Op.LEFT_PAREN)
             }
             this.flags = flags
             return
           default:
+            // Flags.
             break loop
         }
       }
