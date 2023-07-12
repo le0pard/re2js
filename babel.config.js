@@ -1,4 +1,4 @@
-export default {
+export default { // eslint-disable-line import/no-default-export
   presets: [
     [
       '@babel/preset-env',
