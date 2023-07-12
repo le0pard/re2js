@@ -482,11 +482,13 @@ export class RE2 {
   }
 
   // Find matches in input.
-  allMatches(input, n, deliver) {
+  allMatches(input, n, deliverFun = (v) => v) {
+    let result = []
     const end = input.endPos()
     if (n < 0) {
       n = end + 1
     }
+
     for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end; ) {
       const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
       if (matches == null || matches.length === 0) {
@@ -507,11 +509,13 @@ export class RE2 {
         pos = matches[1]
       }
       prevMatchEnd = matches[1]
+
       if (accept) {
-        deliver.deliver(this.pad(matches))
+        result.push(deliverFun(this.pad(matches)))
         i++
       }
     }
+    return result
   }
 
   // Legacy Go-style interface; preserved (package-private) for better
@@ -671,13 +675,7 @@ export class RE2 {
     if (a == null) {
       return null
     }
-    const ret = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(null)
-      }
-      return a
-    })(1 + this.numSubexp)
+    const ret = new Array(1 + this.numSubexp).fill(null)
     for (let i = 0; i < ret.length; i++) {
       if (2 * i < a.length && a[2 * i] >= 0) {
         ret[i] = s.substring(a[2 * i], a[2 * i + 1])
@@ -714,8 +712,7 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllUTF8(b, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$2(this, result, b))
+    const result = this.allMatches(MachineInput.fromUTF8(b), n, (match) => b.slice(match[0], match[1]))
     if (result.length === 0) {
       return null
     }
@@ -732,8 +729,7 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllUTF8Index(b, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$3(this, result))
+    const result = this.allMatches(MachineInput.fromUTF8(b), n, (match) => match.slice(0, 2))
     if (result.length === 0) {
       return null
     }
@@ -750,8 +746,11 @@ export class RE2 {
    */
   // This is visible for testing.
   findAll(s, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$4(this, result, s))
+    const result = this.allMatches(
+      MachineInput.fromUTF16(s),
+      n,
+      (match) => s.substring(match[0], match[1])
+    )
     if (result.length === 0) {
       return null
     }
@@ -768,8 +767,7 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllIndex(s, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$5(this, result))
+    const result = this.allMatches(MachineInput.fromUTF16(s), n, (match) => match.slice(0, 2))
     if (result.length === 0) {
       return null
     }
@@ -786,8 +784,15 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllUTF8Submatch(b, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$6(this, b, result))
+    const result = this.allMatches(MachineInput.fromUTF8(b), n, (match) => {
+      let slice = new Array(match.length / 2 | 0).fill(null)
+      for (let j = 0; j < slice.length; j++) {
+        if (match[2 * j] >= 0) {
+          slice[j] = b.slice(match[2 * j], match[2 * j + 1])
+        }
+      }
+      return slice
+    })
     if (result.length === 0) {
       return null
     }
@@ -804,8 +809,7 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllUTF8SubmatchIndex(b, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF8(b), n, new RE2.RE2$7(this, result))
+    const result = this.allMatches(MachineInput.fromUTF8(b), n)
     if (result.length === 0) {
       return null
     }
@@ -822,8 +826,15 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllSubmatch(s, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$8(this, s, result))
+    const result = this.allMatches(MachineInput.fromUTF16(s), n, (match) => {
+      let slice = new Array(match.length / 2 | 0).fill(null)
+      for (let j = 0; j < slice.length; j++) {
+        if (match[2 * j] >= 0) {
+          slice[j] = s.substring(match[2 * j], match[2 * j + 1])
+        }
+      }
+      return slice
+    })
     if (result.length === 0) {
       return null
     }
@@ -840,8 +851,7 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllSubmatchIndex(s, n) {
-    const result = []
-    this.allMatches(MachineInput.fromUTF16(s), n, new RE2.RE2$9(this, result))
+    const result = this.allMatches(MachineInput.fromUTF16(s), n)
     if (result.length === 0) {
       return null
     }
@@ -882,154 +892,5 @@ RE2['__class'] = 'quickstart.RE2'
   }
   RE2.RE2$1 = RE2$1
   RE2$1['__interfaces'] = ['quickstart.RE2.ReplaceFunc']
-  class RE2$2 {
-    constructor(__parent, result, b) {
-      this.result = result
-      this.b = b
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      this.result.push(this.b.slice(match[0], match[1]))
-    }
-  }
-  RE2.RE2$2 = RE2$2
-  RE2$2['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$3 {
-    constructor(__parent, result) {
-      this.result = result
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      this.result.push(match.slice(0, 2))
-    }
-  }
-  RE2.RE2$3 = RE2$3
-  RE2$3['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$4 {
-    constructor(__parent, result, s) {
-      this.result = result
-      this.s = s
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      this.result.push(this.s.substring(match[0], match[1]))
-    }
-  }
-  RE2.RE2$4 = RE2$4
-  RE2$4['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$5 {
-    constructor(__parent, result) {
-      this.result = result
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      this.result.push(match.slice(0, 2))
-    }
-  }
-  RE2.RE2$5 = RE2$5
-  RE2$5['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$6 {
-    constructor(__parent, b, result) {
-      this.b = b
-      this.result = result
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      const slice = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(null)
-        }
-        return a
-      })((match.length / 2) | 0)
-      for (let j = 0; j < slice.length; ++j) {
-        if (match[2 * j] >= 0) {
-          slice[j] = this.b.slice(match[2 * j], match[2 * j + 1])
-        }
-      }
-      this.result.push(slice)
-    }
-  }
-  RE2.RE2$6 = RE2$6
-  RE2$6['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$7 {
-    constructor(__parent, result) {
-      this.result = result
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      this.result.push(match)
-    }
-  }
-  RE2.RE2$7 = RE2$7
-  RE2$7['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$8 {
-    constructor(__parent, s, result) {
-      this.s = s
-      this.result = result
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      const slice = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(null)
-        }
-        return a
-      })((match.length / 2) | 0)
-      for (let j = 0; j < slice.length; ++j) {
-        {
-          if (match[2 * j] >= 0) {
-            slice[j] = this.s.substring(match[2 * j], match[2 * j + 1])
-          }
-        }
-      }
-      this.result.push(slice)
-    }
-  }
-  RE2.RE2$8 = RE2$8
-  RE2$8['__interfaces'] = ['quickstart.RE2.DeliverFunc']
-  class RE2$9 {
-    constructor(__parent, result) {
-      this.result = result
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {int[]} match
-     */
-    deliver(match) {
-      this.result.push(match)
-    }
-  }
-  RE2.RE2$9 = RE2$9
-  RE2$9['__interfaces'] = ['quickstart.RE2.DeliverFunc']
+
 })(RE2 || (RE2 = {}))
