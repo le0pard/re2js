@@ -22,7 +22,6 @@ import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
 import { Machine } from './Machine'
-import { Prog } from './Prog'
 
 class AtomicReference {
   constructor(initialValue) {
@@ -49,7 +48,7 @@ class AtomicReference {
   }
 }
 
-export class RE2 {
+class RE2 {
   // This is visible for testing.
   static initTest(expr) {
     const re2 = RE2.compile(expr)
@@ -382,7 +381,7 @@ export class RE2 {
    */
   // This is visible for testing.
   replaceAll(src, repl) {
-    return this.replaceAllFunc(src, new RE2.RE2$0(this, repl), 2 * src.length + 1)
+    return this.replaceAllFunc(src, () => repl, 2 * src.length + 1)
   }
 
   /**
@@ -392,7 +391,7 @@ export class RE2 {
    */
   // This is visible for testing.
   replaceFirst(src, repl) {
-    return this.replaceAllFunc(src, new RE2.RE2$1(this, repl), 1)
+    return this.replaceAllFunc(src, () => repl, 1)
   }
 
   /**
@@ -402,7 +401,7 @@ export class RE2 {
    * replacement string.
    */
   // This is visible for testing.
-  replaceAllFunc(src, repl, maxReplaces) {
+  replaceAllFunc(src, replFunc, maxReplaces) {
     let lastMatchEnd = 0
     let searchPos = 0
     let out = ''
@@ -417,7 +416,7 @@ export class RE2 {
       out += src.substring(lastMatchEnd, a[0])
 
       if (a[1] > lastMatchEnd || a[0] === 0) {
-        out += repl.replace(src.substring(a[0], a[1]))
+        out += replFunc(src.substring(a[0], a[1]))
         numReplaces++
       }
 
@@ -446,36 +445,17 @@ export class RE2 {
   // an expression for \1.  Pad returns a with -1s appended as needed;
   // the result may alias a.
   pad(a) {
-    if (a == null) {
+    if (a === null) {
       return null
     }
-    const n = (1 + this.numSubexp) * 2
+
+    let n = (1 + this.numSubexp) * 2
+
     if (a.length < n) {
-      const a2 = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(n)
-      /* arraycopy */ ;((srcPts, srcOff, dstPts, dstOff, size) => {
-        if (srcPts !== dstPts || dstOff >= srcOff + size) {
-          while (--size >= 0) {
-            dstPts[dstOff++] = srcPts[srcOff++]
-          }
-        } else {
-          let tmp = srcPts.slice(srcOff, srcOff + size)
-          for (let i = 0; i < size; i++) {
-            dstPts[dstOff++] = tmp[i]
-          }
-        }
-      })(a, 0, a2, 0, a.length)
-      /* fill */
-      ;((a, start, end, v) => {
-        for (let i = start; i < end; i++) {
-          a[i] = v
-        }
-      })(a2, a.length, n, -1)
+      let a2 = new Array(n).fill(-1)
+      for (let i = 0; i < a.length; i++) {
+        a2[i] = a[i]
+      }
       a = a2
     }
     return a
@@ -628,16 +608,11 @@ export class RE2 {
   // This is visible for testing.
   findUTF8Submatch(b) {
     const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
-    if (a == null) {
+    if (a === null) {
       return null
     }
-    const ret = ((s) => {
-      let a = []
-      while (s-- > 0) {
-        a.push(null)
-      }
-      return a
-    })(1 + this.numSubexp)
+
+    const ret = new Array(1 + this.numSubexp).fill(null)
     for (let i = 0; i < ret.length; i++) {
       if (2 * i < a.length && a[2 * i] >= 0) {
         ret[i] = b.slice(a[2 * i], a[2 * i + 1])
@@ -672,7 +647,7 @@ export class RE2 {
   // This is visible for testing.
   findSubmatch(s) {
     const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
-    if (a == null) {
+    if (a === null) {
       return null
     }
     const ret = new Array(1 + this.numSubexp).fill(null)
@@ -712,7 +687,9 @@ export class RE2 {
    */
   // This is visible for testing.
   findAllUTF8(b, n) {
-    const result = this.allMatches(MachineInput.fromUTF8(b), n, (match) => b.slice(match[0], match[1]))
+    const result = this.allMatches(MachineInput.fromUTF8(b), n, (match) =>
+      b.slice(match[0], match[1])
+    )
     if (result.length === 0) {
       return null
     }
@@ -746,10 +723,8 @@ export class RE2 {
    */
   // This is visible for testing.
   findAll(s, n) {
-    const result = this.allMatches(
-      MachineInput.fromUTF16(s),
-      n,
-      (match) => s.substring(match[0], match[1])
+    const result = this.allMatches(MachineInput.fromUTF16(s), n, (match) =>
+      s.substring(match[0], match[1])
     )
     if (result.length === 0) {
       return null
@@ -785,7 +760,7 @@ export class RE2 {
   // This is visible for testing.
   findAllUTF8Submatch(b, n) {
     const result = this.allMatches(MachineInput.fromUTF8(b), n, (match) => {
-      let slice = new Array(match.length / 2 | 0).fill(null)
+      let slice = new Array((match.length / 2) | 0).fill(null)
       for (let j = 0; j < slice.length; j++) {
         if (match[2 * j] >= 0) {
           slice[j] = b.slice(match[2 * j], match[2 * j + 1])
@@ -827,7 +802,7 @@ export class RE2 {
   // This is visible for testing.
   findAllSubmatch(s, n) {
     const result = this.allMatches(MachineInput.fromUTF16(s), n, (match) => {
-      let slice = new Array(match.length / 2 | 0).fill(null)
+      let slice = new Array((match.length / 2) | 0).fill(null)
       for (let j = 0; j < slice.length; j++) {
         if (match[2 * j] >= 0) {
           slice[j] = s.substring(match[2 * j], match[2 * j + 1])
@@ -858,39 +833,5 @@ export class RE2 {
     return result
   }
 }
-RE2['__class'] = 'quickstart.RE2'
-;(function (RE2) {
-  class RE2$0 {
-    constructor(__parent, repl) {
-      this.repl = repl
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {string} orig
-     * @return {string}
-     */
-    replace(orig) {
-      return this.repl
-    }
-  }
-  RE2.RE2$0 = RE2$0
-  RE2$0['__interfaces'] = ['quickstart.RE2.ReplaceFunc']
-  class RE2$1 {
-    constructor(__parent, repl) {
-      this.repl = repl
-      this.__parent = __parent
-    }
-    /**
-     *
-     * @param {string} orig
-     * @return {string}
-     */
-    replace(orig) {
-      return this.repl
-    }
-  }
-  RE2.RE2$1 = RE2$1
-  RE2$1['__interfaces'] = ['quickstart.RE2.ReplaceFunc']
 
-})(RE2 || (RE2 = {}))
+export { RE2 }

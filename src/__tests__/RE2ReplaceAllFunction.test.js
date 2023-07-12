@@ -11,7 +11,7 @@ describe('.replaceAllFunc', () => {
   test.concurrent.each(cases)(
     'pattern %p with input %p will return %p',
     (pattern, input, expected) => {
-      const replaceFunc = { replace: (s) => `x${s}y` }
+      const replaceFunc = (s) => `x${s}y`
       const re = RE2.compile(pattern)
       expect(re.replaceAllFunc(input, replaceFunc, input.length)).toEqual(expected)
     }
