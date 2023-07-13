@@ -4,8 +4,7 @@ import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Utils } from './Utils'
 
 /**
- * A stateful iterator that interprets a regex {@code Pattern} on a specific input. Its interface
- * mimics the JDK 1.4.2 {@code java.util.regex.Matcher}.
+ * A stateful iterator that interprets a regex {@code Pattern} on a specific input.
  *
  * <p>
  * Conceptually, a Matcher consists of four parts:
