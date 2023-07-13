@@ -1,3 +1,8 @@
+import { Codepoint } from './Codepoint'
+import { RE2Flags } from './RE2Flags'
+import { MatcherInput, MatcherInputBase } from './MatcherInput'
+import { Utils } from './Utils'
+
 /**
  * A stateful iterator that interprets a regex {@code Pattern} on a specific input. Its interface
  * mimics the JDK 1.4.2 {@code java.util.regex.Matcher}.
@@ -19,437 +24,110 @@
  *
  * </ol>
  *
- * <p>
- * See the <a href="package.html">package-level documentation</a> for an overview of how to use this
- * API.
- * </p>
  *
  * @author rsc@google.com (Russ Cox)
- * @class
  */
-import { Codepoint } from './Codepoint'
-import { RE2Flags } from './RE2Flags'
-import { MatcherInput, MatcherInputBase } from './MatcherInput'
-import { Utils } from './Utils'
-
-export class Matcher {
+class Matcher {
   constructor(pattern, input) {
-    if (
-      ((pattern != null && pattern.constructor['__class'] === 'quickstart.Pattern') ||
-        pattern === null) &&
-      ((input != null &&
-        ((input.constructor != null &&
-          input.constructor['__interfaces'] != null &&
-          input.constructor['__interfaces'].indexOf('java.lang.CharSequence') >= 0) ||
-          typeof input === 'string')) ||
-        input === null)
-    ) {
-      let __args = arguments
-      {
-        let __args = arguments
-        if (this.__pattern === undefined) {
-          this.__pattern = null
-        }
-        if (this.groups === undefined) {
-          this.groups = null
-        }
-        if (this.namedGroups === undefined) {
-          this.namedGroups = null
-        }
-        if (this.__groupCount === undefined) {
-          this.__groupCount = 0
-        }
-        if (this.matcherInput === undefined) {
-          this.matcherInput = null
-        }
-        if (this.__inputLength === undefined) {
-          this.__inputLength = 0
-        }
-        if (this.appendPos === undefined) {
-          this.appendPos = 0
-        }
-        if (this.hasMatch === undefined) {
-          this.hasMatch = false
-        }
-        if (this.hasGroups === undefined) {
-          this.hasGroups = false
-        }
-        if (this.anchorFlag === undefined) {
-          this.anchorFlag = 0
-        }
-        if (pattern == null) {
-          throw Object.defineProperty(new Error('pattern is null'), '__classes', {
-            configurable: true,
-            value: [
-              'java.lang.Throwable',
-              'java.lang.Object',
-              'java.lang.RuntimeException',
-              'java.lang.NullPointerException',
-              'java.lang.Exception'
-            ]
-          })
-        }
-        this.__pattern = pattern
-        const re2 = pattern.re2()
-        this.__groupCount = re2.numberOfCapturingGroups()
-        this.groups = ((s) => {
-          let a = []
-          while (s-- > 0) {
-            a.push(0)
-          }
-          return a
-        })(2 + 2 * this.__groupCount)
-        this.namedGroups = re2.namedGroups
-      }
-      if (this.__pattern === undefined) {
-        this.__pattern = null
-      }
-      if (this.groups === undefined) {
-        this.groups = null
-      }
-      if (this.namedGroups === undefined) {
-        this.namedGroups = null
-      }
-      if (this.__groupCount === undefined) {
-        this.__groupCount = 0
-      }
-      if (this.matcherInput === undefined) {
-        this.matcherInput = null
-      }
-      if (this.__inputLength === undefined) {
-        this.__inputLength = 0
-      }
-      if (this.appendPos === undefined) {
-        this.appendPos = 0
-      }
-      if (this.hasMatch === undefined) {
-        this.hasMatch = false
-      }
-      if (this.hasGroups === undefined) {
-        this.hasGroups = false
-      }
-      if (this.anchorFlag === undefined) {
-        this.anchorFlag = 0
-      }
-      ;(() => {
-        this.reset$java_lang_CharSequence(input)
-      })()
-    } else if (
-      ((pattern != null && pattern.constructor['__class'] === 'quickstart.Pattern') ||
-        pattern === null) &&
-      ((input != null && input instanceof MatcherInputBase) || input === null)
-    ) {
-      let __args = arguments
-      {
-        let __args = arguments
-        if (this.__pattern === undefined) {
-          this.__pattern = null
-        }
-        if (this.groups === undefined) {
-          this.groups = null
-        }
-        if (this.namedGroups === undefined) {
-          this.namedGroups = null
-        }
-        if (this.__groupCount === undefined) {
-          this.__groupCount = 0
-        }
-        if (this.matcherInput === undefined) {
-          this.matcherInput = null
-        }
-        if (this.__inputLength === undefined) {
-          this.__inputLength = 0
-        }
-        if (this.appendPos === undefined) {
-          this.appendPos = 0
-        }
-        if (this.hasMatch === undefined) {
-          this.hasMatch = false
-        }
-        if (this.hasGroups === undefined) {
-          this.hasGroups = false
-        }
-        if (this.anchorFlag === undefined) {
-          this.anchorFlag = 0
-        }
-        if (pattern == null) {
-          throw Object.defineProperty(new Error('pattern is null'), '__classes', {
-            configurable: true,
-            value: [
-              'java.lang.Throwable',
-              'java.lang.Object',
-              'java.lang.RuntimeException',
-              'java.lang.NullPointerException',
-              'java.lang.Exception'
-            ]
-          })
-        }
-        this.__pattern = pattern
-        const re2 = pattern.re2()
-        this.__groupCount = re2.numberOfCapturingGroups()
-        this.groups = ((s) => {
-          let a = []
-          while (s-- > 0) {
-            a.push(0)
-          }
-          return a
-        })(2 + 2 * this.__groupCount)
-        this.namedGroups = re2.namedGroups
-      }
-      if (this.__pattern === undefined) {
-        this.__pattern = null
-      }
-      if (this.groups === undefined) {
-        this.groups = null
-      }
-      if (this.namedGroups === undefined) {
-        this.namedGroups = null
-      }
-      if (this.__groupCount === undefined) {
-        this.__groupCount = 0
-      }
-      if (this.matcherInput === undefined) {
-        this.matcherInput = null
-      }
-      if (this.__inputLength === undefined) {
-        this.__inputLength = 0
-      }
-      if (this.appendPos === undefined) {
-        this.appendPos = 0
-      }
-      if (this.hasMatch === undefined) {
-        this.hasMatch = false
-      }
-      if (this.hasGroups === undefined) {
-        this.hasGroups = false
-      }
-      if (this.anchorFlag === undefined) {
-        this.anchorFlag = 0
-      }
-      ;(() => {
-        this.reset$quickstart_MatcherInput(input)
-      })()
-    } else if (
-      ((pattern != null && pattern.constructor['__class'] === 'quickstart.Pattern') ||
-        pattern === null) &&
-      input === undefined
-    ) {
-      let __args = arguments
-      if (this.__pattern === undefined) {
-        this.__pattern = null
-      }
-      if (this.groups === undefined) {
-        this.groups = null
-      }
-      if (this.namedGroups === undefined) {
-        this.namedGroups = null
-      }
-      if (this.__groupCount === undefined) {
-        this.__groupCount = 0
-      }
-      if (this.matcherInput === undefined) {
-        this.matcherInput = null
-      }
-      if (this.__inputLength === undefined) {
-        this.__inputLength = 0
-      }
-      if (this.appendPos === undefined) {
-        this.appendPos = 0
-      }
-      if (this.hasMatch === undefined) {
-        this.hasMatch = false
-      }
-      if (this.hasGroups === undefined) {
-        this.hasGroups = false
-      }
-      if (this.anchorFlag === undefined) {
-        this.anchorFlag = 0
-      }
-      if (pattern == null) {
-        throw Object.defineProperty(new Error('pattern is null'), '__classes', {
-          configurable: true,
-          value: [
-            'java.lang.Throwable',
-            'java.lang.Object',
-            'java.lang.RuntimeException',
-            'java.lang.NullPointerException',
-            'java.lang.Exception'
-          ]
-        })
-      }
-      this.__pattern = pattern
-      const re2 = pattern.re2()
-      this.__groupCount = re2.numberOfCapturingGroups()
-      this.groups = ((s) => {
-        let a = []
-        while (s-- > 0) {
-          a.push(0)
-        }
-        return a
-      })(2 + 2 * this.__groupCount)
-      this.namedGroups = re2.namedGroups
+    if (pattern === null) {
+      throw new Error('pattern is null')
+    }
+    // The pattern being matched.
+    this.patternInput = pattern
+    const re2 = this.patternInput.re2()
+    // The number of submatches (groups) in the pattern.
+    this.patternGroupCount = re2.numberOfCapturingGroups()
+    // The group indexes, in [start, end) pairs.  Zeroth pair is overall match.
+    this.groups = []
+    this.namedGroups = re2.namedGroups
+
+    if (input instanceof MatcherInputBase) {
+      this.resetMatcherInput(input)
+    } else if (Array.isArray(input)) {
+      this.resetMatcherInput(MatcherInput.utf8(input))
     } else {
-      throw new Error('invalid overload')
+      this.resetMatcherInput(MatcherInput.utf16(input))
     }
   }
-  /**
-   * Returns the {@code Pattern} associated with this {@code Matcher}.
-   * @return {Pattern}
-   */
+
+  /** Returns the {@code Pattern} associated with this {@code Matcher}. */
   pattern() {
-    return this.__pattern
+    return this.patternInput
   }
-  reset$() {
-    this.__inputLength = this.matcherInput.length()
+
+  /**
+   * Resets the {@code Matcher}, rewinding input and discarding any match information.
+   *
+   * @return the {@code Matcher} itself, for chained method calls
+   */
+  reset() {
+    // The input length in UTF16 codes.
+    this.matcherInputLength = this.matcherInput.length()
+    // The append position: where the next append should start.
     this.appendPos = 0
+    // Is there a current match?
     this.hasMatch = false
+    // Have we found the submatches (groups) of the current match?
+    // group[0], group[1] are set regardless.
     this.hasGroups = false
+    // The anchor flag to use when repeating the match to find subgroups.
+    this.anchorFlag = 0
     return this
   }
-  reset$java_lang_CharSequence(input) {
-    return this.reset$quickstart_MatcherInput(MatcherInput.utf16(input))
-  }
+
   /**
    * Resets the {@code Matcher} and changes the input.
    *
-   * @param {*} input the new input string
-   * @return {Matcher} the {@code Matcher} itself, for chained method calls
    */
-  reset(input) {
-    if (
-      (input != null &&
-        ((input.constructor != null &&
-          input.constructor['__interfaces'] != null &&
-          input.constructor['__interfaces'].indexOf('java.lang.CharSequence') >= 0) ||
-          typeof input === 'string')) ||
-      input === null
-    ) {
-      return this.reset$java_lang_CharSequence(input)
-    } else if (
-      (input != null &&
-        input instanceof Array &&
-        (input.length == 0 || input[0] == null || typeof input[0] === 'number')) ||
-      input === null
-    ) {
-      return this.reset$byte_A(input)
-    } else if ((input != null && input instanceof MatcherInputBase) || input === null) {
-      return this.reset$quickstart_MatcherInput(input)
-    } else if (input === undefined) {
-      return this.reset$()
-    } else {
-      throw new Error('invalid overload')
-    }
-  }
-  reset$byte_A(bytes) {
-    return this.reset$quickstart_MatcherInput(MatcherInput.utf8(bytes))
-  }
-  /*private*/ reset$quickstart_MatcherInput(input) {
-    if (input == null) {
-      throw Object.defineProperty(new Error('input is null'), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.NullPointerException',
-          'java.lang.Exception'
-        ]
-      })
+  resetMatcherInput(input) {
+    if (input === null) {
+      throw new Error('input is null')
     }
     this.matcherInput = input
-    this.reset$()
+    this.reset()
     return this
   }
-  start$() {
-    return this.start$int(0)
-  }
-  end$() {
-    return this.end$int(0)
-  }
-  start$int(group) {
-    this.loadGroup(group)
-    return this.groups[2 * group]
-  }
-  start$java_lang_String(group) {
-    const g = ((m, k) => (m[k] === undefined ? null : m[k]))(this.namedGroups, group)
-    if (g == null) {
-      throw Object.defineProperty(new Error("group '" + group + "' not found"), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.IllegalArgumentException',
-          'java.lang.Exception'
-        ]
-      })
-    }
-    return this.start$int(g)
-  }
+
   /**
    * Returns the start of the named group of the most recent match, or -1 if the group was not
    * matched.
    *
-   * @param {string} group the group name
-   * @throws IllegalArgumentException if no group with that name exists
-   * @return {number}
    */
-  start(group) {
-    if (typeof group === 'string' || group === null) {
-      return this.start$java_lang_String(group)
-    } else if (typeof group === 'number' || group === null) {
-      return this.start$int(group)
-    } else if (group === undefined) {
-      return this.start$()
-    } else {
-      throw new Error('invalid overload')
+  start(group = 0) {
+    if (typeof group === 'string') {
+      const groupInt = this.namedGroups[group]
+      if (!Number.isFinite(groupInt)) {
+        throw new Error(`group '${group}' not found`)
+      }
+      group = groupInt
     }
-  }
-  end$int(group) {
+
     this.loadGroup(group)
-    return this.groups[2 * group + 1]
-  }
-  end$java_lang_String(group) {
-    const g = ((m, k) => (m[k] === undefined ? null : m[k]))(this.namedGroups, group)
-    if (g == null) {
-      throw Object.defineProperty(new Error("group '" + group + "' not found"), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.IllegalArgumentException',
-          'java.lang.Exception'
-        ]
-      })
-    }
-    return this.end$int(g)
+    return this.groups[2 * group]
   }
   /**
    * Returns the end of the named group of the most recent match, or -1 if the group was not
    * matched.
    *
-   * @param {string} group the group name
-   * @throws IllegalArgumentException if no group with that name exists
-   * @return {number}
    */
-  end(group) {
-    if (typeof group === 'string' || group === null) {
-      return this.end$java_lang_String(group)
-    } else if (typeof group === 'number' || group === null) {
-      return this.end$int(group)
-    } else if (group === undefined) {
-      return this.end$()
-    } else {
-      throw new Error('invalid overload')
+  end(group = 0) {
+    if (typeof group === 'string') {
+      const groupInt = this.namedGroups[group]
+      if (!Number.isFinite(groupInt)) {
+        throw new Error(`group '${group}' not found`)
+      }
+      group = groupInt
     }
+
+    this.loadGroup(group)
+    return this.groups[2 * group + 1]
   }
   group$() {
     return this.group$int(0)
   }
   group$int(group) {
-    const start = this.start$int(group)
-    const end = this.end$int(group)
+    const start = this.start(group)
+    const end = this.end(group)
     if (start < 0 && end < 0) {
       return null
     }
@@ -495,7 +173,7 @@ export class Matcher {
    * @return {number} the number of subgroups; the overall match (group 0) does not count
    */
   groupCount() {
-    return this.__groupCount
+    return this.patternGroupCount
   }
   /**
    * Helper: finds subgroup information if needed for group.
@@ -503,7 +181,7 @@ export class Matcher {
    * @private
    */
   /*private*/ loadGroup(group) {
-    if (group < 0 || group > this.__groupCount) {
+    if (group < 0 || group > this.patternGroupCount) {
       throw Object.defineProperty(new Error('Group index out of bounds: ' + group), '__classes', {
         configurable: true,
         value: [
@@ -532,18 +210,18 @@ export class Matcher {
     }
 
     let end = this.groups[1] + 1
-    if (end > this.__inputLength) {
-      end = this.__inputLength
+    if (end > this.matcherInputLength) {
+      end = this.matcherInputLength
     }
 
-    const res = this.__pattern
+    const res = this.patternInput
       .re2()
       .matchMachineInput(
         this.matcherInput,
         this.groups[0],
         end,
         this.anchorFlag,
-        1 + this.__groupCount
+        1 + this.patternGroupCount
       )
 
     const ok = res[0]
@@ -582,7 +260,7 @@ export class Matcher {
     return this.genMatch(start, RE2Flags.UNANCHORED)
   }
   find$int(start) {
-    if (start < 0 || start > this.__inputLength) {
+    if (start < 0 || start > this.matcherInputLength) {
       throw Object.defineProperty(new Error('start index out of bounds: ' + start), '__classes', {
         configurable: true,
         value: [
@@ -594,7 +272,7 @@ export class Matcher {
         ]
       })
     }
-    this.reset$()
+    this.reset()
     return this.genMatch(start, 0)
   }
   /**
@@ -622,9 +300,9 @@ export class Matcher {
    * @private
    */
   /*private*/ genMatch(startByte, anchor) {
-    const res = this.__pattern
+    const res = this.patternInput
       .re2()
-      .matchMachineInput(this.matcherInput, startByte, this.__inputLength, anchor, 1)
+      .matchMachineInput(this.matcherInput, startByte, this.matcherInputLength, anchor, 1)
 
     const ok = res[0]
     if (!ok) {
@@ -653,7 +331,7 @@ export class Matcher {
    * @return {number}
    */
   inputLength() {
-    return this.__inputLength
+    return this.matcherInputLength
   }
   /**
    * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
@@ -731,8 +409,8 @@ export class Matcher {
     }
   }
   appendReplacement$java_lang_StringBuilder$java_lang_String(sb, replacement) {
-    const s = this.start$()
-    const e = this.end$()
+    const s = this.start()
+    const e = this.end()
     if (this.appendPos < s) {
       /* append */ ;((sb) => {
         sb.str += this.substring(this.appendPos, s)
@@ -782,14 +460,14 @@ export class Matcher {
                 if (
                   c < '0'.codePointAt(0) ||
                   c > '9'.codePointAt(0) ||
-                  n * 10 + c - '0'.codePointAt(0) > this.__groupCount
+                  n * 10 + c - '0'.codePointAt(0) > this.patternGroupCount
                 ) {
                   break
                 }
                 n = n * 10 + c - '0'.codePointAt(0)
               }
             }
-            if (n > this.__groupCount) {
+            if (n > this.patternGroupCount) {
               throw Object.defineProperty(new Error('n > number of groups: ' + n), '__classes', {
                 configurable: true,
                 value: [
@@ -871,7 +549,7 @@ export class Matcher {
   }
   appendTail$java_lang_StringBuffer(sb) {
     /* append */ ;((sb) => {
-      sb.str += this.substring(this.appendPos, this.__inputLength)
+      sb.str += this.substring(this.appendPos, this.matcherInputLength)
       return sb
     })(sb)
     return sb
@@ -894,7 +572,7 @@ export class Matcher {
   }
   appendTail$java_lang_StringBuilder(sb) {
     /* append */ ;((sb) => {
-      sb.str += this.substring(this.appendPos, this.__inputLength)
+      sb.str += this.substring(this.appendPos, this.matcherInputLength)
       return sb
     })(sb)
     return sb
@@ -929,7 +607,7 @@ export class Matcher {
    * @private
    */
   /*private*/ replace(replacement, all) {
-    this.reset$()
+    this.reset()
     const sb = {
       str: '',
       toString: function () {
@@ -947,4 +625,5 @@ export class Matcher {
     return /* toString */ sb.str
   }
 }
-Matcher['__class'] = 'quickstart.Matcher'
+
+export { Matcher }

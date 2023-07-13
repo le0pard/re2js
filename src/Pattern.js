@@ -307,17 +307,17 @@ export class Pattern {
     let last = 0
     while (m.find$()) {
       {
-        if (last === 0 && m.end$() === 0) {
-          last = m.end$()
+        if (last === 0 && m.end() === 0) {
+          last = m.end()
           continue
         }
         if (limit > 0 && /* size */ result.length === limit - 1) {
           break
         }
-        if (last === m.start$()) {
+        if (last === m.start()) {
           if (limit === 0) {
             emptiesSkipped++
-            last = m.end$()
+            last = m.end()
             continue
           }
         } else {
@@ -328,8 +328,8 @@ export class Pattern {
             }
           }
         }
-        /* add */ result.push(m.substring(last, m.start$())) > 0
-        last = m.end$()
+        /* add */ result.push(m.substring(last, m.start())) > 0
+        last = m.end()
       }
     }
 
