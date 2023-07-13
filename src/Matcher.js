@@ -28,6 +28,31 @@ import { Utils } from './Utils'
  * @author rsc@google.com (Russ Cox)
  */
 class Matcher {
+
+  /**
+   * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
+   * {@link #appendReplacement} as a literal replacement of {@code s}.
+   *
+   * @param {string} s the string to be quoted
+   * @return {string} the quoted string
+   */
+  static quoteReplacement(str) {
+    if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
+      return str
+    }
+
+    return str
+      .split('')
+      .map((s) => {
+        const c = s.codePointAt(0)
+        if (c === Codepoint.CODES['\\'] || c === Codepoint.CODES['$']) {
+          return `\\${s}`
+        }
+        return s
+      })
+      .join('')
+  }
+
   constructor(pattern, input) {
     if (pattern === null) {
       throw new Error('pattern is null')
@@ -263,6 +288,7 @@ class Matcher {
     this.anchorFlag = anchor
     return true
   }
+
   /**
    * Helper: return substring for [start, end).
    * @param {number} start
@@ -275,6 +301,7 @@ class Matcher {
     }
     return this.matcherInput.asCharSequence().substring(start, end).toString()
   }
+
   /**
    * Helper for Pattern: return input length.
    * @return {number}
@@ -282,29 +309,7 @@ class Matcher {
   inputLength() {
     return this.matcherInputLength
   }
-  /**
-   * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
-   * {@link #appendReplacement} as a literal replacement of {@code s}.
-   *
-   * @param {string} s the string to be quoted
-   * @return {string} the quoted string
-   */
-  static quoteReplacement(str) {
-    if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
-      return str
-    }
 
-    return str
-      .split('')
-      .map((s) => {
-        const c = s.codePointAt(0)
-        if (c === Codepoint.CODES['\\'] || c === Codepoint.CODES['$']) {
-          return `\\${s}`
-        }
-        return s
-      })
-      .join('')
-  }
   appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement) {
     const result = {
       str: '',
