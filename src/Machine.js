@@ -259,7 +259,7 @@ class Machine {
     const longest = this.re2.longest
     for (let j = 0; j < runq.size; j++) {
       let t = runq.denseThreads[j]
-      if (t == null) {
+      if (t === null) {
         continue
       }
       if (longest && this.matched && this.ncap > 0 && this.matchcap[0] < t.cap[0]) {
@@ -301,7 +301,7 @@ class Machine {
       if (add) {
         t = this.add(nextq, i.out, nextPos, t.cap, nextCond, t)
       }
-      if (t != null) {
+      if (t !== null) {
         this.freeThread(t)
         runq.denseThreads[j] = null
       }
@@ -350,7 +350,7 @@ class Machine {
       case Inst.RUNE1:
       case Inst.RUNE_ANY:
       case Inst.RUNE_ANY_NOT_NL:
-        if (t == null) {
+        if (t === null) {
           t = this.alloc(inst)
         } else {
           t.inst = inst

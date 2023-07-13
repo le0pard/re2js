@@ -202,7 +202,7 @@ class Compiler {
           let f = null
           for (let r of re.runes) {
             const f1 = this.rune([r], re.flags)
-            f = f == null ? f1 : this.cat(f, f1)
+            f = f === null ? f1 : this.cat(f, f1)
           }
           return f
         }
@@ -243,7 +243,7 @@ class Compiler {
           let f = null
           for (let sub of re.subs) {
             const f1 = this.compile(sub)
-            f = f == null ? f1 : this.cat(f, f1)
+            f = f === null ? f1 : this.cat(f, f1)
           }
           return f
         }
@@ -255,7 +255,7 @@ class Compiler {
           let f = null
           for (let sub of re.subs) {
             const f1 = this.compile(sub)
-            f = f == null ? f1 : this.alt(f, f1)
+            f = f === null ? f1 : this.alt(f, f1)
           }
           return f
         }

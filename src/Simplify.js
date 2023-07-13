@@ -100,14 +100,14 @@ class Simplify {
             suffix = Simplify.simplify1(Regexp.Op.QUEST, re.flags, nre2, null)
           }
 
-          if (prefixSubs == null) {
+          if (prefixSubs === null) {
             return suffix
           }
 
           prefixSubs.push(suffix)
         }
 
-        if (prefixSubs != null) {
+        if (prefixSubs !== null) {
           const prefix = new Regexp(Regexp.Op.CONCAT)
           prefix.subs = prefixSubs.slice(0)
           return prefix
@@ -149,7 +149,7 @@ class Simplify {
     }
 
     if (
-      re != null &&
+      re !== null &&
       re.op === op &&
       (re.flags & RE2Flags.NON_GREEDY) === (flags & RE2Flags.NON_GREEDY) &&
       sub === re.subs[0]

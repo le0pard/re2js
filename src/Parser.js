@@ -481,7 +481,7 @@ class Parser {
   // Allocate a Regexp, from the free list if possible.
   newRegexp(op) {
     let re = this.free
-    if (re != null && re.subs != null && re.subs.length > 0) {
+    if (re !== null && re.subs !== null && re.subs.length > 0) {
       this.free = re.subs[0]
       re.reinit()
       re.op = op
@@ -492,7 +492,7 @@ class Parser {
   }
 
   reuse(re) {
-    if (re.subs != null && re.subs.length > 0) {
+    if (re.subs !== null && re.subs.length > 0) {
       re.subs[0] = this.free
     }
     this.free = re
@@ -870,7 +870,7 @@ class Parser {
       if (i < lensub) {
         ifirst = Parser.leadingRegexp(array[s + i])
         if (
-          first != null &&
+          first !== null &&
           first.equals(ifirst) &&
           (Parser.isCharClass(first) ||
             (first.op === Regexp.Op.REPEAT &&
@@ -939,8 +939,8 @@ class Parser {
           if (
             subMax.op < subJ.op ||
             (subMax.op === subJ.op &&
-              (subMax.runes != null ? subMax.runes.length : 0) <
-                (subJ.runes != null ? subJ.runes.length : 0))
+              (subMax.runes !== null ? subMax.runes.length : 0) <
+                (subJ.runes !== null ? subJ.runes.length : 0))
           ) {
             max = j
           }
@@ -1448,7 +1448,7 @@ class Parser {
     t.pop() // e.g. advance past 'd' in "\\d"
     const p = t.from(beforePos)
     const g = PERL_GROUPS.has(p) ? PERL_GROUPS.get(p) : null
-    if (g == null) {
+    if (g === null) {
       return false
     }
     cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0)
@@ -1472,7 +1472,7 @@ class Parser {
     const name = cls.substring(0, i + 2) // "[:alnum:]"
     t.skipString(name)
     const g = POSIX_GROUPS.has(name) ? POSIX_GROUPS.get(name) : null
-    if (g == null) {
+    if (g === null) {
       throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, name)
     }
     cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0)
@@ -1535,14 +1535,14 @@ class Parser {
     }
 
     const pair = Parser.unicodeTable(name)
-    if (pair == null) {
+    if (pair === null) {
       throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(startPos))
     }
 
     const tab = pair.first
     const fold = pair.second // fold-equivalent table
     // Variation of CharClass.appendGroup() for tables.
-    if ((this.flags & RE2Flags.FOLD_CASE) === 0 || fold == null) {
+    if ((this.flags & RE2Flags.FOLD_CASE) === 0 || fold === null) {
       cc.appendTableWithSign(tab, sign)
     } else {
       // Merge and clean tab and fold in a temporary buffer.

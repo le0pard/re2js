@@ -384,7 +384,7 @@ class Matcher {
           }
 
           const group = this.group(n)
-          if (group != null) {
+          if (group !== null) {
             res += group
           }
 

@@ -329,7 +329,7 @@ class RE2 {
     let numReplaces = 0
     while (searchPos <= src.length) {
       const a = this.doExecute(input, searchPos, RE2Flags.UNANCHORED, 2)
-      if (a == null || a.length === 0) {
+      if (a === null || a.length === 0) {
         break
       }
       out += src.substring(lastMatchEnd, a[0])
@@ -393,7 +393,7 @@ class RE2 {
     let prevMatchEnd = -1
     while (i < n && pos <= end) {
       const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
-      if (matches == null || matches.length === 0) {
+      if (matches === null || matches.length === 0) {
         break
       }
 
