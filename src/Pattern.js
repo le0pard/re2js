@@ -305,7 +305,7 @@ export class Pattern {
     const result = []
     let emptiesSkipped = 0
     let last = 0
-    while (m.find$()) {
+    while (m.find()) {
       {
         if (last === 0 && m.end() === 0) {
           last = m.end()

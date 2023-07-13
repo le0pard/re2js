@@ -213,49 +213,34 @@ class Matcher {
     return this.genMatch(0, RE2Flags.ANCHOR_START)
   }
 
-  find$() {
-    let start = 0
+  /**
+   * Matches the input against the pattern (unanchored), starting at a specified position. If there
+   * is a match, {@code find} sets the match state to describe it.
+   *
+   * @param start the input position where the search begins
+   * @return true if it finds a match
+   * @throws IndexOutOfBoundsException if start is not a valid input position
+   */
+  find(start = null) {
+    if (start !== null) {
+      if (start < 0 || start > this.matcherInputLength) {
+        throw new Error(`start index out of bounds: ${start}`)
+      }
+      this.reset()
+      return this.genMatch(start, 0)
+    }
+    // no start
+    start = 0
     if (this.hasMatch) {
       start = this.groups[1]
       if (this.groups[0] === this.groups[1]) {
         start++
       }
     }
+
     return this.genMatch(start, RE2Flags.UNANCHORED)
   }
-  find$int(start) {
-    if (start < 0 || start > this.matcherInputLength) {
-      throw Object.defineProperty(new Error('start index out of bounds: ' + start), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.IndexOutOfBoundsException',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.Exception'
-        ]
-      })
-    }
-    this.reset()
-    return this.genMatch(start, 0)
-  }
-  /**
-   * Matches the input against the pattern (unanchored), starting at a specified position. If there
-   * is a match, {@code find} sets the match state to describe it.
-   *
-   * @param {number} start the input position where the search begins
-   * @return {boolean} true if it finds a match
-   * @throws IndexOutOfBoundsException if start is not a valid input position
-   */
-  find(start) {
-    if (typeof start === 'number' || start === null) {
-      return this.find$int(start)
-    } else if (start === undefined) {
-      return this.find$()
-    } else {
-      throw new Error('invalid overload')
-    }
-  }
+
   /**
    * Helper: does match starting at start, with RE2 anchor flag.
    * @param {number} startByte
@@ -263,7 +248,7 @@ class Matcher {
    * @return {boolean}
    * @private
    */
-  /*private*/ genMatch(startByte, anchor) {
+  genMatch(startByte, anchor) {
     const res = this.patternInput
       .re2()
       .matchMachineInput(this.matcherInput, startByte, this.matcherInputLength, anchor, 1)
@@ -578,7 +563,7 @@ class Matcher {
         return this.str
       }
     }
-    while (this.find$()) {
+    while (this.find()) {
       this.appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement)
       if (!all) {
         break
