@@ -438,7 +438,7 @@ class RE2 {
   // if n >= 0, the function returns at most n matches/submatches.
   //
   // If 'UTF8' is present, the argument is a UTF-8 encoded byte[] array;
-  // otherwise it is a UTF-16 encoded java.lang.String; return values
+  // otherwise it is a UTF-16 encoded js string; return values
   // are adjusted as appropriate.
   //
   // If 'Submatch' is present, the return value is an list identifying
