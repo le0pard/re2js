@@ -28,7 +28,6 @@ import { Utils } from './Utils'
  * @author rsc@google.com (Russ Cox)
  */
 class Matcher {
-
   /**
    * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
    * {@link #appendReplacement} as a literal replacement of {@code s}.
@@ -311,7 +310,7 @@ class Matcher {
   }
 
   /**
-   * Appends to {@code sb} two strings: the text from the append position up to the beginning of the
+   * Appends to result two strings: the text from the append position up to the beginning of the
    * most recent match, and then the replacement with submatch groups substituted for references of
    * the form {@code $n}, where {@code n} is the group number in decimal. It advances the append
    * position to where the most recent match ended.
@@ -326,13 +325,12 @@ class Matcher {
    * digits as long as the resulting number is a valid group number for this pattern. To cut it off
    * earlier, escape the first digit that should not be used.
    *
-   * @param {{ str: string, toString: Function }} sb the {@link StringBuffer} to append to
-   * @param {string} replacement the replacement string
-   * @return {Matcher} the {@code Matcher} itself, for chained method calls
+   * @param sb the {@link StringBuilder} to append to
+   * @param replacement the replacement string
+   * @return the {@code Matcher} itself, for chained method calls
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
    */
-
   appendReplacement(replacement) {
     let res = ''
     const s = this.start()
@@ -409,10 +407,7 @@ class Matcher {
             j++
           }
 
-          if (
-            j === replacement.length ||
-            replacement.codePointAt(j) !== Codepoint.CODES.get('}')
-          ) {
+          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('}')) {
             throw new Error("named capture group is missing trailing '}'")
           }
 
@@ -430,36 +425,15 @@ class Matcher {
     return res
   }
 
-  appendTail$java_lang_StringBuffer(sb) {
-    /* append */ ;((sb) => {
-      sb.str += this.substring(this.appendPos, this.matcherInputLength)
-      return sb
-    })(sb)
-    return sb
-  }
   /**
-   * Appends to {@code sb} the substring of the input from the append position to the end of the
+   * Return the substring of the input from the append position to the end of the
    * input.
    *
-   * @param {{ str: string, toString: Function }} sb the {@link StringBuffer} to append to
-   * @return {{ str: string, toString: Function }} the argument {@code sb}, for method chaining
    */
-  appendTail(sb) {
-    if ((sb != null && sb instanceof Object) || sb === null) {
-      return this.appendTail$java_lang_StringBuffer(sb)
-    } else if ((sb != null && sb instanceof Object) || sb === null) {
-      return this.appendTail$java_lang_StringBuilder(sb)
-    } else {
-      throw new Error('invalid overload')
-    }
+  appendTail() {
+    return this.substring(this.appendPos, this.matcherInputLength)
   }
-  appendTail$java_lang_StringBuilder(sb) {
-    /* append */ ;((sb) => {
-      sb.str += this.substring(this.appendPos, this.matcherInputLength)
-      return sb
-    })(sb)
-    return sb
-  }
+
   /**
    * Returns the input with all matches replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
@@ -471,6 +445,7 @@ class Matcher {
   replaceAll(replacement) {
     return this.replace(replacement, true)
   }
+
   /**
    * Returns the input with the first match replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
@@ -482,6 +457,7 @@ class Matcher {
   replaceFirst(replacement) {
     return this.replace(replacement, false)
   }
+
   /**
    * Helper: replaceAll/replaceFirst hybrid.
    * @param {string} replacement
@@ -489,23 +465,19 @@ class Matcher {
    * @return {string}
    * @private
    */
-  /*private*/ replace(replacement, all) {
+  replace(replacement, all) {
+    let res = ''
+
     this.reset()
-    const sb = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
     while (this.find()) {
-      sb.str += this.appendReplacement(replacement)
+      res += this.appendReplacement(replacement)
       if (!all) {
         break
       }
     }
 
-    this.appendTail$java_lang_StringBuffer(sb)
-    return /* toString */ sb.str
+    res += this.appendTail()
+    return res
   }
 }
 
