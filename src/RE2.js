@@ -290,7 +290,7 @@ class RE2 {
    */
   // This is visible for testing.
   matchUTF8(b) {
-    return this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 0) != null
+    return this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 0) !== null
   }
 
   /**
@@ -388,7 +388,10 @@ class RE2 {
       n = end + 1
     }
 
-    for (let pos = 0, i = 0, prevMatchEnd = -1; i < n && pos <= end; ) {
+    let pos = 0
+    let i = 0
+    let prevMatchEnd = -1
+    while (i < n && pos <= end) {
       const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
       if (matches == null || matches.length === 0) {
         break
@@ -570,6 +573,7 @@ class RE2 {
     if (a === null) {
       return null
     }
+
     const ret = new Array(1 + this.numSubexp).fill(null)
     for (let i = 0; i < ret.length; i++) {
       if (2 * i < a.length && a[2 * i] >= 0) {
