@@ -15,178 +15,6 @@ const FIXTURES_DIRNAME = path.join(
   '../__fixtures__'
 )
 
-// unquoteChar decodes the first character or byte in the escaped
-// string or character literal represented by the Go literal encoded
-// in UTF-16 in s.
-//
-// On success, it advances the UTF-16 cursor i[0] (an in/out
-// parameter) past the consumed codes and returns the decoded Unicode
-// code point or byte value.  On failure, it throws
-// IllegalArgumentException or StringIndexOutOfBoundsException
-//
-// |quote| specifies the type of literal being parsed
-// and therefore which escaped quote character is permitted.
-// If set to a single quote, it permits the sequence \' and disallows
-// unescaped '.
-// If set to a double quote, it permits \" and disallows unescaped ".
-// If set to zero, it does not permit either escape and allows both
-// quote characters to appear unescaped.
-const unquoteChar = (s, i, quote) => {
-  let c = s.codePointAt(i[0])
-  i[0] += Array.from(String.fromCodePoint(c)).length
-
-  // easy cases
-  if (c === quote && (quote === "'" || quote === '"')) {
-    throw new Error('unescaped quotation mark in literal')
-  }
-  if (c !== '\\'.codePointAt(0)) {
-    return c
-  }
-
-  // hard case: c is backslash
-  c = s.codePointAt(i[0])
-  i[0] += Array.from(String.fromCodePoint(c)).length
-
-  switch (c) {
-    case 'a'.codePointAt(0):
-      return 0x07
-    case 'b'.codePointAt(0):
-      return '\b'.codePointAt(0)
-    case 'f'.codePointAt(0):
-      return '\f'.codePointAt(0)
-    case 'n'.codePointAt(0):
-      return '\n'.codePointAt(0)
-    case 'r'.codePointAt(0):
-      return '\r'.codePointAt(0)
-    case 't'.codePointAt(0):
-      return '\t'.codePointAt(0)
-    case 'v'.codePointAt(0):
-      return 0x0b
-    case 'x'.codePointAt(0):
-    case 'u'.codePointAt(0):
-    case 'U'.codePointAt(0): {
-      let n = 0
-      switch (c) {
-        case 'x'.codePointAt(0):
-          n = 2
-          break
-        case 'u'.codePointAt(0):
-          n = 4
-          break
-        case 'U'.codePointAt(0):
-          n = 8
-          break
-      }
-      let v = 0
-      for (let j = 0; j < n; j++) {
-        let d = s.codePointAt(i[0])
-        i[0] += Array.from(String.fromCodePoint(d)).length
-
-        let x = parseInt(String.fromCodePoint(d), 16)
-        if (isNaN(x)) {
-          throw new Error(`not a hex char: ${String.fromCodePoint(d)}`)
-        }
-        v = (v << 4) | x
-      }
-      if (c === 'x'.codePointAt(0)) {
-        return v
-      }
-      if (v > 0x10ffff) {
-        throw new Error('Unicode code point out of range')
-      }
-      return v
-    }
-    case '0'.codePointAt(0):
-    case '1'.codePointAt(0):
-    case '2'.codePointAt(0):
-    case '3'.codePointAt(0):
-    case '4'.codePointAt(0):
-    case '5'.codePointAt(0):
-    case '6'.codePointAt(0):
-    case '7'.codePointAt(0): {
-      let v = c - '0'.codePointAt(0)
-      for (let j = 0; j < 2; j++) {
-        // one digit already; two more
-        let d = s.codePointAt(i[0])
-        i[0] += Array.from(String.fromCodePoint(d)).length
-
-        let x = d - '0'.codePointAt(0)
-        if (x < 0 || x > 7) {
-          throw new Error('illegal octal digit')
-        }
-        v = (v << 3) | x
-      }
-      if (v > 255) {
-        throw new Error('octal value out of range')
-      }
-      return v
-    }
-    case '\\'.codePointAt(0):
-      return '\\'.codePointAt(0)
-    case "'".codePointAt(0):
-    case '"'.codePointAt(0):
-      if (c !== quote) {
-        throw new Error('unnecessary backslash escape')
-      }
-      return c
-    default:
-      throw new Error('unexpected character')
-  }
-}
-
-// Unquote interprets s as a single-quoted, double-quoted,
-// or backquoted Go string literal, returning the string value
-// that s quotes.  (If s is single-quoted, it would be a Go
-// character literal; Unquote returns the corresponding
-// one-character string.)
-const unquote = (s) => {
-  let n = s.length
-  if (n < 2) {
-    throw new Error('too short')
-  }
-
-  let quote = s.charAt(0)
-  if (quote !== s.charAt(n - 1)) {
-    throw new Error("quotes don't match")
-  }
-  s = s.substring(1, n - 1)
-  if (quote === '`') {
-    if (s.indexOf('`') >= 0) {
-      throw new Error("backquoted string contains '`'")
-    }
-    return s
-  }
-  if (quote !== '"' && quote !== "'") {
-    throw new Error('invalid quotation mark')
-  }
-  if (s.indexOf('\n') >= 0) {
-    throw new Error('multiline string literal')
-  }
-  // Is it trivial?  Avoid allocation.
-  if (s.indexOf('\\') < 0 && s.indexOf(quote) < 0) {
-    if (
-      quote === '"' || // "abc"
-      Array.from(s).length === 1
-    ) {
-      // 'a'
-      // if s == "\\" then this return is wrong.
-      return s
-    }
-  }
-
-  let i = [0] // UTF-16 index, an in/out-parameter of unquoteChar.
-  let buf = ''
-  let len = s.length
-  while (i[0] < len) {
-    buf += String.fromCodePoint(unquoteChar(s, i, quote))
-    if (quote === "'" && i[0] !== len) {
-      throw new Error('single-quotation must be one char')
-    }
-  }
-
-  return buf
-}
-
 const isSingleBytes = (s) => {
   for (let i = 0; i < s.length; i++) {
     if (s.codePointAt(i) >= 0x80) {
@@ -244,6 +72,29 @@ const parseResult = (lineno, res) => {
   return out
 }
 
+const unquote = (str) => {
+  // Remove quotes at the beginning and end of the string
+  if ((str.startsWith("'") && str.endsWith("'")) || (str.startsWith('"') && str.endsWith('"'))) {
+    str = str.slice(1, -1)
+  }
+
+  // Replace escaped characters
+  str = str
+    .replace(/\\'/g, "'")
+    .replace(/\\"/g, '"')
+    .replace(/\\t/g, '\t')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\\\/g, '\\')
+
+  // Replace hexadecimal escape sequences
+  str = str.replace(/\\x([0-9A-Fa-f]{2})/g, function (match, p1) {
+    return String.fromCharCode(parseInt(p1, 16))
+  })
+
+  return str
+}
+
 const testRE2 = async (fileName) => {
   let inputFile = fs.createReadStream(path.join(FIXTURES_DIRNAME, fileName))
   if (fileName.endsWith('.gz')) {
@@ -256,6 +107,7 @@ const testRE2 = async (fileName) => {
   let input = 0
   let re = null
   let refull = null
+  let lineBuffer = null
 
   for await (let line of readline.createInterface({
     input: inputFile,
@@ -273,6 +125,7 @@ const testRE2 = async (fileName) => {
     }
 
     if ('A'.codePointAt(0) <= firstCodePoint && firstCodePoint <= 'Z'.codePointAt(0)) {
+      // name
       continue
     }
 
@@ -285,10 +138,19 @@ const testRE2 = async (fileName) => {
       inStrings = true
     } else if (line === 'regexps') {
       inStrings = false
-    } else if (first === '"') {
+    } else if (first === '"' || lineBuffer) {
       let q = line
+
+      if (lineBuffer && lineBuffer.length > 0) {
+        q = `${lineBuffer}${q}`
+        lineBuffer = null
+      } else if (!q.endsWith('"') || q === '"') {
+        lineBuffer = `${q}\r` // looks like java do not think \r is new line
+        continue
+      }
+
       try {
-        q = unquote(line)
+        q = unquote(q)
       } catch (e) {
         throw new Error(`${lineno}: Error to unquote: ${line}, error: ${e}`)
       }
