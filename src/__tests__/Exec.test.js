@@ -424,7 +424,7 @@ it('RE2 search', async () => {
 
 it.skip('RE2 exhaustive', async () => {
   await testRE2('re2-exhaustive.txt.gz')
-}, 3600000) // long running test (~60 min), run only locally
+}, 2000000) // long running test, run only locally
 
 it('RE2 fowler basic', async () => {
   await testFowler('basic.dat')
