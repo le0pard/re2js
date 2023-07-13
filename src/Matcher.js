@@ -122,50 +122,26 @@ class Matcher {
     this.loadGroup(group)
     return this.groups[2 * group + 1]
   }
-  group$() {
-    return this.group$int(0)
-  }
-  group$int(group) {
+
+  /**
+   * Returns the named group of the most recent match, or {@code null} if the group was not matched.
+   *
+   */
+  group(group = 0) {
+    if (typeof group === 'string') {
+      const groupInt = this.namedGroups[group]
+      if (!Number.isFinite(groupInt)) {
+        throw new Error(`group '${group}' not found`)
+      }
+      group = groupInt
+    }
+
     const start = this.start(group)
     const end = this.end(group)
     if (start < 0 && end < 0) {
       return null
     }
     return this.substring(start, end)
-  }
-  group$java_lang_String(group) {
-    const g = ((m, k) => (m[k] === undefined ? null : m[k]))(this.namedGroups, group)
-    if (g == null) {
-      throw Object.defineProperty(new Error("group '" + group + "' not found"), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.IllegalArgumentException',
-          'java.lang.Exception'
-        ]
-      })
-    }
-    return this.group$int(g)
-  }
-  /**
-   * Returns the named group of the most recent match, or {@code null} if the group was not matched.
-   *
-   * @param {string} group the group name
-   * @throws IllegalArgumentException if no group with that name exists
-   * @return {string}
-   */
-  group(group) {
-    if (typeof group === 'string' || group === null) {
-      return this.group$java_lang_String(group)
-    } else if (typeof group === 'number' || group === null) {
-      return this.group$int(group)
-    } else if (group === undefined) {
-      return this.group$()
-    } else {
-      throw new Error('invalid overload')
-    }
   }
   /**
    * Returns the number of subgroups in this pattern.
@@ -175,36 +151,21 @@ class Matcher {
   groupCount() {
     return this.patternGroupCount
   }
+
   /**
    * Helper: finds subgroup information if needed for group.
    * @param {number} group
    * @private
    */
-  /*private*/ loadGroup(group) {
+  loadGroup(group) {
     if (group < 0 || group > this.patternGroupCount) {
-      throw Object.defineProperty(new Error('Group index out of bounds: ' + group), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.IndexOutOfBoundsException',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.Exception'
-        ]
-      })
+      throw new Error(`Group index out of bounds: ${group}`)
     }
+
     if (!this.hasMatch) {
-      throw Object.defineProperty(new Error('perhaps no match attempted'), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.IllegalStateException',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.Exception'
-        ]
-      })
+      throw new Error('perhaps no match attempted')
     }
+
     if (group === 0 || this.hasGroups) {
       return
     }
@@ -231,6 +192,7 @@ class Matcher {
     this.groups = res[1]
     this.hasGroups = true
   }
+
   /**
    * Matches the entire input against the pattern (anchored start and end). If there is a match,
    * {@code matches} sets the match state to describe it.
@@ -240,6 +202,7 @@ class Matcher {
   matches() {
     return this.genMatch(0, RE2Flags.ANCHOR_BOTH)
   }
+
   /**
    * Matches the beginning of input against the pattern (anchored start). If there is a match,
    * {@code lookingAt} sets the match state to describe it.
@@ -249,6 +212,7 @@ class Matcher {
   lookingAt() {
     return this.genMatch(0, RE2Flags.ANCHOR_START)
   }
+
   find$() {
     let start = 0
     if (this.hasMatch) {
@@ -479,7 +443,7 @@ class Matcher {
                 ]
               })
             }
-            const group = this.group$int(n)
+            const group = this.group(n)
             if (group != null) {
               /* append */ ;((sb) => {
                 sb.str += group
@@ -532,7 +496,7 @@ class Matcher {
             }
             const groupName = replacement.substring(i + 1, j)
             /* append */ ;((sb) => {
-              sb.str += this.group$java_lang_String(groupName)
+              sb.str += this.group(groupName)
               return sb
             })(sb)
             last = j + 1
