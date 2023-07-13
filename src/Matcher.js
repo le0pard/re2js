@@ -310,21 +310,6 @@ class Matcher {
     return this.matcherInputLength
   }
 
-  appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement) {
-    const result = {
-      str: '',
-      toString: function () {
-        return this.str
-      }
-    }
-    this.appendReplacement$java_lang_StringBuilder$java_lang_String(result, replacement)
-    /* append */
-    ;((sb) => {
-      sb.str += result
-      return sb
-    })(sb)
-    return this
-  }
   /**
    * Appends to {@code sb} two strings: the text from the append position up to the beginning of the
    * most recent match, and then the replacement with submatch groups substituted for references of
@@ -347,160 +332,104 @@ class Matcher {
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
    */
-  appendReplacement(sb, replacement) {
-    if (
-      ((sb != null && sb instanceof Object) || sb === null) &&
-      (typeof replacement === 'string' || replacement === null)
-    ) {
-      return this.appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement)
-    } else if (
-      ((sb != null && sb instanceof Object) || sb === null) &&
-      (typeof replacement === 'string' || replacement === null)
-    ) {
-      return this.appendReplacement$java_lang_StringBuilder$java_lang_String(sb, replacement)
-    } else {
-      throw new Error('invalid overload')
-    }
-  }
-  appendReplacement$java_lang_StringBuilder$java_lang_String(sb, replacement) {
+
+  appendReplacement(replacement) {
+    let res = ''
     const s = this.start()
     const e = this.end()
     if (this.appendPos < s) {
-      /* append */ ;((sb) => {
-        sb.str += this.substring(this.appendPos, s)
-        return sb
-      })(sb)
+      res += this.substring(this.appendPos, s)
     }
     this.appendPos = e
-    this.appendReplacementInternal(sb, replacement)
-    return this
+    res += this.appendReplacementInternal(replacement)
+    return res
   }
-  /*private*/ appendReplacementInternal(sb, replacement) {
-    let last = 0
-    let i = 0
-    const m = replacement.length
-    for (; i < m - 1; i++) {
-      {
-        if (
-          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(i)) ==
-          '\\'.codePointAt(0)
-        ) {
-          if (last < i) {
-            /* append */ ;((sb) => {
-              sb.str += replacement.substring(last, i)
-              return sb
-            })(sb)
-          }
-          i++
-          last = i
-          continue
-        }
-        if (
-          ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(i)) ==
-          '$'.codePointAt(0)
-        ) {
-          let c = replacement.charAt(i + 1).codePointAt(0)
-          if ('0'.codePointAt(0) <= c && c <= '9'.codePointAt(0)) {
-            let n = c - '0'.codePointAt(0)
-            if (last < i) {
-              /* append */ ;((sb) => {
-                sb.str += replacement.substring(last, i)
-                return sb
-              })(sb)
-            }
-            for (i += 2; i < m; i++) {
-              {
-                c = replacement.charAt(i).codePointAt(0)
-                if (
-                  c < '0'.codePointAt(0) ||
-                  c > '9'.codePointAt(0) ||
-                  n * 10 + c - '0'.codePointAt(0) > this.patternGroupCount
-                ) {
-                  break
-                }
-                n = n * 10 + c - '0'.codePointAt(0)
-              }
-            }
-            if (n > this.patternGroupCount) {
-              throw Object.defineProperty(new Error('n > number of groups: ' + n), '__classes', {
-                configurable: true,
-                value: [
-                  'java.lang.Throwable',
-                  'java.lang.IndexOutOfBoundsException',
-                  'java.lang.Object',
-                  'java.lang.RuntimeException',
-                  'java.lang.Exception'
-                ]
-              })
-            }
-            const group = this.group(n)
-            if (group != null) {
-              /* append */ ;((sb) => {
-                sb.str += group
-                return sb
-              })(sb)
-            }
-            last = i
-            i--
-            continue
-          } else if (c == '{'.codePointAt(0)) {
-            if (last < i) {
-              /* append */ ;((sb) => {
-                sb.str += replacement.substring(last, i)
-                return sb
-              })(sb)
-            }
-            i++
-            let j = i + 1
-            while (
-              j < replacement.length &&
-              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(j)) !=
-                '}'.codePointAt(0) &&
-              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(j)) !=
-                ' '.codePointAt(0)
-            ) {
-              {
-                j++
-              }
-            }
 
-            if (
-              j === replacement.length ||
-              ((c) => (c.codePointAt == null ? c : c.codePointAt(0)))(replacement.charAt(j)) !=
-                '}'.codePointAt(0)
-            ) {
-              throw Object.defineProperty(
-                new Error("named capture group is missing trailing '}'"),
-                '__classes',
-                {
-                  configurable: true,
-                  value: [
-                    'java.lang.Throwable',
-                    'java.lang.Object',
-                    'java.lang.RuntimeException',
-                    'java.lang.IllegalArgumentException',
-                    'java.lang.Exception'
-                  ]
-                }
-              )
-            }
-            const groupName = replacement.substring(i + 1, j)
-            /* append */ ;((sb) => {
-              sb.str += this.group(groupName)
-              return sb
-            })(sb)
-            last = j + 1
+  appendReplacementInternal(replacement) {
+    let res = ''
+    let last = 0
+    const m = replacement.length
+
+    for (let i = 0; i < m - 1; i++) {
+      if (replacement.codePointAt(i) === Codepoint.CODES.get('\\')) {
+        if (last < i) {
+          res += replacement.substring(last, i)
+        }
+
+        i++
+        last = i
+        continue
+      }
+
+      if (replacement.codePointAt(i) === Codepoint.CODES.get('$')) {
+        let c = replacement.codePointAt(i + 1)
+
+        if (Codepoint.CODES.get('0') <= c && c <= Codepoint.CODES.get('9')) {
+          let n = c - Codepoint.CODES.get('0')
+          if (last < i) {
+            res += replacement.substring(last, i)
           }
+
+          for (i += 2; i < m; i++) {
+            c = replacement.codePointAt(i)
+            if (
+              c < Codepoint.CODES.get('0') ||
+              c > Codepoint.CODES.get('9') ||
+              n * 10 + c - Codepoint.CODES.get('0') > this.patternGroupCount
+            ) {
+              break
+            }
+            n = n * 10 + c - Codepoint.CODES.get('0')
+          }
+
+          if (n > this.patternGroupCount) {
+            throw new Error(`n > number of groups: ${n}`)
+          }
+
+          const group = this.group(n)
+          if (group != null) {
+            res += group
+          }
+
+          last = i
+          i--
+          continue
+        } else if (c === Codepoint.CODES.get('{')) {
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          i++
+          let j = i + 1
+          while (
+            j < replacement.length &&
+            replacement.codePointAt(j) !== Codepoint.CODES.get('}') &&
+            replacement.codePointAt(j) !== Codepoint.CODES.get(' ')
+          ) {
+            j++
+          }
+
+          if (
+            j === replacement.length ||
+            replacement.codePointAt(j) !== Codepoint.CODES.get('}')
+          ) {
+            throw new Error("named capture group is missing trailing '}'")
+          }
+
+          const groupName = replacement.substring(i + 1, j)
+          res += this.group(groupName)
+          last = j + 1
         }
       }
     }
+
     if (last < m) {
-      /* append */ ;((sb) => {
-        sb.str += replacement.substr(last, m)
-        return sb
-      })(sb)
+      res += replacement.substr(last, m)
     }
+
+    return res
   }
+
   appendTail$java_lang_StringBuffer(sb) {
     /* append */ ;((sb) => {
       sb.str += this.substring(this.appendPos, this.matcherInputLength)
@@ -569,7 +498,7 @@ class Matcher {
       }
     }
     while (this.find()) {
-      this.appendReplacement$java_lang_StringBuffer$java_lang_String(sb, replacement)
+      sb.str += this.appendReplacement(replacement)
       if (!all) {
         break
       }
