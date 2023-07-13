@@ -88,9 +88,7 @@ const unquote = (str) => {
     .replace(/\\\\/g, '\\')
 
   // Replace hexadecimal escape sequences
-  str = str.replace(/\\x([0-9A-Fa-f]{2})/g, function (match, p1) {
-    return String.fromCharCode(parseInt(p1, 16))
-  })
+  str = str.replace(/\\x([0-9A-Fa-f]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)))
 
   return str
 }
