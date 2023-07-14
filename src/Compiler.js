@@ -80,6 +80,7 @@ class Compiler {
     if (f1.i === 0 || f2.i === 0) {
       return this.fail()
     }
+    // eslint-disable-next-line no-warning-comments
     // TODO(rsc): elide nop
     this.prog.patch(f1.out, f2.i)
     return new Frag(f1.i, f2.out, f1.nullable && f2.nullable)

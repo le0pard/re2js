@@ -121,6 +121,7 @@ class Utils {
   // Passing r1 == -1 indicates that the position is at the beginning of the
   // text.
   // Passing r2 == -1 indicates that the position is at the end of the text.
+  // eslint-disable-next-line no-warning-comments
   // TODO(adonovan): move to Machine.
   static emptyOpContext(r1, r2) {
     let op = 0

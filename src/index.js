@@ -93,9 +93,8 @@ class RE2JS {
       re2Flags &= ~RE2Flags.UNICODE_GROUPS
     }
 
-    const p = new RE2JS()
-    p.patternInput = regex
-    p.flagsInput = flags
+    const p = new RE2JS(regex, flags)
+    // The compiled RE2 regexp.
     p.re2Input = RE2.compileImpl(fregex, re2Flags, (flags & RE2JS.LONGEST_MATCH) !== 0)
     return p
   }
@@ -120,11 +119,17 @@ class RE2JS {
     if (re2 == null) {
       throw new Error('re2 is null')
     }
-    const p = new RE2JS()
-    p.patternInput = pattern
-    p.flagsInput = flags
+    const p = new RE2JS(pattern, flags)
+    // The compiled RE2 regexp.
     p.re2Input = re2
     return p
+  }
+
+  constructor(pattern, flags) {
+    // The pattern string at construction time.
+    this.patternInput = pattern
+    // The flags at construction time.
+    this.flagsInput = flags
   }
 
   /**

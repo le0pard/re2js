@@ -362,7 +362,7 @@ class Parser {
       case Codepoint.CODES.get('4'):
       case Codepoint.CODES.get('5'):
       case Codepoint.CODES.get('6'):
-      case Codepoint.CODES.get('7'):
+      case Codepoint.CODES.get('7'): {
         if (
           !t.more() ||
           t.peek() < Codepoint.CODES.get('0') ||
@@ -370,6 +370,8 @@ class Parser {
         ) {
           break
         }
+      }
+      // eslint-disable-next-line no-fallthrough
       case Codepoint.CODES.get('0'): {
         let r = c - Codepoint.CODES.get('0')
         for (let i = 1; i < 3; i++) {
@@ -393,6 +395,7 @@ class Parser {
         if (c === Codepoint.CODES.get('{')) {
           let nhex = 0
           let r = 0
+          // eslint-disable-next-line no-constant-condition
           while (true) {
             if (!t.more()) {
               break bigswitch
