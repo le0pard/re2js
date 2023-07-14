@@ -21,10 +21,10 @@ The RE2JS engine runs more slowly compared to native RegExp objects. This reduce
 
 The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of optimizations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation to a pure JS version. This is another reason why the pure JS version will perform more slowly compared to the original RE2 engine.
 
-If you still need good performance on server side with RE2, better to use this packages:
+Should you require high performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
 
- - https://github.com/uhop/node-re2/
- - https://github.com/google/re2-wasm/ (WASM wrapper for now not work in browsers)
+ - [Node-RE2](https://github.com/uhop/node-re2/): A powerful RE2 package for Node.js
+ - [RE2-WASM](https://github.com/google/re2-wasm/): This package is a WASM wrapper for RE2. Please note, as of now, it does not work in browsers
 
 ## Justification for this JS port existence
 
