@@ -10,6 +10,10 @@ In contrast, the RE2 algorithm explores all matches simultaneously in a single p
 
 There are certain features of PCRE or Perl regular expressions that cannot be implemented in linear time, for example, backreferences, but the vast majority of regular expressions patterns in practice avoid such features.
 
+## TLDR
+
+The built-in JavaScript regular expression engine can, under certain special combinations, run in exponential time. This situation can trigger what's referred to as a [Regular Expression Denial of Service (ReDoS)](https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS). RE2, a different regular expression engine, can effectively safeguard your Node.js applications from ReDoS attacks. With RE2JS, this protective feature extends to browser environments as well, enabling you to utilize the RE2 engine more comprehensively.
+
 ## Usage
 
 
