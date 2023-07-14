@@ -213,6 +213,8 @@ RE2JS allows you to replace all occurrences or the first occurrence of a pattern
 The `replaceAll()` method replaces all occurrences of a pattern match in a string with the given replacement
 
 ```js
+import { RE2JS } from 're2js'
+
 RE2JS.compile('Frog')
   .matcher("What the Frog's Eye Tells the Frog's Brain")
   .replaceAll('Lizard') // "What the Lizard's Eye Tells the Lizard's Brain"
@@ -228,6 +230,8 @@ Note that the replacement string can include references to capturing groups from
 The `replaceFirst()` method replaces the first occurrence of a pattern match in a string with the given replacement
 
 ```js
+import { RE2JS } from 're2js'
+
 RE2JS.compile('Frog')
   .matcher("What the Frog's Eye Tells the Frog's Brain")
   .replaceFirst('Lizard') // "What the Lizard's Eye Tells the Frog's Brain"
