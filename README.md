@@ -186,7 +186,7 @@ if (matchString.find()) {
 
 #### Named Group Content
 
-The `group()` method retrieves the content matched by a specific capturing group by name
+The `group()` method retrieves the content matched by a specific name of capturing group
 
 ```js
 import { RE2JS } from 're2js'
@@ -204,7 +204,27 @@ if (matchString.matches()) {
 
 ### Replacing Matches
 
+RE2JS allows you to replace all occurrences or the first occurrence of a pattern match in a string with a specific replacement string
 
+#### Replacing All Occurrences
+
+The `replaceAll()` method replaces all occurrences of a pattern match in a string with the given replacement
+
+```js
+RE2JS.compile('Frog').matcher("What the Frog's Eye Tells the Frog's Brain").replaceAll('Lizard') // "What the Lizard's Eye Tells the Lizard's Brain"
+RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)').matcher('abcdefghijklmnopqrstuvwxyz123').replaceAll('$10$20') // 'jb0wo0123'
+```
+
+Note that the replacement string can include references to capturing groups from the pattern
+
+#### Replacing the First Occurrence
+
+The `replaceFirst()` method replaces the first occurrence of a pattern match in a string with the given replacement
+
+```js
+RE2JS.compile('Frog').matcher("What the Frog's Eye Tells the Frog's Brain").replaceFirst('Lizard') // "What the Lizard's Eye Tells the Frog's Brain"
+RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)').matcher('abcdefghijklmnopqrstuvwxyz123').replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
+```
 
 ## Performance
 
