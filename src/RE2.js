@@ -1,19 +1,3 @@
-/**
- * An RE2 class instance is a compiled representation of an RE2 regular expression, independent of
- * the public Java-like Pattern/Matcher API.
- *
- * <p>
- * This class also contains various implementation helpers for RE2 regular expressions.
- *
- * <p>
- * Use the {@link #quoteMeta(String)} utility function to quote all regular expression
- * metacharacters in an arbitrary string.
- *
- * <p>
- * See the {@code Matcher} and {@code Pattern} classes for the public API, and the <a
- * href='package.html'>package-level documentation</a> for an overview of how to use this API.
- * @class
- */
 import { RE2Flags } from './RE2Flags'
 import { Utils } from './Utils'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
@@ -48,6 +32,18 @@ class AtomicReference {
   }
 }
 
+/**
+ * An RE2 class instance is a compiled representation of an RE2 regular expression, independent of
+ * the public Java-like Pattern/Matcher API.
+ *
+ * <p>
+ * This class also contains various implementation helpers for RE2 regular expressions.
+ *
+ * <p>
+ * Use the {@link #quoteMeta(String)} utility function to quote all regular expression
+ * metacharacters in an arbitrary string.
+ *
+ */
 class RE2 {
   // This is visible for testing.
   static initTest(expr) {

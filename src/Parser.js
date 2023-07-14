@@ -5,7 +5,7 @@ import { UnicodeTables } from './UnicodeTables'
 import { PERL_GROUPS, POSIX_GROUPS } from './CharGroup'
 import { Utils } from './Utils'
 import { CharClass } from './CharClass'
-import { PatternSyntaxException } from './PatternSyntaxException'
+import { RE2JSSyntaxException } from './RE2JSSyntaxException'
 import { Regexp } from './Regexp'
 
 class Pair {
@@ -234,7 +234,7 @@ class Parser {
     }
     t.skip(1)
     if (min < 0 || min > 1000 || max === -2 || max > 1000 || (max >= 0 && min > max)) {
-      throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
+      throw new RE2JSSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(start))
     }
 
     return (min << 16) | (max & Unicode.MAX_BMP)
@@ -352,7 +352,7 @@ class Parser {
     const startPos = t.pos()
     t.skip(1) // '\\'
     if (!t.more()) {
-      throw new PatternSyntaxException(Parser.ERR_TRAILING_BACKSLASH)
+      throw new RE2JSSyntaxException(Parser.ERR_TRAILING_BACKSLASH)
     }
     let c = t.pop()
     bigswitch: switch (c) {
@@ -445,7 +445,7 @@ class Parser {
         }
         break
     }
-    throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, t.from(startPos))
+    throw new RE2JSSyntaxException(Parser.ERR_INVALID_ESCAPE, t.from(startPos))
   }
 
   // parseClassChar parses a character class character and returns it.
@@ -453,7 +453,7 @@ class Parser {
   // Pre: t at class char; Post: t after it.
   static parseClassChar(t, wholeClassPos) {
     if (!t.more()) {
-      throw new PatternSyntaxException(Parser.ERR_MISSING_BRACKET, t.from(wholeClassPos))
+      throw new RE2JSSyntaxException(Parser.ERR_MISSING_BRACKET, t.from(wholeClassPos))
     }
     if (t.lookingAt('\\')) {
       return Parser.parseEscape(t)
@@ -620,7 +620,7 @@ class Parser {
   // op, min, max.  beforePos is the start position of the repetition operator.
   // Pre: t is positioned after the initial repetition operator.
   // Post: t advances past an optional perl-mode '?', or stays put.
-  //       Or, it fails with PatternSyntaxException.
+  //       Or, it fails with RE2JSSyntaxException.
   repeat(op, min, max, beforePos, t, lastRepeatPos) {
     let flags = this.flags
     if ((flags & RE2Flags.PERL_X) !== 0) {
@@ -632,18 +632,18 @@ class Parser {
         // In Perl it is not allowed to stack repetition operators:
         // a** is a syntax error, not a doubled star, and a++ means
         // something else entirely, which we don't support!
-        throw new PatternSyntaxException(Parser.ERR_INVALID_REPEAT_OP, t.from(lastRepeatPos))
+        throw new RE2JSSyntaxException(Parser.ERR_INVALID_REPEAT_OP, t.from(lastRepeatPos))
       }
     }
 
     const n = this.stack.length
     if (n === 0) {
-      throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
+      throw new RE2JSSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
 
     const sub = this.stack[n - 1]
     if (Regexp.isPseudoOp(sub.op)) {
-      throw new PatternSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
+      throw new RE2JSSyntaxException(Parser.ERR_MISSING_REPEAT_ARGUMENT, t.from(beforePos))
     }
 
     const re = this.newRegexp(op)
@@ -1165,7 +1165,7 @@ class Parser {
                   break bigswitch
                 case Codepoint.CODES.get('C'):
                   // any byte; not supported
-                  throw new PatternSyntaxException(Parser.ERR_INVALID_ESCAPE, '\\C')
+                  throw new RE2JSSyntaxException(Parser.ERR_INVALID_ESCAPE, '\\C')
                 case Codepoint.CODES.get('Q'): {
                   // \Q ... \E: the ... is always literals
                   let lit = t.rest()
@@ -1233,7 +1233,7 @@ class Parser {
     this.alternate()
     const n = this.stack.length
     if (n !== 1) {
-      throw new PatternSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
+      throw new RE2JSSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
     }
     this.stack[0].namedGroups = this.namedGroups
     return this.stack[0]
@@ -1265,20 +1265,20 @@ class Parser {
       // Pull out name.
       const end = s.indexOf('>')
       if (end < 0) {
-        throw new PatternSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s)
+        throw new RE2JSSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s)
       }
       const name = s.substring(4, end) // "name"
       t.skipString(name)
       t.skip(5) // "(?P<>"
       if (!Parser.isValidCaptureName(name)) {
         // "(?P<name>"
-        throw new PatternSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s.substring(0, end))
+        throw new RE2JSSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s.substring(0, end))
       }
       // Like ordinary capture, but named.
       const re = this.op(Regexp.Op.LEFT_PAREN)
       re.cap = ++this.numCap
       if (this.namedGroups[name]) {
-        throw new PatternSyntaxException(Parser.ERR_DUPLICATE_NAMED_CAPTURE, name)
+        throw new RE2JSSyntaxException(Parser.ERR_DUPLICATE_NAMED_CAPTURE, name)
       }
       this.namedGroups[name] = this.numCap
       re.name = name
@@ -1343,7 +1343,7 @@ class Parser {
       }
     }
 
-    throw new PatternSyntaxException(Parser.ERR_INVALID_PERL_OP, t.from(startPos))
+    throw new RE2JSSyntaxException(Parser.ERR_INVALID_PERL_OP, t.from(startPos))
   }
 
   // parseVerticalBar handles a | in the input.
@@ -1411,13 +1411,13 @@ class Parser {
     this.alternate()
     const n = this.stack.length
     if (n < 2) {
-      throw new PatternSyntaxException(Parser.ERR_INTERNAL_ERROR, 'stack underflow')
+      throw new RE2JSSyntaxException(Parser.ERR_INTERNAL_ERROR, 'stack underflow')
     }
 
     const re1 = this.pop()
     const re2 = this.pop()
     if (re2.op !== Regexp.Op.LEFT_PAREN) {
-      throw new PatternSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
+      throw new RE2JSSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
     }
     // Restore flags at time of paren.
     this.flags = re2.flags
@@ -1459,7 +1459,7 @@ class Parser {
   // [:alnum:] from the beginning of t.  If one is present, it appends the
   // characters to cc, advances the iterator, and returns true.
   // Pre: t at "[:".  Post: t after ":]".
-  // On failure (no class of than name), throws PatternSyntaxException.
+  // On failure (no class of than name), throws RE2JSSyntaxException.
   // On misparse, returns false; t.pos() is undefined.
   parseNamedClass(t, cc) {
     // (Go precondition check deleted.)
@@ -1473,7 +1473,7 @@ class Parser {
     t.skipString(name)
     const g = POSIX_GROUPS.has(name) ? POSIX_GROUPS.get(name) : null
     if (g === null) {
-      throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, name)
+      throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, name)
     }
     cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0)
     return true
@@ -1485,7 +1485,7 @@ class Parser {
   //
   // Returns false if such a pattern is not present or UNICODE_GROUPS
   // flag is not enabled; |t.pos()| is not advanced in this case.
-  // Indicates error by throwing PatternSyntaxException.
+  // Indicates error by throwing RE2JSSyntaxException.
   parseUnicodeClass(t, cc) {
     const startPos = t.pos()
     if (
@@ -1504,7 +1504,7 @@ class Parser {
     }
     if (!t.more()) {
       t.rewindTo(startPos)
-      throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
+      throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
     }
 
     c = t.pop()
@@ -1519,7 +1519,7 @@ class Parser {
       const end = rest.indexOf('}')
       if (end < 0) {
         t.rewindTo(startPos)
-        throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
+        throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
       }
       name = rest.substring(0, end) // e.g. "Han"
       t.skipString(name)
@@ -1536,7 +1536,7 @@ class Parser {
 
     const pair = Parser.unicodeTable(name)
     if (pair === null) {
-      throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(startPos))
+      throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(startPos))
     }
 
     const tab = pair.first
@@ -1585,7 +1585,7 @@ class Parser {
         const s = t.rest()
         if (s === '-' || !s.startsWith('-]')) {
           t.rewindTo(startPos)
-          throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
+          throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.rest())
         }
       }
 
@@ -1621,7 +1621,7 @@ class Parser {
         } else {
           hi = Parser.parseClassChar(t, startPos)
           if (hi < lo) {
-            throw new PatternSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(beforePos))
+            throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(beforePos))
           }
         }
       }

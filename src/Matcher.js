@@ -4,12 +4,12 @@ import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Utils } from './Utils'
 
 /**
- * A stateful iterator that interprets a regex {@code Pattern} on a specific input.
+ * A stateful iterator that interprets a regex {@code RE2JS} on a specific input.
  *
  * <p>
  * Conceptually, a Matcher consists of four parts:
  * <ol>
- * <li>A compiled regular expression {@code Pattern}, set at construction and fixed for the lifetime
+ * <li>A compiled regular expression {@code RE2JS}, set at construction and fixed for the lifetime
  * of the matcher.</li>
  *
  * <li>The remainder of the input string, set at construction or {@link #reset()} and advanced by
@@ -73,7 +73,7 @@ class Matcher {
     }
   }
 
-  /** Returns the {@code Pattern} associated with this {@code Matcher}. */
+  /** Returns the {@code RE2JS} associated with this {@code Matcher}. */
   pattern() {
     return this.patternInput
   }

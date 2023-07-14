@@ -1,7 +1,7 @@
 import { RE2 } from '../RE2'
 import { MatcherInput } from '../MatcherInput'
 import { Matcher } from '../Matcher'
-import { Pattern } from '../Pattern'
+import { RE2JS } from '../index'
 import { Utils } from '../Utils'
 import { expect, describe, test } from '@jest/globals'
 
@@ -15,7 +15,7 @@ const helperTestMatchEndUTF16 = (string, num, end) => {
   }
   const re = RE2Modified.initTest(pattern)
 
-  const pat = Pattern.initTest(pattern, 0, re)
+  const pat = RE2JS.initTest(pattern, 0, re)
   const m = pat.matcher(string)
 
   let found = 0
@@ -33,8 +33,8 @@ describe('.lookingAt', () => {
   ]
 
   test.concurrent.each(cases)('regexp %p for text %p will return %p', (regexp, text, expected) => {
-    expect(Pattern.compile(regexp).matcher(text).lookingAt()).toEqual(expected)
-    expect(Pattern.compile(regexp).matcher(Utils.stringToUtf8ByteArray(text)).lookingAt()).toEqual(
+    expect(RE2JS.compile(regexp).matcher(text).lookingAt()).toEqual(expected)
+    expect(RE2JS.compile(regexp).matcher(Utils.stringToUtf8ByteArray(text)).lookingAt()).toEqual(
       expected
     )
 
@@ -54,7 +54,7 @@ describe('.macthes', () => {
     'regexp %p match text %p and not match text %p',
     (regexp, match, nonMatch) => {
       const nativeRe = new RegExp(regexp)
-      const pr = Pattern.compile(regexp)
+      const pr = RE2JS.compile(regexp)
       expect(match.match(nativeRe)[0]).toEqual(match)
       expect(pr.matcher(match).matches()).toBe(true)
       expect(pr.matcher(Utils.stringToUtf8ByteArray(match)).matches()).toBe(true)
@@ -98,7 +98,7 @@ describe('.replaceAll', () => {
 
   test.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
     for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-      expect(Pattern.compile(regex).matcher(input).replaceAll(repl)).toEqual(actual)
+      expect(RE2JS.compile(regex).matcher(input).replaceAll(repl)).toEqual(actual)
     }
   })
 })
@@ -132,7 +132,7 @@ describe('.replaceFirst', () => {
 
   test.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
     for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-      expect(Pattern.compile(regex).matcher(input).replaceFirst(repl)).toEqual(actual)
+      expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl)).toEqual(actual)
     }
   })
 })
@@ -145,7 +145,7 @@ describe('.groupCount', () => {
   ]
 
   test.concurrent.each(cases)('regexp %p have %p groups', (regexp, count) => {
-    const re = Pattern.compile(regexp)
+    const re = RE2JS.compile(regexp)
 
     expect(re.groupCount()).toEqual(count)
     expect(re.matcher('x').groupCount()).toEqual(count)
@@ -168,7 +168,7 @@ describe('.group', () => {
   ]
 
   test.concurrent.each(cases)('text %p regexp %p output %p', (text, regexp, output) => {
-    const p = Pattern.compile(regexp)
+    const p = RE2JS.compile(regexp)
 
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
       const matchString = p.matcher(input)
@@ -194,7 +194,7 @@ describe('.find', () => {
   test.concurrent.each(casesMatch)(
     'match: text %p regexp %p start %p output %p',
     (text, regexp, start, output) => {
-      const p = Pattern.compile(regexp)
+      const p = RE2JS.compile(regexp)
 
       for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
         const matchString = p.matcher(input)
@@ -213,7 +213,7 @@ describe('.find', () => {
   test.concurrent.each(casesNoMatch)(
     'no match: text %p regexp %p start %p',
     (text, regexp, start) => {
-      const p = Pattern.compile(regexp)
+      const p = RE2JS.compile(regexp)
 
       for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
         const matchString = p.matcher(input)
@@ -225,7 +225,7 @@ describe('.find', () => {
 
 describe('invalid find', () => {
   it('raise error', () => {
-    const p = Pattern.compile('.*')
+    const p = RE2JS.compile('.*')
 
     const text = 'abcdef'
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
@@ -237,7 +237,7 @@ describe('invalid find', () => {
 
 describe('invalid replacement', () => {
   it('raise error', () => {
-    const p = Pattern.compile('abc')
+    const p = RE2JS.compile('abc')
 
     const text = 'abc'
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
@@ -248,7 +248,7 @@ describe('invalid replacement', () => {
 })
 
 it('throws on null input reset', () => {
-  expect(() => new Matcher(Pattern.compile('pattern'), null)).toThrow(
+  expect(() => new Matcher(RE2JS.compile('pattern'), null)).toThrow(
     'Cannot read properties of null'
   )
 })
@@ -259,21 +259,21 @@ it('throws on null input ctor', () => {
 
 describe('start end before find', () => {
   it('raise error', () => {
-    const m = Pattern.compile('a').matcher('abaca')
+    const m = RE2JS.compile('a').matcher('abaca')
     expect(() => m.start()).toThrow('perhaps no match attempted')
   })
 })
 
 it('matches updates match information', () => {
-  const m = Pattern.compile('a+').matcher('aaa')
+  const m = RE2JS.compile('a+').matcher('aaa')
   expect(m.matches()).toBe(true)
   expect(m.group(0)).toEqual('aaa')
 })
 
 it('alternation matches', () => {
   const string = '123:foo'
-  expect(Pattern.compile('(?:\\w+|\\d+:foo)').matcher(string).matches()).toBe(true)
-  expect(Pattern.compile('(?:\\d+:foo|\\w+)').matcher(string).matches()).toBe(true)
+  expect(RE2JS.compile('(?:\\w+|\\d+:foo)').matcher(string).matches()).toBe(true)
+  expect(RE2JS.compile('(?:\\d+:foo|\\w+)').matcher(string).matches()).toBe(true)
 })
 
 it('match end UTF16', () => {
@@ -289,7 +289,7 @@ it('match end UTF16', () => {
 
 describe('groups', () => {
   it('search', () => {
-    const p = Pattern.compile('b(an)*(.)')
+    const p = RE2JS.compile('b(an)*(.)')
     const m = p.matcher('by, band, banana')
     expect(m.lookingAt()).toBe(true)
     m.reset()
@@ -313,7 +313,7 @@ describe('groups', () => {
   })
 
   it('named', () => {
-    const p = Pattern.compile(
+    const p = RE2JS.compile(
       '(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?'
     )
     const m = p.matcher('fbbarrrrrbag')
@@ -341,7 +341,7 @@ describe('groups', () => {
   })
 
   it('another named', () => {
-    const p = Pattern.compile('(?P<baz>f+)(?P<bag>b+)?')
+    const p = RE2JS.compile('(?P<baz>f+)(?P<bag>b+)?')
     const m = p.matcher('ffffbbbbb')
 
     expect(m.matches()).toBe(true)
@@ -356,7 +356,7 @@ describe('groups', () => {
   })
 
   it('second named', () => {
-    const p = Pattern.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})')
+    const p = RE2JS.compile('(?P<baz>f{0,10})(?P<bag>b{0,10})')
     const m = p.matcher('ffffbbbbb')
 
     expect(m.matches()).toBe(true)
@@ -372,7 +372,7 @@ describe('groups', () => {
 })
 
 it('froup zero width assertions', () => {
-  const m = Pattern.compile('(\\d{2} ?(\\d|[a-z])?)($|[^a-zA-Z])').matcher('22 bored')
+  const m = RE2JS.compile('(\\d{2} ?(\\d|[a-z])?)($|[^a-zA-Z])').matcher('22 bored')
   expect(m.find()).toBe(true)
   expect(m.group(1)).toEqual('22')
 })
@@ -381,11 +381,11 @@ it('pattern longest match', () => {
   const pattern = '(?:a+)|(?:a+ b+)'
   const text = 'xxx aaa bbb yyy'
 
-  const matcher = Pattern.compile(pattern).matcher(text)
+  const matcher = RE2JS.compile(pattern).matcher(text)
   expect(matcher.find()).toBe(true)
   expect(text.substring(matcher.start(), matcher.end())).toEqual('aaa')
 
-  const longMatcher = Pattern.compile(pattern, Pattern.LONGEST_MATCH).matcher(text)
+  const longMatcher = RE2JS.compile(pattern, RE2JS.LONGEST_MATCH).matcher(text)
   expect(longMatcher.find()).toBe(true)
   expect(longMatcher.substring(longMatcher.start(), longMatcher.end())).toEqual('aaa bbb')
 })
