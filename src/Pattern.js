@@ -1,5 +1,5 @@
 import { RE2Flags } from './RE2Flags'
-import { MatcherInput, MatcherInputBase } from './MatcherInput'
+import { MatcherInput } from './MatcherInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
 import { Utils } from './Utils'
@@ -42,47 +42,20 @@ class Pattern {
    */
   static LONGEST_MATCH = 16
 
-  // This is visible for testing.
-  static initTest(pattern, flags, re2) {
-    if (pattern == null) {
-      throw new Error('pattern is null')
-    }
-    if (re2 == null) {
-      throw new Error('re2 is null')
-    }
-    const p = new Pattern()
-    p.patternInput = pattern
-    p.flagsInput = flags
-    p.re2Input = re2
-    return p
-  }
-
   /**
-   * Releases memory used by internal caches associated with this pattern. Does not change the
-   * observable behaviour. Useful for tests that detect memory leaks via allocation tracking.
+   * Returns a literal pattern string for the specified string.
+   *
+   * <p>
+   * This method produces a string that can be used to create a <code>Pattern</code> that would
+   * match the string <code>s</code> as if it were a literal pattern.
+   * </p>
+   * Metacharacters or escape sequences in the input sequence will be given no special meaning.
+   *
+   * @param {string} str The string to be literalized
+   * @return {string} A literal string replacement
    */
-  reset() {
-    this.re2Input.reset()
-  }
-
-  /**
-   * Returns the flags used in the constructor.
-   * @return {number}
-   */
-  flags() {
-    return this.flagsInput
-  }
-
-  /**
-   * Returns the pattern used in the constructor.
-   * @return {string}
-   */
-  pattern() {
-    return this.patternInput
-  }
-
-  re2() {
-    return this.re2Input
+  static quote(str) {
+    return Utils.quoteMeta(str)
   }
 
   /**
@@ -142,6 +115,55 @@ class Pattern {
     return Pattern.compile(regex).matcher(input).matches()
   }
 
+  // This is visible for testing.
+  static initTest(pattern, flags, re2) {
+    if (pattern == null) {
+      throw new Error('pattern is null')
+    }
+    if (re2 == null) {
+      throw new Error('re2 is null')
+    }
+    const p = new Pattern()
+    p.patternInput = pattern
+    p.flagsInput = flags
+    p.re2Input = re2
+    return p
+  }
+
+  /**
+   * Releases memory used by internal caches associated with this pattern. Does not change the
+   * observable behaviour. Useful for tests that detect memory leaks via allocation tracking.
+   */
+  reset() {
+    this.re2Input.reset()
+  }
+
+  /**
+   * Returns the flags used in the constructor.
+   * @return {number}
+   */
+  flags() {
+    return this.flagsInput
+  }
+
+  /**
+   * Returns the pattern used in the constructor.
+   * @return {string}
+   */
+  pattern() {
+    return this.patternInput
+  }
+
+  re2() {
+    return this.re2Input
+  }
+
+  /**
+   * Matches a string against a regular expression.
+   *
+   * @param {*} input the input
+   * @return {boolean} true if the regular expression matches the entire input
+   */
   matches(input) {
     return this.matcher(input).matches()
   }
@@ -244,25 +266,7 @@ class Pattern {
     }
     return /* toArray */ result.slice(0)
   }
-  /**
-   * Returns a literal pattern string for the specified string.
-   *
-   * <p>
-   * This method produces a string that can be used to create a <code>Pattern</code> that would
-   * match the string <code>s</code> as if it were a literal pattern.
-   * </p>
-   * Metacharacters or escape sequences in the input sequence will be given no special meaning.
-   *
-   * @param {string} str The string to be literalized
-   * @return {string} A literal string replacement
-   */
-  static quote(str) {
-    return Utils.quoteMeta(str)
-  }
-  /**
-   *
-   * @return {string}
-   */
+
   toString() {
     return this.patternInput
   }
