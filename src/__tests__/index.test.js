@@ -223,3 +223,22 @@ it('equals', () => {
   expect(pattern1).not.toEqual(pattern3)
   expect(pattern1).not.toEqual(pattern4)
 })
+
+it('email regex', () => {
+  const p = RE2JS.compile('[\\w\\.]+@[\\w\\.]+')
+  expect(p.matches('test@example.com')).toBe(true)
+  expect(p.matches('test')).toBe(false)
+})
+
+it('date regex', () => {
+  const p = RE2JS.compile('([0-9]{4})-?(1[0-2]|0[1-9])-?(3[01]|0[1-9]|[12][0-9])')
+  expect(p.matches('2023-10-12')).toBe(true)
+  expect(p.matches('2023-02-02')).toBe(true)
+  expect(p.matches('300')).toBe(false)
+
+  expect(p.matches('example 2023-02-02 date')).toBe(false)
+
+  const m = p.matcher('example 2023-02-02 date')
+  expect(m.find()).toBe(true)
+  expect(m.group()).toEqual('2023-02-02')
+})
