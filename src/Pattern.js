@@ -11,10 +11,6 @@ import { Utils } from './Utils'
  * The matching functions take {@code String} arguments instead of the more general Java
  * {@code CharSequence} since the latter doesn't provide UTF-16 decoding.
  *
- * <p>
- * See the <a href='package.html'>package-level documentation</a> for an overview of how to use this
- * API.
- * </p>
  *
  * @author rsc@google.com (Russ Cox)
  * @class
