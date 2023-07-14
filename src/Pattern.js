@@ -1,6 +1,11 @@
+import { RE2Flags } from './RE2Flags'
+import { MatcherInput, MatcherInputBase } from './MatcherInput'
+import { Matcher } from './Matcher'
+import { RE2 } from './RE2'
+import { Utils } from './Utils'
+
 /**
- * A compiled representation of an RE2 regular expression, mimicking the
- * {@code java.util.regex.Pattern} API.
+ * A compiled representation of an RE2 regular expression
  *
  * <p>
  * The matching functions take {@code String} arguments instead of the more general Java
@@ -14,88 +19,88 @@
  * @author rsc@google.com (Russ Cox)
  * @class
  */
-import { RE2Flags } from './RE2Flags'
-import { MatcherInput, MatcherInputBase } from './MatcherInput'
-import { Matcher } from './Matcher'
-import { RE2 } from './RE2'
-import { Utils } from './Utils'
+class Pattern {
+  /**
+   * Flag: case insensitive matching.
+   */
+  static CASE_INSENSITIVE = 1
+  /**
+   * Flag: dot ({@code .}) matches all characters, including newline.
+   */
+  static DOTALL = 2
+  /**
+   * Flag: multiline matching: {@code ^} and {@code $} match at beginning and end of line, not just
+   * beginning and end of input.
+   */
+  static MULTILINE = 4
+  /**
+   * Flag: Unicode groups (e.g. {@code \p\ Greek\} ) will be syntax errors.
+   */
+  static DISABLE_UNICODE_GROUPS = 8
+  /**
+   * Flag: matches longest possible string.
+   */
+  static LONGEST_MATCH = 16
 
-export class Pattern {
-  constructor(pattern, flags, re2) {
-    if (this.__pattern === undefined) {
-      this.__pattern = null
-    }
-    if (this.__flags === undefined) {
-      this.__flags = 0
-    }
-    if (this.__re2 === undefined) {
-      this.__re2 = null
-    }
+  // This is visible for testing.
+  static initTest(pattern, flags, re2) {
     if (pattern == null) {
-      throw Object.defineProperty(new Error('pattern is null'), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.NullPointerException',
-          'java.lang.Exception'
-        ]
-      })
+      throw new Error('pattern is null')
     }
     if (re2 == null) {
-      throw Object.defineProperty(new Error('re2 is null'), '__classes', {
-        configurable: true,
-        value: [
-          'java.lang.Throwable',
-          'java.lang.Object',
-          'java.lang.RuntimeException',
-          'java.lang.NullPointerException',
-          'java.lang.Exception'
-        ]
-      })
+      throw new Error('re2 is null')
     }
-    this.__pattern = pattern
-    this.__flags = flags
-    this.__re2 = re2
+    const p = new Pattern()
+    p.patternInput = pattern
+    p.flagsInput = flags
+    p.re2Input = re2
+    return p
   }
+
   /**
    * Releases memory used by internal caches associated with this pattern. Does not change the
    * observable behaviour. Useful for tests that detect memory leaks via allocation tracking.
    */
   reset() {
-    this.__re2.reset()
+    this.re2Input.reset()
   }
+
   /**
    * Returns the flags used in the constructor.
    * @return {number}
    */
   flags() {
-    return this.__flags
+    return this.flagsInput
   }
+
   /**
    * Returns the pattern used in the constructor.
    * @return {string}
    */
   pattern() {
-    return this.__pattern
+    return this.patternInput
   }
+
   re2() {
-    return this.__re2
+    return this.re2Input
   }
-  static compile$java_lang_String(regex) {
-    return Pattern.compile$java_lang_String$java_lang_String$int(regex, regex, 0)
-  }
-  static compile$java_lang_String$int(regex, flags) {
-    let flregex = regex
+
+  /**
+   * Helper: create new Pattern with given regex and flags. Flregex is the regex with flags applied.
+   * @param {string} regex
+   * @param {number} flags
+   * @return {Pattern}
+   */
+  static compile(regex, flags = 0) {
+    let fregex = regex
     if ((flags & Pattern.CASE_INSENSITIVE) !== 0) {
-      flregex = '(?i)' + flregex
+      fregex = `(?i)${fregex}`
     }
     if ((flags & Pattern.DOTALL) !== 0) {
-      flregex = '(?s)' + flregex
+      fregex = `(?s)${fregex}`
     }
     if ((flags & Pattern.MULTILINE) !== 0) {
-      flregex = '(?m)' + flregex
+      fregex = `(?m)${fregex}`
     }
     if (
       (flags &
@@ -108,70 +113,23 @@ export class Pattern {
         )) !==
       0
     ) {
-      throw Object.defineProperty(
-        new Error(
-          'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH'
-        ),
-        '__classes',
-        {
-          configurable: true,
-          value: [
-            'java.lang.Throwable',
-            'java.lang.Object',
-            'java.lang.RuntimeException',
-            'java.lang.IllegalArgumentException',
-            'java.lang.Exception'
-          ]
-        }
+      throw new Error(
+        'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH'
       )
     }
-    return Pattern.compile$java_lang_String$java_lang_String$int(flregex, regex, flags)
-  }
-  static compile$java_lang_String$java_lang_String$int(flregex, regex, flags) {
+
     let re2Flags = RE2Flags.PERL
     if ((flags & Pattern.DISABLE_UNICODE_GROUPS) !== 0) {
       re2Flags &= ~RE2Flags.UNICODE_GROUPS
     }
-    return new Pattern(
-      regex,
-      flags,
-      RE2.compileImpl(flregex, re2Flags, (flags & Pattern.LONGEST_MATCH) !== 0)
-    )
+
+    const p = new Pattern()
+    p.patternInput = regex
+    p.flagsInput = flags
+    p.re2Input = RE2.compileImpl(fregex, re2Flags, (flags & Pattern.LONGEST_MATCH) !== 0)
+    return p
   }
-  /**
-   * Helper: create new Pattern with given regex and flags. Flregex is the regex with flags applied.
-   * @param {string} flregex
-   * @param {string} regex
-   * @param {number} flags
-   * @return {Pattern}
-   * @private
-   */
-  static compile(flregex, regex, flags) {
-    if (
-      (typeof flregex === 'string' || flregex === null) &&
-      (typeof regex === 'string' || regex === null) &&
-      (typeof flags === 'number' || flags === null)
-    ) {
-      return Pattern.compile$java_lang_String$java_lang_String$int(flregex, regex, flags)
-    } else if (
-      (typeof flregex === 'string' || flregex === null) &&
-      (typeof regex === 'number' || regex === null) &&
-      flags === undefined
-    ) {
-      return Pattern.compile$java_lang_String$int(flregex, regex)
-    } else if (
-      (typeof flregex === 'string' || flregex === null) &&
-      regex === undefined &&
-      flags === undefined
-    ) {
-      return Pattern.compile$java_lang_String(flregex)
-    } else {
-      throw new Error('invalid overload')
-    }
-  }
-  static matches$java_lang_String$java_lang_CharSequence(regex, input) {
-    return Pattern.compile$java_lang_String(regex).matcher$java_lang_CharSequence(input).matches()
-  }
+
   /**
    * Matches a string against a regular expression.
    *
@@ -181,54 +139,13 @@ export class Pattern {
    * @throws PatternSyntaxException if the regular expression is malformed
    */
   static matches(regex, input) {
-    if (
-      (typeof regex === 'string' || regex === null) &&
-      ((input != null &&
-        ((input.constructor != null &&
-          input.constructor['__interfaces'] != null &&
-          input.constructor['__interfaces'].indexOf('java.lang.CharSequence') >= 0) ||
-          typeof input === 'string')) ||
-        input === null)
-    ) {
-      return Pattern.matches$java_lang_String$java_lang_CharSequence(regex, input)
-    } else if (
-      (typeof regex === 'string' || regex === null) &&
-      ((input != null &&
-        input instanceof Array &&
-        (input.length === 0 || input[0] === null || typeof input[0] === 'number')) ||
-        input === null)
-    ) {
-      return Pattern.matches$java_lang_String$byte_A(regex, input)
-    } else {
-      throw new Error('invalid overload')
-    }
+    return Pattern.compile(regex).matcher(input).matches()
   }
-  static matches$java_lang_String$byte_A(regex, input) {
-    return Pattern.compile$java_lang_String(regex).matcher$byte_A(input).matches()
-  }
-  matches$java_lang_String(input) {
-    return this.matcher$java_lang_CharSequence(input).matches()
-  }
+
   matches(input) {
-    if (typeof input === 'string' || input === null) {
-      return this.matches$java_lang_String(input)
-    } else if (
-      (input != null &&
-        input instanceof Array &&
-        (input.length == 0 || input[0] == null || typeof input[0] === 'number')) ||
-      input === null
-    ) {
-      return this.matches$byte_A(input)
-    } else {
-      throw new Error('invalid overload')
-    }
+    return this.matcher(input).matches()
   }
-  matches$byte_A(input) {
-    return this.matcher$byte_A(input).matches()
-  }
-  matcher$java_lang_CharSequence(input) {
-    return new Matcher(this, input)
-  }
+
   /**
    * Creates a new {@code Matcher} matching the pattern against the input.
    *
@@ -236,34 +153,13 @@ export class Pattern {
    * @return {Matcher}
    */
   matcher(input) {
-    if (
-      (input != null &&
-        ((input.constructor != null &&
-          input.constructor['__interfaces'] != null &&
-          input.constructor['__interfaces'].indexOf('java.lang.CharSequence') >= 0) ||
-          typeof input === 'string')) ||
-      input === null
-    ) {
-      return this.matcher$java_lang_CharSequence(input)
-    } else if ((input != null && input instanceof MatcherInputBase) || input === null) {
-      return this.matcher$quickstart_MatcherInput(input)
-    } else if (
-      (input != null &&
-        input instanceof Array &&
-        (input.length == 0 || input[0] == null || typeof input[0] === 'number')) ||
-      input === null
-    ) {
-      return this.matcher$byte_A(input)
-    } else {
-      throw new Error('invalid overload')
+    if (Array.isArray(input)) {
+      input = MatcherInput.utf8(input)
     }
-  }
-  matcher$byte_A(input) {
-    return new Matcher(this, MatcherInput.utf8(input))
-  }
-  matcher$quickstart_MatcherInput(input) {
+
     return new Matcher(this, input)
   }
+
   split$java_lang_String(input) {
     return this.split$java_lang_String$int(input, 0)
   }
@@ -368,7 +264,7 @@ export class Pattern {
    * @return {string}
    */
   toString() {
-    return this.__pattern
+    return this.patternInput
   }
   /**
    * Returns the number of capturing groups in this matcher's pattern. Group zero denotes the entire
@@ -377,7 +273,7 @@ export class Pattern {
    * @return {number} the number of capturing groups in this pattern
    */
   groupCount() {
-    return this.__re2.numberOfCapturingGroups()
+    return this.re2Input.numberOfCapturingGroups()
   }
   /**
    * Return a map of the capturing groups in this matcher's pattern, where key is the name and value
@@ -385,10 +281,10 @@ export class Pattern {
    * @return {*}
    */
   namedGroups() {
-    return this.__re2.namedGroups
+    return this.re2Input.namedGroups
   }
   readResolve() {
-    return Pattern.compile$java_lang_String$int(this.__pattern, this.__flags)
+    return Pattern.compile(this.patternInput, this.flagsInput)
   }
   /**
    *
@@ -403,29 +299,8 @@ export class Pattern {
       return false
     }
     const other = o
-    return this.__flags === other.__flags && this.__pattern === other.__pattern
+    return this.flagsInput === other.__flags && this.patternInput === other.__pattern
   }
 }
-/**
- * Flag: case insensitive matching.
- */
-Pattern.CASE_INSENSITIVE = 1
-/**
- * Flag: dot ({@code .}) matches all characters, including newline.
- */
-Pattern.DOTALL = 2
-/**
- * Flag: multiline matching: {@code ^} and {@code $} match at beginning and end of line, not just
- * beginning and end of input.
- */
-Pattern.MULTILINE = 4
-/**
- * Flag: Unicode groups (e.g. {@code \p\ Greek\} ) will be syntax errors.
- */
-Pattern.DISABLE_UNICODE_GROUPS = 8
-/**
- * Flag: matches longest possible string.
- */
-Pattern.LONGEST_MATCH = 16
-Pattern.serialVersionUID = 0
-Pattern['__class'] = 'quickstart.Pattern'
+
+export { Pattern }

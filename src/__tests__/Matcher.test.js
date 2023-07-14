@@ -15,7 +15,7 @@ const helperTestMatchEndUTF16 = (string, num, end) => {
   }
   const re = RE2Modified.initTest(pattern)
 
-  const pat = new Pattern(pattern, 0, re)
+  const pat = Pattern.initTest(pattern, 0, re)
   const m = pat.matcher(string)
 
   let found = 0
