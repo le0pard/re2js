@@ -39,7 +39,7 @@ const makeConfig = (env = 'development') => {
         banner,
         file: `${OUTPUT_DIR}/index.cjs.js`, // CommonJS
         format: 'cjs',
-        exports: 'named', // https://rollupjs.org/guide/en/#outputexports
+        exports: 'auto',
         globals: GLOBALS,
         sourcemap: true
       },
