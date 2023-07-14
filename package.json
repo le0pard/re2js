@@ -1,7 +1,7 @@
 {
   "name": "re2js",
   "version": "0.1.0",
-  "description": "RE2JS - RE2 JS port of a linear time regular expression matching",
+  "description": "RE2JS is the JavaScript port of RE2, a regular expression engine that provides linear time matching",
   "type": "module",
   "keywords": [
     "re2js",

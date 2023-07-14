@@ -1,4 +1,5 @@
-# RE2JS - RE2 JS port of a linear time regular expression matching [![Test/Build/Deploy](https://github.com/le0pard/re2js/actions/workflows/tests.yml/badge.svg)](https://github.com/le0pard/re2js/actions/workflows/tests.yml)
+# RE2JS is the JavaScript port of RE2, a regular expression engine that provides linear time matching
+[![Test/Build/Deploy](https://github.com/le0pard/re2js/actions/workflows/tests.yml/badge.svg)](https://github.com/le0pard/re2js/actions/workflows/tests.yml)
 
 ## TLDR
 
