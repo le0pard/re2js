@@ -182,12 +182,6 @@ class Pattern {
     return new Matcher(this, input)
   }
 
-  split$java_lang_String(input) {
-    return this.split$java_lang_String$int(input, 0)
-  }
-  split$java_lang_String$int(input, limit) {
-    return this.split$quickstart_Matcher$int(new Matcher(this, input), limit)
-  }
   /**
    * Splits input around instances of the regular expression. It returns an array giving the strings
    * that occur before, between, and after instances of the regular expression.
@@ -202,74 +196,60 @@ class Pattern {
    * @param {number} limit the limit
    * @return {java.lang.String[]} the split strings
    */
-  split(input, limit) {
-    if (
-      (typeof input === 'string' || input === null) &&
-      (typeof limit === 'number' || limit === null)
-    ) {
-      return this.split$java_lang_String$int(input, limit)
-    } else if (
-      ((input != null && input instanceof Matcher) || input === null) &&
-      (typeof limit === 'number' || limit === null)
-    ) {
-      return this.split$quickstart_Matcher$int(input, limit)
-    } else if ((typeof input === 'string' || input === null) && limit === undefined) {
-      return this.split$java_lang_String(input)
-    } else {
-      throw new Error('invalid overload')
-    }
-  }
-  /*private*/ split$quickstart_Matcher$int(m, limit) {
+  split(input, limit = 0) {
+    const m = this.matcher(input)
+
     const result = []
     let emptiesSkipped = 0
     let last = 0
+
     while (m.find()) {
-      {
-        if (last === 0 && m.end() === 0) {
+      if (last === 0 && m.end() === 0) {
+        last = m.end()
+        continue
+      }
+
+      if (limit > 0 && result.length === limit - 1) {
+        break
+      }
+
+      if (last === m.start()) {
+        if (limit === 0) {
+          emptiesSkipped += 1
           last = m.end()
           continue
         }
-        if (limit > 0 && /* size */ result.length === limit - 1) {
-          break
+      } else {
+        while (emptiesSkipped > 0) {
+          result.push('')
+          emptiesSkipped -= 1
         }
-        if (last === m.start()) {
-          if (limit === 0) {
-            emptiesSkipped++
-            last = m.end()
-            continue
-          }
-        } else {
-          while (emptiesSkipped > 0) {
-            {
-              /* add */ result.push('') > 0
-              emptiesSkipped--
-            }
-          }
-        }
-        /* add */ result.push(m.substring(last, m.start())) > 0
-        last = m.end()
       }
+
+      result.push(m.substring(last, m.start()))
+      last = m.end()
     }
 
     if (limit === 0 && last !== m.inputLength()) {
       while (emptiesSkipped > 0) {
-        {
-          /* add */ result.push('') > 0
-          emptiesSkipped--
-        }
+        result.push('')
+        emptiesSkipped -= 1
       }
 
-      /* add */ result.push(m.substring(last, m.inputLength())) > 0
+      result.push(m.substring(last, m.inputLength()))
     }
-    if (limit !== 0 || /* isEmpty */ result.length === 0) {
-      /* add */ result.push(m.substring(last, m.inputLength())) > 0
+
+    if (limit !== 0 || result.length === 0) {
+      result.push(m.substring(last, m.inputLength()))
     }
-    return /* toArray */ result.slice(0)
+
+    return result
   }
 
   toString() {
     return this.patternInput
   }
+
   /**
    * Returns the number of capturing groups in this matcher's pattern. Group zero denotes the entire
    * pattern and is excluded from this count.
@@ -279,6 +259,7 @@ class Pattern {
   groupCount() {
     return this.re2Input.numberOfCapturingGroups()
   }
+
   /**
    * Return a map of the capturing groups in this matcher's pattern, where key is the name and value
    * is the index of the group in the pattern.
@@ -287,23 +268,16 @@ class Pattern {
   namedGroups() {
     return this.re2Input.namedGroups
   }
-  readResolve() {
-    return Pattern.compile(this.patternInput, this.flagsInput)
-  }
-  /**
-   *
-   * @param {*} o
-   * @return {boolean}
-   */
-  equals(o) {
-    if (this === o) {
+
+  equals(other) {
+    if (this === other) {
       return true
     }
-    if (o == null || this.constructor !== o.constructor) {
+    if (other === null || this.constructor !== other.constructor) {
       return false
     }
-    const other = o
-    return this.flagsInput === other.__flags && this.patternInput === other.__pattern
+
+    return this.flagsInput === other.flagsInput && this.patternInput === other.patternInput
   }
 }
 
