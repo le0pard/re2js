@@ -191,7 +191,9 @@ The `group()` method retrieves the content matched by a specific name of capturi
 ```js
 import { RE2JS } from 're2js'
 
-const p = RE2JS.compile('(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?')
+const p = RE2JS.compile(
+  '(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?'
+)
 const matchString = p.matcher('fbbarrrrrbag')
 if (matchString.matches()) {
   matchString.group('baz') // 'fbbarrrrr'
@@ -211,8 +213,12 @@ RE2JS allows you to replace all occurrences or the first occurrence of a pattern
 The `replaceAll()` method replaces all occurrences of a pattern match in a string with the given replacement
 
 ```js
-RE2JS.compile('Frog').matcher("What the Frog's Eye Tells the Frog's Brain").replaceAll('Lizard') // "What the Lizard's Eye Tells the Lizard's Brain"
-RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)').matcher('abcdefghijklmnopqrstuvwxyz123').replaceAll('$10$20') // 'jb0wo0123'
+RE2JS.compile('Frog')
+  .matcher("What the Frog's Eye Tells the Frog's Brain")
+  .replaceAll('Lizard') // "What the Lizard's Eye Tells the Lizard's Brain"
+RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
+  .matcher('abcdefghijklmnopqrstuvwxyz123')
+  .replaceAll('$10$20') // 'jb0wo0123'
 ```
 
 Note that the replacement string can include references to capturing groups from the pattern
@@ -222,8 +228,12 @@ Note that the replacement string can include references to capturing groups from
 The `replaceFirst()` method replaces the first occurrence of a pattern match in a string with the given replacement
 
 ```js
-RE2JS.compile('Frog').matcher("What the Frog's Eye Tells the Frog's Brain").replaceFirst('Lizard') // "What the Lizard's Eye Tells the Frog's Brain"
-RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)').matcher('abcdefghijklmnopqrstuvwxyz123').replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
+RE2JS.compile('Frog')
+  .matcher("What the Frog's Eye Tells the Frog's Brain")
+  .replaceFirst('Lizard') // "What the Lizard's Eye Tells the Frog's Brain"
+RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
+  .matcher('abcdefghijklmnopqrstuvwxyz123')
+  .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
 ```
 
 ## Performance
