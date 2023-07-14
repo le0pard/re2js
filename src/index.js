@@ -202,21 +202,26 @@ class RE2JS {
 
     while (m.find()) {
       if (last === 0 && m.end() === 0) {
+        // Zero-width match at the beginning, skip
         last = m.end()
         continue
       }
 
       if (limit > 0 && result.length === limit - 1) {
+        // no more room for matches
         break
       }
 
       if (last === m.start()) {
+        // Empty match, may or may not be trailing.
         if (limit === 0) {
           emptiesSkipped += 1
           last = m.end()
           continue
         }
       } else {
+        // If emptiesSkipped > 0 then limit == 0 and we have non-trailing empty matches to add before
+        // this non-empty match.
         while (emptiesSkipped > 0) {
           result.push('')
           emptiesSkipped -= 1
@@ -228,6 +233,8 @@ class RE2JS {
     }
 
     if (limit === 0 && last !== m.inputLength()) {
+      // Unlimited match, no more delimiters but we have a non-empty input at the end. Catch up any skipped empty
+      // matches, then emit the final match.
       while (emptiesSkipped > 0) {
         result.push('')
         emptiesSkipped -= 1
