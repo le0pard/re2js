@@ -10,6 +10,11 @@ In contrast, the RE2 algorithm explores all matches simultaneously in a single p
 
 There are certain features of PCRE or Perl regular expressions that cannot be implemented in linear time, for example, backreferences, but the vast majority of regular expressions patterns in practice avoid such features.
 
+## Usage
+
+
+For more detailed information about regex syntax, please visit this page: [Google RE2 Syntax Documentation](https://github.com/google/re2/wiki/Syntax).
+
 ## Performance
 
 The RE2JS engine runs more slowly compared to native RegExp objects. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The primary reason behind this is the lack of a synchronous threads solution within the browser environment. This deficiency is significant because the regex engine requires a synchronous API to operate optimally.
