@@ -16,7 +16,7 @@ The RE2JS engine runs more slowly compared to native RegExp objects. This reduce
 
 The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of optimizations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation to a pure JS version. This is another reason why the pure JS version will perform more slowly compared to the original RE2 engine.
 
-## Reason for this port to exists
+## Justification for this JS port existence
 
 There are several reasons that underscore the importance of having an RE2 vanilla JavaScript (JS) port.
 
