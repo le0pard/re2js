@@ -23,7 +23,7 @@ This document provides a series of examples demonstrating how to use RE2JS in yo
 
 ### Compiling Patterns
 
-You can compile a regex pattern using the `RE2JS.compile()` function:
+You can compile a regex pattern using the `compile()` function:
 
 ```js
 import { RE2JS } from 're2js'
@@ -33,7 +33,7 @@ console.log(p.pattern()); // Outputs: 'abc'
 console.log(p.flags()); // Outputs: 0
 ```
 
-The `RE2JS.compile()` function also supports flags:
+The `compile()` function also supports flags:
 
 ```js
 import { RE2JS } from 're2js'
@@ -71,7 +71,7 @@ RE2JS.LONGEST_MATCH
 
 ### Checking for Matches
 
-RE2JS allows you to check if a string matches a given regex pattern using the `RE2JS.matches()` function
+RE2JS allows you to check if a string matches a given regex pattern using the `matches()` function
 
 ```js
 import { RE2JS } from 're2js'
@@ -113,6 +113,19 @@ matchString.find(4) // true
 matchString.group() // 'e'
 matchString.find(7) // false
 ```
+
+### Checking Initial Match
+
+The `lookingAt()` method determines whether the start of the given string matches the pattern
+
+```js
+import { RE2JS } from 're2js'
+
+RE2JS.compile('abc').matcher('abcdef').lookingAt() // true
+RE2JS.compile('abc').matcher('ab').lookingAt() // false
+```
+
+Note that the `lookingAt` method only checks the start of the string. It does not search the entire string for a match
 
 ### Splitting Strings
 
@@ -238,6 +251,19 @@ RE2JS.compile('Frog')
 RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .matcher('abcdefghijklmnopqrstuvwxyz123')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
+```
+
+### Escaping Special Characters
+
+The `quote()` method returns a literal pattern string for the specified string. This can be useful if you want to search for a literal string pattern that may contain special characters
+
+```js
+import { RE2JS } from 're2js'
+
+const regexp = RE2JS.quote('ab+c')
+
+RE2JS.matches(regexp, 'ab+c') // true
+RE2JS.matches(regexp, 'abc') // false
 ```
 
 ## Performance
