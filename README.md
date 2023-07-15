@@ -83,7 +83,10 @@ RE2JS.compile('ab+c').matches('abbbc') // true
 RE2JS.compile('ab+c').matches('cbbba') // false
 // with flags
 RE2JS.compile('ab+c', RE2JS.CASE_INSENSITIVE).matches('AbBBc') // true
-RE2JS.compile('^ab.*c$', RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE).matches('AB\nc') // true
+RE2JS.compile(
+  '^ab.*c$',
+  RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE
+).matches('AB\nc') // true
 ```
 
 ### Finding Matches
