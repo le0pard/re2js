@@ -1,3 +1,4 @@
+import preprocess from 'svelte-preprocess'
 import adapter from '@sveltejs/adapter-static'
 
 export default {
@@ -9,5 +10,10 @@ export default {
       precompress: false,
       strict: true
     })
-  }
+  },
+  preprocess: [
+    preprocess({
+      postcss: true
+    })
+  ]
 }
