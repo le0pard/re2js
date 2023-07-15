@@ -1,0 +1,31 @@
+{
+  "name": "re2js",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
+    "lint": "prettier --check src && eslint src",
+    "format": "prettier --write src"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^2.0.2",
+    "@sveltejs/kit": "^1.22.3",
+    "@types/cookie": "^0.5.1",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-svelte": "^2.32.2",
+    "postcss-import": "^15.1.0",
+    "postcss-preset-env": "^9.0.0",
+    "prettier": "^3.0.0",
+    "prettier-plugin-svelte": "^2.10.1",
+    "svelte": "^4.0.5",
+    "svelte-check": "^3.4.6",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.4"
+  },
+  "type": "module",
+  "packageManager": "yarn@3.6.1"
+}
