@@ -707,6 +707,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@picocss/pico@npm:^1.5.10":
+  version: 1.5.10
+  resolution: "@picocss/pico@npm:1.5.10"
+  checksum: 07b2f94507e068c87581039a81c75ef7167dfbcf4b6ed4a9cfe3b8d8039d06ba998f78b93102316f5d90b96d1e907e136cf980f081e77b503ef4dff394f4de83
+  languageName: node
+  linkType: hard
+
 "@pkgjs/parseargs@npm:^0.11.0":
   version: 0.11.0
   resolution: "@pkgjs/parseargs@npm:0.11.0"
@@ -2180,6 +2187,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lodash@npm:^4.17.21":
+  version: 4.17.21
+  resolution: "lodash@npm:4.17.21"
+  checksum: eb835a2e51d381e561e508ce932ea50a8e5a68f4ebdd771ea240d3048244a8d13658acbd502cd4829768c56f2e16bdd4340b9ea141297d472517b83868e677f7
+  languageName: node
+  linkType: hard
+
 "lru-cache@npm:^6.0.0":
   version: 6.0.0
   resolution: "lru-cache@npm:6.0.0"
@@ -3079,7 +3093,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.25, postcss@npm:^8.4.5":
+"postcss@npm:^8.4.25, postcss@npm:^8.4.26, postcss@npm:^8.4.5":
   version: 8.4.26
   resolution: "postcss@npm:8.4.26"
   dependencies:
@@ -3140,20 +3154,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"re2js@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "re2js@npm:0.1.0"
+  checksum: bcf9c6eac9210d7ba3ff7ec56ad001ff5a2eeba7259f3a8a76c21434ec22cfc21a42ad020079a64926029a2c2156eb0c0859af53c860e924e05af1139c94d3c5
+  languageName: node
+  linkType: hard
+
 "re2js@workspace:.":
   version: 0.0.0-use.local
   resolution: "re2js@workspace:."
   dependencies:
+    "@picocss/pico": ^1.5.10
     "@sveltejs/adapter-static": ^2.0.2
     "@sveltejs/kit": ^1.22.3
     "@types/cookie": ^0.5.1
     eslint: ^8.45.0
     eslint-config-prettier: ^8.8.0
     eslint-plugin-svelte: ^2.32.2
+    lodash: ^4.17.21
+    postcss: ^8.4.26
     postcss-import: ^15.1.0
     postcss-preset-env: ^9.0.0
     prettier: ^3.0.0
     prettier-plugin-svelte: ^2.10.1
+    re2js: ^0.1.0
     svelte: ^4.0.5
     svelte-check: ^3.4.6
     svelte-preprocess: ^5.0.4
