@@ -264,7 +264,7 @@ The `quote()` method returns a literal pattern string for the specified string. 
 ```js
 import { RE2JS } from 're2js'
 
-const regexp = RE2JS.quote('ab+c')
+const regexp = RE2JS.quote('ab+c') // 'ab\\+c'
 
 RE2JS.matches(regexp, 'ab+c') // true
 RE2JS.matches(regexp, 'abc') // false
