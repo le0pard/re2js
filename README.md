@@ -272,9 +272,7 @@ RE2JS.matches(regexp, 'abc') // false
 
 ## Performance
 
-The RE2JS engine runs more slowly compared to native RegExp objects. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The primary reason behind this is the lack of a synchronous threads solution within the browser environment. This deficiency is significant because the regex engine requires a synchronous API to operate optimally.
-
-The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of optimizations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation to a pure JS version. This is another reason why the pure JS version will perform more slowly compared to the original RE2 engine.
+The RE2JS engine runs more slowly compared to native RegExp objects. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of optimizations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation to a pure JS version. This is another reason why the pure JS version will perform more slowly compared to the original RE2 engine.
 
 Should you require high performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
 
