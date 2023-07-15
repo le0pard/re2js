@@ -281,9 +281,9 @@ Should you require high performance on the server side when using RE2, it would 
  - [Node-RE2](https://github.com/uhop/node-re2/): A powerful RE2 package for Node.js
  - [RE2-WASM](https://github.com/google/re2-wasm/): This package is a WASM wrapper for RE2. Please note, as of now, it does not work in browsers
 
-### Give me numbers!
+### RE2JS vs JavaScript's native RegExp
 
-These examples illustrate the performance comparison between the RE2JS library and JavaScript's built-in RegExp for both a simple case and a ReDoS (Regular Expression Denial of Service) scenario
+These examples illustrate the performance comparison between the RE2JS library and JavaScript's native RegExp for both a simple case and a ReDoS (Regular Expression Denial of Service) scenario
 
 ```js
 const regex = 'a+'
@@ -293,7 +293,7 @@ RE2JS.compile(regex).matcher(string).find() // avg: 5.657783601 ms
 new RegExp(regex).test(string) // avg: 1.504824999 ms
 ```
 
-The result shows that the RE2JS library took around **5.66 ms** on average to find a match, while the built-in RegExp took around **1.50 ms**. This indicates that, in this case, RegExp performed faster than RE2JS
+The result shows that the RE2JS library took around **5.66 ms** on average to find a match, while the native RegExp took around **1.50 ms**. This indicates that, in this case, RegExp performed faster than RE2JS
 
 ```js
 const regex = '([a-z]+)+$'
@@ -307,7 +307,7 @@ In the second example, a ReDoS scenario is depicted. The regular expression `([a
 
 The string is the same as in the first example, which does not pose a problem for either RE2JS or RegExp under normal circumstances. However, when dealing with the nested quantifier, RE2JS took around **3.62 ms** to find a match, while RegExp took significantly longer, around **103768.26 ms (~103 seconds)**. This demonstrates that RE2JS is much more efficient in handling potentially harmful regular expressions, thus preventing ReDoS attacks.
 
-In conclusion, while JavaScript's built-in RegExp might be faster for simple regular expressions, RE2JS offers significant performance advantages when dealing with complex or potentially dangerous regular expressions. RE2JS provides protection against excessive backtracking that could lead to performance issues or ReDoS attacks.
+In conclusion, while JavaScript's native RegExp might be faster for simple regular expressions, RE2JS offers significant performance advantages when dealing with complex or potentially dangerous regular expressions. RE2JS provides protection against excessive backtracking that could lead to performance issues or ReDoS attacks.
 
 ## Justification for this JS port existence
 
