@@ -145,17 +145,17 @@
 						</td>
 					</tr>
 					<tr>
-						<td class="key-cell">Group Count</td>
+						<td class="key-cell">Group Count <small>(groupCount)</small></td>
 						<td class="val-cell">{results.groupCount}</td>
 					</tr>
 					<tr>
-						<td class="key-cell">Named Groups</td>
+						<td class="key-cell">Named Groups <small>(namedGroups)</small></td>
 						<td class="val-cell">
 							<div class="long-text">{JSON.stringify(results.namedGroups)}</div>
 						</td>
 					</tr>
 					<tr>
-						<td class="key-cell">Groups Content</td>
+						<td class="key-cell">Groups Content <small>(group)</small></td>
 						<td class="val-cell">
 							{#if results.groupsResuls}
 								<div class="long-text">{JSON.stringify(results.groupsResuls)}</div>
