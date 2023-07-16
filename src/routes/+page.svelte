@@ -19,6 +19,7 @@
 		try {
 			const p = RE2JS.compile(regexInput, flagsInput)
 			const m = p.matcher(stringInput)
+			m.find() // match attempt
 
 			results = {
 				success: true,
