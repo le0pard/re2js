@@ -6,7 +6,7 @@
 	import round from 'lodash/round'
 
 	let regex = '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\\.[a-zA-Z]{2,})'
-	let string = 'example@example.com'
+	let string = 'max.power@example.com'
 
 	let case_insensitive_flag = false
 	let dotall_flag = false
