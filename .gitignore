@@ -73,3 +73,6 @@ typings/
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+
+# sveltekit
+.svelte-kit/*
