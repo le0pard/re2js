@@ -15,7 +15,28 @@
 
 	let results = null
 
-	const execRE2JS = debounce((r, s) => {
+	const execRE2JS = debounce((regexInput, stringInput, flagsInput = 0) => {
+		try {
+			const p = RE2JS.compile(regexInput, flagsInput)
+			const m = p.matcher(stringInput)
+
+			results = {
+				success: true,
+				matches: m.matches(),
+				contains: m.find(),
+				startWith: m.lookingAt(),
+				groupCount: p.groupCount(),
+				namedGroups: p.namedGroups()
+			}
+		} catch(err) {
+			results = {
+				success: false,
+				error: err.message
+			}
+		}
+	}, 300)
+
+	$: {
 		let flags = 0
 		if (case_insensitive_flag) {
 			flags = flags | RE2JS.CASE_INSENSITIVE
@@ -32,26 +53,9 @@
 		if (longest_match_flag) {
 			flags = flags | RE2JS.LONGEST_MATCH
 		}
-
-		try {
-			const p = RE2JS.compile(r, flags)
-			const m = p.matcher(s)
-
-			results = {
-				success: true,
-				matches: m.matches(),
-				contains: m.find(),
-				startWith: m.lookingAt()
-			}
-		} catch(err) {
-			results = {
-				success: false,
-				error: err.message
-			}
-		}
-	}, 300)
-
-	$: execRE2JS(regex, string)
+		// debounce result
+		execRE2JS(regex, string, flags)
+	}
 </script>
 
 <svelte:head>
@@ -115,6 +119,14 @@
 				<tr>
 					<td>Start with?</td>
 					<td>{results.startWith}</td>
+				</tr>
+				<tr>
+					<td>Group Count</td>
+					<td>{results.groupCount}</td>
+				</tr>
+				<tr>
+					<td>Named Groups</td>
+					<td>{JSON.stringify(results.namedGroups)}</td>
 				</tr>
 			{:else}
 				<tr>
