@@ -151,14 +151,14 @@
 					<tr>
 						<td class="key-cell">Named Groups</td>
 						<td class="val-cell">
-							<div class="group-text">{JSON.stringify(results.namedGroups)}</div>
+							<div class="long-text">{JSON.stringify(results.namedGroups)}</div>
 						</td>
 					</tr>
 					<tr>
 						<td class="key-cell">Groups Content</td>
 						<td class="val-cell">
 							{#if results.groupsResuls}
-								<div class="group-text">{JSON.stringify(results.groupsResuls)}</div>
+								<div class="long-text">{JSON.stringify(results.groupsResuls)}</div>
 							{:else}
 								<span class="status-tag status-tag__no">no match</span>
 							{/if}
@@ -203,7 +203,7 @@
 		background-color: var(--del-color);
 	}
 
-	.group-text {
+	.long-text {
 		word-wrap: break-word;      /* Older browsers */
 		overflow-wrap: break-word;  /* Modern browsers */
 		word-break: break-all;      /* To prevent long words from overflowing */
