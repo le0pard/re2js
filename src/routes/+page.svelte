@@ -3,8 +3,9 @@
 <script>
 	import { RE2JS } from 're2js'
 	import debounce from 'lodash/debounce'
+	import round from 'lodash/round'
 
-	let regex = '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+	let regex = '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\\.[a-zA-Z]{2,})'
 	let string = 'example@example.com'
 
 	let case_insensitive_flag = false
@@ -17,18 +18,23 @@
 
 	const execRE2JS = debounce((regexInput, stringInput, flagsInput = 0) => {
 		try {
+			const start = performance.now()
 			const p = RE2JS.compile(regexInput, flagsInput)
 			const m = p.matcher(stringInput)
 			const found = m.find()
+			const end = performance.now()
 
 			results = {
 				success: true,
+				time: end - start,
 				matches: m.matches(),
 				contains: found,
-				group: found ? m.group() : null,
 				startWith: m.lookingAt(),
 				groupCount: p.groupCount(),
-				namedGroups: p.namedGroups()
+				namedGroups: p.namedGroups(),
+				groupsResuls: found ? Array.from(
+					Array(p.groupCount() + 1)).map((_, index) => m.group(index)
+				) : null
 			}
 		} catch(err) {
 			results = {
@@ -107,48 +113,64 @@
 
 {#if results}
 	<article>
-		<table role="grid">
-			<thead>
-				<tr>
-					<th scope="col">Check</th>
-					<th scope="col">Result</th>
-				</tr>
-			</thead>
-			<tbody>
-			{#if results.success}
-				<tr>
-					<td class="key-cell">Matches?</td>
-					<td class="val-cell">{results.matches}</td>
-				</tr>
-				<tr>
-					<td class="key-cell">Contains?</td>
-					<td class="val-cell">{results.contains}</td>
-				</tr>
-				<tr>
-					<td class="key-cell">Start with?</td>
-					<td class="val-cell">{results.startWith}</td>
-				</tr>
-				<tr>
-					<td class="key-cell">Group Count</td>
-					<td class="val-cell">{results.groupCount}</td>
-				</tr>
-				<tr>
-					<td class="key-cell">Named Groups</td>
-					<td class="val-cell">{JSON.stringify(results.namedGroups)}</td>
-				</tr>
-				<tr>
-					<td class="key-cell">Group Content (zero group)</td>
-					<td class="val-cell">
-						<div class="group-text">{results.group}</div>
-					</td>
-				</tr>
-			{:else}
-				<tr>
-					<td colspan="2">{results.error}</td>
-				</tr>
-			{/if}
-			</tbody>
-		</table>
+		{#if results.success}
+			<table role="grid">
+				<thead>
+					<tr>
+						<th scope="col">Check</th>
+						<th scope="col">Result</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="key-cell">Time</td>
+						<td class="val-cell">{round(results.time, 5)} ms</td>
+					</tr>
+					<tr>
+						<td class="key-cell">Fully match regex pattern ?</td>
+						<td class="val-cell">
+							<span class="status-tag" class:status-tag__yes="{results.matches}" class:status-tag__no="{!results.matches}">{results.matches}</span>
+						</td>
+					</tr>
+					<tr>
+						<td class="key-cell">Contain regex pattern ?</td>
+						<td class="val-cell">
+							<span class="status-tag" class:status-tag__yes="{results.contains}" class:status-tag__no="{!results.contains}">{results.contains}</span>
+						</td>
+					</tr>
+					<tr>
+						<td class="key-cell">Start with regex pattern ?</td>
+						<td class="val-cell">
+							<span class="status-tag" class:status-tag__yes="{results.startWith}" class:status-tag__no="{!results.startWith}">{results.startWith}</span>
+						</td>
+					</tr>
+					<tr>
+						<td class="key-cell">Group Count</td>
+						<td class="val-cell">{results.groupCount}</td>
+					</tr>
+					<tr>
+						<td class="key-cell">Named Groups</td>
+						<td class="val-cell">
+							<div class="group-text">{JSON.stringify(results.namedGroups)}</div>
+						</td>
+					</tr>
+					<tr>
+						<td class="key-cell">Groups Content</td>
+						<td class="val-cell">
+							{#if results.groupsResuls}
+								<div class="group-text">{JSON.stringify(results.groupsResuls)}</div>
+							{:else}
+								<span class="status-tag status-tag__no">no match</span>
+							{/if}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		{:else}
+			<div class="error-message">
+				{results.error}
+			</div>
+		{/if}
 	</article>
 {/if}
 
@@ -165,10 +187,37 @@
 		width: 70%;
 	}
 
+	.status-tag {
+		color: #f0f0f0;
+		text-transform: uppercase;
+		letter-spacing: 0.15rem;
+		padding: 3px 5px 2px 5px;
+		font-size: 0.8rem;
+	}
+
+	.status-tag__yes {
+		background-color: var(--ins-color);
+	}
+
+	.status-tag__no {
+		background-color: var(--del-color);
+	}
+
 	.group-text {
 		word-wrap: break-word;      /* Older browsers */
 		overflow-wrap: break-word;  /* Modern browsers */
 		word-break: break-all;      /* To prevent long words from overflowing */
+	}
+
+	.error-message {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #f0f0f0;
+		background-color: var(--del-color);
+		letter-spacing: 0.15rem;
+		padding: 3px 5px 2px 5px;
+		font-size: 0.8rem;
 	}
 
 	@media (width > 992px) {
