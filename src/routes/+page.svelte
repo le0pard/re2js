@@ -129,19 +129,19 @@
 					<tr>
 						<td class="key-cell">Fully match regex pattern ?</td>
 						<td class="val-cell">
-							<span class="status-tag" class:status-tag__yes="{results.matches}" class:status-tag__no="{!results.matches}">{results.matches}</span>
+							<span class="status-tag" class:status-tag__yes="{results.matches}" class:status-tag__no="{!results.matches}">{results.matches ? 'yes' : 'no'}</span>
 						</td>
 					</tr>
 					<tr>
 						<td class="key-cell">Contain regex pattern ?</td>
 						<td class="val-cell">
-							<span class="status-tag" class:status-tag__yes="{results.contains}" class:status-tag__no="{!results.contains}">{results.contains}</span>
+							<span class="status-tag" class:status-tag__yes="{results.contains}" class:status-tag__no="{!results.contains}">{results.contains ? 'yes' : 'no'}</span>
 						</td>
 					</tr>
 					<tr>
 						<td class="key-cell">Start with regex pattern ?</td>
 						<td class="val-cell">
-							<span class="status-tag" class:status-tag__yes="{results.startWith}" class:status-tag__no="{!results.startWith}">{results.startWith}</span>
+							<span class="status-tag" class:status-tag__yes="{results.startWith}" class:status-tag__no="{!results.startWith}">{results.startWith ? 'yes' : 'no'}</span>
 						</td>
 					</tr>
 					<tr>
