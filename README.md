@@ -309,7 +309,7 @@ The string is the same as in the first example, which does not pose a problem fo
 
 In conclusion, while JavaScript's native RegExp might be faster for simple regular expressions, RE2JS offers significant performance advantages when dealing with complex or potentially dangerous regular expressions. RE2JS provides protection against excessive backtracking that could lead to performance issues or ReDoS attacks.
 
-## Justification for this JS port existence
+## Rationale for RE2 JavaScript port
 
 There are several reasons that underscore the importance of having an RE2 vanilla JavaScript (JS) port.
 
