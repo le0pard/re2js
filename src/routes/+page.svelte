@@ -74,29 +74,35 @@
 		<textarea class="string-input" id="string" name="string" placeholder="Insert your test string here" bind:value={string}></textarea>
 	</div>
 
-	<fieldset>
-		<legend>Regular expression flags</legend>
-		<label for="case_insensitive_flag">
-			<input type="checkbox" id="case_insensitive_flag" name="case_insensitive_flag" bind:checked={case_insensitive_flag}>
-			Case insensitive matching
-		</label>
-		<label for="dotall_flag">
-			<input type="checkbox" id="dotall_flag" name="dotall_flag" bind:checked={dotall_flag}>
-			"." matches all characters
-		</label>
-		<label for="multiline_flag">
-			<input type="checkbox" id="multiline_flag" name="multiline_flag" bind:checked={multiline_flag}>
-			Multiline matching
-		</label>
-		<label for="disable_unicode_groups_flag">
-			<input type="checkbox" id="disable_unicode_groups_flag" name="disable_unicode_groups_flag" bind:checked={disable_unicode_groups_flag}>
-			Disable unicode groups
-		</label>
-		<label for="longest_match_flag">
-			<input type="checkbox" id="longest_match_flag" name="longest_match_flag" bind:checked={longest_match_flag}>
-			Matches longest possible string
-		</label>
-	</fieldset>
+	<div>
+		<fieldset>
+			<legend>Regular expression flags</legend>
+			<label for="case_insensitive_flag">
+				<input type="checkbox" id="case_insensitive_flag" name="case_insensitive_flag" bind:checked={case_insensitive_flag}>
+				Case insensitive matching
+			</label>
+			<label for="dotall_flag">
+				<input type="checkbox" id="dotall_flag" name="dotall_flag" bind:checked={dotall_flag}>
+				"." matches all characters
+			</label>
+			<label for="multiline_flag">
+				<input type="checkbox" id="multiline_flag" name="multiline_flag" bind:checked={multiline_flag}>
+				Multiline matching
+			</label>
+			<label for="disable_unicode_groups_flag">
+				<input type="checkbox" id="disable_unicode_groups_flag" name="disable_unicode_groups_flag" bind:checked={disable_unicode_groups_flag}>
+				Disable unicode groups
+			</label>
+			<label for="longest_match_flag">
+				<input type="checkbox" id="longest_match_flag" name="longest_match_flag" bind:checked={longest_match_flag}>
+				Matches longest possible string
+			</label>
+		</fieldset>
+
+		<a href="https://github.com/google/re2/wiki/Syntax" target="_blank">
+			<small>Google RE2 Syntax Documentation</small>
+		</a>
+	</div>
 </article>
 
 {#if results}
