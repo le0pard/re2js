@@ -19,13 +19,12 @@
 		try {
 			const p = RE2JS.compile(regexInput, flagsInput)
 			const m = p.matcher(stringInput)
-			m.find() // match attempt
 
 			results = {
 				success: true,
 				matches: m.matches(),
 				contains: m.find(),
-				group: m.group(),
+				group: m.find() ? m.group() : null,
 				startWith: m.lookingAt(),
 				groupCount: p.groupCount(),
 				namedGroups: p.namedGroups()
