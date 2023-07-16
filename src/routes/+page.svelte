@@ -65,7 +65,7 @@
 	<meta name="description" content="RE2JS Playground" />
 </svelte:head>
 
-<article class="grid">
+<article class="grid regex-block">
 	<div>
 		<label for="regex">Regular expression</label>
 		<input type="text" id="regex" name="regex" placeholder="Insert your regular expression here" bind:value={regex} aria-invalid={results && !results.success}>
@@ -117,28 +117,30 @@
 			<tbody>
 			{#if results.success}
 				<tr>
-					<td>Matches?</td>
-					<td>{results.matches}</td>
+					<td class="key-cell">Matches?</td>
+					<td class="val-cell">{results.matches}</td>
 				</tr>
 				<tr>
-					<td>Contains?</td>
-					<td>{results.contains}</td>
+					<td class="key-cell">Contains?</td>
+					<td class="val-cell">{results.contains}</td>
 				</tr>
 				<tr>
-					<td>Start with?</td>
-					<td>{results.startWith}</td>
+					<td class="key-cell">Start with?</td>
+					<td class="val-cell">{results.startWith}</td>
 				</tr>
 				<tr>
-					<td>Group Count</td>
-					<td>{results.groupCount}</td>
+					<td class="key-cell">Group Count</td>
+					<td class="val-cell">{results.groupCount}</td>
 				</tr>
 				<tr>
-					<td>Named Groups</td>
-					<td>{JSON.stringify(results.namedGroups)}</td>
+					<td class="key-cell">Named Groups</td>
+					<td class="val-cell">{JSON.stringify(results.namedGroups)}</td>
 				</tr>
 				<tr>
-					<td>Group Content (zero group)</td>
-					<td>{results.group}</td>
+					<td class="key-cell">Group Content (zero group)</td>
+					<td class="val-cell">
+						<div class="group-text">{results.group}</div>
+					</td>
 				</tr>
 			{:else}
 				<tr>
@@ -153,5 +155,25 @@
 <style>
 	.string-input {
 		resize: vertical;
+	}
+
+	.key-cell {
+		width: 30%;
+	}
+
+	.val-cell {
+		width: 70%;
+	}
+
+	.group-text {
+		word-wrap: break-word;      /* Older browsers */
+		overflow-wrap: break-word;  /* Modern browsers */
+		word-break: break-all;      /* To prevent long words from overflowing */
+	}
+
+	@media (width > 992px) {
+		.regex-block {
+			grid-template-columns: 60% 40%;
+		}
 	}
 </style>
