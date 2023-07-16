@@ -24,6 +24,7 @@
 				success: true,
 				matches: m.matches(),
 				contains: m.find(),
+				group: m.group(),
 				startWith: m.lookingAt(),
 				groupCount: p.groupCount(),
 				namedGroups: p.namedGroups()
@@ -102,8 +103,8 @@
 		<table role="grid">
 			<thead>
 				<tr>
-					<th scope="col">Name</th>
-					<th scope="col">Value</th>
+					<th scope="col">Check</th>
+					<th scope="col">Result</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -127,6 +128,10 @@
 				<tr>
 					<td>Named Groups</td>
 					<td>{JSON.stringify(results.namedGroups)}</td>
+				</tr>
+				<tr>
+					<td>Group Content (zero group)</td>
+					<td>{results.group}</td>
 				</tr>
 			{:else}
 				<tr>
