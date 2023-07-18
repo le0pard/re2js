@@ -109,7 +109,6 @@ class Parser {
   static ERR_INTERNAL_ERROR = 'regexp/syntax: internal error'
 
   // Parse errors
-  static ERR_INVALID_CHAR_CLASS = 'invalid character class'
   static ERR_INVALID_CHAR_RANGE = 'invalid character class range'
   static ERR_INVALID_ESCAPE = 'invalid escape sequence'
   static ERR_INVALID_NAMED_CAPTURE = 'invalid named capture'
