@@ -1,4 +1,4 @@
-<svelte:options immutable={true} />
+<svelte:options immutable="{true}" />
 
 <header class="container">
   <hgroup>

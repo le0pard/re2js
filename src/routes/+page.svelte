@@ -1,4 +1,4 @@
-<svelte:options immutable={true} />
+<svelte:options immutable="{true}" />
 
 <script>
   import { RE2JS } from 're2js'
@@ -81,8 +81,8 @@
       id="regex"
       name="regex"
       placeholder="Insert your regular expression here"
-      bind:value={regex}
-      aria-invalid={results && !results.success}
+      bind:value="{regex}"
+      aria-invalid="{results && !results.success}"
     />
 
     <label for="string">Test string</label>
@@ -91,7 +91,7 @@
       id="string"
       name="string"
       placeholder="Insert your test string here"
-      bind:value={string}
+      bind:value="{string}"
     ></textarea>
   </div>
 
@@ -103,12 +103,12 @@
           type="checkbox"
           id="case_insensitive_flag"
           name="case_insensitive_flag"
-          bind:checked={case_insensitive_flag}
+          bind:checked="{case_insensitive_flag}"
         />
         Case insensitive matching
       </label>
       <label for="dotall_flag">
-        <input type="checkbox" id="dotall_flag" name="dotall_flag" bind:checked={dotall_flag} />
+        <input type="checkbox" id="dotall_flag" name="dotall_flag" bind:checked="{dotall_flag}" />
         "." matches all characters
       </label>
       <label for="multiline_flag">
@@ -116,7 +116,7 @@
           type="checkbox"
           id="multiline_flag"
           name="multiline_flag"
-          bind:checked={multiline_flag}
+          bind:checked="{multiline_flag}"
         />
         Multiline matching
       </label>
@@ -125,7 +125,7 @@
           type="checkbox"
           id="disable_unicode_groups_flag"
           name="disable_unicode_groups_flag"
-          bind:checked={disable_unicode_groups_flag}
+          bind:checked="{disable_unicode_groups_flag}"
         />
         Disable unicode groups
       </label>
@@ -134,7 +134,7 @@
           type="checkbox"
           id="longest_match_flag"
           name="longest_match_flag"
-          bind:checked={longest_match_flag}
+          bind:checked="{longest_match_flag}"
         />
         Matches longest possible string
       </label>
@@ -166,8 +166,8 @@
             <td class="val-cell">
               <span
                 class="status-tag"
-                class:status-tag__yes={results.matches}
-                class:status-tag__no={!results.matches}>{results.matches ? 'yes' : 'no'}</span
+                class:status-tag__yes="{results.matches}"
+                class:status-tag__no="{!results.matches}">{results.matches ? 'yes' : 'no'}</span
               >
             </td>
           </tr>
@@ -176,8 +176,8 @@
             <td class="val-cell">
               <span
                 class="status-tag"
-                class:status-tag__yes={results.contains}
-                class:status-tag__no={!results.contains}>{results.contains ? 'yes' : 'no'}</span
+                class:status-tag__yes="{results.contains}"
+                class:status-tag__no="{!results.contains}">{results.contains ? 'yes' : 'no'}</span
               >
             </td>
           </tr>
@@ -186,8 +186,8 @@
             <td class="val-cell">
               <span
                 class="status-tag"
-                class:status-tag__yes={results.startWith}
-                class:status-tag__no={!results.startWith}>{results.startWith ? 'yes' : 'no'}</span
+                class:status-tag__yes="{results.startWith}"
+                class:status-tag__no="{!results.startWith}">{results.startWith ? 'yes' : 'no'}</span
               >
             </td>
           </tr>

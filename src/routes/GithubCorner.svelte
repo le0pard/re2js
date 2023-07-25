@@ -1,4 +1,4 @@
-<svelte:options immutable={true} />
+<svelte:options immutable="{true}" />
 
 <a href="https://github.com/le0pard/re2js" class="github-corner" aria-label="View source on GitHub">
   <svg
