@@ -7,14 +7,15 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
-    "lint": "prettier --plugin prettier-plugin-svelte --check src && eslint src",
-    "format": "prettier --plugin prettier-plugin-svelte --write src"
+    "lint": "pnpify run prettier --plugin prettier-plugin-svelte --check src && eslint src",
+    "format": "pnpify run prettier --plugin prettier-plugin-svelte --write src"
   },
   "devDependencies": {
     "@picocss/pico": "^1.5.10",
     "@sveltejs/adapter-static": "^2.0.2",
     "@sveltejs/kit": "^1.22.3",
     "@types/cookie": "^0.5.1",
+    "@yarnpkg/pnpify": "^4.0.0-rc.48",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-svelte": "^2.32.4",
