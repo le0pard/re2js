@@ -7,8 +7,8 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
-    "lint": "prettier --check src && eslint src",
-    "format": "prettier --write src"
+    "lint": "prettier --plugin prettier-plugin-svelte --check src && eslint src",
+    "format": "prettier --plugin prettier-plugin-svelte --write src"
   },
   "devDependencies": {
     "@picocss/pico": "^1.5.10",
@@ -17,19 +17,20 @@
     "@types/cookie": "^0.5.1",
     "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-svelte": "^2.32.2",
+    "eslint-plugin-svelte": "^2.32.4",
     "lodash": "^4.17.21",
-    "postcss": "^8.4.26",
+    "postcss": "^8.4.27",
     "postcss-import": "^15.1.0",
-    "postcss-preset-env": "^9.0.0",
+    "postcss-load-config": "^4.0.1",
+    "postcss-preset-env": "^9.1.0",
     "prettier": "^3.0.0",
-    "prettier-plugin-svelte": "^2.10.1",
+    "prettier-plugin-svelte": "^3.0.0",
     "re2js": "^0.1.0",
-    "svelte": "^4.0.5",
+    "svelte": "^4.1.1",
     "svelte-check": "^3.4.6",
     "svelte-preprocess": "^5.0.4",
     "typescript": "^5.1.6",
-    "vite": "^4.4.4"
+    "vite": "^4.4.7"
   },
   "type": "module",
   "packageManager": "yarn@3.6.1"
