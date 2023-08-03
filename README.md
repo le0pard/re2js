@@ -240,11 +240,6 @@ RE2JS.compile('Frog')
 RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .matcher('abcdefghijklmnopqrstuvwxyz123')
   .replaceAll('$10$20') // 'jb0wo0123'
-// or
-RE2JS.compile('Frog')
-  .replaceFirst("What the Frog's Eye Tells the Frog's Brain", 'Lizard') // "What the Lizard's Eye Tells the Lizard's Brain"
-RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
-  .replaceFirst('abcdefghijklmnopqrstuvwxyz123', '$10$20') // 'jb0wo0123'
 ```
 
 Note that the replacement string can include references to capturing groups from the pattern
@@ -262,11 +257,6 @@ RE2JS.compile('Frog')
 RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .matcher('abcdefghijklmnopqrstuvwxyz123')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
-// or
-RE2JS.compile('Frog')
-  .replaceFirst("What the Frog's Eye Tells the Frog's Brain", 'Lizard') // "What the Lizard's Eye Tells the Frog's Brain"
-RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
-  .replaceFirst('abcdefghijklmnopqrstuvwxyz123', '$10$20') // 'jb0nopqrstuvwxyz123'
 ```
 
 #### Replacing with function result
