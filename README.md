@@ -261,16 +261,20 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
 
 #### Replacing with function result
 
-The `replaceAllFunc()` method replaces the provided number of an occurrence of a pattern match in a string with the result from function. Function will receive result of match as first argument
+The `replaceAllFunc()` method provides a way to replace substrings in a given input string that match a compiled regular expression pattern. It offers more flexibility than a simple replacement string as it accepts a callback function to determine the replacement based on the matched substring.
 
 ```js
 import { RE2JS } from 're2js'
 
 RE2JS.compile('[a-c]')
-  .replaceAllFunc('defabcdef', (s) => `x${s}y`, 'defabcdef'.length) // replace all, result: 'defxayxbyxcydef'
+  .replaceAllFunc('defabcdef', (s) => `x${s}y`) // replace all, result: 'defxayxbyxcydef'
 RE2JS.compile('[a-c]')
   .replaceAllFunc('defabcdef', (s) => `x${s}y`, 1) // replace first, result: 'defxaybcdef'
 ```
+
+The 3-rd argument can be used to control the number of replacements made. If it is not provided or is equal to the length of the input string, all matches in the input string will be replaced.
+
+Ensure that the replace function (second argument) does not have any unintended side effects, as it may be called multiple times based on the number of matches and the provided limit.
 
 ### Escaping Special Characters
 
