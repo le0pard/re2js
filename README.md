@@ -259,6 +259,19 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
 ```
 
+#### Replacing with function
+
+The `replaceAllFunc()` method replaces the provided number of an occurrence of a pattern match in a string with the result from function. Function will receive result of match as first argument
+
+```js
+import { RE2JS } from 're2js'
+
+RE2JS.compile('[a-c]')
+  .replaceAllFunc('defabcdef', (s) => `x${s}y`, 'defabcdef'.length) // replace all, result: 'defxayxbyxcydef'
+RE2JS.compile('[a-c]')
+  .replaceAllFunc('defabcdef', (s) => `x${s}y`, 1) // replace first, result: 'defxaybcdef'
+```
+
 ### Escaping Special Characters
 
 The `quote()` method returns a literal pattern string for the specified string. This can be useful if you want to search for a literal string pattern that may contain special characters
