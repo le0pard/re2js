@@ -259,7 +259,7 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
 ```
 
-#### Replacing with function result
+#### Replacing with callback function
 
 The `replaceAllFunc()` method provides a way to replace substrings in a given input string that match a compiled regular expression pattern. It offers more flexibility than a simple replacement string as it accepts a callback function to determine the replacement based on the matched substring.
 
