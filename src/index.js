@@ -3,7 +3,13 @@ import { MatcherInput } from './MatcherInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
 import { Utils } from './Utils'
-import { RE2JSSyntaxException } from './RE2JSSyntaxException'
+import {
+  RE2JSException,
+  RE2JSSyntaxException,
+  RE2JSCompileException,
+  RE2JSGroupException,
+  RE2JSFlagsException
+} from './exceptions'
 
 /**
  * A compiled representation of an RE2 regular expression
@@ -83,7 +89,7 @@ class RE2JS {
         )) !==
       0
     ) {
-      throw new Error(
+      throw new RE2JSFlagsException(
         'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH'
       )
     }
@@ -290,4 +296,11 @@ class RE2JS {
   }
 }
 
-export { RE2JS, RE2JSSyntaxException }
+export {
+  RE2JS,
+  RE2JSException,
+  RE2JSSyntaxException,
+  RE2JSCompileException,
+  RE2JSGroupException,
+  RE2JSFlagsException
+}

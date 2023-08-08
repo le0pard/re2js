@@ -3,6 +3,7 @@ import { MatcherInput } from '../MatcherInput'
 import { Matcher } from '../Matcher'
 import { RE2JS } from '../index'
 import { Utils } from '../Utils'
+import { RE2JSGroupException } from '../exceptions'
 import { expect, describe, test } from '@jest/globals'
 
 const helperTestMatchEndUTF16 = (string, num, end) => {
@@ -230,7 +231,7 @@ describe('invalid find', () => {
     const text = 'abcdef'
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
       const matchString = p.matcher(input)
-      expect(() => matchString.find(10)).toThrow('start index out of bounds: 10')
+      expect(() => matchString.find(10)).toThrow(new RE2JSGroupException('start index out of bounds: 10'))
     }
   })
 })
@@ -242,7 +243,7 @@ describe('invalid replacement', () => {
     const text = 'abc'
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
       const matchString = p.matcher(input)
-      expect(() => matchString.replaceFirst('$4')).toThrow('n > number of groups: 4')
+      expect(() => matchString.replaceFirst('$4')).toThrow(new RE2JSGroupException('n > number of groups: 4'))
     }
   })
 })
@@ -260,7 +261,7 @@ it('throws on null input ctor', () => {
 describe('start end before find', () => {
   it('raise error', () => {
     const m = RE2JS.compile('a').matcher('abaca')
-    expect(() => m.start()).toThrow('perhaps no match attempted')
+    expect(() => m.start()).toThrow(new RE2JSGroupException('perhaps no match attempted'))
   })
 })
 
@@ -337,7 +338,7 @@ describe('groups', () => {
     expect(m.start('nomatch')).toEqual(-1)
     expect(m.end('nomatch')).toEqual(-1)
 
-    expect(() => m.group('nonexistent')).toThrow("group 'nonexistent' not found")
+    expect(() => m.group('nonexistent')).toThrow(new RE2JSGroupException("group 'nonexistent' not found"))
   })
 
   it('another named', () => {

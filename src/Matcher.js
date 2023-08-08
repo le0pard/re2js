@@ -2,6 +2,7 @@ import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Utils } from './Utils'
+import { RE2JSGroupException } from './exceptions'
 
 /**
  * A stateful iterator that interprets a regex {@code RE2JS} on a specific input.
@@ -120,7 +121,7 @@ class Matcher {
     if (typeof group === 'string') {
       const groupInt = this.namedGroups[group]
       if (!Number.isFinite(groupInt)) {
-        throw new Error(`group '${group}' not found`)
+        throw new RE2JSGroupException(`group '${group}' not found`)
       }
       group = groupInt
     }
@@ -137,7 +138,7 @@ class Matcher {
     if (typeof group === 'string') {
       const groupInt = this.namedGroups[group]
       if (!Number.isFinite(groupInt)) {
-        throw new Error(`group '${group}' not found`)
+        throw new RE2JSGroupException(`group '${group}' not found`)
       }
       group = groupInt
     }
@@ -154,7 +155,7 @@ class Matcher {
     if (typeof group === 'string') {
       const groupInt = this.namedGroups[group]
       if (!Number.isFinite(groupInt)) {
-        throw new Error(`group '${group}' not found`)
+        throw new RE2JSGroupException(`group '${group}' not found`)
       }
       group = groupInt
     }
@@ -182,11 +183,11 @@ class Matcher {
    */
   loadGroup(group) {
     if (group < 0 || group > this.patternGroupCount) {
-      throw new Error(`Group index out of bounds: ${group}`)
+      throw new RE2JSGroupException(`Group index out of bounds: ${group}`)
     }
 
     if (!this.hasMatch) {
-      throw new Error('perhaps no match attempted')
+      throw new RE2JSGroupException('perhaps no match attempted')
     }
 
     if (group === 0 || this.hasGroups) {
@@ -210,7 +211,7 @@ class Matcher {
 
     const ok = res[0]
     if (!ok) {
-      throw new Error('inconsistency in matching group data')
+      throw new RE2JSGroupException('inconsistency in matching group data')
     }
     this.groups = res[1]
     this.hasGroups = true
@@ -247,7 +248,7 @@ class Matcher {
   find(start = null) {
     if (start !== null) {
       if (start < 0 || start > this.matcherInputLength) {
-        throw new Error(`start index out of bounds: ${start}`)
+        throw new RE2JSGroupException(`start index out of bounds: ${start}`)
       }
       this.reset()
       return this.genMatch(start, 0)
@@ -380,7 +381,7 @@ class Matcher {
           }
 
           if (n > this.patternGroupCount) {
-            throw new Error(`n > number of groups: ${n}`)
+            throw new RE2JSGroupException(`n > number of groups: ${n}`)
           }
 
           const group = this.group(n)
@@ -407,7 +408,7 @@ class Matcher {
           }
 
           if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('}')) {
-            throw new Error("named capture group is missing trailing '}'")
+            throw new RE2JSGroupException("named capture group is missing trailing '}'")
           }
 
           const groupName = replacement.substring(i + 1, j)

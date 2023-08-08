@@ -5,7 +5,7 @@ import { UnicodeTables } from './UnicodeTables'
 import { PERL_GROUPS, POSIX_GROUPS } from './CharGroup'
 import { Utils } from './Utils'
 import { CharClass } from './CharClass'
-import { RE2JSSyntaxException } from './RE2JSSyntaxException'
+import { RE2JSSyntaxException } from './exceptions'
 import { Regexp } from './Regexp'
 
 class Pair {

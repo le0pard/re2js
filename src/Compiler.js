@@ -5,6 +5,7 @@ import { Utils } from './Utils'
 import { Regexp } from './Regexp'
 import { Inst } from './Inst'
 import { Prog } from './Prog'
+import { RE2JSCompileException } from './exceptions'
 
 /**
  * A fragment of a compiled regular expression program.
@@ -262,7 +263,7 @@ class Compiler {
         }
       }
       default:
-        throw new Error('regexp: unhandled case in compile')
+        throw new RE2JSCompileException('regexp: unhandled case in compile')
     }
   }
 }
