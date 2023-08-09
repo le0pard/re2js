@@ -381,6 +381,12 @@ describe('replaceAll and replaceFirst', () => {
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
         'max.power@example.com',
+        '\\${name} - user; \\${domain} - domain',
+        '${name} - user; ${domain} - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
         '$<name> - user; $<domain> - domain',
         '$<name> - user; $<domain> - domain'
       ]
@@ -428,6 +434,12 @@ describe('replaceAll and replaceFirst', () => {
         'max.power@example.com',
         '$<name> - user; $<domain> - domain',
         'max.power - user; example.com - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$$<name> - user; $$<domain> - domain',
+        '$<name> - user; $<domain> - domain'
       ],
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
