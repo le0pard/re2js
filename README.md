@@ -251,7 +251,7 @@ Parameters:
   - `\$` inserts a literal `$`
   - `${name}` can be used to reference named capture groups
   - on invalid group - throw exception
-- `perlMode (Boolean)`: If set to true, the replacement follows Perl/JS's rules for replacement. Defaults to false. If `perlMode = true`, changed rules for capture groups and special characters:
+- `perlMode (Boolean)`: If set to `true`, the replacement follows Perl/JS's rules for replacement. Defaults to `false`. If `perlMode = true`, changed rules for capture groups and special characters:
   - `$&` refers to the entire matched substring
   - `$1, $2, ...` refer to the corresponding capture groups in the pattern
   - `$$` inserts a literal `$`
@@ -285,6 +285,8 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .matcher('abcdefghijklmnopqrstuvwxyz123')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
 ```
+
+Function support second argument `perlMode`, which work in the same way, as for `replaceAll` function
 
 ### Escaping Special Characters
 
