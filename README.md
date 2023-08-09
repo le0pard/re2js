@@ -244,6 +244,33 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
 
 Note that the replacement string can include references to capturing groups from the pattern
 
+Parameters:
+- `replacement (String)`: The string that replaces the substrings found. Capture groups and special characters in the replacement string have special behavior. For example:
+  - `$0` refers to the entire matched substring
+  - `$1, $2, ...` refer to the corresponding capture groups in the pattern
+  - `\$` inserts a literal `$`
+  - `${name}` can be used to reference named capture groups
+  - on invalid group - throw exception
+- `perlMode (Boolean)`: If set to true, the replacement follows Perl/JS's rules for replacement. Defaults to false. If `perlMode = true`, changed rules for capture groups and special characters:
+  - `$&` refers to the entire matched substring
+  - `$1, $2, ...` refer to the corresponding capture groups in the pattern
+  - `$$` inserts a literal `$`
+  - `$<name>` can be used to reference named capture groups
+  - on invalid group - ignore it
+
+Examples:
+
+```js
+import { RE2JS } from 're2js'
+
+RE2JS.compile('(\\w+) (\\w+)')
+  .matcher('Hello World')
+  .replaceAll('$0 - $0') // 'Hello World - Hello World'
+RE2JS.compile('(\\w+) (\\w+)')
+  .matcher('Hello World')
+  .replaceAll('$& - $&', true) // 'Hello World - Hello World'
+```
+
 #### Replacing the First Occurrence
 
 The `replaceFirst()` method replaces the first occurrence of a pattern match in a string with the given replacement

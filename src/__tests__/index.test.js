@@ -1,5 +1,6 @@
 import { RE2JS } from '../index'
 import { Utils } from '../Utils'
+import { RE2JSGroupException } from '../exceptions'
 import { expect, describe, test } from '@jest/globals'
 
 it('compile', () => {
@@ -211,6 +212,251 @@ it('quote', () => {
   expect(RE2JS.matches(regexp, nonMatch)).toBe(false)
   expect(RE2JS.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBe(true)
   expect(RE2JS.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBe(false)
+})
+
+describe('replaceAll and replaceFirst', () => {
+  const replaceAllCases = [
+    // Test empty input and/or replacement,
+    // with pattern that matches the empty string.
+    ['', '', '', ''],
+    ['', '', 'x', 'x'],
+    ['', 'abc', '', 'abc'],
+    ['', 'abc', 'x', 'xaxbxcx'],
+
+    // Test empty input and/or replacement,
+    // with pattern that does not match the empty string.
+    ['b', '', '', ''],
+    ['b', '', 'x', ''],
+    ['b', 'abc', '', 'ac'],
+    ['b', 'abc', 'x', 'axc'],
+    ['y', '', '', ''],
+    ['y', '', 'x', ''],
+    ['y', 'abc', '', 'abc'],
+    ['y', 'abc', 'x', 'abc'],
+
+    // Multibyte characters -- verify that we don't try to match in the middle
+    // of a character.
+    ['[a-c]*', '\u65e5', 'x', 'x\u65e5x'],
+    ['[^\u65e5]', 'abc\u65e5def', 'x', 'xxx\u65e5xxx'],
+
+    ['a{2,10}', 'aabaaa', 'x', 'xbx'],
+    ['a{5,10}', 'aabaaaaa', 'x', 'aabx'],
+
+    // Start and end of a string.
+    ['^[a-c]*', 'abcdabc', 'x', 'xdabc'],
+    ['[a-c]*$', 'abcdabc', 'x', 'abcdxx'],
+    ['^[a-c]*$', 'abcdabc', 'x', 'abcdabc'],
+    ['^[a-c]*', 'abc', 'x', 'x'],
+    ['[a-c]*$', 'abc', 'x', 'xx'],
+    ['^[a-c]*$', 'abc', 'x', 'x'],
+    ['^[a-c]*', 'dabce', 'x', 'xdabce'],
+    ['[a-c]*$', 'dabce', 'x', 'dabcex'],
+    ['^[a-c]*$', 'dabce', 'x', 'dabce'],
+    ['^[a-c]*', '', 'x', 'x'],
+    ['[a-c]*$', '', 'x', 'x'],
+    ['^[a-c]*$', '', 'x', 'x'],
+    ['^[a-c]+', 'abcdabc', 'x', 'xdabc'],
+    ['[a-c]+$', 'abcdabc', 'x', 'abcdx'],
+    ['^[a-c]+$', 'abcdabc', 'x', 'abcdabc'],
+    ['^[a-c]+', 'abc', 'x', 'x'],
+    ['[a-c]+$', 'abc', 'x', 'x'],
+    ['^[a-c]+$', 'abc', 'x', 'x'],
+    ['^[a-c]+', 'dabce', 'x', 'dabce'],
+    ['[a-c]+$', 'dabce', 'x', 'dabce'],
+    ['^[a-c]+$', 'dabce', 'x', 'dabce'],
+    ['^[a-c]+', '', 'x', ''],
+    ['[a-c]+$', '', 'x', ''],
+    ['^[a-c]+$', '', 'x', ''],
+
+    // Other cases.
+    ['abc', 'abcdefg', 'def', 'defdefg'],
+    ['bc', 'abcbcdcdedef', 'BC', 'aBCBCdcdedef'],
+    ['abc', 'abcdabc', '', 'd'],
+    ['x', 'xxxXxxx', 'xXx', 'xXxxXxxXxXxXxxXxxXx'],
+    ['abc', '', 'd', ''],
+    ['abc', 'abc', 'd', 'd'],
+    ['.+', 'abc', 'x', 'x'],
+    ['[a-c]*', 'def', 'x', 'xdxexfx'],
+    ['[a-c]+', 'abcbcdcdedef', 'x', 'xdxdedef']
+  ]
+
+  const replaceFirstCases = [
+    // Test empty input and/or replacement,
+    // with pattern that matches the empty string.
+    ['', '', '', ''],
+    ['', '', 'x', 'x'],
+    ['', 'abc', '', 'abc'],
+    ['', 'abc', 'x', 'xabc'],
+
+    // Test empty input and/or replacement,
+    // with pattern that does not match the empty string.
+    ['b', '', '', ''],
+    ['b', '', 'x', ''],
+    ['b', 'abc', '', 'ac'],
+    ['b', 'abc', 'x', 'axc'],
+    ['y', '', '', ''],
+    ['y', '', 'x', ''],
+    ['y', 'abc', '', 'abc'],
+    ['y', 'abc', 'x', 'abc'],
+
+    // Multibyte characters -- verify that we don't try to match in the middle
+    // of a character.
+    ['[a-c]*', '\u65e5', 'x', 'x\u65e5'],
+    ['[^\u65e5]', 'abc\u65e5def', 'x', 'xbc\u65e5def'],
+
+    // Start and end of a string.
+    ['^[a-c]*', 'abcdabc', 'x', 'xdabc'],
+    ['[a-c]*$', 'abcdabc', 'x', 'abcdx'],
+    ['^[a-c]*$', 'abcdabc', 'x', 'abcdabc'],
+    ['^[a-c]*', 'abc', 'x', 'x'],
+    ['[a-c]*$', 'abc', 'x', 'x'],
+    ['^[a-c]*$', 'abc', 'x', 'x'],
+    ['^[a-c]*', 'dabce', 'x', 'xdabce'],
+    ['[a-c]*$', 'dabce', 'x', 'dabcex'],
+    ['^[a-c]*$', 'dabce', 'x', 'dabce'],
+    ['^[a-c]*', '', 'x', 'x'],
+    ['[a-c]*$', '', 'x', 'x'],
+    ['^[a-c]*$', '', 'x', 'x'],
+    ['^[a-c]+', 'abcdabc', 'x', 'xdabc'],
+    ['[a-c]+$', 'abcdabc', 'x', 'abcdx'],
+    ['^[a-c]+$', 'abcdabc', 'x', 'abcdabc'],
+    ['^[a-c]+', 'abc', 'x', 'x'],
+    ['[a-c]+$', 'abc', 'x', 'x'],
+    ['^[a-c]+$', 'abc', 'x', 'x'],
+    ['^[a-c]+', 'dabce', 'x', 'dabce'],
+    ['[a-c]+$', 'dabce', 'x', 'dabce'],
+    ['^[a-c]+$', 'dabce', 'x', 'dabce'],
+    ['^[a-c]+', '', 'x', ''],
+    ['[a-c]+$', '', 'x', ''],
+    ['^[a-c]+$', '', 'x', ''],
+
+    // Other cases.
+    ['abc', 'abcdefg', 'def', 'defdefg'],
+    ['bc', 'abcbcdcdedef', 'BC', 'aBCbcdcdedef'],
+    ['abc', 'abcdabc', '', 'dabc'],
+    ['x', 'xxxXxxx', 'xXx', 'xXxxxXxxx'],
+    ['abc', '', 'd', ''],
+    ['abc', 'abc', 'd', 'd'],
+    ['.+', 'abc', 'x', 'x'],
+    ['[a-c]*', 'def', 'x', 'xdef'],
+    ['[a-c]+', 'abcbcdcdedef', 'x', 'xdcdedef']
+  ]
+
+  test.concurrent.each(replaceAllCases)(
+    'replaceAll: pattern %p with input %p and replacement %p will return %p',
+    (pattern, input, replacement, expected) => {
+      const re = RE2JS.compile(pattern)
+      expect(re.matcher(input).replaceAll(replacement)).toEqual(expected)
+      // with perl mode
+      expect(re.matcher(input).replaceAll(replacement, true)).toEqual(expected)
+    }
+  )
+
+  test.concurrent.each(replaceFirstCases)(
+    'replaceFirst: pattern %p with input %p and replacement %p will return %p',
+    (pattern, input, replacement, expected) => {
+      const re = RE2JS.compile(pattern)
+      expect(re.matcher(input).replaceFirst(replacement)).toEqual(expected)
+      // with perl mode
+      expect(re.matcher(input).replaceFirst(replacement, true)).toEqual(expected)
+    }
+  )
+
+  describe('default mode and groups', () => {
+    const defaultGroupCases = [
+      ['(\\w+) (\\w+)', 'Hello World', '$2 - $1', 'World - Hello'],
+      ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
+      ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
+      ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', 'Hello World - Hello World'],
+      ['(\\w+) (\\w+)', 'Hello World', '$$0 - $$0', '$Hello World - $Hello World'],
+      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', '$& - $&'],
+      ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[$1] [$1] [$1] [$1]'],
+      ['(\\w+)', 'Hello World Dear Friend', '[$$1]', '[$Hello] [$World] [$Dear] [$Friend]'],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '${name} - user; ${domain} - domain',
+        'max.power - user; example.com - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$<name> - user; $<domain> - domain',
+        '$<name> - user; $<domain> - domain'
+      ]
+    ]
+
+    test.concurrent.each(defaultGroupCases)(
+      'groups cases: pattern %p with input %p and replacement %p will return %p',
+      (pattern, input, replacement, expected) => {
+        const re = RE2JS.compile(pattern)
+        expect(re.matcher(input).replaceAll(replacement)).toEqual(expected)
+      }
+    )
+
+    it('throws on invalid groups', () => {
+      expect(() => RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$5')).toThrow(
+        new RE2JSGroupException('n > number of groups: 5')
+      )
+      expect(() =>
+        RE2JS.compile('(?P<name>[a-zA-Z0-9._%+-]+)').matcher('Hello World').replaceAll('${test}')
+      ).toThrow(new RE2JSGroupException("group 'test' not found"))
+      expect(() =>
+        RE2JS.compile('(?P<name>[a-zA-Z0-9._%+-]+)').matcher('Hello World').replaceAll('${test')
+      ).toThrow(new RE2JSGroupException("named capture group is missing trailing '}'"))
+    })
+  })
+
+  describe('perl mode and groups', () => {
+    const perlGroupCases = [
+      ['(\\w+) (\\w+)', 'Hello World', '$2 - $1', 'World - Hello'],
+      ['(\\w+) (\\w+)', 'Hello World', '$5', '$5'],
+      ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
+      ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
+      ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', '$0 - $0'],
+      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', 'Hello World - Hello World'],
+      ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[\\Hello] [\\World] [\\Dear] [\\Friend]'],
+      ['(\\w+)', 'Hello World Dear Friend', '[$$1]', '[$1] [$1] [$1] [$1]'],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '${name} - user; ${domain} - domain',
+        '${name} - user; ${domain} - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$<name> - user; $<domain> - domain',
+        'max.power - user; example.com - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$<name - user',
+        '$<name - user'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$<name - $<domain> - $domain>',
+        '$<name - example.com - $domain>'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$<undefined> - $<domain> - $<void>',
+        '$<undefined> - example.com - $<void>'
+      ]
+    ]
+
+    test.concurrent.each(perlGroupCases)(
+      'groups cases: pattern %p with input %p and replacement %p will return %p',
+      (pattern, input, replacement, expected) => {
+        const re = RE2JS.compile(pattern)
+        expect(re.matcher(input).replaceAll(replacement, true)).toEqual(expected)
+      }
+    )
+  })
 })
 
 it('equals', () => {

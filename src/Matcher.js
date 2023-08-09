@@ -331,7 +331,7 @@ class Matcher {
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
    */
-  appendReplacement(replacement) {
+  appendReplacement(replacement, perlMode = false) {
     let res = ''
     const s = this.start()
     const e = this.end()
@@ -339,7 +339,9 @@ class Matcher {
       res += this.substring(this.appendPos, s)
     }
     this.appendPos = e
-    res += this.appendReplacementInternal(replacement)
+    res += perlMode
+      ? this.appendReplacementInternalPerl(replacement)
+      : this.appendReplacementInternal(replacement)
     return res
   }
 
@@ -419,7 +421,112 @@ class Matcher {
     }
 
     if (last < m) {
-      res += replacement.substr(last, m)
+      res += replacement.substring(last, m)
+    }
+
+    return res
+  }
+
+  appendReplacementInternalPerl(replacement) {
+    let res = ''
+    let last = 0
+    const m = replacement.length
+
+    for (let i = 0; i < m - 1; i++) {
+      if (replacement.codePointAt(i) === Codepoint.CODES.get('$')) {
+        let c = replacement.codePointAt(i + 1)
+
+        if (Codepoint.CODES.get('$') === c) {
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          res += '$'
+          i++
+          last = i + 1
+          continue
+        } else if (Codepoint.CODES.get('&') === c) {
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          const group = this.group(0)
+          if (group !== null) {
+            res += group
+          } else {
+            res += '$&'
+          }
+          i++
+          last = i + 1
+          continue
+        } else if (Codepoint.CODES.get('1') <= c && c <= Codepoint.CODES.get('9')) {
+          let n = c - Codepoint.CODES.get('0')
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          for (i += 2; i < m; i++) {
+            c = replacement.codePointAt(i)
+            if (
+              c < Codepoint.CODES.get('0') ||
+              c > Codepoint.CODES.get('9') ||
+              n * 10 + c - Codepoint.CODES.get('0') > this.patternGroupCount
+            ) {
+              break
+            }
+            n = n * 10 + c - Codepoint.CODES.get('0')
+          }
+
+          if (n > this.patternGroupCount) {
+            res += `$${n}`
+            last = i
+            i--
+            continue
+          }
+
+          const group = this.group(n)
+          if (group !== null) {
+            res += group
+          }
+
+          last = i
+          i--
+          continue
+        } else if (c === Codepoint.CODES.get('<')) {
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          i++
+          let j = i + 1
+          while (
+            j < replacement.length &&
+            replacement.codePointAt(j) !== Codepoint.CODES.get('>') &&
+            replacement.codePointAt(j) !== Codepoint.CODES.get(' ')
+          ) {
+            j++
+          }
+
+          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('>')) {
+            res += replacement.substring(i - 1, j + 1)
+            last = j + 1
+            continue
+          }
+
+          const groupName = replacement.substring(i + 1, j)
+          if (Object.prototype.hasOwnProperty.call(this.namedGroups, groupName)) {
+            res += this.group(groupName)
+          } else {
+            res += `$<${groupName}>`
+          }
+
+          last = j + 1
+        }
+      }
+    }
+
+    if (last < m) {
+      res += replacement.substring(last, m)
     }
 
     return res
@@ -440,10 +547,10 @@ class Matcher {
    *
    * @param {string} replacement the replacement string
    * @return {string} the input string with the matches replaced
-   * @throws IndexOutOfBoundsException if replacement refers to an invalid group
+   * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
    */
-  replaceAll(replacement) {
-    return this.replace(replacement, true)
+  replaceAll(replacement, perlMode = false) {
+    return this.replace(replacement, true, perlMode)
   }
 
   /**
@@ -452,10 +559,10 @@ class Matcher {
    *
    * @param {string} replacement the replacement string
    * @return {string} the input string with the first match replaced
-   * @throws IndexOutOfBoundsException if replacement refers to an invalid group
+   * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
    */
-  replaceFirst(replacement) {
-    return this.replace(replacement, false)
+  replaceFirst(replacement, perlMode = false) {
+    return this.replace(replacement, false, perlMode)
   }
 
   /**
@@ -465,12 +572,12 @@ class Matcher {
    * @return {string}
    * @private
    */
-  replace(replacement, all) {
+  replace(replacement, all, perlMode = false) {
     let res = ''
 
     this.reset()
     while (this.find()) {
-      res += this.appendReplacement(replacement)
+      res += this.appendReplacement(replacement, perlMode)
       if (!all) {
         break
       }
