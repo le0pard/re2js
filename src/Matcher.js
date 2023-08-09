@@ -325,8 +325,8 @@ class Matcher {
    * digits as long as the resulting number is a valid group number for this pattern. To cut it off
    * earlier, escape the first digit that should not be used.
    *
-   * @param sb the {@link StringBuilder} to append to
-   * @param replacement the replacement string
+   * @param {string} replacement the replacement string
+   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
    * @return the {@code Matcher} itself, for chained method calls
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
@@ -546,6 +546,7 @@ class Matcher {
    * {@code appendReplacement}.
    *
    * @param {string} replacement the replacement string
+   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
    * @return {string} the input string with the matches replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
    */
@@ -558,6 +559,7 @@ class Matcher {
    * {@code appendReplacement}.
    *
    * @param {string} replacement the replacement string
+   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
    * @return {string} the input string with the first match replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
    */
@@ -569,6 +571,7 @@ class Matcher {
    * Helper: replaceAll/replaceFirst hybrid.
    * @param {string} replacement
    * @param {boolean} all
+   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
    * @return {string}
    * @private
    */
