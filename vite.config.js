@@ -5,5 +5,11 @@ export default defineConfig({
   css: {
     devSourcemap: true
   },
+  server: {
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['..']
+    }
+  },
   plugins: [sveltekit()]
 })
