@@ -66,7 +66,7 @@ RE2JS.MULTILINE
  */
 RE2JS.DISABLE_UNICODE_GROUPS
 /**
- * Flag: matches longest possible string.
+ * Flag: matches longest possible string (changes the match semantics to leftmost-longest).
  */
 RE2JS.LONGEST_MATCH
 ```
