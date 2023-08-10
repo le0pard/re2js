@@ -33,7 +33,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "lint": "pnpify run prettier --check src tools babel.config.js jest.config.js rollup.config.js && eslint src/**/*.js tools/**/*.js babel.config.js jest.config.js rollup.config.js",
+    "lint": "pnpify run prettier --check src tools babel.config.js jest.config.js rollup.config.js && eslint src/**/*.js tools/**/*.js babel.config.js jest.config.js",
     "test": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js",
     "test:watch": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js --watch",
     "format": "pnpify run prettier --write src tools babel.config.js jest.config.js rollup.config.js"
