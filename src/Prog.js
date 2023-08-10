@@ -148,7 +148,7 @@ class Prog {
   }
   /**
    *
-   * @return {string}
+   * @returns {string}
    */
   toString() {
     let out = ''

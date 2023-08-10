@@ -55,7 +55,7 @@ class RE2JS {
    * Metacharacters or escape sequences in the input sequence will be given no special meaning.
    *
    * @param {string} str The string to be literalized
-   * @return {string} A literal string replacement
+   * @returns {string} A literal string replacement
    */
   static quote(str) {
     return Utils.quoteMeta(str)
@@ -65,7 +65,7 @@ class RE2JS {
    * Helper: create new RE2JS with given regex and flags. Flregex is the regex with flags applied.
    * @param {string} regex
    * @param {number} flags
-   * @return {RE2JS}
+   * @returns {RE2JS}
    */
   static compile(regex, flags = 0) {
     let fregex = regex
@@ -110,7 +110,7 @@ class RE2JS {
    *
    * @param {string} regex the regular expression
    * @param {*} input the input
-   * @return {boolean} true if the regular expression matches the entire input
+   * @returns {boolean} true if the regular expression matches the entire input
    * @throws RE2JSSyntaxException if the regular expression is malformed
    */
   static matches(regex, input) {
@@ -148,7 +148,7 @@ class RE2JS {
 
   /**
    * Returns the flags used in the constructor.
-   * @return {number}
+   * @returns {number}
    */
   flags() {
     return this.flagsInput
@@ -156,7 +156,7 @@ class RE2JS {
 
   /**
    * Returns the pattern used in the constructor.
-   * @return {string}
+   * @returns {string}
    */
   pattern() {
     return this.patternInput
@@ -170,7 +170,7 @@ class RE2JS {
    * Matches a string against a regular expression.
    *
    * @param {*} input the input
-   * @return {boolean} true if the regular expression matches the entire input
+   * @returns {boolean} true if the regular expression matches the entire input
    */
   matches(input) {
     return this.matcher(input).matches()
@@ -180,7 +180,7 @@ class RE2JS {
    * Creates a new {@code Matcher} matching the pattern against the input.
    *
    * @param {*} input the input string
-   * @return {Matcher}
+   * @returns {Matcher}
    */
   matcher(input) {
     if (Array.isArray(input)) {
@@ -202,7 +202,7 @@ class RE2JS {
    *
    * @param {string} input the input string to be split
    * @param {number} limit the limit
-   * @return {java.lang.String[]} the split strings
+   * @returns {java.lang.String[]} the split strings
    */
   split(input, limit = 0) {
     const m = this.matcher(input)
@@ -269,7 +269,7 @@ class RE2JS {
    * Returns the number of capturing groups in this matcher's pattern. Group zero denotes the entire
    * pattern and is excluded from this count.
    *
-   * @return {number} the number of capturing groups in this pattern
+   * @returns {number} the number of capturing groups in this pattern
    */
   groupCount() {
     return this.re2Input.numberOfCapturingGroups()
@@ -278,7 +278,7 @@ class RE2JS {
   /**
    * Return a map of the capturing groups in this matcher's pattern, where key is the name and value
    * is the index of the group in the pattern.
-   * @return {*}
+   * @returns {*}
    */
   namedGroups() {
     return this.re2Input.namedGroups

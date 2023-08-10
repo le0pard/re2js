@@ -33,7 +33,7 @@ class Matcher {
    * {@link #appendReplacement} as a literal replacement of {@code s}.
    *
    * @param {string} s the string to be quoted
-   * @return {string} the quoted string
+   * @returns {string} the quoted string
    */
   static quoteReplacement(str) {
     if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
@@ -82,7 +82,7 @@ class Matcher {
   /**
    * Resets the {@code Matcher}, rewinding input and discarding any match information.
    *
-   * @return the {@code Matcher} itself, for chained method calls
+   * @returns the {@code Matcher} itself, for chained method calls
    */
   reset() {
     // The input length in UTF16 codes.
@@ -101,7 +101,7 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
-   *
+   * @returns the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
     if (input === null) {
@@ -129,6 +129,7 @@ class Matcher {
     this.loadGroup(group)
     return this.groups[2 * group]
   }
+
   /**
    * Returns the end of the named group of the most recent match, or -1 if the group was not
    * matched.
@@ -170,7 +171,7 @@ class Matcher {
   /**
    * Returns the number of subgroups in this pattern.
    *
-   * @return {number} the number of subgroups; the overall match (group 0) does not count
+   * @returns {number} the number of subgroups; the overall match (group 0) does not count
    */
   groupCount() {
     return this.patternGroupCount
@@ -221,7 +222,7 @@ class Matcher {
    * Matches the entire input against the pattern (anchored start and end). If there is a match,
    * {@code matches} sets the match state to describe it.
    *
-   * @return {boolean} true if the entire input matches the pattern
+   * @returns {boolean} true if the entire input matches the pattern
    */
   matches() {
     return this.genMatch(0, RE2Flags.ANCHOR_BOTH)
@@ -231,7 +232,7 @@ class Matcher {
    * Matches the beginning of input against the pattern (anchored start). If there is a match,
    * {@code lookingAt} sets the match state to describe it.
    *
-   * @return {boolean} true if the beginning of the input matches the pattern
+   * @returns {boolean} true if the beginning of the input matches the pattern
    */
   lookingAt() {
     return this.genMatch(0, RE2Flags.ANCHOR_START)
@@ -242,7 +243,7 @@ class Matcher {
    * is a match, {@code find} sets the match state to describe it.
    *
    * @param start the input position where the search begins
-   * @return true if it finds a match
+   * @returns {boolean} if it finds a match
    * @throws IndexOutOfBoundsException if start is not a valid input position
    */
   find(start = null) {
@@ -269,7 +270,7 @@ class Matcher {
    * Helper: does match starting at start, with RE2 anchor flag.
    * @param {number} startByte
    * @param {number} anchor
-   * @return {boolean}
+   * @returns {boolean}
    * @private
    */
   genMatch(startByte, anchor) {
@@ -292,7 +293,7 @@ class Matcher {
    * Helper: return substring for [start, end).
    * @param {number} start
    * @param {number} end
-   * @return {string}
+   * @returns {string}
    */
   substring(start, end) {
     if (this.matcherInput.isUTF8Encoding()) {
@@ -303,7 +304,7 @@ class Matcher {
 
   /**
    * Helper for Pattern: return input length.
-   * @return {number}
+   * @returns {number}
    */
   inputLength() {
     return this.matcherInputLength
@@ -326,8 +327,8 @@ class Matcher {
    * earlier, escape the first digit that should not be used.
    *
    * @param {string} replacement the replacement string
-   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
-   * @return the {@code Matcher} itself, for chained method calls
+   * @param {boolean} [perlMode=false] activate perl/js mode (different behaviour for capture groups and special characters)
+   * @returns the {@code Matcher} itself, for chained method calls
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
    */
@@ -345,6 +346,10 @@ class Matcher {
     return res
   }
 
+  /**
+   * @param {string} replacement - the replacement string
+   * @returns {string}
+   */
   appendReplacementInternal(replacement) {
     let res = ''
     let last = 0
@@ -427,6 +432,10 @@ class Matcher {
     return res
   }
 
+  /**
+   * @param {string} replacement - the replacement string
+   * @returns {string}
+   */
   appendReplacementInternalPerl(replacement) {
     let res = ''
     let last = 0
@@ -535,7 +544,7 @@ class Matcher {
   /**
    * Return the substring of the input from the append position to the end of the
    * input.
-   *
+   * @returns {string}
    */
   appendTail() {
     return this.substring(this.appendPos, this.matcherInputLength)
@@ -545,9 +554,9 @@ class Matcher {
    * Returns the input with all matches replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
    *
-   * @param {string} replacement the replacement string
-   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
-   * @return {string} the input string with the matches replaced
+   * @param {string} replacement - the replacement string
+   * @param {boolean} [perlMode=false] - activate perl/js mode (different behaviour for capture groups and special characters)
+   * @returns {string} the input string with the matches replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
    */
   replaceAll(replacement, perlMode = false) {
@@ -558,9 +567,9 @@ class Matcher {
    * Returns the input with the first match replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
    *
-   * @param {string} replacement the replacement string
-   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
-   * @return {string} the input string with the first match replaced
+   * @param {string} replacement - the replacement string
+   * @param {boolean} [perlMode=false] - activate perl/js mode (different behaviour for capture groups and special characters)
+   * @returns {string} the input string with the first match replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
    */
   replaceFirst(replacement, perlMode = false) {
@@ -569,13 +578,13 @@ class Matcher {
 
   /**
    * Helper: replaceAll/replaceFirst hybrid.
-   * @param {string} replacement
-   * @param {boolean} all
-   * @param {boolean} perlMode activate perl/js mode (different behaviour for capture groups and special characters)
-   * @return {string}
+   * @param {string} replacement - the replacement string
+   * @param {boolean} [all=true] - replace all matches
+   * @param {boolean} [perlMode=false] - activate perl/js mode (different behaviour for capture groups and special characters)
+   * @returns {string}
    * @private
    */
-  replace(replacement, all, perlMode = false) {
+  replace(replacement, all = true, perlMode = false) {
     let res = ''
 
     this.reset()

@@ -255,7 +255,7 @@ class RE2 {
    * @param anchor the anchoring flag (UNANCHORED, ANCHOR_START, ANCHOR_BOTH)
    * @param group the array to fill with submatch positions
    * @param ngroup the number of array pairs to fill in
-   * @return true if a match was found
+   * @returns true if a match was found
    */
   matchWithGroup(input, start, end, anchor, ngroup) {
     if (!(input instanceof MatcherInputBase)) {

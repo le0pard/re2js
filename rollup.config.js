@@ -2,7 +2,7 @@ import alias from '@rollup/plugin-alias'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import { babel } from '@rollup/plugin-babel'
-import terser from '@rollup/plugin-terser'
+import flatDts from 'rollup-plugin-flat-dts'
 import pkg from './package.json' assert { type: 'json' }
 
 const LIBRARY_NAME = 'RE2JS' // Library name
@@ -22,7 +22,7 @@ const makeConfig = (env = 'development') => {
  * @license ${pkg.license}
  */`
 
-  let config = {
+  return {
     input: 'src/index.js',
     external: EXTERNAL,
     output: [
@@ -49,7 +49,8 @@ const makeConfig = (env = 'development') => {
         format: 'es',
         exports: 'auto',
         globals: GLOBALS,
-        sourcemap: true
+        sourcemap: true,
+        plugins: [flatDts()]
       }
     ],
     plugins: [
@@ -62,25 +63,8 @@ const makeConfig = (env = 'development') => {
       })
     ]
   }
-
-  if (env === 'production') {
-    config.plugins.push(
-      terser({
-        sourceMap: true,
-        output: {
-          comments: /^!/
-        }
-      })
-    )
-  }
-
-  return config
 }
 
-export default (commandLineArgs) => {
-  if (commandLineArgs.environment === 'production') {
-    return makeConfig('production')
-  }
-
+export default () => {
   return makeConfig()
 }

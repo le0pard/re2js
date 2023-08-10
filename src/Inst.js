@@ -84,7 +84,7 @@ class Inst {
   }
   /**
    *
-   * @return {string}
+   * @returns {string}
    */
   toString() {
     switch (this.op) {

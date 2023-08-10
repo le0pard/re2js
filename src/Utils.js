@@ -150,7 +150,7 @@ class Utils {
    * the returned string is a regular expression matching the literal text. For example,
    * {@code quoteMeta("[foo]").equals("\\[foo\\]")}.
    * @param {string} s
-   * @return {string}
+   * @returns {string}
    */
   static quoteMeta(str) {
     return str
