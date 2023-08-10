@@ -29,7 +29,7 @@
       "require": "./build/index.cjs.js"
     }
   },
-  "types": "./build/index.esm.d.ts",
+  "types": "build/index.esm.d.ts",
   "scripts": {
     "build": "rollup -c && tsc",
     "dev": "rollup -c -w",
