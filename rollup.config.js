@@ -2,7 +2,6 @@ import alias from '@rollup/plugin-alias'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import { babel } from '@rollup/plugin-babel'
-import flatDts from 'rollup-plugin-flat-dts'
 import pkg from './package.json' assert { type: 'json' }
 
 const LIBRARY_NAME = 'RE2JS' // Library name
@@ -10,7 +9,7 @@ const EXTERNAL = [] // external modules
 const GLOBALS = {} // https://rollupjs.org/guide/en/#outputglobals
 const OUTPUT_DIR = 'build'
 
-const makeConfig = (env = 'development') => {
+const makeConfig = () => {
   const banner = `/*!
  * ${pkg.name}
  * ${pkg.description}
@@ -49,8 +48,7 @@ const makeConfig = (env = 'development') => {
         format: 'es',
         exports: 'auto',
         globals: GLOBALS,
-        sourcemap: true,
-        plugins: [flatDts()]
+        sourcemap: true
       }
     ],
     plugins: [

@@ -5958,7 +5958,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:^4.0.2, micromatch@npm:^4.0.4, micromatch@npm:^4.0.5":
+"micromatch@npm:^4.0.2, micromatch@npm:^4.0.4":
   version: 4.0.5
   resolution: "micromatch@npm:4.0.5"
   dependencies:
@@ -6628,7 +6628,6 @@ __metadata:
     lodash: ^4.17.21
     prettier: ^3.0.1
     rollup: ^3.27.2
-    rollup-plugin-flat-dts: ^2.2.0
     typescript: ^5.1.6
     unicode-property-value-aliases: ^3.7.0
   languageName: unknown
@@ -6828,23 +6827,6 @@ __metadata:
   bin:
     rimraf: bin.js
   checksum: 87f4164e396f0171b0a3386cc1877a817f572148ee13a7e113b238e48e8a9f2f31d009a92ec38a591ff1567d9662c6b67fd8818a2dbbaed74bc26a87a2a4a9a0
-  languageName: node
-  linkType: hard
-
-"rollup-plugin-flat-dts@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "rollup-plugin-flat-dts@npm:2.2.0"
-  dependencies:
-    is-glob: ^4.0.3
-    micromatch: ^4.0.5
-    source-map: ^0.7.4
-  peerDependencies:
-    rollup: 2.79.1 - 4.0
-    typescript: 4.8.4 - 5.2
-  peerDependenciesMeta:
-    rollup:
-      optional: true
-  checksum: 9fa472f773a5a4ba14c39a055479fb65add62ae5590df75b9f66f14c649b2d2430d1f69f80715cc6a596ca5d97ad4de32dcfc1b44c7746168453901de54c2a8d
   languageName: node
   linkType: hard
 
@@ -7048,13 +7030,6 @@ __metadata:
   version: 0.6.1
   resolution: "source-map@npm:0.6.1"
   checksum: 59ce8640cf3f3124f64ac289012c2b8bd377c238e316fb323ea22fbfe83da07d81e000071d7242cad7a23cd91c7de98e4df8830ec3f133cb6133a5f6e9f67bc2
-  languageName: node
-  linkType: hard
-
-"source-map@npm:^0.7.4":
-  version: 0.7.4
-  resolution: "source-map@npm:0.7.4"
-  checksum: 01cc5a74b1f0e1d626a58d36ad6898ea820567e87f18dfc9d24a9843a351aaa2ec09b87422589906d6ff1deed29693e176194dc88bcae7c9a852dc74b311dbf5
   languageName: node
   linkType: hard
 

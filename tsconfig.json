@@ -1,0 +1,30 @@
+{
+  "include": [
+    "build/index.esm.js"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    // Avoid extra work
+    "checkJs": false,
+    // Ensure ".d.ts" modules are generated
+    "declaration": true,
+    "declarationMap": true,
+    // Prevent output to declaration directory
+    "declarationDir": null,
+    // Skip ".js" generation
+    "emitDeclarationOnly": true,
+    // Single file emission is impossible with this flag set
+    "isolatedModules": false,
+    // Generate single file
+    // `System`, in contrast to `None`, permits the use of `import.meta`
+    "module": "System",
+    // Always emit
+    "noEmit": false,
+    // Skip code generation when error occurs
+    "noEmitOnError": true,
+    // Ignore errors in library type definitions
+    "skipLibCheck": true,
+    // Always strip internal exports
+    "stripInternal": true
+  }
+}

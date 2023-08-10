@@ -29,9 +29,9 @@
       "require": "./build/index.cjs.js"
     }
   },
-  "types": "./build/index.d.ts",
+  "types": "./build/index.esm.d.ts",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && tsc",
     "dev": "rollup -c -w",
     "lint": "pnpify run prettier --check src tools babel.config.js jest.config.js rollup.config.js && eslint src/**/*.js tools/**/*.js babel.config.js jest.config.js",
     "test": "node --experimental-vm-modules $(yarn bin jest) -c jest.config.js",
@@ -59,7 +59,6 @@
     "lodash": "^4.17.21",
     "prettier": "^3.0.1",
     "rollup": "^3.27.2",
-    "rollup-plugin-flat-dts": "^2.2.0",
     "typescript": "^5.1.6",
     "unicode-property-value-aliases": "^3.7.0"
   },
