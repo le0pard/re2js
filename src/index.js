@@ -202,7 +202,7 @@ class RE2JS {
    *
    * @param {string} input the input string to be split
    * @param {number} limit the limit
-   * @returns {java.lang.String[]} the split strings
+   * @returns {string[]} the split strings
    */
   split(input, limit = 0) {
     const m = this.matcher(input)
