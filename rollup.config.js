@@ -36,7 +36,7 @@ const makeConfig = () => {
       },
       {
         banner,
-        file: `${OUTPUT_DIR}/index.cjs.js`, // CommonJS
+        file: `${OUTPUT_DIR}/index.cjs.cjs`, // CommonJS
         format: 'cjs',
         exports: 'auto',
         globals: GLOBALS,

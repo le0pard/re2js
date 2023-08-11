@@ -1,6 +1,6 @@
 {
   "name": "re2js",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "RE2JS is the JavaScript port of RE2, a regular expression engine that provides linear time matching",
   "type": "module",
   "keywords": [
@@ -20,13 +20,13 @@
     "README.md",
     "LICENSE"
   ],
-  "main": "build/index.cjs.js",
+  "main": "build/index.cjs.cjs",
   "module": "build/index.esm.js",
   "unpkg": "build/index.umd.js",
   "exports": {
     ".": {
       "import": "./build/index.esm.js",
-      "require": "./build/index.cjs.js"
+      "require": "./build/index.cjs.cjs"
     }
   },
   "types": "build/index.esm.d.ts",
