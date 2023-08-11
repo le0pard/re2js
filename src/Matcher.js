@@ -328,9 +328,10 @@ class Matcher {
    *
    * @param {string} replacement the replacement string
    * @param {boolean} [perlMode=false] activate perl/js mode (different behaviour for capture groups and special characters)
-   * @returns the {@code Matcher} itself, for chained method calls
+   * @returns {string}
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
+   * @private
    */
   appendReplacement(replacement, perlMode = false) {
     let res = ''
@@ -349,6 +350,7 @@ class Matcher {
   /**
    * @param {string} replacement - the replacement string
    * @returns {string}
+   * @private
    */
   appendReplacementInternal(replacement) {
     let res = ''
@@ -435,6 +437,7 @@ class Matcher {
   /**
    * @param {string} replacement - the replacement string
    * @returns {string}
+   * @private
    */
   appendReplacementInternalPerl(replacement) {
     let res = ''

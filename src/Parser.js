@@ -183,6 +183,8 @@ class Parser {
   }
   /**
    * Parse regular expression pattern {@code pattern} with mode flags {@code flags}.
+   * @param {string} pattern
+   * @param {number} flags
    */
   static parse(pattern, flags) {
     return new Parser(pattern, flags).parseInternal()
