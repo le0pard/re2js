@@ -16,8 +16,7 @@
     // Single file emission is impossible with this flag set
     "isolatedModules": false,
     // Generate single file
-    // `System`, in contrast to `None`, permits the use of `import.meta`
-    "module": "System",
+    "module": "ES2022",
     // Always emit
     "noEmit": false,
     // Skip code generation when error occurs

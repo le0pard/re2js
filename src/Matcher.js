@@ -32,7 +32,7 @@ class Matcher {
    * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
    * {@link #appendReplacement} as a literal replacement of {@code s}.
    *
-   * @param {string} s the string to be quoted
+   * @param {string} str the string to be quoted
    * @returns {string} the quoted string
    */
   static quoteReplacement(str) {
@@ -51,7 +51,11 @@ class Matcher {
       })
       .join('')
   }
-
+  /**
+   *
+   * @param {RE2JS} pattern
+   * @param {Utf8MatcherInput|Utf16MatcherInput|number[]|string} input
+   */
   constructor(pattern, input) {
     if (pattern === null) {
       throw new Error('pattern is null')
@@ -74,7 +78,10 @@ class Matcher {
     }
   }
 
-  /** Returns the {@code RE2JS} associated with this {@code Matcher}. */
+  /**
+   * Returns the {@code RE2JS} associated with this {@code Matcher}.
+   * @returns {RE2JS}
+   */
   pattern() {
     return this.patternInput
   }
@@ -82,7 +89,7 @@ class Matcher {
   /**
    * Resets the {@code Matcher}, rewinding input and discarding any match information.
    *
-   * @returns the {@code Matcher} itself, for chained method calls
+   * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   reset() {
     // The input length in UTF16 codes.
@@ -101,7 +108,7 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
-   * @returns the {@code Matcher} itself, for chained method calls
+   * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
     if (input === null) {
@@ -115,7 +122,8 @@ class Matcher {
   /**
    * Returns the start of the named group of the most recent match, or -1 if the group was not
    * matched.
-   *
+   * @param {string|number} [group=0]
+   * @returns {string}
    */
   start(group = 0) {
     if (typeof group === 'string') {
@@ -133,7 +141,8 @@ class Matcher {
   /**
    * Returns the end of the named group of the most recent match, or -1 if the group was not
    * matched.
-   *
+   * @param {string|number} [group=0]
+   * @returns {string}
    */
   end(group = 0) {
     if (typeof group === 'string') {
@@ -150,7 +159,8 @@ class Matcher {
 
   /**
    * Returns the named group of the most recent match, or {@code null} if the group was not matched.
-   *
+   * @param {string|number} [group=0]
+   * @returns {string}
    */
   group(group = 0) {
     if (typeof group === 'string') {
@@ -242,7 +252,7 @@ class Matcher {
    * Matches the input against the pattern (unanchored), starting at a specified position. If there
    * is a match, {@code find} sets the match state to describe it.
    *
-   * @param start the input position where the search begins
+   * @param {string|number} [start=null] the input position where the search begins
    * @returns {boolean} if it finds a match
    * @throws IndexOutOfBoundsException if start is not a valid input position
    */

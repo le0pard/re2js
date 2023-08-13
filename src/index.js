@@ -64,7 +64,7 @@ class RE2JS {
   /**
    * Helper: create new RE2JS with given regex and flags. Flregex is the regex with flags applied.
    * @param {string} regex
-   * @param {number} flags
+   * @param {number} [flags=0]
    * @returns {RE2JS}
    */
   static compile(regex, flags = 0) {
@@ -109,7 +109,7 @@ class RE2JS {
    * Matches a string against a regular expression.
    *
    * @param {string} regex the regular expression
-   * @param {*} input the input
+   * @param {string|number[]} input the input
    * @returns {boolean} true if the regular expression matches the entire input
    * @throws RE2JSSyntaxException if the regular expression is malformed
    */
@@ -117,7 +117,10 @@ class RE2JS {
     return RE2JS.compile(regex).matcher(input).matches()
   }
 
-  // This is visible for testing.
+  /**
+   * This is visible for testing.
+   * @private
+   */
   static initTest(pattern, flags, re2) {
     if (pattern == null) {
       throw new Error('pattern is null')
@@ -131,6 +134,11 @@ class RE2JS {
     return p
   }
 
+  /**
+   *
+   * @param {string} pattern
+   * @param {number} flags
+   */
   constructor(pattern, flags) {
     // The pattern string at construction time.
     this.patternInput = pattern
@@ -169,7 +177,7 @@ class RE2JS {
   /**
    * Matches a string against a regular expression.
    *
-   * @param {*} input the input
+   * @param {string|number[]} input the input
    * @returns {boolean} true if the regular expression matches the entire input
    */
   matches(input) {
@@ -179,7 +187,7 @@ class RE2JS {
   /**
    * Creates a new {@code Matcher} matching the pattern against the input.
    *
-   * @param {*} input the input string
+   * @param {string|number[]} input the input string
    * @returns {Matcher}
    */
   matcher(input) {
@@ -201,7 +209,7 @@ class RE2JS {
    * of the input, possibly including additional matches of the pattern.
    *
    * @param {string} input the input string to be split
-   * @param {number} limit the limit
+   * @param {number} [limit=0] the limit
    * @returns {string[]} the split strings
    */
   split(input, limit = 0) {
@@ -261,6 +269,10 @@ class RE2JS {
     return result
   }
 
+  /**
+   *
+   * @returns {string}
+   */
   toString() {
     return this.patternInput
   }
@@ -284,6 +296,11 @@ class RE2JS {
     return this.re2Input.namedGroups
   }
 
+  /**
+   *
+   * @param {*} other
+   * @returns {boolean}
+   */
   equals(other) {
     if (this === other) {
       return true
