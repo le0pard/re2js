@@ -19,9 +19,33 @@ In contrast, the RE2 algorithm explores all matches simultaneously in a single p
 
 There are certain features of PCRE or Perl regular expressions that cannot be implemented in linear time, for example, backreferences, but the vast majority of regular expressions patterns in practice avoid such features.
 
+## Installation
+
+To install RE2JS:
+
+```bash
+npm install re2js
+# or
+yarn add re2js
+# or
+pnpm add re2js
+```
+
 ## Usage
 
 This document provides a series of examples demonstrating how to use RE2JS in your code. For more detailed information about regex syntax, please visit this page: [Google RE2 Syntax Documentation](https://github.com/google/re2/wiki/Syntax).
+
+You can utilize ECMAScript (ES6) imports to import and use the RE2JS library:
+
+```js
+import { RE2JS } from 're2js'
+```
+
+If you're using CommonJS, you can `require` the library:
+
+```js
+const { RE2JS } = require('re2js')
+```
 
 ### Compiling Patterns
 
