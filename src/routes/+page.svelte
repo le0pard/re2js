@@ -5,7 +5,7 @@
   import debounce from 'lodash/debounce'
   import round from 'lodash/round'
 
-  let regex = '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})'
+  let regex = '(?<name>[a-zA-Z0-9._%+-]+)@(?<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})'
   let string = 'max.power@example.com'
 
   let case_insensitive_flag = false
