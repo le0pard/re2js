@@ -205,6 +205,7 @@ You can access the named groups in a pattern using the `namedGroups()` function
 import { RE2JS } from 're2js'
 
 RE2JS.compile('(?P<foo>\\d{2})').namedGroups() // { foo: 1 }
+RE2JS.compile('(?<bar>\\d{2})').namedGroups() // { bar: 1 }
 RE2JS.compile('\\d{2}').namedGroups() // {}
 RE2JS.compile('(?P<foo>.*)(?P<bar>.*)').namedGroups() // { foo: 1, bar: 2 }
 ```
@@ -234,6 +235,7 @@ The `group()` method retrieves the content matched by a specific name of capturi
 ```js
 import { RE2JS } from 're2js'
 
+// example with `(?P<name>expr)`
 const p = RE2JS.compile(
   '(?P<baz>f(?P<foo>b*a(?P<another>r+)){0,10})(?P<bag>bag)?(?P<nomatch>zzz)?'
 )
@@ -244,6 +246,16 @@ if (matchString.matches()) {
   matchString.group('another') // 'rrrrr'
   matchString.group('bag') // 'bag'
   matchString.group('nomatch') // null
+}
+
+// example with `(?<name>expr)`
+const m = RE2JS.compile(
+  '(?<baz>f(?<foo>b*a))'
+)
+const mString = m.matcher('fbba')
+if (mString.matches()) {
+  mString.group('baz') // 'fbba'
+  mString.group('foo') // 'bba'
 }
 ```
 
