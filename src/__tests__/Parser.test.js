@@ -281,7 +281,7 @@ describe('no match new line cases', () => {
 })
 
 describe('invalid regexp cases', () => {
-  const invalid_regexp_cases = [
+  const invalidRegexpCases = [
     ['('],
     [')'],
     ['(a'],
@@ -316,7 +316,7 @@ describe('invalid regexp cases', () => {
     ['\\xv'] // https://github.com/google/re2j/issues/103
   ]
 
-  const valid_only_for_perl_cases = [
+  const validOnlyForPerlCases = [
     ['[a-b-c]'],
     ['\\Qabc\\E'],
     ['\\Q*+?{[\\E'],
@@ -329,28 +329,21 @@ describe('invalid regexp cases', () => {
     ['(?<name>a)']
   ]
 
-  const valid_only_for_posix_cases = [
-    ['a++'],
-    ['a**'],
-    ['a?*'],
-    ['a+*'],
-    ['a{1}*'],
-    ['.{1}{2}.{3}']
-  ]
+  const validOnlyForPosixCases = [['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']]
 
-  test.concurrent.each(invalid_regexp_cases)('invalid %p raise error', (input) => {
+  test.concurrent.each(invalidRegexpCases)('invalid %p raise error', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  test.concurrent.each(valid_only_for_perl_cases)('valid %p only for perl mode', (input) => {
+  test.concurrent.each(validOnlyForPerlCases)('valid %p only for perl mode', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).not.toThrow(RE2JSSyntaxException)
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  test.concurrent.each(valid_only_for_posix_cases)('valid %p only for posix mode', (input) => {
+  test.concurrent.each(validOnlyForPosixCases)('valid %p only for posix mode', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
     expect(parsed(RE2Flags.POSIX)).not.toThrow(RE2JSSyntaxException)
