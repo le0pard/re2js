@@ -49,6 +49,10 @@ class Inst {
     // class.
     if (this.runes.length === 1) {
       const r0 = this.runes[0]
+      // If this pattern is case-insensitive, apply Unicode case folding to compare the two runes.
+      // Note that this may result in a case-folding loop when executed,
+      // so attempt to reduce the chance of that occurring
+      // by performing case folding on |r0| from the pattern rather than |r| from the input.
       if ((this.arg & RE2Flags.FOLD_CASE) !== 0) {
         return Unicode.equalsIgnoreCase(r0, r)
       }

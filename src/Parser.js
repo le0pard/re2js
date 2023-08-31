@@ -1262,21 +1262,22 @@ class Parser {
     // support all three as well.  EcmaScript 4 uses only the Python form.
     //
     // In both the open source world (via Code Search) and the
-    // Google source tree, (?P<expr>name) is the dominant form,
-    // so that's the one we implement.  One is enough.
+    // Google source tree, (?P<name>expr) and (?<name>expr) are the
+    // dominant forms of named captures and both are supported.
     const s = t.rest()
-    if (s.startsWith('(?P<')) {
+    if (s.startsWith('(?P<') || s.startsWith('(?<')) {
       // Pull out name.
+      const begin = s.charAt(2) === 'P' ? 4 : 3
       const end = s.indexOf('>')
       if (end < 0) {
         throw new RE2JSSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s)
       }
-      const name = s.substring(4, end) // "name"
+      const name = s.substring(begin, end) // "name"
       t.skipString(name)
-      t.skip(5) // "(?P<>"
+      t.skip(begin + 1) // "(?P<>" or "(?<>"
       if (!Parser.isValidCaptureName(name)) {
         // "(?P<name>"
-        throw new RE2JSSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s.substring(0, end))
+        throw new RE2JSSyntaxException(Parser.ERR_INVALID_NAMED_CAPTURE, s.substring(0, end + 1)) // "(?P<name>" or "(?<name>"
       }
       // Like ordinary capture, but named.
       const re = this.op(Regexp.Op.LEFT_PAREN)

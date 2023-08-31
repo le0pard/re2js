@@ -1,4 +1,5 @@
 import { RE2Flags } from '../RE2Flags'
+import { RE2JSSyntaxException } from '../exceptions'
 import { Parser } from '../Parser'
 import { Unicode } from '../Unicode'
 import { dumpRegexp, mkCharClass } from '../__utils__/parser'
@@ -162,6 +163,7 @@ describe('.parse', () => {
 
     // Test named captures
     ['(?P<name>a)', 'cap{name:lit{a}}'],
+    ['(?<name>a)', 'cap{name:lit{a}}'],
     ['(?P<baz>f{0,10})(?P<bag>b{0,10})', 'cat{cap{baz:rep{0,10 lit{f}}}cap{bag:rep{0,10 lit{b}}}}'],
 
     // Case-folded literals
@@ -220,6 +222,138 @@ describe('.parse', () => {
   test.concurrent.each(cases)('input %p returns %p', (input, expected) => {
     const re = Parser.parse(input, flags)
     expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
+describe('fold cases', () => {
+  const cases = [
+    ['AbCdE', 'strfold{ABCDE}'],
+    ['[Aa]', 'litfold{A}'],
+    ['a', 'litfold{A}'],
+    // 0x17F is an old English long s (looks like an f) and folds to s.
+    // 0x212A is the Kelvin symbol and folds to k.
+    ['A[F-g]', 'cat{litfold{A}cc{0x41-0x7a 0x17f 0x212a}}'], // [Aa][A-z...]
+    ['[[:upper:]]', 'cc{0x41-0x5a 0x61-0x7a 0x17f 0x212a}'],
+    ['[[:lower:]]', 'cc{0x41-0x5a 0x61-0x7a 0x17f 0x212a}']
+  ]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    const re = Parser.parse(input, RE2Flags.FOLD_CASE)
+    expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
+describe('literal cases', () => {
+  const cases = [['(|)^$.[*+?]{5,10},\\', 'str{(|)^$.[*+?]{5,10},\\}']]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    const re = Parser.parse(input, RE2Flags.LITERAL)
+    expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
+describe('match new line cases', () => {
+  const cases = [
+    ['.', 'dot{}'],
+    ['\n', 'lit{\n}'],
+    ['[^a]', 'cc{0x0-0x60 0x62-0x10ffff}'],
+    ['[a\\n]', 'cc{0xa 0x61}']
+  ]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    const re = Parser.parse(input, RE2Flags.MATCH_NL)
+    expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
+describe('no match new line cases', () => {
+  const cases = [
+    ['.', 'dnl{}'],
+    ['\n', 'lit{\n}'],
+    ['[^a]', 'cc{0x0-0x9 0xb-0x60 0x62-0x10ffff}'],
+    ['[a\\n]', 'cc{0xa 0x61}']
+  ]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    const re = Parser.parse(input, 0)
+    expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
+describe('invalid regexp cases', () => {
+  const invalid_regexp_cases = [
+    ['('],
+    [')'],
+    ['(a'],
+    ['(a|b|'],
+    ['(a|b'],
+    ['[a-z'],
+    ['([a-z)'],
+    ['x{1001}'],
+    ['x{9876543210}'],
+    ['x{2,1}'],
+    ['x{1,9876543210}'],
+    ['(?P<name>a'],
+    ['(?P<name>'],
+    ['(?P<name'],
+    ['(?P<x y>a)'],
+    ['(?P<>a)'],
+    ['(?<name>a'],
+    ['(?<name>'],
+    ['(?<name'],
+    ['(?<x y>a)'],
+    ['(?<>a)'],
+    ['[a-Z]'],
+    ['(?i)[a-Z]'],
+    ['a{100000}'],
+    ['a{100000,}'],
+    // Group names may not be repeated
+    ['(?P<foo>bar)(?P<foo>baz)'],
+    ['(?P<foo>bar)(?<foo>baz)'],
+    ['(?<foo>bar)(?P<foo>baz)'],
+    ['(?<foo>bar)(?<foo>baz)'],
+    ['\\x'], // https://github.com/google/re2j/issues/103
+    ['\\xv'] // https://github.com/google/re2j/issues/103
+  ]
+
+  const valid_only_for_perl_cases = [
+    ['[a-b-c]'],
+    ['\\Qabc\\E'],
+    ['\\Q*+?{[\\E'],
+    ['\\Q\\\\E'],
+    ['\\Q\\\\\\E'],
+    ['\\Q\\\\\\\\E'],
+    ['\\Q\\\\\\\\\\E'],
+    ['(?:a)'],
+    ['(?P<name>a)'],
+    ['(?<name>a)']
+  ]
+
+  const valid_only_for_posix_cases = [
+    ['a++'],
+    ['a**'],
+    ['a?*'],
+    ['a+*'],
+    ['a{1}*'],
+    ['.{1}{2}.{3}']
+  ]
+
+  test.concurrent.each(invalid_regexp_cases)('invalid %p raise error', (input) => {
+    const parsed = (flags) => () => Parser.parse(input, flags)
+    expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
+    expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
+  })
+
+  test.concurrent.each(valid_only_for_perl_cases)('valid %p only for perl mode', (input) => {
+    const parsed = (flags) => () => Parser.parse(input, flags)
+    expect(parsed(RE2Flags.PERL)).not.toThrow(RE2JSSyntaxException)
+    expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
+  })
+
+  test.concurrent.each(valid_only_for_posix_cases)('valid %p only for posix mode', (input) => {
+    const parsed = (flags) => () => Parser.parse(input, flags)
+    expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
+    expect(parsed(RE2Flags.POSIX)).not.toThrow(RE2JSSyntaxException)
   })
 })
 
