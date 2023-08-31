@@ -165,6 +165,7 @@ describe('.parse', () => {
     ['(?P<name>a)', 'cap{name:lit{a}}'],
     ['(?<name>a)', 'cap{name:lit{a}}'],
     ['(?P<baz>f{0,10})(?P<bag>b{0,10})', 'cat{cap{baz:rep{0,10 lit{f}}}cap{bag:rep{0,10 lit{b}}}}'],
+    ['(?<baz>f{0,10})(?<bag>b{0,10})', 'cat{cap{baz:rep{0,10 lit{f}}}cap{bag:rep{0,10 lit{b}}}}'],
 
     // Case-folded literals
     ['[Aa]', 'litfold{A}'],
