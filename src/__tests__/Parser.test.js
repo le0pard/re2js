@@ -282,7 +282,7 @@ describe('no match new line cases', () => {
 })
 
 describe('invalid regexp cases', () => {
-  const invalidRegexpCases = [
+  test.concurrent.each([
     ['('],
     [')'],
     ['(a'],
@@ -315,9 +315,13 @@ describe('invalid regexp cases', () => {
     ['(?<foo>bar)(?<foo>baz)'],
     ['\\x'], // https://github.com/google/re2j/issues/103
     ['\\xv'] // https://github.com/google/re2j/issues/103
-  ]
+  ])('invalid %p raise error', (input) => {
+    const parsed = (flags) => () => Parser.parse(input, flags)
+    expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
+    expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
+  })
 
-  const validOnlyForPerlCases = [
+  test.concurrent.each([
     ['[a-b-c]'],
     ['\\Qabc\\E'],
     ['\\Q*+?{[\\E'],
@@ -328,23 +332,20 @@ describe('invalid regexp cases', () => {
     ['(?:a)'],
     ['(?P<name>a)'],
     ['(?<name>a)']
-  ]
-
-  const validOnlyForPosixCases = [['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']]
-
-  test.concurrent.each(invalidRegexpCases)('invalid %p raise error', (input) => {
-    const parsed = (flags) => () => Parser.parse(input, flags)
-    expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
-    expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
-  })
-
-  test.concurrent.each(validOnlyForPerlCases)('valid %p only for perl mode', (input) => {
+  ])('valid %p only for perl mode', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).not.toThrow(RE2JSSyntaxException)
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  test.concurrent.each(validOnlyForPosixCases)('valid %p only for posix mode', (input) => {
+  test.concurrent.each([
+    ['a++'],
+    ['a**'],
+    ['a?*'],
+    ['a+*'],
+    ['a{1}*'],
+    ['.{1}{2}.{3}']
+  ])('valid %p only for posix mode', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
     expect(parsed(RE2Flags.POSIX)).not.toThrow(RE2JSSyntaxException)
