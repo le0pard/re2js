@@ -338,18 +338,14 @@ describe('invalid regexp cases', () => {
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  test.concurrent.each([
-    ['a++'],
-    ['a**'],
-    ['a?*'],
-    ['a+*'],
-    ['a{1}*'],
-    ['.{1}{2}.{3}']
-  ])('valid %p only for posix mode', (input) => {
-    const parsed = (flags) => () => Parser.parse(input, flags)
-    expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
-    expect(parsed(RE2Flags.POSIX)).not.toThrow(RE2JSSyntaxException)
-  })
+  test.concurrent.each([['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']])(
+    'valid %p only for posix mode',
+    (input) => {
+      const parsed = (flags) => () => Parser.parse(input, flags)
+      expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
+      expect(parsed(RE2Flags.POSIX)).not.toThrow(RE2JSSyntaxException)
+    }
+  )
 })
 
 describe('.equals', () => {

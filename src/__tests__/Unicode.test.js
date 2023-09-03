@@ -10,12 +10,9 @@ describe('#isUpper', () => {
     [469, true], // 'Ǖ'
     [474, false], // 'ǚ'
     [940, false] // 'ά'
-  ])(
-    '#isUpper(%p) === %p',
-    (input, expected) => {
-      expect(Unicode.isUpper(input)).toEqual(expected)
-    }
-  )
+  ])('#isUpper(%p) === %p', (input, expected) => {
+    expect(Unicode.isUpper(input)).toEqual(expected)
+  })
 })
 
 describe('#isPrint', () => {
@@ -34,12 +31,9 @@ describe('#isPrint', () => {
     [12, false], // '\f'
     [160, false],
     [8203, false]
-  ])(
-    '#isPrint(%p) === %p',
-    (input, expected) => {
-      expect(Unicode.isPrint(input)).toEqual(expected)
-    }
-  )
+  ])('#isPrint(%p) === %p', (input, expected) => {
+    expect(Unicode.isPrint(input)).toEqual(expected)
+  })
 })
 
 describe('#simpleFold', () => {
@@ -59,12 +53,9 @@ describe('#simpleFold', () => {
     [49, 49],
     // '9'
     [57, 57]
-  ])(
-    '#simpleFold(%p) === %p',
-    (input, expected) => {
-      expect(Unicode.simpleFold(input)).toEqual(expected)
-    }
-  )
+  ])('#simpleFold(%p) === %p', (input, expected) => {
+    expect(Unicode.simpleFold(input)).toEqual(expected)
+  })
 })
 
 const genEqualsIgnoreCases = () => {

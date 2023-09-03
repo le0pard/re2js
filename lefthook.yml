@@ -4,6 +4,9 @@ pre-commit:
     eslint:
       glob: '*.{js}'
       run: yarn eslint {staged_files}
+    prettier:
+      glob: '*.{js}'
+      run: yarn pnpify run prettier --check {staged_files}
 
 fix:
   parallel: true
