@@ -24,11 +24,14 @@ There are certain features of PCRE or Perl regular expressions that cannot be im
 To install RE2JS:
 
 ```bash
+# npm
 npm install re2js
-# or
+# yarn
 yarn add re2js
-# or
+# pnpm
 pnpm add re2js
+# bun
+bun add re2js
 ```
 
 ## Usage

@@ -15,7 +15,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           cache: 'yarn'
-          registry-url: 'https://registry.npmjs.org'
           node-version-file: '.tool-versions'
 
       - name: Install Javascript dependencies
