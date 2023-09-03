@@ -1,4 +1,4 @@
-name: Test/Build/Deploy
+name: Test/Build/Publish
 on: push
 
 jobs:
@@ -26,8 +26,8 @@ jobs:
       - name: Run tests
         run: yarn test
 
-  release:
-    name: "Release"
+  publish:
+    name: "Publish"
     needs: test
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
