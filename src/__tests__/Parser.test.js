@@ -334,7 +334,7 @@ describe('invalid regexp cases', () => {
     ['(?<name>a)']
   ])('valid %p only for perl mode', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
-    expect(parsed(RE2Flags.PERL)).not.toThrow(RE2JSSyntaxException)
+    expect(parsed(RE2Flags.PERL)).not.toThrow()
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
@@ -343,7 +343,7 @@ describe('invalid regexp cases', () => {
     (input) => {
       const parsed = (flags) => () => Parser.parse(input, flags)
       expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
-      expect(parsed(RE2Flags.POSIX)).not.toThrow(RE2JSSyntaxException)
+      expect(parsed(RE2Flags.POSIX)).not.toThrow()
     }
   )
 })
