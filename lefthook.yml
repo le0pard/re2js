@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: '*.{js}'
+      run: yarn eslint {staged_files}
+
+fix:
+  parallel: true
+  files: git status --porcelain | cut -c 4- # custom list of files
+  commands:
+    js:
+      glob: '*.{js,jsx}'
+      run: yarn eslint --fix {files}
