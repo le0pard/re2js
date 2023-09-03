@@ -18,6 +18,30 @@ describe('#isUpper', () => {
   )
 })
 
+describe('#isPrint', () => {
+  test.concurrent.each([
+    [32, true], // ' '
+    [115, true], // 's'
+    [83, true], // 'S'
+    [503, true], // 'Ƿ'
+    [469, true], // 'Ǖ'
+    [474, true], // 'ǚ'
+    [940, true], // 'ά'
+    [940, true], // 'ά'
+    [8, false], // '\b'
+    [9, false], // '\t'
+    [11, false], // '\r'
+    [12, false], // '\f'
+    [160, false],
+    [8203, false]
+  ])(
+    '#isPrint(%p) === %p',
+    (input, expected) => {
+      expect(Unicode.isPrint(input)).toEqual(expected)
+    }
+  )
+})
+
 describe('#simpleFold', () => {
   test.concurrent.each([
     // 'A' <-> 'a'
