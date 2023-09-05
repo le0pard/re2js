@@ -63,6 +63,4 @@ const makeConfig = () => {
   }
 }
 
-export default () => {
-  return makeConfig()
-}
+export default () => makeConfig()
