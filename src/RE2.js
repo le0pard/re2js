@@ -36,10 +36,8 @@ class AtomicReference {
  * An RE2 class instance is a compiled representation of an RE2 regular expression, independent of
  * the public Java-like Pattern/Matcher API.
  *
- * <p>
  * This class also contains various implementation helpers for RE2 regular expressions.
  *
- * <p>
  * Use the {@link #quoteMeta(String)} utility function to quote all regular expression
  * metacharacters in an arbitrary string.
  *
@@ -61,7 +59,6 @@ class RE2 {
    * Parses a regular expression and returns, if successful, an {@code RE2} instance that can be
    * used to match against text.
    *
-   * <p>
    * When matching against text, the regexp returns a match that begins as early as possible in the
    * input (leftmost), and among those it chooses the one that a backtracking search would have
    * found first. This so-called leftmost-first matching is the same semantics that Perl, Python,
@@ -76,13 +73,11 @@ class RE2 {
    * {@code compilePOSIX} is like {@link #compile} but restricts the regular expression to POSIX ERE
    * (egrep) syntax and changes the match semantics to leftmost-longest.
    *
-   * <p>
    * That is, when matching against text, the regexp returns a match that begins as early as
    * possible in the input (leftmost), and among those it chooses a match that is as long as
    * possible. This so-called leftmost-longest matching is the same semantics that early regular
    * expression implementations used and that POSIX specifies.
    *
-   * <p>
    * However, there can be multiple leftmost-longest matches, with different submatch choices, and
    * here this package diverges from POSIX. Among the possible leftmost-longest matches, this
    * package chooses the one that a backtracking search would have found first, while POSIX
@@ -118,7 +113,6 @@ class RE2 {
   /**
    * Returns true iff textual regular expression {@code pattern} matches string {@code s}.
    *
-   * <p>
    * More complicated queries need to use {@link #compile} and the full {@code RE2} interface.
    */
   // This is visible for testing.
@@ -457,7 +451,6 @@ class RE2 {
    * Returns an array holding the text of the leftmost match in {@code b} of this regular
    * expression.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -473,7 +466,6 @@ class RE2 {
    * Returns a two-element array of integers defining the location of the leftmost match in
    * {@code b} of this regular expression. The match itself is at {@code b[loc[0]...loc[1]]}.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -489,7 +481,6 @@ class RE2 {
    * Returns a string holding the text of the leftmost match in {@code s} of this regular
    * expression.
    *
-   * <p>
    * If there is no match, the return value is an empty string, but it will also be empty if the
    * regular expression successfully matches an empty string. Use {@link #findIndex} or
    * {@link #findSubmatch} if it is necessary to distinguish these cases.
@@ -508,7 +499,6 @@ class RE2 {
    * {@code s} of this regular expression. The match itself is at
    * {@code s.substring(loc[0], loc[1])}.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -521,7 +511,6 @@ class RE2 {
    * {@code b} and the matches, if any, of its subexpressions, as defined by the <a
    * href='#submatch'>Submatch</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -545,7 +534,6 @@ class RE2 {
    * expression in {@code b} and the matches, if any, of its subexpressions, as defined by the the
    * <a href='#submatch'>Submatch</a> and <a href='#index'>Index</a> descriptions above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -560,7 +548,6 @@ class RE2 {
    * {@code s} and the matches, if any, of its subexpressions, as defined by the <a
    * href='#submatch'>Submatch</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -584,7 +571,6 @@ class RE2 {
    * expression in {@code s} and the matches, if any, of its subexpressions, as defined by the <a
    * href='#submatch'>Submatch</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -599,7 +585,6 @@ class RE2 {
    * list of up to {@code n} successive matches of the expression, as defined by the <a
    * href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    *
    * TODO(adonovan): think about defining a byte slice view class, like a read-only Go slice backed
@@ -621,7 +606,6 @@ class RE2 {
    * returns a list of up to {@code n} successive matches of the expression, as defined by the <a
    * href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -638,7 +622,6 @@ class RE2 {
    * to {@code n} successive matches of the expression, as defined by the <a href='#all'>All</a>
    * description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -657,7 +640,6 @@ class RE2 {
    * list of up to {@code n} successive matches of the expression, as defined by the <a
    * href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -674,7 +656,6 @@ class RE2 {
    * it returns a list of up to {@code n} successive matches of the expression, as defined by the <a
    * href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -699,7 +680,6 @@ class RE2 {
    * {@link #findUTF8SubmatchIndex}; it returns a list of up to {@code n} successive matches of the
    * expression, as defined by the <a href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -716,7 +696,6 @@ class RE2 {
    * returns a list of up to {@code n} successive matches of the expression, as defined by the <a
    * href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.
@@ -741,7 +720,6 @@ class RE2 {
    * {@link #findSubmatchIndex}; it returns a list of up to {@code n} successive matches of the
    * expression, as defined by the <a href='#all'>All</a> description above.
    *
-   * <p>
    * A return value of null indicates no match.
    */
   // This is visible for testing.

@@ -14,7 +14,6 @@ import {
 /**
  * A compiled representation of an RE2 regular expression
  *
- * <p>
  * The matching functions take {@code String} arguments instead of the more general Java
  * {@code CharSequence} since the latter doesn't provide UTF-16 decoding.
  *
@@ -48,10 +47,9 @@ class RE2JS {
   /**
    * Returns a literal pattern string for the specified string.
    *
-   * <p>
    * This method produces a string that can be used to create a <code>RE2JS</code> that would
    * match the string <code>s</code> as if it were a literal pattern.
-   * </p>
+   *
    * Metacharacters or escape sequences in the input sequence will be given no special meaning.
    *
    * @param {string} str The string to be literalized
@@ -202,7 +200,6 @@ class RE2JS {
    * Splits input around instances of the regular expression. It returns an array giving the strings
    * that occur before, between, and after instances of the regular expression.
    *
-   * <p>
    * If {@code limit <= 0}, there is no limit on the size of the returned array. If
    * {@code limit == 0}, empty strings that would occur at the end of the array are omitted. If
    * {@code limit > 0}, at most limit strings are returned. The final string contains the remainder

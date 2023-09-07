@@ -7,7 +7,6 @@ import { RE2JSGroupException } from './exceptions'
 /**
  * A stateful iterator that interprets a regex {@code RE2JS} on a specific input.
  *
- * <p>
  * Conceptually, a Matcher consists of four parts:
  * <ol>
  * <li>A compiled regular expression {@code RE2JS}, set at construction and fixed for the lifetime
@@ -326,12 +325,10 @@ class Matcher {
    * the form {@code $n}, where {@code n} is the group number in decimal. It advances the append
    * position to where the most recent match ended.
    *
-   * <p>
    * To embed a literal {@code $}, use \$ (actually {@code "\\$"} with string escapes). The escape
    * is only necessary when {@code $} is followed by a digit, but it is always allowed. Only
    * {@code $} and {@code \} need escaping, but any character can be escaped.
    *
-   * <p>
    * The group number {@code n} in {@code $n} is always at least one digit and expands to use more
    * digits as long as the resulting number is a valid group number for this pattern. To cut it off
    * earlier, escape the first digit that should not be used.
