@@ -791,9 +791,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^1.24.0":
-  version: 1.24.0
-  resolution: "@sveltejs/kit@npm:1.24.0"
+"@sveltejs/kit@npm:^1.24.1":
+  version: 1.24.1
+  resolution: "@sveltejs/kit@npm:1.24.1"
   dependencies:
     "@sveltejs/vite-plugin-svelte": ^2.4.1
     "@types/cookie": ^0.5.1
@@ -813,7 +813,7 @@ __metadata:
     vite: ^4.0.0
   bin:
     svelte-kit: svelte-kit.js
-  checksum: de42b8204006c1a4b10b322a81e856de2132d60fefa77c940dc8816d6ad2dd7802348295075de6a0ceca5e3fb40c01909777ad52d9d617029b0a830987a9f3b7
+  checksum: 55ad8e13894b124e1f74bffa55b1de309197ee2d86510cfc3d0a5c6d9c67a7e00ebbc909f65c9ca136d51336863c5671080e9c083834aeba80d1d263cc30f668
   languageName: node
   linkType: hard
 
@@ -880,6 +880,13 @@ __metadata:
   version: 0.5.1
   resolution: "@types/cookie@npm:0.5.1"
   checksum: 9a8d60fc84797122bc399d6bd330fe5780dc7aab032321de705049ea925339f74658bfa418de483a625d51858770efef58df633ff2e20f1bdf7fbd74a52847e2
+  languageName: node
+  linkType: hard
+
+"@types/cookie@npm:^0.5.2":
+  version: 0.5.2
+  resolution: "@types/cookie@npm:0.5.2"
+  checksum: 4a1e46379d877f5a3cc687a9799dd72e5f7e68c4764d45cb469789dec92b4b4a7a5bb8b10a08c90be15939fa7b9b402f87ed339dfac0cabf43699c5189880e88
   languageName: node
   linkType: hard
 
@@ -3791,8 +3798,8 @@ __metadata:
   dependencies:
     "@picocss/pico": ^1.5.10
     "@sveltejs/adapter-static": ^2.0.3
-    "@sveltejs/kit": ^1.24.0
-    "@types/cookie": ^0.5.1
+    "@sveltejs/kit": ^1.24.1
+    "@types/cookie": ^0.5.2
     "@yarnpkg/pnpify": ^4.0.0-rc.50
     eslint: ^8.48.0
     eslint-config-prettier: ^9.0.0
