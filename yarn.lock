@@ -97,15 +97,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-cascade-layers@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@csstools/postcss-cascade-layers@npm:4.0.0"
+"@csstools/postcss-cascade-layers@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@csstools/postcss-cascade-layers@npm:4.0.1"
   dependencies:
     "@csstools/selector-specificity": "npm:^3.0.0"
     postcss-selector-parser: "npm:^6.0.13"
   peerDependencies:
     postcss: ^8.4
-  checksum: a7f8d5df582bcfec439463e43b3374081baa91c69148eaad0d4145d5aaff3f7938423b8120639f6283b0095034526812ddbe5c867205894cd14f11f3a6bd4b92
+  checksum: bdde4fb22086e02ec73e0b426737d9ff11c4b8aece14360826a8e269c2b6dd8eabf7f6eddd56fe070839cc729745d0276199b7ac9e4000326233a29931a5487a
   languageName: node
   linkType: hard
 
@@ -240,6 +240,24 @@ __metadata:
   peerDependencies:
     postcss: ^8.4
   checksum: 6a1349e180e633e6287927b12bfbde605bc372bca9b35e06aca2d548cb4b2ff040a0ea7f6804f5c89512846eb707429fe4b436c420cc4a7ea7fe5a1a8d76f724
+  languageName: node
+  linkType: hard
+
+"@csstools/postcss-logical-overflow@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@csstools/postcss-logical-overflow@npm:1.0.0"
+  peerDependencies:
+    postcss: ^8.4
+  checksum: 6111f6741753b7d20a00d3f224976c353e85c25ec333cad6ce12cb403186cd8f37caa9e11565233e86487e45ce96173255b5add66e35663bdeeff3d9a4a77eaf
+  languageName: node
+  linkType: hard
+
+"@csstools/postcss-logical-overscroll-behavior@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@csstools/postcss-logical-overscroll-behavior@npm:1.0.0"
+  peerDependencies:
+    postcss: ^8.4
+  checksum: 32f9e96af8e5a0d40610203e4077accadd3b5baa01e874103f4748bc84ca8e241be23460327e29637e424468616fdda62bee0d0b7608fcb8f79a0bf53522f938
   languageName: node
   linkType: hard
 
@@ -592,9 +610,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^2.1.2":
-  version: 2.1.2
-  resolution: "@eslint/eslintrc@npm:2.1.2"
+"@eslint/eslintrc@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "@eslint/eslintrc@npm:2.1.3"
   dependencies:
     ajv: "npm:^6.12.4"
     debug: "npm:^4.3.2"
@@ -605,14 +623,14 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     minimatch: "npm:^3.1.2"
     strip-json-comments: "npm:^3.1.1"
-  checksum: fa25638f2666cac6810f98ee7d0f4b912f191806467c1b40d72bac759fffef0b3357f12a1869817286837b258e4de3517e0c7408520e156ca860fc53a1fbaed9
+  checksum: 77b70a89232fe702c2f765b5b92970f5e4224b55363b923238b996c66fcd991504f40d3663c0543ae17d6c5049ab9b07ab90b65d7601e6f25e8bcd4caf69ac75
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:8.52.0":
-  version: 8.52.0
-  resolution: "@eslint/js@npm:8.52.0"
-  checksum: 86beff213d0ae4ced203a922b74e2cc4d767d109e7815f985bf648946ba072198977102e32afc9fa04f7825a6de83a831874f6b6675ba0c1d0743ade2dc2d53d
+"@eslint/js@npm:8.53.0":
+  version: 8.53.0
+  resolution: "@eslint/js@npm:8.53.0"
+  checksum: a372d55aa2bbe0d9399acc8de3c892dcfe507fd914d29fde6826ae54a13452619be626aa7eb70b1ec4d4da5302b6ed8e8ac9bf1f830003f15c0ad56c30b4f520
   languageName: node
   linkType: hard
 
@@ -784,9 +802,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^1.27.0":
-  version: 1.27.0
-  resolution: "@sveltejs/kit@npm:1.27.0"
+"@sveltejs/kit@npm:^1.27.3":
+  version: 1.27.3
+  resolution: "@sveltejs/kit@npm:1.27.3"
   dependencies:
     "@sveltejs/vite-plugin-svelte": "npm:^2.4.1"
     "@types/cookie": "npm:^0.5.1"
@@ -806,7 +824,7 @@ __metadata:
     vite: ^4.0.0
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 948c574429485406c0ff3962f6c7bb62263739411770107416d5713c1f1d7ed6c6d15097f45ea17ba9585876a9e757ce041e78fc674902ef08adcf3a40d763ed
+  checksum: f6d10062cfe7ccdfa83749ec52d3802084d33daaa02589caaf806bce07b8acd40cbab30184ad5194d45219c099234f65f371530605d3f6316f4942e97eb7874c
   languageName: node
   linkType: hard
 
@@ -876,10 +894,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookie@npm:^0.5.3":
-  version: 0.5.3
-  resolution: "@types/cookie@npm:0.5.3"
-  checksum: 29f216cbffbda0ea4575ccf1f5b31c793619e1dad48d2fc2f8e789094093cd251d735cdb83204a0b5016d03a0bb57f3c18c5cb58e11da887a0fd353d95afed30
+"@types/cookie@npm:^0.5.4":
+  version: 0.5.4
+  resolution: "@types/cookie@npm:0.5.4"
+  checksum: 44c09d55b79ccc7701876dae868a4a6a9e1291228792b81983e94ab55482eaa853dfc23dede0165d135817dca2845e48bf280f9b1f8d3401f012d410091513c0
   languageName: node
   linkType: hard
 
@@ -1600,10 +1618,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cssdb@npm:^7.8.0":
-  version: 7.8.0
-  resolution: "cssdb@npm:7.8.0"
-  checksum: 1a081abb3f77dd867af5f1853c534872fd8583b1679f006a99ffb6a4cb290a88bf59939217e6b9096af22168ec7a92a8455e81871c3dadce4ef9be7ddf8a384a
+"cssdb@npm:^7.9.0":
+  version: 7.9.0
+  resolution: "cssdb@npm:7.9.0"
+  checksum: 3acdcf3a37c812641bd75173dab1d707e642dd3ed51c2935990d4dfce806f61200be4b61b16614b2c85951139a84fbeeffeb6c8fe0bc26a7f9b2faf77a2ec6a9
   languageName: node
   linkType: hard
 
@@ -1881,6 +1899,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-compat-utils@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "eslint-compat-utils@npm:0.1.2"
+  peerDependencies:
+    eslint: ">=6.0.0"
+  checksum: 8c273889485ab863f2b6089c36f042dd2d9bf65d219fa256c1991f9466ea8261f3ab753a017a6d8e93bec84abd568fe3e10216f3fda5b41d05e3dce3b2a5e514
+  languageName: node
+  linkType: hard
+
 "eslint-config-prettier@npm:^9.0.0":
   version: 9.0.0
   resolution: "eslint-config-prettier@npm:9.0.0"
@@ -1892,15 +1919,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-svelte@npm:^2.34.0":
-  version: 2.34.0
-  resolution: "eslint-plugin-svelte@npm:2.34.0"
+"eslint-plugin-svelte@npm:^2.35.0":
+  version: 2.35.0
+  resolution: "eslint-plugin-svelte@npm:2.35.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.2.0"
     "@jridgewell/sourcemap-codec": "npm:^1.4.14"
     debug: "npm:^4.3.1"
+    eslint-compat-utils: "npm:^0.1.2"
     esutils: "npm:^2.0.3"
-    known-css-properties: "npm:^0.28.0"
+    known-css-properties: "npm:^0.29.0"
     postcss: "npm:^8.4.5"
     postcss-load-config: "npm:^3.1.4"
     postcss-safe-parser: "npm:^6.0.0"
@@ -1913,7 +1941,7 @@ __metadata:
   peerDependenciesMeta:
     svelte:
       optional: true
-  checksum: 2837b0ed3e740c2f43177ce145f0adc1002a002d492780d79d9026adda46de6516ecdbf84eb29010bbd5043dd1d75472f4d5083779a1159d44b68cb3854b3806
+  checksum: bb6b9d75b3266548c840cbd76ee09b63edefe96e398c3648ebd1c28f989f5c8ae6a1bb14d6af82ceeec58e5ac31ebc182ed29b4554340bfdef84f502b42efdfc
   languageName: node
   linkType: hard
 
@@ -1951,14 +1979,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.52.0":
-  version: 8.52.0
-  resolution: "eslint@npm:8.52.0"
+"eslint@npm:^8.53.0":
+  version: 8.53.0
+  resolution: "eslint@npm:8.53.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.2.0"
     "@eslint-community/regexpp": "npm:^4.6.1"
-    "@eslint/eslintrc": "npm:^2.1.2"
-    "@eslint/js": "npm:8.52.0"
+    "@eslint/eslintrc": "npm:^2.1.3"
+    "@eslint/js": "npm:8.53.0"
     "@humanwhocodes/config-array": "npm:^0.11.13"
     "@humanwhocodes/module-importer": "npm:^1.0.1"
     "@nodelib/fs.walk": "npm:^1.2.8"
@@ -1995,7 +2023,7 @@ __metadata:
     text-table: "npm:^0.2.0"
   bin:
     eslint: bin/eslint.js
-  checksum: 01784ab15351d749bc95446039ed7acd5124f7cc84acdbf98c7199272eae06212a8f3ea4a9b47e7cc54ab17ca094c3a664bbfc3002c7de27936220e278b5028a
+  checksum: e305a71ce2b9a8631b293266fe53e346c76f28bc8d004af33f10e537cf133db1fb87af3599376e70ed6e0f89a78be10c4f08ddd0c1c9c0c497cd143b4a270420
   languageName: node
   linkType: hard
 
@@ -2664,10 +2692,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"known-css-properties@npm:^0.28.0":
-  version: 0.28.0
-  resolution: "known-css-properties@npm:0.28.0"
-  checksum: 0ac09a71b38a673e66e2f0779725bd46389092dc6e192b185d4a731169a772a1f84a22ce6e9c15a57e55a6c6e311c5065d3c579d0d3fb36bde7681ab040b1348
+"known-css-properties@npm:^0.29.0":
+  version: 0.29.0
+  resolution: "known-css-properties@npm:0.29.0"
+  checksum: ab4e1d6bad10fe4ba15183e640dab8eec52aaa5a69899382de5843699f145e49c67e6a3ca5c8426ccd31577d3eec4459004ed317a550c3523b863a251280ddd4
   languageName: node
   linkType: hard
 
@@ -3545,11 +3573,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-preset-env@npm:^9.2.0":
-  version: 9.2.0
-  resolution: "postcss-preset-env@npm:9.2.0"
+"postcss-preset-env@npm:^9.3.0":
+  version: 9.3.0
+  resolution: "postcss-preset-env@npm:9.3.0"
   dependencies:
-    "@csstools/postcss-cascade-layers": "npm:^4.0.0"
+    "@csstools/postcss-cascade-layers": "npm:^4.0.1"
     "@csstools/postcss-color-function": "npm:^3.0.7"
     "@csstools/postcss-color-mix-function": "npm:^2.0.7"
     "@csstools/postcss-exponential-functions": "npm:^1.0.1"
@@ -3561,6 +3589,8 @@ __metadata:
     "@csstools/postcss-initial": "npm:^1.0.0"
     "@csstools/postcss-is-pseudo-class": "npm:^4.0.3"
     "@csstools/postcss-logical-float-and-clear": "npm:^2.0.0"
+    "@csstools/postcss-logical-overflow": "npm:^1.0.0"
+    "@csstools/postcss-logical-overscroll-behavior": "npm:^1.0.0"
     "@csstools/postcss-logical-resize": "npm:^2.0.0"
     "@csstools/postcss-logical-viewport-units": "npm:^2.0.3"
     "@csstools/postcss-media-minmax": "npm:^1.1.0"
@@ -3580,7 +3610,7 @@ __metadata:
     css-blank-pseudo: "npm:^6.0.0"
     css-has-pseudo: "npm:^6.0.0"
     css-prefers-color-scheme: "npm:^9.0.0"
-    cssdb: "npm:^7.8.0"
+    cssdb: "npm:^7.9.0"
     postcss-attribute-case-insensitive: "npm:^6.0.2"
     postcss-clamp: "npm:^4.1.0"
     postcss-color-functional-notation: "npm:^6.0.2"
@@ -3609,7 +3639,7 @@ __metadata:
     postcss-value-parser: "npm:^4.2.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 7f1d85b1937eb9d1a9400b63a1886d24b8a5623035ded8380c1c69c04114a939d42697a6cc86b2c2db71277fb4e56b7ed85add88e729d5cd0d86adda3aaf45c4
+  checksum: 37634f74629cab9fdcf9d1ae01183adf12c049013b9e23aadde47d84b73a00b3fb5655cdee311a2128c69a9ca77f49d631b5d00b226ac70d1c6a8f5d8d2f2acf
   languageName: node
   linkType: hard
 
@@ -3803,17 +3833,17 @@ __metadata:
   dependencies:
     "@picocss/pico": "npm:^1.5.10"
     "@sveltejs/adapter-static": "npm:^2.0.3"
-    "@sveltejs/kit": "npm:^1.27.0"
-    "@types/cookie": "npm:^0.5.3"
+    "@sveltejs/kit": "npm:^1.27.3"
+    "@types/cookie": "npm:^0.5.4"
     "@yarnpkg/pnpify": "npm:^4.0.0"
-    eslint: "npm:^8.52.0"
+    eslint: "npm:^8.53.0"
     eslint-config-prettier: "npm:^9.0.0"
-    eslint-plugin-svelte: "npm:^2.34.0"
+    eslint-plugin-svelte: "npm:^2.35.0"
     lodash: "npm:^4.17.21"
     postcss: "npm:^8.4.31"
     postcss-import: "npm:^15.1.0"
     postcss-load-config: "npm:^4.0.1"
-    postcss-preset-env: "npm:^9.2.0"
+    postcss-preset-env: "npm:^9.3.0"
     prettier: "npm:^3.0.3"
     prettier-plugin-svelte: "npm:^3.0.3"
     re2js: "npm:^0.4.0"
