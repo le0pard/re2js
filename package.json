@@ -49,7 +49,7 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@unicode/unicode-15.1.0": "^1.5.2",
     "@yarnpkg/pnpify": "^4.0.0",
-    "eslint": "^8.52.0",
+    "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-node": "^0.3.9",
     "eslint-plugin-import": "^2.29.0",
@@ -58,7 +58,7 @@
     "jsdom": "^22.1.0",
     "lodash": "^4.17.21",
     "prettier": "^3.0.3",
-    "rollup": "^4.1.4",
+    "rollup": "^4.3.0",
     "typescript": "^5.2.2",
     "unicode-property-value-aliases": "^3.7.1"
   },
