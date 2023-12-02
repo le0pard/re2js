@@ -4,15 +4,10 @@ export default {
     [
       '@babel/preset-env',
       {
-        targets: [
-          '>0.3%',
-          'Firefox ESR',
-          'not dead',
-          'not op_mini all',
-          'maintained node versions'
-        ],
+        targets: ['defaults and fully supports es6-module', 'maintained node versions'],
         modules: 'auto',
-        useBuiltIns: false
+        useBuiltIns: false,
+        exclude: ['transform-parameters']
       }
     ]
   ],
