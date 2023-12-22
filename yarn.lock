@@ -879,9 +879,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@sveltejs/kit@npm:2.0.4"
+"@sveltejs/kit@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@sveltejs/kit@npm:2.0.6"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^0.6.0"
@@ -889,10 +889,10 @@ __metadata:
     esm-env: "npm:^1.0.0"
     kleur: "npm:^4.1.5"
     magic-string: "npm:^0.30.5"
-    mrmime: "npm:^1.0.1"
+    mrmime: "npm:^2.0.0"
     sade: "npm:^1.8.1"
     set-cookie-parser: "npm:^2.6.0"
-    sirv: "npm:^2.0.3"
+    sirv: "npm:^2.0.4"
     tiny-glob: "npm:^0.2.9"
   peerDependencies:
     "@sveltejs/vite-plugin-svelte": ^3.0.0
@@ -900,7 +900,7 @@ __metadata:
     vite: ^5.0.3
   bin:
     svelte-kit: svelte-kit.js
-  checksum: def9f27eb3c2cb865ec43a608c51e6089ad928c63e2f35e6544869b673cfba92c4e1992c0cf47592dde0f28880af8c6bf6201a5bb3855f84173e73355089037e
+  checksum: aefebf2cfa90784a4e1e6a0a84bbd4f253b7fd35090333b3330a09dcab58f5a2581cf19e1cd7a9d5cc7aae27311ec19252159f2e0cc6a7fa58e7e6872dd610b1
   languageName: node
   linkType: hard
 
@@ -3102,13 +3102,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mrmime@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "mrmime@npm:1.0.1"
-  checksum: a157e833ffe76648ab2107319deeff024b80b136ec66c60fae9d339009a1bb72c57ec1feecfd6a905dfd3df29e2299e850bff84b69cad790cc9bd9ab075834d1
-  languageName: node
-  linkType: hard
-
 "mrmime@npm:^2.0.0":
   version: 2.0.0
   resolution: "mrmime@npm:2.0.0"
@@ -3933,7 +3926,7 @@ __metadata:
   dependencies:
     "@picocss/pico": "npm:^1.5.10"
     "@sveltejs/adapter-static": "npm:^3.0.1"
-    "@sveltejs/kit": "npm:^2.0.4"
+    "@sveltejs/kit": "npm:^2.0.6"
     "@sveltejs/vite-plugin-svelte": "npm:^3.0.1"
     "@types/cookie": "npm:^0.6.0"
     "@yarnpkg/pnpify": "npm:^4.0.1"
@@ -4219,7 +4212,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sirv@npm:^2.0.3":
+"sirv@npm:^2.0.4":
   version: 2.0.4
   resolution: "sirv@npm:2.0.4"
   dependencies:
