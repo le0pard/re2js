@@ -879,9 +879,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "@sveltejs/kit@npm:2.4.1"
+"@sveltejs/kit@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "@sveltejs/kit@npm:2.5.0"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^0.6.0"
@@ -901,11 +901,11 @@ __metadata:
     vite: ^5.0.3
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 473c3aa466651fb3157dc2567a8e7235124e2bac5ebaf4773768cd528792104136dd8c9d7df525bd6ec208860471bb22e01da333fbe801a8c067402b36064d13
+  checksum: 282ec8bdecc7689ea8009a470ca6837a08c870897c9c0e4cad01366399ec293d0b4a0a408fc65214ee54f07d9c29883c1a5d5e132c21d8b6bd69fb44f9421ebe
   languageName: node
   linkType: hard
 
-"@sveltejs/vite-plugin-svelte-inspector@npm:^2.0.0-next.0 || ^2.0.0":
+"@sveltejs/vite-plugin-svelte-inspector@npm:^2.0.0":
   version: 2.0.0
   resolution: "@sveltejs/vite-plugin-svelte-inspector@npm:2.0.0"
   dependencies:
@@ -918,11 +918,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/vite-plugin-svelte@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "@sveltejs/vite-plugin-svelte@npm:3.0.1"
+"@sveltejs/vite-plugin-svelte@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "@sveltejs/vite-plugin-svelte@npm:3.0.2"
   dependencies:
-    "@sveltejs/vite-plugin-svelte-inspector": "npm:^2.0.0-next.0 || ^2.0.0"
+    "@sveltejs/vite-plugin-svelte-inspector": "npm:^2.0.0"
     debug: "npm:^4.3.4"
     deepmerge: "npm:^4.3.1"
     kleur: "npm:^4.1.5"
@@ -932,7 +932,7 @@ __metadata:
   peerDependencies:
     svelte: ^4.0.0 || ^5.0.0-next.0
     vite: ^5.0.0
-  checksum: 1d026ca2c0f819d49dad3274667319fbcb5df14378d54eaf102379259a588d6e6ecb5775b1352add7c78c1a0b6d7075bd5b87f4cda2c82b18970ee8ae829f040
+  checksum: 3ae05335415dbd9633c22e2d84b802cae5507c20d8eb4c057e0b3988233340cb13fb06ee06b689dab123f21e3db41f5e7e30001d63b847f236c626cab13f0df0
   languageName: node
   linkType: hard
 
@@ -3952,8 +3952,8 @@ __metadata:
   dependencies:
     "@picocss/pico": "npm:^1.5.11"
     "@sveltejs/adapter-static": "npm:^3.0.1"
-    "@sveltejs/kit": "npm:^2.4.1"
-    "@sveltejs/vite-plugin-svelte": "npm:^3.0.1"
+    "@sveltejs/kit": "npm:^2.5.0"
+    "@sveltejs/vite-plugin-svelte": "npm:^3.0.2"
     "@types/cookie": "npm:^0.6.0"
     "@yarnpkg/pnpify": "npm:^4.0.1"
     eslint: "npm:^8.56.0"

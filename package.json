@@ -13,8 +13,8 @@
   "devDependencies": {
     "@picocss/pico": "^1.5.11",
     "@sveltejs/adapter-static": "^3.0.1",
-    "@sveltejs/kit": "^2.4.1",
-    "@sveltejs/vite-plugin-svelte": "^3.0.1",
+    "@sveltejs/kit": "^2.5.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.2",
     "@types/cookie": "^0.6.0",
     "@yarnpkg/pnpify": "^4.0.1",
     "eslint": "^8.56.0",
