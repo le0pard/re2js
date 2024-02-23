@@ -243,11 +243,11 @@
   }
 
   .status-tag__yes {
-    background-color: var(--ins-color);
+    background-color: var(--pico-ins-color);
   }
 
   .status-tag__no {
-    background-color: var(--del-color);
+    background-color: var(--pico-del-color);
   }
 
   .long-text {
@@ -261,7 +261,7 @@
     align-items: center;
     justify-content: center;
     color: #f0f0f0;
-    background-color: var(--del-color);
+    background-color: var(--pico-del-color);
     letter-spacing: 0.15rem;
     padding: 3px 5px 2px 5px;
     font-size: 0.8rem;
