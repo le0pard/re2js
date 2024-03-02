@@ -60,5 +60,5 @@
     "typescript": "^5.3.3",
     "unicode-property-value-aliases": "^3.7.1"
   },
-  "packageManager": "yarn@4.0.2"
+  "packageManager": "yarn@4.1.0"
 }
