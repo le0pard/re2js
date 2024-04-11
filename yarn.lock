@@ -3644,7 +3644,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.57.0":
+"eslint@npm:8.57.0":
   version: 8.57.0
   resolution: "eslint@npm:8.57.0"
   dependencies:
@@ -6033,7 +6033,7 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^15.2.3"
     "@unicode/unicode-15.1.0": "npm:^1.5.2"
     "@yarnpkg/pnpify": "npm:^4.0.1"
-    eslint: "npm:^8.57.0"
+    eslint: "npm:8.57.0"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-import-resolver-node: "npm:^0.3.9"
     eslint-plugin-import: "npm:^2.29.1"
