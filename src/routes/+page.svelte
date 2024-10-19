@@ -46,22 +46,30 @@
 
   const execRE2JSDebounce = debounce(execRE2JS, 300)
 
+  const {
+    CASE_INSENSITIVE,
+    DOTALL,
+    MULTILINE,
+    DISABLE_UNICODE_GROUPS,
+    LONGEST_MATCH
+  } = RE2JS
+
   $: {
     let flags = 0
     if (case_insensitive_flag) {
-      flags = flags | RE2JS.CASE_INSENSITIVE
+      flags = flags | CASE_INSENSITIVE
     }
     if (dotall_flag) {
-      flags = flags | RE2JS.DOTALL
+      flags = flags | DOTALL
     }
     if (multiline_flag) {
-      flags = flags | RE2JS.MULTILINE
+      flags = flags | MULTILINE
     }
     if (disable_unicode_groups_flag) {
-      flags = flags | RE2JS.DISABLE_UNICODE_GROUPS
+      flags = flags | DISABLE_UNICODE_GROUPS
     }
     if (longest_match_flag) {
-      flags = flags | RE2JS.LONGEST_MATCH
+      flags = flags | LONGEST_MATCH
     }
     // debounce result
     execRE2JSDebounce(regex, string, flags)
