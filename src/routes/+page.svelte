@@ -1,20 +1,18 @@
-<svelte:options immutable="{true}" />
-
 <script>
   import { RE2JS } from 're2js'
   import debounce from 'lodash/debounce'
   import round from 'lodash/round'
 
-  let regex = '(?<name>[a-zA-Z0-9._%+-]+)@(?<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})'
-  let string = 'max.power@example.com'
+  let regex = $state('(?<name>[a-zA-Z0-9._%+-]+)@(?<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})')
+  let string = $state('max.power@example.com')
 
-  let case_insensitive_flag = false
-  let dotall_flag = false
-  let multiline_flag = false
-  let disable_unicode_groups_flag = false
-  let longest_match_flag = false
+  let case_insensitive_flag = $state(false)
+  let dotall_flag = $state(false)
+  let multiline_flag = $state(false)
+  let disable_unicode_groups_flag = $state(false)
+  let longest_match_flag = $state(false)
 
-  let results = null
+  let results = $state({})
 
   const execRE2JS = (regexInput, stringInput, flagsInput = 0) => {
     try {
@@ -39,7 +37,7 @@
     } catch (err) {
       results = {
         success: false,
-        error: err.message
+        error: err.message.toString()
       }
     }
   }
@@ -54,7 +52,7 @@
     LONGEST_MATCH
   } = RE2JS
 
-  $: {
+  $effect(() => {
     let flags = 0
     if (case_insensitive_flag) {
       flags = flags | CASE_INSENSITIVE
@@ -73,7 +71,7 @@
     }
     // debounce result
     execRE2JSDebounce(regex, string, flags)
-  }
+  })
 </script>
 
 <svelte:head>
@@ -221,7 +219,7 @@
           </tr>
         </tbody>
       </table>
-    {:else}
+    {:else if results.error}
       <div class="error-message">
         {results.error}
       </div>

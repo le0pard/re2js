@@ -1,5 +1,3 @@
-<svelte:options immutable="{true}" />
-
 <header class="container">
   <hgroup>
     <h1>RE2JS Playground</h1>
