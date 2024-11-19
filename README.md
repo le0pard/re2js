@@ -231,6 +231,20 @@ if (matchString.find()) {
 }
 ```
 
+Example to collect all matches in string:
+
+```js
+import { RE2JS } from 're2js'
+
+const p = RE2JS.compile('abc+')
+const matchString = p.matcher('abc abcccc abcc')
+const results = []
+while (matchString.find()) {
+  results.push(matchString.group())
+}
+results // ['abc', 'abcccc', 'abcc']
+```
+
 #### Named Group Content
 
 The `group()` method retrieves the content matched by a specific name of capturing group
