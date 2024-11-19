@@ -98,22 +98,22 @@ describe('.appendLiteral', () => {
 describe('.appendFoldedRange', () => {
   const cases = [
     // Range is full: folding can't add more.
-    [10, 0x10ff0, [10, 0x10ff0]],
+    [10, Unicode.MAX_FOLD + 20, [10, Unicode.MAX_FOLD + 20]],
     // Range is outside folding possibilities.
     [codePoint(' '), codePoint('&'), [' ', '&'].map(codePoint)],
     // [lo, MIN_FOLD - 1] needs no folding.  Only [...abc] suffix is folded.
     [codePoint(' '), codePoint('C'), [' ', 'C', 'a', 'c'].map(codePoint)],
     // [MAX_FOLD...] needs no folding
     [
-      0x10400,
-      0x104f0,
+      0x1e853,
+      0x1e9e4,
       [
-        0x10450,
-        0x104f0,
-        0x10400,
-        0x10426, // lowercase Deseret
-        0x10426,
-        0x1044f // uppercase Deseret, abutting.
+        0x1e944,
+        0x1e9e4,
+        0x1e853,
+        0x1e920, // Adlam Capital Letter
+        0x1e920,
+        0x1e943 // Adlam Small Letter
       ]
     ]
   ]

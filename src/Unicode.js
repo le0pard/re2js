@@ -15,7 +15,7 @@ class Unicode {
   // Minimum and maximum runes involved in folding.
   // Checked during test.
   static MIN_FOLD = 0x0041
-  static MAX_FOLD = 0x1044f
+  static MAX_FOLD = 0x1e943
 
   // is32 uses binary search to test whether rune is in the specified
   // slice of 32-bit ranges.
