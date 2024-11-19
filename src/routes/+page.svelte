@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte'
   import { RE2JS } from 're2js'
   import debounce from 'lodash/debounce'
   import round from 'lodash/round'
@@ -71,6 +72,14 @@
     }
     // debounce result
     execRE2JSDebounce(regex, string, flags)
+  })
+
+  onMount(() => {
+    globalThis.RE2JS = RE2JS // expose RE2JS to global scope
+    console.log('%c Feel free to try RE2JS here 😎', `color: light-dark(
+      oklch(50% 0.15 100),
+      oklch(90% 0.15 100)
+    )`)
   })
 </script>
 
