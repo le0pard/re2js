@@ -131,6 +131,20 @@ RE2JS.compile('ab+c').matcher('cbbba').find() // false
 RE2JS.compile('ab+c', RE2JS.CASE_INSENSITIVE).matcher('abBBc').find() // true
 ```
 
+Example to collect all matches in string
+
+```js
+import { RE2JS } from 're2js'
+
+const p = RE2JS.compile('abc+')
+const matchString = p.matcher('abc abcccc abcc')
+const results = []
+while (matchString.find()) {
+  results.push(matchString.group())
+}
+results // ['abc', 'abcccc', 'abcc']
+```
+
 The `find()` method searches for a pattern match in a string starting from a specific index
 
 ```js
@@ -229,20 +243,6 @@ if (matchString.find()) {
   matchString.group(3) // null
   matchString.group(4) // 'e'
 }
-```
-
-Example to collect all matches in string:
-
-```js
-import { RE2JS } from 're2js'
-
-const p = RE2JS.compile('abc+')
-const matchString = p.matcher('abc abcccc abcc')
-const results = []
-while (matchString.find()) {
-  results.push(matchString.group())
-}
-results // ['abc', 'abcccc', 'abcc']
 ```
 
 #### Named Group Content
