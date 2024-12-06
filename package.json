@@ -55,9 +55,9 @@
     "eslint-plugin-import": "^2.31.0",
     "jest": "^29.7.0",
     "lodash": "^4.17.21",
-    "prettier": "^3.3.3",
-    "rollup": "^4.27.3",
-    "typescript": "^5.6.3",
+    "prettier": "^3.4.2",
+    "rollup": "^4.28.1",
+    "typescript": "^5.7.2",
     "unicode-property-value-aliases": "^3.8.0"
   },
   "packageManager": "yarn@4.5.1"
