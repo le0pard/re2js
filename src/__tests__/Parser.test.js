@@ -317,7 +317,7 @@ describe('invalid regexp cases', () => {
     ['\\xv'], // https://github.com/google/re2j/issues/103
     ["^[a-z0-9\\–\\-'‘’]+$"],
     ['[\\”\\“]"'],
-    ['[\\<\\>\\{\\}\\[\\]\\|\\\”\\%\\~\\#]']
+    ['[\\<\\>\\{\\}\\[\\]\\|\\”\\%\\~\\#]']
   ])('invalid %p raise error', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)
