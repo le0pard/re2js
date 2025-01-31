@@ -98,6 +98,18 @@ RE2JS.DISABLE_UNICODE_GROUPS
 RE2JS.LONGEST_MATCH
 ```
 
+### Program size
+
+The program size represents a very approximate measure of a regexp's "cost". Larger numbers are more expensive than smaller numbers.
+
+```js
+import { RE2JS } from 're2js'
+
+console.log(RE2JS.compile('^').programSize()); // Outputs: 3
+console.log(RE2JS.compile('a+b').programSize()); // Outputs: 5
+console.log(RE2JS.compile('(a+b?)').programSize()); // Outputs: 8
+```
+
 ### Checking for Matches
 
 RE2JS allows you to check if a string matches a given regex pattern using the `matches()` function
