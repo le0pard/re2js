@@ -156,6 +156,28 @@ describe('split with limit', () => {
   )
 })
 
+describe('program size', () => {
+  const cases = [
+    ['', 3],
+    ['a', 3],
+    ['^', 3],
+    ['^$', 4],
+    ['a+b', 5],
+    ['a+b?', 6],
+    ['(a+b)', 7],
+    ['a+b.*', 7],
+    ['(a+b?)', 8],
+    ['(a+b?)(a+b?)', 14]
+  ]
+
+  test.concurrent.each(cases)('pattern %p program size %p', (pattern, count) => {
+    const p = RE2JS.compile(pattern)
+    const programSize = p.programSize()
+
+    expect(programSize).toEqual(count)
+  })
+})
+
 describe('group count', () => {
   const cases = [
     ['(.*)ab(.*)a', 2],

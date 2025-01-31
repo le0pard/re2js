@@ -140,6 +140,13 @@ class RE2 {
     return this.numSubexp
   }
 
+  /**
+   * Returns the number of instructions in this compiled regular expression program.
+   */
+  numberOfInstructions() {
+    return this.prog.numInst()
+  }
+
   // get() returns a machine to use for matching |this|.  It uses |this|'s
   // machine cache if possible, to avoid unnecessary allocation.
   get() {

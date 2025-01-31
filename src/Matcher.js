@@ -67,6 +67,7 @@ class Matcher {
     // The group indexes, in [start, end) pairs.  Zeroth pair is overall match.
     this.groups = []
     this.namedGroups = re2.namedGroups
+    this.numberOfInstructions = re2.numberOfInstructions()
 
     if (input instanceof MatcherInputBase) {
       this.resetMatcherInput(input)
@@ -154,6 +155,20 @@ class Matcher {
 
     this.loadGroup(group)
     return this.groups[2 * group + 1]
+  }
+
+  /**
+   * Returns the program size of this pattern.
+   *
+   * <p>
+   * Similar to the C++ implementation, the program size is a very approximate measure of a regexp's
+   * "cost". Larger numbers are more expensive than smaller numbers.
+   * </p>
+   *
+   * @return the program size of this pattern
+   */
+  programSize() {
+    return this.numberOfInstructions
   }
 
   /**
