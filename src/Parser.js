@@ -444,7 +444,7 @@ class Parser {
       case Codepoint.CODES.get('v'):
         return Codepoint.CODES.get('\v')
       default:
-        if (!Utils.isalnum(c)) {
+        if (c <= Unicode.MAX_ASCII && !Utils.isalnum(c)) {
           return c
         }
         break
