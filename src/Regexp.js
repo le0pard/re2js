@@ -69,7 +69,7 @@ export class Regexp {
     // subexpressions, if any.  Never null.
     // subs[0] is used as the freelist.
     this.subs = Regexp.emptySubs()
-    this.runes = null // matched runes, for LITERAL, CHAR_CLASS
+    this.runes = [] // matched runes, for LITERAL, CHAR_CLASS
     this.min = 0 // min for REPEAT
     this.max = 0 // max for REPEAT
     this.cap = 0 // capturing index, for CAPTURE
@@ -80,7 +80,7 @@ export class Regexp {
   reinit() {
     this.flags = 0
     this.subs = Regexp.emptySubs()
-    this.runes = null
+    this.runes = []
     this.cap = 0
     this.min = 0
     this.max = 0
