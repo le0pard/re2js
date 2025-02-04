@@ -223,14 +223,14 @@ describe('.parse', () => {
 
     // Valid nesting
     [
-      `${[...new Array(999).keys()].map(() => '(').join('')}${[...new Array(999).keys()].map(() => ')').join('')}`,
+      `${[...new Array(999)].map(() => '(').join('')}${[...new Array(999)].map(() => ')').join('')}`,
       null
     ],
     [
-      `${[...new Array(999).keys()].map(() => '(?:').join('')}${[...new Array(999).keys()].map(() => ')*').join('')}`,
+      `${[...new Array(999)].map(() => '(?:').join('')}${[...new Array(999)].map(() => ')*').join('')}`,
       null
     ],
-    [`(${[...new Array(12345).keys()].map(() => '|').join('')})`, 'cap{emp{}}'] // not nested at all
+    [`(${[...new Array(12345)].map(() => '|').join('')})`, 'cap{emp{}}'] // not nested at all
   ]
 
   const flags = RE2Flags.MATCH_NL | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS
@@ -341,14 +341,14 @@ describe('invalid regexp cases', () => {
     ['((g{2,32}|q){1,32})'], // too many repetitions, because 32*32 = 1024 > 1000
     ['((((((((((x{2}){2}){2}){2}){2}){2}){2}){2}){2}){2})'], // too much repetition
     [
-      `${[...new Array(1000).keys()].map(() => '(').join('')}${[...new Array(1000).keys()].map(() => ')').join('')}`
+      `${[...new Array(1000)].map(() => '(').join('')}${[...new Array(1000)].map(() => ')').join('')}`
     ], // too deep
     [
-      `${[...new Array(1000).keys()].map(() => '(?:').join('')}${[...new Array(1000).keys()].map(() => ')*').join('')}`
+      `${[...new Array(1000)].map(() => '(?:').join('')}${[...new Array(1000)].map(() => ')*').join('')}`
     ], // too deep
-    [`(${[...new Array(1000).keys()].map(() => '(xx?)').join('')}){1000}`], // too long
-    [`${[...new Array(1000).keys()].map(() => '(xx?){1000}').join('')}`], // too long
-    [`${[...new Array(27000).keys()].map(() => '\\pL').join('')}`] // too many runes
+    [`(${[...new Array(1000)].map(() => '(xx?)').join('')}){1000}`], // too long
+    [`${[...new Array(1000)].map(() => '(xx?){1000}').join('')}`], // too long
+    [`${[...new Array(27000)].map(() => '\\pL').join('')}`] // too many runes
   ])('invalid %p raise error', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)

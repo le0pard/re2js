@@ -38,7 +38,7 @@ describe('.compile', () => {
     ['\\p{', 'invalid character class range: `\\p{`'],
     ['((g{2,32}|q){1,32})', 'invalid repeat count: `{1,32}`'],
     ['((g{2,20}|q){1,20}){0,40}', 'invalid repeat count: `{0,40}`'],
-    [`${[...new Array(1000).keys()].map(() => '(xx?){1000}').join('')}`, 'expression too large']
+    [`${[...new Array(1000)].map(() => '(xx?){1000}').join('')}`, 'expression too large']
   ]
 
   test.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
