@@ -25,7 +25,7 @@ class Simplify {
           const nsub = Simplify.simplify(sub)
           if (nre === re && nsub !== sub) {
             nre = Regexp.fromRegexp(re)
-            nre.runes = null
+            nre.runes = []
             nre.subs = re.subs.slice(0, re.subs.length)
           }
           if (nre !== re) {

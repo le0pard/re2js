@@ -27,7 +27,7 @@ describe('.compile', () => {
     ['+', 'missing argument to repetition operator: `+`'],
     ['?', 'missing argument to repetition operator: `?`'],
     ['(abc', 'missing closing ): `(abc`'],
-    ['abc)', 'regexp/syntax: internal error: `stack underflow`'],
+    ['abc)', 'unexpected ): `abc)`'],
     ['x[a-z', 'missing closing ]: `[a-z`'],
     ['[z-a]', 'invalid character class range: `z-a`'],
     ['abc\\', 'trailing backslash at end of expression'],
@@ -35,7 +35,10 @@ describe('.compile', () => {
     ['a*+', 'invalid nested repetition operator: `*+`'],
     ['\\x', 'invalid escape sequence: `\\x`'],
     ['\\p', 'invalid character class range: `\\p`'],
-    ['\\p{', 'invalid character class range: `\\p{`']
+    ['\\p{', 'invalid character class range: `\\p{`'],
+    ['((g{2,32}|q){1,32})', 'invalid repeat count: `{1,32}`'],
+    ['((g{2,20}|q){1,20}){0,40}', 'invalid repeat count: `{0,40}`'],
+    [`${[...new Array(1000).keys()].map(() => '(xx?){1000}').join('')}`, 'expression too large']
   ]
 
   test.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {

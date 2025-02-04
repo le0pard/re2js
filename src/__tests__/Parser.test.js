@@ -215,14 +215,33 @@ describe('.parse', () => {
     ['.c|.d', 'cat{dot{}cc{0x63-0x64}}'],
     ['x{2}|x{2}[0-9]', 'cat{rep{2,2 lit{x}}alt{emp{}cc{0x30-0x39}}}'],
     ['x{2}y|x{2}[0-9]y', 'cat{rep{2,2 lit{x}}alt{lit{y}cat{cc{0x30-0x39}lit{y}}}}'],
-    ['a.*?c|a.*?b', 'cat{lit{a}alt{cat{nstar{dot{}}lit{c}}cat{nstar{dot{}}lit{b}}}}']
+    ['a.*?c|a.*?b', 'cat{lit{a}alt{cat{nstar{dot{}}lit{c}}cat{nstar{dot{}}lit{b}}}}'],
+
+    // Valid repetitions
+    ['((((((((((x{2}){2}){2}){2}){2}){2}){2}){2}){2}))', null],
+    ['((((((((((x{1}){2}){2}){2}){2}){2}){2}){2}){2}){2})', null],
+
+    // Valid nesting
+    [
+      `${[...new Array(999).keys()].map(() => '(').join('')}${[...new Array(999).keys()].map(() => ')').join('')}`,
+      null
+    ],
+    [
+      `${[...new Array(999).keys()].map(() => '(?:').join('')}${[...new Array(999).keys()].map(() => ')*').join('')}`,
+      null
+    ],
+    [`(${[...new Array(12345).keys()].map(() => '|').join('')})`, 'cap{emp{}}'] // not nested at all
   ]
 
   const flags = RE2Flags.MATCH_NL | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS
 
   test.concurrent.each(cases)('input %p returns %p', (input, expected) => {
     const re = Parser.parse(input, flags)
-    expect(dumpRegexp(re)).toEqual(expected)
+    let parsedRe = null
+    expect(() => (parsedRe = dumpRegexp(re))).not.toThrow()
+    if (expected !== null) {
+      expect(parsedRe).toEqual(expected)
+    }
   })
 })
 
@@ -306,6 +325,7 @@ describe('invalid regexp cases', () => {
     ['(?<>a)'],
     ['[a-Z]'],
     ['(?i)[a-Z]'],
+    ['\\Q\\E*'],
     ['a{100000}'],
     ['a{100000,}'],
     // Group names may not be repeated
@@ -317,7 +337,18 @@ describe('invalid regexp cases', () => {
     ['\\xv'], // https://github.com/google/re2j/issues/103
     ["^[a-z0-9\\–\\-'‘’]+$"],
     ['[\\”\\“]"'],
-    ['[\\<\\>\\{\\}\\[\\]\\|\\”\\%\\~\\#]']
+    ['[\\<\\>\\{\\}\\[\\]\\|\\”\\%\\~\\#]'],
+    ['((g{2,32}|q){1,32})'], // too many repetitions, because 32*32 = 1024 > 1000
+    ['((((((((((x{2}){2}){2}){2}){2}){2}){2}){2}){2}){2})'], // too much repetition
+    [
+      `${[...new Array(1000).keys()].map(() => '(').join('')}${[...new Array(1000).keys()].map(() => ')').join('')}`
+    ], // too deep
+    [
+      `${[...new Array(1000).keys()].map(() => '(?:').join('')}${[...new Array(1000).keys()].map(() => ')*').join('')}`
+    ], // too deep
+    [`(${[...new Array(1000).keys()].map(() => '(xx?)').join('')}){1000}`], // too long
+    [`${[...new Array(1000).keys()].map(() => '(xx?){1000}').join('')}`], // too long
+    [`${[...new Array(27000).keys()].map(() => '\\pL').join('')}`] // too many runes
   ])('invalid %p raise error', (input) => {
     const parsed = (flags) => () => Parser.parse(input, flags)
     expect(parsed(RE2Flags.PERL)).toThrow(RE2JSSyntaxException)

@@ -120,6 +120,48 @@ class Parser {
   static ERR_MISSING_REPEAT_ARGUMENT = 'missing argument to repetition operator'
   static ERR_TRAILING_BACKSLASH = 'trailing backslash at end of expression'
   static ERR_DUPLICATE_NAMED_CAPTURE = 'duplicate capture group name'
+  static ERR_UNEXPECTED_PAREN = 'unexpected )'
+  static ERR_NESTING_DEPTH = 'expression nests too deeply'
+  static ERR_LARGE = 'expression too large'
+
+  // maxHeight is the maximum height of a regexp parse tree.
+  // It is somewhat arbitrarily chosen, but the idea is to be large enough
+  // that no one will actually hit in real use but at the same time small enough
+  // that recursion on the Regexp tree will not hit the 1GB Go stack limit.
+  // The maximum amount of stack for a single recursive frame is probably
+  // closer to 1kB, so this could potentially be raised, but it seems unlikely
+  // that people have regexps nested even this deeply.
+  // We ran a test on Google's C++ code base and turned up only
+  // a single use case with depth > 100; it had depth 128.
+  // Using depth 1000 should be plenty of margin.
+  // As an optimization, we don't even bother calculating heights
+  // until we've allocated at least maxHeight Regexp structures.
+  static MAX_HEIGHT = 1000
+
+  // maxSize is the maximum size of a compiled regexp in Insts.
+  // It too is somewhat arbitrarily chosen, but the idea is to be large enough
+  // to allow significant regexps while at the same time small enough that
+  // the compiled form will not take up too much memory.
+  // 128 MB is enough for a 3.3 million Inst structures, which roughly
+  // corresponds to a 3.3 MB regexp.
+  static MAX_SIZE = 3355443 // 128 << 20 / (5 * 8) (instSize = byte, 2 uint32, slice is 5 64-bit words)
+
+  // maxRunes is the maximum number of runes allowed in a regexp tree
+  // counting the runes in all the nodes.
+  // Ignoring character classes p.numRunes is always less than the length of the regexp.
+  // Character classes can make it much larger: each \pL adds 1292 runes.
+  // 128 MB is enough for 32M runes, which is over 26k \pL instances.
+  // Note that repetitions do not make copies of the rune slices,
+  // so \pL{1000} is only one rune slice, not 1000.
+  // We could keep a cache of character classes we've seen,
+  // so that all the \pL we see use the same rune list,
+  // but that doesn't remove the problem entirely:
+  // consider something like [\pL01234][\pL01235][\pL01236]...[\pL^&*()].
+  // And because the Rune slice is exposed directly in the Regexp,
+  // there is not an opportunity to change the representation to allow
+  // partial sharing between different character classes.
+  // So the limit is the best we can do.
+  static MAX_RUNES = 33554432 // 128 << 20 / 4 (runeSize, int32 is 4 bytes)
 
   // RangeTables are represented as int[][], a list of triples (start, end,
   // stride).
@@ -480,6 +522,12 @@ class Parser {
     // Stack of parsed expressions.
     this.stack = []
     this.free = null
+    // checks
+    this.numRegexp = 0 // number of regexps allocated
+    this.numRunes = 0 // number of runes in char classes
+    this.repeats = 0 // product of all repetitions seen
+    this.height = null // regexp height, for height limit check
+    this.size = null // regexp compiled size, for size limit check
   }
 
   // Allocate a Regexp, from the free list if possible.
@@ -491,15 +539,161 @@ class Parser {
       re.op = op
     } else {
       re = new Regexp(op)
+      this.numRegexp += 1
     }
     return re
   }
 
   reuse(re) {
+    if (this.height !== null && Object.prototype.hasOwnProperty.call(this.height, re)) {
+      delete this.height[re]
+    }
     if (re.subs !== null && re.subs.length > 0) {
       re.subs[0] = this.free
     }
     this.free = re
+  }
+
+  checkLimits(re) {
+    if (this.numRunes > Parser.MAX_RUNES) {
+      throw new RE2JSSyntaxException(Parser.ERR_LARGE)
+    }
+    this.checkSize(re)
+    this.checkHeight(re)
+  }
+
+  checkSize(re) {
+    if (this.size === null) {
+      // We haven't started tracking size yet.
+      // Do a relatively cheap check to see if we need to start.
+      // Maintain the product of all the repeats we've seen
+      // and don't track if the total number of regexp nodes
+      // we've seen times the repeat product is in budget.
+      if (this.repeats === 0) {
+        this.repeats = 1
+      }
+      if (re.op === Regexp.Op.REPEAT) {
+        let n = re.max
+        if (n === -1) {
+          n = re.min
+        }
+        if (n <= 0) {
+          n = 1
+        }
+        if (n > Parser.MAX_SIZE / this.repeats) {
+          this.repeats = Parser.MAX_SIZE
+        } else {
+          this.repeats *= n
+        }
+      }
+      if (this.numRegexp < Parser.MAX_SIZE / this.repeats) {
+        return
+      }
+
+      // We need to start tracking size.
+      // Make the map and belatedly populate it
+      // with info about everything we've constructed so far.
+      this.size = {}
+      for (let reEx of this.stack) {
+        this.checkSize(reEx)
+      }
+    }
+
+    if (this.calcSize(re, true) > Parser.MAX_SIZE) {
+      throw new RE2JSSyntaxException(Parser.ERR_LARGE)
+    }
+  }
+
+  calcSize(re, force = false) {
+    if (!force) {
+      if (Object.prototype.hasOwnProperty.call(this.size, re)) {
+        return this.size[re]
+      }
+    }
+
+    let size = 0
+    switch (re.op) {
+      case Regexp.Op.LITERAL: {
+        size = re.runes.length
+        break
+      }
+      case Regexp.Op.CAPTURE:
+      case Regexp.Op.STAR: {
+        // star can be 1+ or 2+; assume 2 pessimistically
+        size = 2 + this.calcSize(re.subs[0])
+        break
+      }
+      case Regexp.Op.PLUS:
+      case Regexp.Op.QUEST: {
+        size = 1 + this.calcSize(re.subs[0])
+        break
+      }
+      case Regexp.Op.CONCAT: {
+        for (let sub of re.subs) {
+          size = size + this.calcSize(sub)
+        }
+        break
+      }
+      case Regexp.Op.ALTERNATE: {
+        for (let sub of re.subs) {
+          size = size + this.calcSize(sub)
+        }
+        if (re.subs.length > 1) {
+          size = size + re.subs.length - 1
+        }
+        break
+      }
+      case Regexp.Op.REPEAT: {
+        let sub = this.calcSize(re.subs[0])
+        if (re.max === -1) {
+          if (re.min === 0) {
+            size = 2 + sub // x*
+          } else {
+            size = 1 + re.min * sub // xxx+
+          }
+          break
+        }
+        // x{2,5} = xx(x(x(x)?)?)?
+        size = re.max * sub + (re.max - re.min)
+        break
+      }
+    }
+
+    size = Math.max(1, size)
+    this.size[re] = size
+    return size
+  }
+
+  checkHeight(re) {
+    if (this.numRegexp < Parser.MAX_HEIGHT) {
+      return
+    }
+    if (this.height === null) {
+      this.height = {}
+      for (let reEx of this.stack) {
+        this.checkHeight(reEx)
+      }
+    }
+    if (this.calcHeight(re, true) > Parser.MAX_HEIGHT) {
+      throw new RE2JSSyntaxException(Parser.ERR_NESTING_DEPTH)
+    }
+  }
+
+  calcHeight(re, force = false) {
+    if (!force) {
+      if (Object.prototype.hasOwnProperty.call(this.height, re)) {
+        return this.height[re]
+      }
+    }
+    let h = 1
+    for (let sub of re.subs) {
+      const hsub = this.calcHeight(sub)
+      if (h < 1 + hsub) {
+        h = 1 + hsub
+      }
+    }
+    this.height[re] = h
+    return h
   }
 
   // Parse stack manipulation.
@@ -523,6 +717,7 @@ class Parser {
   // push pushes the regexp re onto the parse stack and returns the regexp.
   // Returns null for a CHAR_CLASS that can be merged with the top-of-stack.
   push(re) {
+    this.numRunes += re.runes.length
     if (re.op === Regexp.Op.CHAR_CLASS && re.runes.length === 2 && re.runes[0] === re.runes[1]) {
       if (this.maybeConcat(re.runes[0], this.flags & ~RE2Flags.FOLD_CASE)) {
         return null
@@ -556,6 +751,7 @@ class Parser {
       this.maybeConcat(-1, 0)
     }
     this.stack.push(re)
+    this.checkLimits(re)
     return re
   }
 
@@ -656,6 +852,47 @@ class Parser {
     re.flags = flags
     re.subs = [sub]
     this.stack[n - 1] = re
+
+    this.checkLimits(re)
+
+    if (op === Regexp.Op.REPEAT && (min >= 2 || max >= 2) && !this.repeatIsValid(re, 1000)) {
+      throw new RE2JSSyntaxException(Parser.ERR_INVALID_REPEAT_SIZE, t.from(beforePos))
+    }
+  }
+
+  // repeatIsValid reports whether the repetition re is valid.
+  // Valid means that the combination of the top-level repetition
+  // and any inner repetitions does not exceed n copies of the
+  // innermost thing.
+  // This function rewalks the regexp tree and is called for every repetition,
+  // so we have to worry about inducing quadratic behavior in the parser.
+  // We avoid this by only calling repeatIsValid when min or max >= 2.
+  // In that case the depth of any >= 2 nesting can only get to 9 without
+  // triggering a parse error, so each subtree can only be rewalked 9 times.
+  repeatIsValid(re, n) {
+    if (re.op === Regexp.Op.REPEAT) {
+      let m = re.max
+      if (m === 0) {
+        return true
+      }
+      if (m < 0) {
+        m = re.min
+      }
+      if (m > n) {
+        return false
+      }
+      if (m > 0) {
+        n = Math.trunc(n / m)
+      }
+    }
+
+    for (let sub of re.subs) {
+      if (!this.repeatIsValid(sub, n)) {
+        return false
+      }
+    }
+
+    return true
   }
 
   // concat replaces the top of the stack (above the topmost '|' or '(') with
@@ -693,7 +930,7 @@ class Parser {
     if (re.op === Regexp.Op.CHAR_CLASS) {
       re.runes = new CharClass(re.runes).cleanClass().toArray()
       if (re.runes.length === 2 && re.runes[0] === 0 && re.runes[1] === Unicode.MAX_RUNE) {
-        re.runes = null
+        re.runes = []
         re.op = Regexp.Op.ANY_CHAR
       } else if (
         re.runes.length === 4 &&
@@ -702,7 +939,7 @@ class Parser {
         re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
         re.runes[3] === Unicode.MAX_RUNE
       ) {
-        re.runes = null
+        re.runes = []
         re.op = Regexp.Op.ANY_CHAR_NOT_NL
       }
     }
@@ -841,6 +1078,7 @@ class Parser {
         prefix.runes = str.slice(0, strlen)
         for (let j = start; j < i; j++) {
           array[s + j] = this.removeLeadingString(array[s + j], strlen)
+          this.checkLimits(array[s + j])
         }
         // Recurse.
         const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
@@ -899,6 +1137,7 @@ class Parser {
         for (let j = start; j < i; j++) {
           const reuse = j !== start // prefix came from sub[start]
           array[s + j] = this.removeLeadingRegexp(array[s + j], reuse)
+          this.checkLimits(array[s + j])
         }
         // recurse
         const suffix = this.collapse(array.slice(s + start, s + i), Regexp.Op.ALTERNATE)
@@ -1416,13 +1655,13 @@ class Parser {
     this.alternate()
     const n = this.stack.length
     if (n < 2) {
-      throw new RE2JSSyntaxException(Parser.ERR_INTERNAL_ERROR, 'stack underflow')
+      throw new RE2JSSyntaxException(Parser.ERR_UNEXPECTED_PAREN, this.wholeRegexp)
     }
 
     const re1 = this.pop()
     const re2 = this.pop()
     if (re2.op !== Regexp.Op.LEFT_PAREN) {
-      throw new RE2JSSyntaxException(Parser.ERR_MISSING_PAREN, this.wholeRegexp)
+      throw new RE2JSSyntaxException(Parser.ERR_UNEXPECTED_PAREN, this.wholeRegexp)
     }
     // Restore flags at time of paren.
     this.flags = re2.flags
