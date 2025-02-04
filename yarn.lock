@@ -2330,10 +2330,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@unicode/unicode-15.1.0@npm:^1.6.5":
+"@unicode/unicode-16.0.0@npm:^1.6.5":
   version: 1.6.5
-  resolution: "@unicode/unicode-15.1.0@npm:1.6.5"
-  checksum: 10/e9596095169d6f965cf0966a32ef3b47e8c9e6a4519ee7707db0287e2cf82b7d7668f17baabe8d0f3c306477c6b0bccaedac008f8f296d9b870f18f164606311
+  resolution: "@unicode/unicode-16.0.0@npm:1.6.5"
+  checksum: 10/68e12f54eafc0f5c262e63ccdc89e6038db242b40e43907fe6f092560c920d26ff83ea4265b1cd809505d14b5a63426c6d0ef0a9dee842e1418639ab0c79efbf
   languageName: node
   linkType: hard
 
@@ -6051,7 +6051,7 @@ __metadata:
     "@rollup/plugin-babel": "npm:^6.0.4"
     "@rollup/plugin-commonjs": "npm:^28.0.2"
     "@rollup/plugin-node-resolve": "npm:^16.0.0"
-    "@unicode/unicode-15.1.0": "npm:^1.6.5"
+    "@unicode/unicode-16.0.0": "npm:^1.6.5"
     "@yarnpkg/pnpify": "npm:^4.1.3"
     eslint: "npm:8.57.1"
     eslint-config-prettier: "npm:^9.1.0"

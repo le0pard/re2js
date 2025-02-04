@@ -418,7 +418,7 @@ These factors combined make the RE2 vanilla JS port a valuable tool for develope
 Some files like `CharGroup.js` and `UnicodeTables.js` is generated and should be edited in generator files
 
 ```bash
-./tools/scripts/make_perl_groups.pl  > src/CharGroup.js
+./tools/scripts/make_perl_groups.pl > src/CharGroup.js
 yarn node ./tools/scripts/genUnicodeTable.js > src/UnicodeTables.js
 ```
 
