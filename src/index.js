@@ -282,7 +282,7 @@ class RE2JS {
    * "cost". Larger numbers are more expensive than smaller numbers.
    * </p>
    *
-   * @return the program size of this pattern
+   * @returns {number} the program size of this pattern
    */
   programSize() {
     return this.re2Input.numberOfInstructions()
