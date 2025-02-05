@@ -35,5 +35,5 @@
     "vite": "^6.0.11"
   },
   "type": "module",
-  "packageManager": "yarn@4.5.1"
+  "packageManager": "yarn@4.6.0"
 }
