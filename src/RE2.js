@@ -1,11 +1,11 @@
 import { RE2Flags } from './RE2Flags'
-import { Utils } from './Utils'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
+import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
-import { Machine } from './Machine'
+import { Utils } from './Utils'
 
 class AtomicReference {
   constructor(initialValue) {

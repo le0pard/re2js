@@ -3,6 +3,7 @@ import { MatcherInput } from './MatcherInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
 import { Utils } from './Utils'
+import { TranslateRegExpString } from './TranslateRegExpString'
 import {
   RE2JSException,
   RE2JSSyntaxException,
@@ -57,6 +58,21 @@ class RE2JS {
    */
   static quote(str) {
     return Utils.quoteMeta(str)
+  }
+
+  /**
+   * Translates a given regular expression string to ensure compatibility with RE2JS.
+   *
+   * This function preprocesses the input regex string by applying necessary transformations,
+   * such as escaping special characters (e.g., `/`), converting named capture groups to
+   * RE2JS-compatible syntax, and handling Unicode sequences properly. It ensures that the
+   * resulting regex is safe and properly formatted before compilation.
+   *
+   * @param {string} expr - The regular expression string to be translated.
+   * @returns {string} - The transformed regular expression string, ready for compilation.
+   */
+  static translateRegExp(expr) {
+    return TranslateRegExpString.translate(expr)
   }
 
   /**

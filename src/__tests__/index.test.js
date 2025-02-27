@@ -15,6 +15,25 @@ it('compile exception with duplicate groups', () => {
   )
 })
 
+describe('.translateRegExp', () => {
+  test.concurrent.each([
+    [null, null],
+    [83, 83],
+    [true, true],
+    ['[a-z]+', '[a-z]+'],
+    ['^[a-c]*', '^[a-c]*'],
+    ['abc', 'abc'],
+    ['a\\cM\\u34\\u1234\\u10abcdz', 'a\\x0D\\x{34}\\x{1234}\\x{10ab}cdz'],
+    ['a\\cM\\u34\\u1234\\u{10abcd}z', 'a\\x0D\\x{34}\\x{1234}\\x{10abcd}z'],
+    ['', '(?:)'],
+    ['foo/bar', 'foo\\/bar'],
+    ['foo\\/bar', 'foo\\/bar'],
+    ['(?<foo>bar)', '(?P<foo>bar)']
+  ])('#translateRegExp(%p) === %p', (input, expected) => {
+    expect(RE2JS.translateRegExp(input)).toEqual(expected)
+  })
+})
+
 it('.toString', () => {
   expect(RE2JS.compile('abc').toString()).toEqual('abc')
 })

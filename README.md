@@ -353,6 +353,25 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
 
 Function support second argument `perlMode`, which work in the same way, as for `replaceAll` function
 
+### Translating Regular Expressions
+
+The `translateRegExp()` method preprocesses a given regular expression string to ensure compatibility with RE2JS.
+It applies necessary transformations, such as escaping special characters, adjusting Unicode sequences, and converting named capture groups
+
+```js
+import { RE2JS } from 're2js'
+
+const regexp = RE2JS.translateRegExp('(?<word>\\w+)') // '(?P<word>\\w+)'
+
+RE2JS.matches(regexp, 'hello') // true
+RE2JS.matches(regexp, '123') // true
+
+const unicodeRegexp = RE2JS.translateRegExp('\\u{1F600}') // '\\x{1F600}'
+
+RE2JS.matches(unicodeRegexp, '😀') // true
+RE2JS.matches(unicodeRegexp, '😃') // false
+```
+
 ### Escaping Special Characters
 
 The `quote()` method returns a literal pattern string for the specified string. This can be useful if you want to search for a literal string pattern that may contain special characters
