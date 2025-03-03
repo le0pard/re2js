@@ -7,11 +7,11 @@
   let regex = $state('(?<name>[a-zA-Z0-9._%+-]+)@(?<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})')
   let string = $state('max.power@example.com')
 
-  let case_insensitive_flag = $state(false)
-  let dotall_flag = $state(false)
-  let multiline_flag = $state(false)
-  let disable_unicode_groups_flag = $state(false)
-  let longest_match_flag = $state(false)
+  let caseInsensitiveFlag = $state(false)
+  let dotallFlag = $state(false)
+  let multilineFlag = $state(false)
+  let disableUnicodeGroupsflag = $state(false)
+  let longestMatchFlag = $state(false)
 
   let results = $state({})
 
@@ -49,19 +49,19 @@
 
   $effect(() => {
     let flags = 0
-    if (case_insensitive_flag) {
+    if (caseInsensitiveFlag) {
       flags = flags | CASE_INSENSITIVE
     }
-    if (dotall_flag) {
+    if (dotallFlag) {
       flags = flags | DOTALL
     }
-    if (multiline_flag) {
+    if (multilineFlag) {
       flags = flags | MULTILINE
     }
-    if (disable_unicode_groups_flag) {
+    if (disableUnicodeGroupsflag) {
       flags = flags | DISABLE_UNICODE_GROUPS
     }
-    if (longest_match_flag) {
+    if (longestMatchFlag) {
       flags = flags | LONGEST_MATCH
     }
     // debounce result
@@ -110,43 +110,43 @@
   <div>
     <fieldset>
       <legend>Regular expression flags</legend>
-      <label for="case_insensitive_flag">
+      <label for="caseInsensitiveFlag">
         <input
           type="checkbox"
-          id="case_insensitive_flag"
-          name="case_insensitive_flag"
-          bind:checked={case_insensitive_flag}
+          id="caseInsensitiveFlag"
+          name="caseInsensitiveFlag"
+          bind:checked={caseInsensitiveFlag}
         />
         Case insensitive matching
       </label>
-      <label for="dotall_flag">
-        <input type="checkbox" id="dotall_flag" name="dotall_flag" bind:checked={dotall_flag} />
+      <label for="dotallFlag">
+        <input type="checkbox" id="dotallFlag" name="dotallFlag" bind:checked={dotallFlag} />
         "." matches all characters
       </label>
-      <label for="multiline_flag">
+      <label for="multilineFlag">
         <input
           type="checkbox"
-          id="multiline_flag"
-          name="multiline_flag"
-          bind:checked={multiline_flag}
+          id="multilineFlag"
+          name="multilineFlag"
+          bind:checked={multilineFlag}
         />
         Multiline matching
       </label>
-      <label for="disable_unicode_groups_flag">
+      <label for="disableUnicodeGroupsflag">
         <input
           type="checkbox"
-          id="disable_unicode_groups_flag"
-          name="disable_unicode_groups_flag"
-          bind:checked={disable_unicode_groups_flag}
+          id="disableUnicodeGroupsflag"
+          name="disableUnicodeGroupsflag"
+          bind:checked={disableUnicodeGroupsflag}
         />
         Disable unicode groups
       </label>
-      <label for="longest_match_flag">
+      <label for="longestMatchFlag">
         <input
           type="checkbox"
-          id="longest_match_flag"
-          name="longest_match_flag"
-          bind:checked={longest_match_flag}
+          id="longestMatchFlag"
+          name="longestMatchFlag"
+          bind:checked={longestMatchFlag}
         />
         Matches longest possible string
       </label>
