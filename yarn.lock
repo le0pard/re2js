@@ -1056,9 +1056,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.20.2":
-  version: 2.20.2
-  resolution: "@sveltejs/kit@npm:2.20.2"
+"@sveltejs/kit@npm:^2.20.5":
+  version: 2.20.5
+  resolution: "@sveltejs/kit@npm:2.20.5"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^0.6.0"
@@ -1077,7 +1077,7 @@ __metadata:
     vite: ^5.0.3 || ^6.0.0
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10/13d779a588ae25189ac212d47e2339ccc4a84bc4cd78832ae99ef5329cdd2f425ec471d8f651e081769bd64178b130f39d1e6b5504cc5f11c3d6861365052aef
+  checksum: 10/9ebb197f4d569e208f75813388fa4e80a7d510293aca007aed0acf9c077588a0b6937ec6f06e7831ab45e136f613bb8396ed3887e56ba4ad3ee383a350600a88
   languageName: node
   linkType: hard
 
@@ -2142,12 +2142,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esrap@npm:^1.4.3":
-  version: 1.4.5
-  resolution: "esrap@npm:1.4.5"
+"esrap@npm:^1.4.6":
+  version: 1.4.6
+  resolution: "esrap@npm:1.4.6"
   dependencies:
     "@jridgewell/sourcemap-codec": "npm:^1.4.15"
-  checksum: 10/0f023c360a7617c31d73b9479f5f25b46fcba8a172ad7d99eda8fe09aa26bd96107b550276543c74530744ddb7eebe995fe667c3b8dbed1e7d6b7f5e9e1a682c
+  checksum: 10/0fc113a930512af470cf9ed2d49950f3b4b3456ab1f3cce56f69322a9815fbe1fbe33713dd5bafff6ed957767afce49d427043d680768727c6ca1e2c11692e5f
   languageName: node
   linkType: hard
 
@@ -3791,7 +3791,7 @@ __metadata:
   dependencies:
     "@picocss/pico": "npm:^2.1.1"
     "@sveltejs/adapter-static": "npm:^3.0.8"
-    "@sveltejs/kit": "npm:^2.20.2"
+    "@sveltejs/kit": "npm:^2.20.5"
     "@sveltejs/vite-plugin-svelte": "npm:^5.0.3"
     "@types/cookie": "npm:^1.0.0"
     "@yarnpkg/pnpify": "npm:^4.1.4"
@@ -3806,11 +3806,11 @@ __metadata:
     prettier: "npm:^3.5.3"
     prettier-plugin-svelte: "npm:^3.3.3"
     re2js: "npm:^1.1.0"
-    svelte: "npm:^5.25.3"
-    svelte-check: "npm:^4.1.5"
+    svelte: "npm:^5.26.2"
+    svelte-check: "npm:^4.1.6"
     svelte-preprocess: "npm:^6.0.3"
-    typescript: "npm:^5.8.2"
-    vite: "npm:^6.2.3"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^6.2.6"
   languageName: unknown
   linkType: soft
 
@@ -4186,9 +4186,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte-check@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "svelte-check@npm:4.1.5"
+"svelte-check@npm:^4.1.6":
+  version: 4.1.6
+  resolution: "svelte-check@npm:4.1.6"
   dependencies:
     "@jridgewell/trace-mapping": "npm:^0.3.25"
     chokidar: "npm:^4.0.1"
@@ -4200,7 +4200,7 @@ __metadata:
     typescript: ">=5.0.0"
   bin:
     svelte-check: bin/svelte-check
-  checksum: 10/8f718d796f05bd137ba36a741d7692c5cf71a171ff575cacd7c656582816850408122f7f10fb82eab79181df7bcd102b42cf32365351c7cf9d4639eb0f421328
+  checksum: 10/30cf10b2e4487a35b604d7271997323ef47557b7785b82c7e494b8669757dcb681e0c4615a377f103ad56b6732437d948c5277d19960ceeb421dfc740e6863be
   languageName: node
   linkType: hard
 
@@ -4262,9 +4262,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte@npm:^5.25.3":
-  version: 5.25.3
-  resolution: "svelte@npm:5.25.3"
+"svelte@npm:^5.26.2":
+  version: 5.26.2
+  resolution: "svelte@npm:5.26.2"
   dependencies:
     "@ampproject/remapping": "npm:^2.3.0"
     "@jridgewell/sourcemap-codec": "npm:^1.5.0"
@@ -4275,12 +4275,12 @@ __metadata:
     axobject-query: "npm:^4.1.0"
     clsx: "npm:^2.1.1"
     esm-env: "npm:^1.2.1"
-    esrap: "npm:^1.4.3"
+    esrap: "npm:^1.4.6"
     is-reference: "npm:^3.0.3"
     locate-character: "npm:^3.0.0"
     magic-string: "npm:^0.30.11"
     zimmerframe: "npm:^1.1.2"
-  checksum: 10/e9c872ffcfa3b7ec91563ba2be8c8a1ad941360ccc5f42b075ac0ba88973ead76b02bf24aa7b23af48f2603c16116fb780a43251a2aa6465623c6a03fda0a494
+  checksum: 10/407a27683027f424bd92b2d3d9a45e86eb6d76dee0a33bd7a1b76daba33c64f1752577f53b72b7506e86d4f1a3cf08f4bac64192d3f843fb2b335a815e26911f
   languageName: node
   linkType: hard
 
@@ -4386,23 +4386,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.8.2":
-  version: 5.8.2
-  resolution: "typescript@npm:5.8.2"
+"typescript@npm:^5.8.3":
+  version: 5.8.3
+  resolution: "typescript@npm:5.8.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/dbc2168a55d56771f4d581997be52bab5cbc09734fec976cfbaabd787e61fb4c6cf9125fd48c6f98054ce549c77ecedefc7f64252a830dd8e9c3381f61fbeb78
+  checksum: 10/65c40944c51b513b0172c6710ee62e951b70af6f75d5a5da745cb7fab132c09ae27ffdf7838996e3ed603bb015dadd099006658046941bd0ba30340cc563ae92
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.8.2#optional!builtin<compat/typescript>":
-  version: 5.8.2
-  resolution: "typescript@patch:typescript@npm%3A5.8.2#optional!builtin<compat/typescript>::version=5.8.2&hash=5786d5"
+"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
+  version: 5.8.3
+  resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/97920a082ffc57583b1cb6bc4faa502acc156358e03f54c7fc7fdf0b61c439a717f4c9070c449ee9ee683d4cfc3bb203127c2b9794b2950f66d9d307a4ff262c
+  checksum: 10/b9b1e73dabac5dc730c041325dbd9c99467c1b0d239f1b74ec3b90d831384af3e2ba973946232df670519147eb51a2c20f6f96163cea2b359f03de1e2091cc4f
   languageName: node
   linkType: hard
 
@@ -4468,9 +4468,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.2.3":
-  version: 6.2.3
-  resolution: "vite@npm:6.2.3"
+"vite@npm:^6.2.6":
+  version: 6.2.6
+  resolution: "vite@npm:6.2.6"
   dependencies:
     esbuild: "npm:^0.25.0"
     fsevents: "npm:~2.3.3"
@@ -4516,7 +4516,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/3cd7b3a8d9a31c8eb7141004ddb1c9489afa0cdaf0ccbf41dacee121a8f13062d0fb2cee160589aaf1c534a02402aac674f1b1618876ba0bd299b55f69b2b495
+  checksum: 10/d8fb01a190e31fcf2189e028aed444d68255b5397d5e2c52fa73f8a0de0b052b06fbbe3793c88e7992f4297832336a23cf8bec14c88b9c2ef8aa0bce98219e50
   languageName: node
   linkType: hard
 
