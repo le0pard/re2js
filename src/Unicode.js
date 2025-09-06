@@ -98,7 +98,7 @@ class Unicode {
   static simpleFold(r) {
     // Consult caseOrbit table for special cases.
     const folded = UnicodeTables.CASE_ORBIT[r]
-    if (folded !== undefined) {
+    if (typeof folded !== 'undefined') {
       return folded
     }
 
