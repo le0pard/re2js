@@ -24,8 +24,9 @@ class Unicode {
     let lo = 0
     let hi = ranges.length
     while (lo < hi) {
-      let m = lo + Math.floor((hi - lo) / 2)
-      let range = ranges[m]
+      const m = lo + Math.floor((hi - lo) / 2)
+      // REASON: Use ranges.get(m) to access the [lo, hi, stride] tuple
+      const range = ranges.get(m)
       if (range[0] <= r && r <= range[1]) {
         return (r - range[0]) % range[2] === 0
       }
@@ -40,10 +41,10 @@ class Unicode {
 
   // is tests whether rune is in the specified table of ranges.
   static is(ranges, r) {
-    // common case: rune is ASCII or Latin-1, so use linear search.
+    // Fast path for Latin-1 characters using linear search.
     if (r <= this.MAX_LATIN1) {
-      for (let range of ranges) {
-        // range = [lo, hi, stride]
+      for (let i = 0; i < ranges.length; i++) {
+        const range = ranges.get(i) // range = [lo, hi, stride]
         if (r > range[1]) {
           continue
         }
@@ -54,7 +55,10 @@ class Unicode {
       }
       return false
     }
-    return ranges.length > 0 && r >= ranges[0][0] && this.is32(ranges, r)
+
+    // Fallback to binary search for runes outside Latin-1.
+    // The redundant checks are removed for cleanliness.
+    return ranges.length > 0 && this.is32(ranges, r)
   }
 
   // isUpper reports whether the rune is an upper case letter.
@@ -69,15 +73,9 @@ class Unicode {
   // isPrint reports whether the rune is printable (Unicode L/M/N/P/S or ' ').
   static isPrint(r) {
     if (r <= this.MAX_LATIN1) {
-      return (r >= 0x20 && r < 0x7f) || (r >= 0xa1 && r !== 0xad)
+      return (r >= 0x20 && r < this.MAX_ASCII) || (r >= 0xa1 && r !== 0xad)
     }
-    return (
-      this.is(UnicodeTables.L, r) ||
-      this.is(UnicodeTables.M, r) ||
-      this.is(UnicodeTables.N, r) ||
-      this.is(UnicodeTables.P, r) ||
-      this.is(UnicodeTables.S, r)
-    )
+    return this.is(UnicodeTables.Print, r)
   }
 
   // simpleFold iterates over Unicode code points equivalent under
@@ -99,8 +97,9 @@ class Unicode {
   //
   static simpleFold(r) {
     // Consult caseOrbit table for special cases.
-    if (UnicodeTables.CASE_ORBIT.has(r)) {
-      return UnicodeTables.CASE_ORBIT.get(r)
+    const folded = UnicodeTables.CASE_ORBIT[r]
+    if (folded !== undefined) {
+      return folded
     }
 
     // No folding specified.  This is a one- or two-element
