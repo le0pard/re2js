@@ -56,7 +56,7 @@ class Unicode {
     }
 
     // Fallback to binary search for runes outside Latin-1
-    return ranges.length > 0 && this.is32(ranges, r)
+    return ranges.length > 0 && r >= ranges.get(0)[0] && this.is32(ranges, r)
   }
 
   // isUpper reports whether the rune is an upper case letter.
