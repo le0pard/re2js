@@ -25,8 +25,7 @@ class Unicode {
     let hi = ranges.length
     while (lo < hi) {
       const m = lo + Math.floor((hi - lo) / 2)
-      // REASON: Use ranges.get(m) to access the [lo, hi, stride] tuple
-      const range = ranges.get(m)
+      const range = ranges.get(m) // range = [lo, hi, stride]
       if (range[0] <= r && r <= range[1]) {
         return (r - range[0]) % range[2] === 0
       }
@@ -56,8 +55,7 @@ class Unicode {
       return false
     }
 
-    // Fallback to binary search for runes outside Latin-1.
-    // The redundant checks are removed for cleanliness.
+    // Fallback to binary search for runes outside Latin-1
     return ranges.length > 0 && this.is32(ranges, r)
   }
 
