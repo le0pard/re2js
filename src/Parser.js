@@ -2,6 +2,7 @@ import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 import { UnicodeTables } from './UnicodeTables'
+import { UnicodeRangeTable } from './UnicodeRangeTable'
 import { PERL_GROUPS, POSIX_GROUPS } from './CharGroup'
 import { Utils } from './Utils'
 import { CharClass } from './CharClass'
@@ -165,16 +166,14 @@ class Parser {
 
   // RangeTables are represented as int[][], a list of triples (start, end,
   // stride).
-  static ANY_TABLE() {
-    return [[0, Unicode.MAX_RUNE, 1]]
-  }
+  static ANY_TABLE = new UnicodeRangeTable(new Uint32Array([0, Unicode.MAX_RUNE, 1]))
 
   // unicodeTable() returns the Unicode RangeTable identified by name
   // and the table of additional fold-equivalent code points.
   // Returns null if |name| does not identify a Unicode character range.
   static unicodeTable(name) {
     if (name === 'Any') {
-      return Pair.of(Parser.ANY_TABLE(), Parser.ANY_TABLE())
+      return Pair.of(Parser.ANY_TABLE, Parser.ANY_TABLE)
     }
     if (UnicodeTables.CATEGORIES.has(name)) {
       return Pair.of(UnicodeTables.CATEGORIES.get(name), UnicodeTables.FOLD_CATEGORIES.get(name))

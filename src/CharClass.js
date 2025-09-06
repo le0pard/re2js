@@ -231,10 +231,10 @@ class CharClass {
   // appendTable() appends the Unicode range table |table| to this CharClass.
   // Does not mutate |table|.
   appendTable(table) {
-    for (let triple of table) {
-      const lo = triple[0]
-      const hi = triple[1]
-      const stride = triple[2]
+    for (let i = 0; i < table.length; ++i) {
+      const lo = table.getLo(i)
+      const hi = table.getHi(i)
+      const stride = table.getStride(i)
       if (stride === 1) {
         this.appendRange(lo, hi)
         continue
@@ -250,10 +250,10 @@ class CharClass {
   // table |table| to this CharClass.  Does not mutate |table|.
   appendNegatedTable(table) {
     let nextLo = 0
-    for (let triple of table) {
-      const lo = triple[0]
-      const hi = triple[1]
-      const stride = triple[2]
+    for (let i = 0; i < table.length; ++i) {
+      const lo = table.getLo(i)
+      const hi = table.getHi(i)
+      const stride = table.getStride(i)
       if (stride === 1) {
         if (nextLo <= lo - 1) {
           this.appendRange(nextLo, lo - 1)

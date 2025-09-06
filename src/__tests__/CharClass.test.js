@@ -2,6 +2,7 @@ import { RE2Flags } from '../RE2Flags'
 import { PERL_GROUPS } from '../CharGroup'
 import { CharClass } from '../CharClass'
 import { Unicode } from '../Unicode'
+import { UnicodeRangeTable } from '../UnicodeRangeTable'
 import { Utils } from '../Utils'
 import { codePoint } from '../__utils__/chars'
 import { expect, describe, test } from '@jest/globals'
@@ -198,20 +199,19 @@ describe('.appendTable', () => {
   const cases = [
     [
       [],
-      [
-        [codePoint('a'), codePoint('z'), 1],
-        [codePoint('A'), codePoint('M'), 4]
-      ],
+      new UnicodeRangeTable(
+        new Uint32Array([codePoint('a'), codePoint('z'), 1, codePoint('A'), codePoint('M'), 4])
+      ),
       ['a', 'z', 'A', 'A', 'E', 'E', 'I', 'I', 'M', 'M'].map(codePoint)
     ],
     [
       [],
-      [[codePoint('Ā'), codePoint('Į'), 2]],
+      new UnicodeRangeTable(new Uint32Array([codePoint('Ā'), codePoint('Į'), 2])),
       Utils.stringToRunes('ĀĀĂĂĄĄĆĆĈĈĊĊČČĎĎĐĐĒĒĔĔĖĖĘĘĚĚĜĜĞĞĠĠĢĢĤĤĦĦĨĨĪĪĬĬĮĮ')
     ],
     [
       [],
-      [[codePoint('Ā') + 1, codePoint('Į') + 1, 2]],
+      new UnicodeRangeTable(new Uint32Array([codePoint('Ā') + 1, codePoint('Į') + 1, 2])),
       Utils.stringToRunes('āāăăąąććĉĉċċččďďđđēēĕĕėėęęěěĝĝğğġġģģĥĥħħĩĩīīĭĭįį')
     ]
   ]
@@ -224,7 +224,11 @@ describe('.appendTable', () => {
 describe('.appendNegatedTable', () => {
   test('return expected runes', () => {
     expect(
-      new CharClass([]).appendNegatedTable([[codePoint('b'), codePoint('f'), 1]]).toArray()
+      new CharClass([])
+        .appendNegatedTable(
+          new UnicodeRangeTable(new Uint32Array([codePoint('b'), codePoint('f'), 1]))
+        )
+        .toArray()
     ).toEqual([0, codePoint('a'), codePoint('g'), Unicode.MAX_RUNE])
   })
 })
