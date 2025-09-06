@@ -171,13 +171,13 @@ let scriptsCode = []
 let foldCategoryCode = []
 let foldScriptCode = []
 
-code = [...code, '  static CASE_ORBIT = {']
+code = [...code, '  static CASE_ORBIT = new Map([']
 
 for (const [key, value] of sortedOrbits.entries()) {
-  code = [...code, `    ${key}: ${value},`]
+  code = [...code, `    [${key}, ${value}],`]
 }
 
-code = [...code, '  }']
+code = [...code, '  ])']
 
 for (const [alias, name] of aliasesToNames.entries()) {
   if (SKIP_CATEGORIES.includes(alias)) {
