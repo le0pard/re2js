@@ -151,8 +151,8 @@ const genPrintRanges = async () => {
       }
     }
   }
+
   const uniqueSortedCodePoints = Array.from(new Set(allCodePoints)).sort((a, b) => a - b)
-  // 3. Generate the compact ranges using your CodepointRange helper
   return await genRanges(uniqueSortedCodePoints)
 }
 
