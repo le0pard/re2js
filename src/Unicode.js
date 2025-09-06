@@ -25,11 +25,14 @@ class Unicode {
     let hi = ranges.length
     while (lo < hi) {
       const m = lo + Math.floor((hi - lo) / 2)
-      const range = ranges.get(m) // range = [lo, hi, stride]
-      if (range[0] <= r && r <= range[1]) {
-        return (r - range[0]) % range[2] === 0
+
+      const rlo = ranges.getLo(m)
+      const rhi = ranges.getHi(m)
+      if (rlo <= r && r <= rhi) {
+        const stride = ranges.getStride(m)
+        return (r - rlo) % stride === 0
       }
-      if (r < range[0]) {
+      if (r < rlo) {
         hi = m
       } else {
         lo = m + 1
@@ -43,20 +46,24 @@ class Unicode {
     // Fast path for Latin-1 characters using linear search.
     if (r <= this.MAX_LATIN1) {
       for (let i = 0; i < ranges.length; i++) {
-        const range = ranges.get(i) // range = [lo, hi, stride]
-        if (r > range[1]) {
+        const rhi = ranges.getHi(i)
+        if (r > rhi) {
           continue
         }
-        if (r < range[0]) {
+
+        const rlo = ranges.getLo(i)
+        if (r < rlo) {
           return false
         }
-        return (r - range[0]) % range[2] === 0
+
+        const stride = ranges.getStride(i)
+        return (r - rlo) % stride === 0
       }
       return false
     }
 
     // Fallback to binary search for runes outside Latin-1
-    return ranges.length > 0 && r >= ranges.get(0)[0] && this.is32(ranges, r)
+    return ranges.length > 0 && r >= ranges.getLo(0) && this.is32(ranges, r)
   }
 
   // isUpper reports whether the rune is an upper case letter.
