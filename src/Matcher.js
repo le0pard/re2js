@@ -123,7 +123,7 @@ class Matcher {
    * Returns the start of the named group of the most recent match, or -1 if the group was not
    * matched.
    * @param {string|number} [group=0]
-   * @returns {string}
+   * @returns {number}
    */
   start(group = 0) {
     if (typeof group === 'string') {
@@ -142,7 +142,7 @@ class Matcher {
    * Returns the end of the named group of the most recent match, or -1 if the group was not
    * matched.
    * @param {string|number} [group=0]
-   * @returns {string}
+   * @returns {number}
    */
   end(group = 0) {
     if (typeof group === 'string') {
