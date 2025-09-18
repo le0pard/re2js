@@ -1,5 +1,7 @@
 name: Test/Build/Publish
-on: push
+on:
+  push:
+  pull_request:
 
 jobs:
   test:
