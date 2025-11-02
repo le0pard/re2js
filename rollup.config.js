@@ -1,4 +1,3 @@
-import alias from '@rollup/plugin-alias'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import { babel } from '@rollup/plugin-babel'
@@ -52,7 +51,6 @@ const makeConfig = () => {
       }
     ],
     plugins: [
-      alias(),
       resolve(), // teach Rollup how to find external modules
       commonjs(), // so Rollup can convert external modules to an ES module
       babel({
