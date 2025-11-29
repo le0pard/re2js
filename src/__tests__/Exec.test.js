@@ -57,7 +57,7 @@ const parseResult = (lineno, res) => {
         try {
           lo = parseInt(pair.substring(0, k))
           hi = parseInt(pair.substring(k + 1))
-        } catch (e) {
+        } catch (_e) {
           /* fall through */
         }
         if (lo > hi) {
@@ -385,7 +385,7 @@ const testFowler = async (fileName) => {
       let re = null
       try {
         re = RE2.compileImpl(pattern, flags, true)
-      } catch (e) {
+      } catch (_e) {
         if (shouldCompileMatch[0]) {
           throw new Error(`${lineno}: ${pattern} did not compile`)
         }

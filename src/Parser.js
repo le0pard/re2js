@@ -437,7 +437,7 @@ class Parser {
         if (c === Codepoint.CODES.get('{')) {
           let nhex = 0
           let r = 0
-          // eslint-disable-next-line no-constant-condition
+
           while (true) {
             if (!t.more()) {
               break bigswitch

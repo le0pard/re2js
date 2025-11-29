@@ -194,7 +194,7 @@ class Machine {
     } else {
       flag = input.context(pos)
     }
-    // eslint-disable-next-line no-constant-condition
+
     while (true) {
       if (runq.isEmpty()) {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) {
