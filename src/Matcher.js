@@ -174,7 +174,7 @@ class Matcher {
   /**
    * Returns the named group of the most recent match, or {@code null} if the group was not matched.
    * @param {string|number} [group=0]
-   * @returns {string}
+   * @returns {?string}
    */
   group(group = 0) {
     if (typeof group === 'string') {
