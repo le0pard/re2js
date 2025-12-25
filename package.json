@@ -42,14 +42,14 @@
     "@babel/core": "^7.28.5",
     "@babel/eslint-parser": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@jest/globals": "^30.2.0",
     "@rollup/plugin-babel": "^6.1.0",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@unicode/unicode-16.0.0": "^1.6.16",
     "@yarnpkg/pnpify": "^4.1.6",
-    "eslint": "9.39.1",
+    "eslint": "9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-node": "^0.3.9",
     "eslint-plugin-import": "^2.32.0",
@@ -57,9 +57,9 @@
     "jest": "^30.2.0",
     "lodash": "^4.17.21",
     "prettier": "^3.7.4",
-    "rollup": "^4.53.3",
+    "rollup": "^4.54.0",
     "typescript": "^5.9.3",
     "unicode-property-value-aliases": "^3.9.0"
   },
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.12.0"
 }
