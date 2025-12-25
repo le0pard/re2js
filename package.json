@@ -11,31 +11,31 @@
     "format": "pnpify run prettier --plugin prettier-plugin-svelte --write src"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@eslint/js": "^9.39.2",
     "@picocss/pico": "^2.1.1",
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.49.0",
+    "@sveltejs/kit": "^2.49.2",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@types/cookie": "^1.0.0",
     "@yarnpkg/pnpify": "^4.1.6",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-svelte": "^3.13.0",
+    "eslint-plugin-svelte": "^3.13.1",
     "globals": "^16.5.0",
     "lodash": "^4.17.21",
     "postcss": "^8.5.6",
     "postcss-import": "^16.1.1",
     "postcss-load-config": "^6.0.1",
-    "postcss-preset-env": "^10.4.0",
-    "prettier": "^3.7.3",
-    "prettier-plugin-svelte": "^3.4.0",
+    "postcss-preset-env": "^10.5.0",
+    "prettier": "^3.7.4",
+    "prettier-plugin-svelte": "^3.4.1",
     "re2js": "^1.2.0",
-    "svelte": "^5.45.2",
-    "svelte-check": "^4.3.4",
+    "svelte": "^5.46.1",
+    "svelte-check": "^4.3.5",
     "svelte-preprocess": "^6.0.3",
     "typescript": "^5.9.3",
-    "vite": "^7.2.4"
+    "vite": "^7.3.0"
   },
   "type": "module",
-  "packageManager": "yarn@4.10.3"
+  "packageManager": "yarn@4.12.0"
 }
