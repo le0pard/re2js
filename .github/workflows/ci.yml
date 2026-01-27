@@ -36,6 +36,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    environment:
+      name: production
     env:
       NODE_ENV: production
     steps:
