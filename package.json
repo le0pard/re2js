@@ -25,8 +25,14 @@
   "unpkg": "build/index.umd.js",
   "exports": {
     ".": {
-      "import": "./build/index.esm.js",
-      "require": "./build/index.cjs.cjs"
+      "import": {
+        "types": "./build/index.esm.d.ts",
+        "default": "./build/index.esm.js"
+      },
+      "require": {
+        "types": "./build/index.esm.d.ts",
+        "default": "./build/index.cjs.cjs"
+      }
     }
   },
   "types": "build/index.esm.d.ts",
