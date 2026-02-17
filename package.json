@@ -25,6 +25,7 @@
   "unpkg": "build/index.umd.js",
   "exports": {
     ".": {
+      "types": "./build/index.esm.d.ts",
       "import": "./build/index.esm.js",
       "require": "./build/index.cjs.cjs"
     }
