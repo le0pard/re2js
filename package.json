@@ -40,9 +40,9 @@
     "format": "pnpify run prettier --write src tools *.config.js"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.6",
+    "@babel/core": "^7.29.0",
     "@babel/eslint-parser": "^7.28.6",
-    "@babel/preset-env": "^7.28.6",
+    "@babel/preset-env": "^7.29.0",
     "@eslint/js": "^9.39.2",
     "@jest/globals": "^30.2.0",
     "@rollup/plugin-babel": "^6.1.0",
@@ -54,11 +54,11 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-node": "^0.3.9",
     "eslint-plugin-import": "^2.32.0",
-    "globals": "^17.2.0",
+    "globals": "^17.3.0",
     "jest": "^30.2.0",
     "lodash": "^4.17.23",
     "prettier": "^3.8.1",
-    "rollup": "^4.57.0",
+    "rollup": "^4.57.1",
     "typescript": "^5.9.3",
     "unicode-property-value-aliases": "^3.9.0"
   },
