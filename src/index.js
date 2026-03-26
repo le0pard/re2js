@@ -342,6 +342,7 @@ class RE2JS {
 
 export {
   RE2JS,
+  Matcher,
   RE2JSException,
   RE2JSSyntaxException,
   RE2JSCompileException,
