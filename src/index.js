@@ -317,7 +317,7 @@ class RE2JS {
   /**
    * Return a map of the capturing groups in this matcher's pattern, where key is the name and value
    * is the index of the group in the pattern.
-   * @returns {*}
+   * @returns {Record<string, number>}
    */
   namedGroups() {
     return this.re2Input.namedGroups
@@ -342,6 +342,7 @@ class RE2JS {
 
 export {
   RE2JS,
+  Matcher,
   RE2JSException,
   RE2JSSyntaxException,
   RE2JSCompileException,

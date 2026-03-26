@@ -63,10 +63,14 @@ class Matcher {
     this.patternInput = pattern
     const re2 = this.patternInput.re2()
     // The number of submatches (groups) in the pattern.
+    /** @type {number} */
     this.patternGroupCount = re2.numberOfCapturingGroups()
     // The group indexes, in [start, end) pairs.  Zeroth pair is overall match.
+    /** @type {number[]} */
     this.groups = []
+    /** @type {Record<string, number>} */
     this.namedGroups = re2.namedGroups
+    /** @type {number} */
     this.numberOfInstructions = re2.numberOfInstructions()
 
     if (input instanceof MatcherInputBase) {
@@ -93,8 +97,10 @@ class Matcher {
    */
   reset() {
     // The input length in UTF16 codes.
+    /** @type {number} */
     this.matcherInputLength = this.matcherInput.length()
     // The append position: where the next append should start.
+    /** @type {number} */
     this.appendPos = 0
     // Is there a current match?
     this.hasMatch = false
@@ -108,6 +114,7 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
+   * @param {Utf8MatcherInput|Utf16MatcherInput} input
    * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
@@ -266,7 +273,7 @@ class Matcher {
    * Matches the input against the pattern (unanchored), starting at a specified position. If there
    * is a match, {@code find} sets the match state to describe it.
    *
-   * @param {string|number} [start=null] the input position where the search begins
+   * @param {number} [start=null] the input position where the search begins
    * @returns {boolean} if it finds a match
    * @throws IndexOutOfBoundsException if start is not a valid input position
    */
