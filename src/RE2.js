@@ -246,7 +246,7 @@ class RE2 {
     return this.expr
   }
 
-  // doExecute() finds the leftmost match in the input and returns
+  // doExecuteNFA() finds the leftmost match in the input and returns
   // the position of its subexpressions.
   // Derived from exec.go.
   doExecuteNFA(input, pos, anchor, ncap) {
