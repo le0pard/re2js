@@ -1,12 +1,14 @@
 import { RE2JSDfaMemoryException } from './exceptions'
 import { Inst } from './Inst'
+import { RE2Flags } from './RE2Flags'
+import { Unicode } from './Unicode'
 
 class DFAState {
   constructor(id, nfaStates, isMatch) {
     this.id = id // Stringified NFA state list (e.g., "1,4,7")
     this.nfaStates = nfaStates // Array of Instruction PCs
     this.isMatch = isMatch // Boolean
-    this.nextAscii = new Array(128).fill(null) // Flat array for blisteringly fast ASCII lookups (unanchored)
+    this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null) // Flat array for blisteringly fast ASCII lookups (unanchored)
     this.nextMap = new Map() // Cache of Char -> DFAState
   }
 }
@@ -16,7 +18,7 @@ export class DFA {
     this.prog = prog
     this.stateCache = new Map() // id -> DFAState
     this.startState = null
-    this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
+    this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection), like RE2 max_mem
   }
 
   // Follows epsilon (empty) transitions to find all reachable states without consuming a char
@@ -78,13 +80,13 @@ export class DFA {
   // Compute the next DFA state given a current state and a character
   step(state, charCode, anchor) {
     // OPTIMIZATION: ASCII Fast-Path
-    if (anchor === 0 && charCode < 128) {
+    if (anchor === RE2Flags.UNANCHORED && charCode <= Unicode.MAX_ASCII) {
       const next = state.nextAscii[charCode]
       if (next !== null) {
         return next
       }
     } else {
-      const key = charCode + (anchor === 0 ? 0 : 0x100000)
+      const key = charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1)
       if (state.nextMap.has(key)) {
         return state.nextMap.get(key)
       }
@@ -98,16 +100,17 @@ export class DFA {
       }
     }
 
-    if (anchor === 0) {
+    if (anchor === RE2Flags.UNANCHORED) {
       nextPCs.push(this.prog.start)
     }
 
     const nextState = this.getState(nextPCs)
+
     // Cache the result
-    if (anchor === 0 && charCode < 128) {
+    if (anchor === RE2Flags.UNANCHORED && charCode <= Unicode.MAX_ASCII) {
       state.nextAscii[charCode] = nextState
     } else {
-      const key = charCode + (anchor === 0 ? 0 : 0x100000)
+      const key = charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1)
       state.nextMap.set(key, nextState)
     }
 
@@ -116,7 +119,7 @@ export class DFA {
 
   // The hot loop: Execute the Lazy DFA
   match(input, pos, anchor) {
-    if ((anchor === 1 || anchor === 2) && pos !== 0) {
+    if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
       return false
     }
 
@@ -128,7 +131,7 @@ export class DFA {
     let endPos = input.endPos()
     let currentState = this.startState
     if (currentState.isMatch) {
-      if (anchor === 2) {
+      if (anchor === RE2Flags.ANCHOR_BOTH) {
         if (pos === endPos) return true
       } else {
         return true
@@ -147,7 +150,7 @@ export class DFA {
       if (currentState === null) return null
 
       if (currentState.isMatch) {
-        if (anchor === 2) {
+        if (anchor === RE2Flags.ANCHOR_BOTH) {
           if (i + width === endPos) return true
         } else {
           return true
@@ -156,7 +159,7 @@ export class DFA {
 
       // If we hit a dead end, and anchored, fail early
       if (currentState.nfaStates.length === 0) {
-        if (anchor !== 0) return false
+        if (anchor !== RE2Flags.UNANCHORED) return false
       }
       i += width
     }
