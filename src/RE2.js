@@ -157,7 +157,7 @@ class RE2 {
       }
     }
 
-    // Fallback to NFA for AUTO (1) or if explicitly requested (3)
+    // Fallback to NFA
     return this.doExecuteNFA(input, pos, anchor, ncap)
   }
 
