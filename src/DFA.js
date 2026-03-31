@@ -53,7 +53,7 @@ export class DFA {
       }
     }
 
-    const sortedPCs = Array.from(closure).sort((a, b) => a - b)
+    const sortedPCs = Int32Array.from(closure).sort()
     return { pcs: sortedPCs, isMatch }
   }
 
@@ -93,7 +93,8 @@ export class DFA {
     }
 
     const nextPCs = []
-    for (const pc of state.nfaStates) {
+    for (let i = 0; i < state.nfaStates.length; i++) {
+      const pc = state.nfaStates[i]
       const inst = this.prog.getInst(pc)
       if (Inst.isRuneOp(inst.op) && inst.matchRune(charCode)) {
         nextPCs.push(inst.out)
