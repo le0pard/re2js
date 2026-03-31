@@ -47,7 +47,7 @@ export class DFA {
           stack.push(inst.out)
           break
         // Bailing out on complex empty-width assertions to keep DFA fast.
-        // The AUTO engine will seamlessly fall back to the NFA.
+        // Engine will seamlessly fall back to the NFA.
         case Inst.EMPTY_WIDTH:
           return null
       }
