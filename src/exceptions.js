@@ -86,7 +86,7 @@ class RE2JSDfaMemoryException extends RE2JSException {
   /** @param {string} message */
   constructor(message) {
     super(message)
-    this.name = 'RE2JSDFAException'
+    this.name = 'RE2JSDfaMemoryException'
   }
 }
 
