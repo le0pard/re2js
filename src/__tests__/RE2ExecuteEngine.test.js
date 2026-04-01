@@ -1,6 +1,6 @@
 import { RE2 } from '../RE2'
 import { DFA } from '../DFA'
-import { expect, describe, test, jest, afterEach } from '@jest/globals'
+import { expect, describe, test, jest } from '@jest/globals'
 
 describe('RE2 executeEngine Routing', () => {
   test('routes to DFA for simple boolean match (ncap === 0)', () => {
