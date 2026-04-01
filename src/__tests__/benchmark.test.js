@@ -48,7 +48,7 @@ const runBenchmark = (name, pattern) => {
   const speedup = timeNFA / timeDFA
   // eslint-disable-next-line no-console
   console.log(`
---- Benchmarking: /${pattern}/ ---
+--- Benchmarking "${name}": /${pattern}/ ---
 NFA (Legacy) : ${timeNFA.toFixed(2)} ms (${nfaMatches} matches)
 DFA (New)    : ${timeDFA.toFixed(2)} ms (${dfaMatches} matches)
 Speedup      : ${speedup.toFixed(2)}x faster
@@ -56,7 +56,7 @@ Speedup      : ${speedup.toFixed(2)}x faster
 }
 
 describe('Performance Benchmark', () => {
-  test.skip('Run benchmarks', () => {
+  test('Run benchmarks', () => {
     console.log('Generating 30,000 card database...\n') // eslint-disable-line no-console
     runBenchmark('Simple Literal', 'damage')
     runBenchmark('Wildcard', 'enters.*battlefield')
