@@ -69,7 +69,7 @@ export class DFA {
 
     // Safety: prevent memory exhaustion from state explosion
     if (this.stateCache.size > this.stateLimit) {
-      throw new RE2JSDfaMemoryException('DFA_OUT_OF_MEMORY')
+      throw new RE2JSDfaMemoryException('dfa error: Out of memory exception')
     }
 
     const state = new DFAState(id, closureResult.pcs, closureResult.isMatch)

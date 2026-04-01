@@ -1,4 +1,5 @@
 import { RE2Flags } from './RE2Flags'
+import { RE2JSDfaMemoryException } from './exceptions'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
@@ -150,7 +151,7 @@ class RE2 {
         return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
       }
     } catch (e) {
-      if (e.name === 'RE2JSDfaMemoryException') {
+      if (e instanceof RE2JSDfaMemoryException) {
         this.dfa = new DFA(this.prog) // flush cache
       } else {
         throw e
