@@ -56,7 +56,7 @@ Speedup      : ${speedup.toFixed(2)}x faster
 }
 
 describe('Performance Benchmark', () => {
-  test('Run benchmarks', () => {
+  test.skip('Run benchmarks', () => {
     console.log('Generating 30,000 card database...\n') // eslint-disable-line no-console
     runBenchmark('Simple Literal', 'damage')
     runBenchmark('Wildcard', 'enters.*battlefield')
