@@ -79,10 +79,22 @@ class RE2JSFlagsException extends RE2JSException {
   }
 }
 
+/**
+ * An exception thrown by DFA
+ */
+class RE2JSDfaMemoryException extends RE2JSException {
+  /** @param {string} message */
+  constructor(message) {
+    super(message)
+    this.name = 'RE2JSDfaMemoryException'
+  }
+}
+
 export {
   RE2JSException,
   RE2JSSyntaxException,
   RE2JSCompileException,
   RE2JSGroupException,
-  RE2JSFlagsException
+  RE2JSFlagsException,
+  RE2JSDfaMemoryException
 }

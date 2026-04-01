@@ -1,7 +1,9 @@
 import { RE2Flags } from './RE2Flags'
+import { RE2JSDfaMemoryException } from './exceptions'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
+import { DFA } from './DFA'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
@@ -131,6 +133,33 @@ class RE2 {
     this.prefixComplete = false // true if prefix is the entire regexp
     this.prefixRune = 0 // first rune in prefix
     this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
+    this.dfa = new DFA(prog) // Initialize the Lazy DFA
+  }
+
+  executeEngine(input, pos, anchor, ncap) {
+    // If the user wants capturing groups (ncap > 0), the DFA mathematically CANNOT do it.
+    // We must use the NFA.
+    if (ncap > 0) {
+      return this.doExecuteNFA(input, pos, anchor, ncap)
+    }
+
+    try {
+      const dfaResult = this.dfa.match(input, pos, anchor)
+
+      if (dfaResult !== null) {
+        // DFA succeeded (returned true or false)
+        return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
+      }
+    } catch (e) {
+      if (e instanceof RE2JSDfaMemoryException) {
+        this.dfa = new DFA(this.prog) // flush cache
+      } else {
+        throw e
+      }
+    }
+
+    // Fallback to NFA
+    return this.doExecuteNFA(input, pos, anchor, ncap)
   }
 
   /**
@@ -218,10 +247,10 @@ class RE2 {
     return this.expr
   }
 
-  // doExecute() finds the leftmost match in the input and returns
+  // doExecuteNFA() finds the leftmost match in the input and returns
   // the position of its subexpressions.
   // Derived from exec.go.
-  doExecute(input, pos, anchor, ncap) {
+  doExecuteNFA(input, pos, anchor, ncap) {
     let m = this.get()
     // The Treiber stack cannot reuse nodes, unless the node to be reused has only ever been at
     // the bottom of the stack (i.e., next == null).
@@ -241,7 +270,7 @@ class RE2 {
   }
 
   match(s) {
-    return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) !== null
+    return this.executeEngine(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) !== null
   }
 
   /**
@@ -274,7 +303,7 @@ class RE2 {
       ? MachineInput.fromUTF16(input.asCharSequence(), 0, end)
       : MachineInput.fromUTF8(input.asBytes(), 0, end)
 
-    const groupMatch = this.doExecute(machineInput, start, anchor, 2 * ngroup)
+    const groupMatch = this.executeEngine(machineInput, start, anchor, 2 * ngroup)
 
     if (groupMatch === null) {
       return [false, null]
@@ -287,7 +316,7 @@ class RE2 {
    */
   // This is visible for testing.
   matchUTF8(b) {
-    return this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 0) !== null
+    return this.executeEngine(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 0) !== null
   }
 
   /**
@@ -325,7 +354,7 @@ class RE2 {
     const input = MachineInput.fromUTF16(src)
     let numReplaces = 0
     while (searchPos <= src.length) {
-      const a = this.doExecute(input, searchPos, RE2Flags.UNANCHORED, 2)
+      const a = this.executeEngine(input, searchPos, RE2Flags.UNANCHORED, 2)
       if (a === null || a.length === 0) {
         break
       }
@@ -389,7 +418,7 @@ class RE2 {
     let i = 0
     let prevMatchEnd = -1
     while (i < n && pos <= end) {
-      const matches = this.doExecute(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
+      const matches = this.executeEngine(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
       if (matches === null || matches.length === 0) {
         break
       }
@@ -462,7 +491,7 @@ class RE2 {
    */
   // This is visible for testing.
   findUTF8(b) {
-    const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
+    const a = this.executeEngine(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
     if (a === null) {
       return null
     }
@@ -477,7 +506,7 @@ class RE2 {
    */
   // This is visible for testing.
   findUTF8Index(b) {
-    const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
+    const a = this.executeEngine(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, 2)
     if (a === null) {
       return null
     }
@@ -494,7 +523,7 @@ class RE2 {
    */
   // This is visible for testing.
   find(s) {
-    const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
+    const a = this.executeEngine(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
     if (a === null) {
       return ''
     }
@@ -510,7 +539,7 @@ class RE2 {
    */
   // This is visible for testing.
   findIndex(s) {
-    return this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
+    return this.executeEngine(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, 2)
   }
 
   /**
@@ -522,7 +551,7 @@ class RE2 {
    */
   // This is visible for testing.
   findUTF8Submatch(b) {
-    const a = this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
+    const a = this.executeEngine(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     if (a === null) {
       return null
     }
@@ -546,7 +575,7 @@ class RE2 {
   // This is visible for testing.
   findUTF8SubmatchIndex(b) {
     return this.pad(
-      this.doExecute(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
+      this.executeEngine(MachineInput.fromUTF8(b), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
 
@@ -559,7 +588,12 @@ class RE2 {
    */
   // This is visible for testing.
   findSubmatch(s) {
-    const a = this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
+    const a = this.executeEngine(
+      MachineInput.fromUTF16(s),
+      0,
+      RE2Flags.UNANCHORED,
+      this.prog.numCap
+    )
     if (a === null) {
       return null
     }
@@ -583,7 +617,7 @@ class RE2 {
   // This is visible for testing.
   findSubmatchIndex(s) {
     return this.pad(
-      this.doExecute(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
+      this.executeEngine(MachineInput.fromUTF16(s), 0, RE2Flags.UNANCHORED, this.prog.numCap)
     )
   }
 

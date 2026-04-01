@@ -9,7 +9,8 @@ import {
   RE2JSSyntaxException,
   RE2JSCompileException,
   RE2JSGroupException,
-  RE2JSFlagsException
+  RE2JSFlagsException,
+  RE2JSDfaMemoryException
 } from './exceptions'
 
 /**
@@ -347,5 +348,6 @@ export {
   RE2JSSyntaxException,
   RE2JSCompileException,
   RE2JSGroupException,
-  RE2JSFlagsException
+  RE2JSFlagsException,
+  RE2JSDfaMemoryException
 }
