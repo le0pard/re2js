@@ -167,7 +167,7 @@ If you only need to know **whether** a string matches a pattern (without extract
 
 #### `test(input)`
 
-Tests if the regular expression matches **any part** of the provided input (Unanchored). This method mirrors the standard JavaScript `RegExp.prototype.test()` API
+Tests if the regular expression matches **any part** of the provided input (unanchored). This method mirrors the standard JavaScript `RegExp.prototype.test()` API
 
 ```js
 import { RE2JS } from 're2js';
@@ -183,7 +183,7 @@ if (re.test('The system encountered a critical failure')) {
 
 #### `testExact(input)`
 
-Tests if the regular expression matches the entire input string (Anchored to both start and end)
+Tests if the regular expression matches the entire input string (anchored to both start and end)
 
 ```js
 import { RE2JS } from 're2js';
