@@ -1,5 +1,4 @@
 import { RE2Flags } from './RE2Flags'
-import { RE2JSDfaMemoryException } from './exceptions'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
@@ -143,19 +142,10 @@ class RE2 {
       return this.doExecuteNFA(input, pos, anchor, ncap)
     }
 
-    try {
-      const dfaResult = this.dfa.match(input, pos, anchor)
-
-      if (dfaResult !== null) {
-        // DFA succeeded (returned true or false)
-        return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
-      }
-    } catch (e) {
-      if (e instanceof RE2JSDfaMemoryException) {
-        this.dfa = new DFA(this.prog) // flush cache
-      } else {
-        throw e
-      }
+    const dfaResult = this.dfa.match(input, pos, anchor)
+    if (dfaResult !== null) {
+      // DFA succeeded (returned true or false)
+      return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
     }
 
     // Fallback to NFA

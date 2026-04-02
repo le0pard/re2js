@@ -1,4 +1,3 @@
-import { RE2JSDfaMemoryException } from './exceptions'
 import { Inst } from './Inst'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
@@ -101,8 +100,12 @@ export class DFA {
     }
 
     // Safety: prevent memory exhaustion from state explosion
+    // We flush the cache and return null, which seamlessly routes execution to the NFA
     if (this.stateCount >= this.stateLimit) {
-      throw new RE2JSDfaMemoryException('dfa error: Out of memory exception')
+      this.stateCache.clear()
+      this.stateCount = 0
+      this.startState = null
+      return null
     }
 
     // State not found, create it and add to bucket

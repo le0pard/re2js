@@ -3,7 +3,6 @@ import { Compiler } from '../Compiler'
 import { Parser } from '../Parser'
 import { RE2Flags } from '../RE2Flags'
 import { MachineInput } from '../MachineInput'
-import { RE2JSDfaMemoryException } from '../exceptions'
 import { expect, describe, test } from '@jest/globals'
 
 const createDFA = (pattern, flags = RE2Flags.PERL) => {
@@ -83,7 +82,7 @@ describe('DFA', () => {
   })
 
   describe('Memory Limit (ReDoS Protection)', () => {
-    test('Throws RE2JSDfaMemoryException on state explosion', () => {
+    test('return null', () => {
       // Force a complex nested repetition that generates massive states
       const dfa = createDFA('(a+)+b')
       // An NFA state combination for a simple query like (a+)+b is highly optimized
@@ -91,9 +90,7 @@ describe('DFA', () => {
       // it throws the memory limit exception gracefully on the very first character transition.
       dfa.stateLimit = 1
 
-      expect(() => {
-        runDFA(dfa, 'aaaaaab')
-      }).toThrow(RE2JSDfaMemoryException)
+      expect(runDFA(dfa, 'aaaaaab')).toBeNull()
     })
   })
 })
