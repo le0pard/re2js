@@ -163,7 +163,7 @@ matchString.find(7) // false
 
 ### High-Performance Boolean Testing
 
-If you only need to know *whether* a string matches a pattern (without extracting capture groups), you should use the `test()` and `testExact()` methods. Unlike `matches()` or `matcher()`, these methods do not instantiate stateful `Matcher` objects and request exactly `0` capture groups. This guarantees that execution is securely routed to the **DFA (Deterministic Finite Automaton)** engine whenever possible
+If you only need to know **whether** a string matches a pattern (without extracting capture groups), you should use the `test()` and `testExact()` methods. Unlike `matches()` or `matcher()`, these methods do not instantiate stateful `Matcher` objects and request exactly `0` capture groups. This guarantees that execution is securely routed to the DFA (Deterministic Finite Automaton) engine whenever possible
 
 #### `test(input)`
 
