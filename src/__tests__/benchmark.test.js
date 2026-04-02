@@ -49,9 +49,9 @@ const runBenchmark = (name, pattern) => {
   // eslint-disable-next-line no-console
   console.log(`
 --- Benchmarking "${name}": /${pattern}/ ---
-NFA (Legacy) : ${timeNFA.toFixed(2)} ms (${nfaMatches} matches)
-DFA (New)    : ${timeDFA.toFixed(2)} ms (${dfaMatches} matches)
-Speedup      : ${speedup.toFixed(2)}x faster
+NFA : ${timeNFA.toFixed(2)} ms (${nfaMatches} matches)
+DFA : ${timeDFA.toFixed(2)} ms (${dfaMatches} matches)
+Speedup : ${speedup.toFixed(2)}x faster
   `)
 }
 
