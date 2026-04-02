@@ -107,6 +107,62 @@ describe('matches with flags', () => {
   )
 })
 
+describe('.test (Unanchored DFA Match)', () => {
+  const cases = [
+    // [pattern, input, expected]
+    ['foo', 'foo', true],
+    ['foo', 'a foo b', true], // Unanchored: matches in the middle
+    ['foo', 'bar', false],
+    ['(?i)foo', 'FoO', true], // Case insensitive
+    ['^[a-z]+$', 'hello', true], // Explicitly anchored in pattern
+    ['^[a-z]+$', 'hello 123', false],
+    ['enters.*battlefield', 'When this creature enters the battlefield, it deals 3 damage', true],
+    ['[0-9]+ mana', 'Add 1 mana of any color', true]
+  ]
+
+  test.concurrent.each(cases)(
+    'pattern %p with input %p will return %p',
+    (pattern, input, expected) => {
+      const re = RE2JS.compile(pattern)
+
+      // Test UTF-16 String input
+      expect(re.test(input)).toEqual(expected)
+
+      // Test UTF-8 Byte Array input
+      const utf8Input = Utils.stringToUtf8ByteArray(input)
+      expect(re.test(utf8Input)).toEqual(expected)
+    }
+  )
+})
+
+describe('.testExact (Anchored DFA Match)', () => {
+  const cases = [
+    // [pattern, input, expected]
+    ['foo', 'foo', true],
+    ['foo', 'a foo b', false], // Anchored: fails if not exact match
+    ['foo', 'foobar', false], // Anchored: fails if trailing characters
+    ['[a-z]+', 'hello', true],
+    ['[a-z]+', 'hello 123', false], // Anchored: fails due to space and numbers
+    ['(?i)foo', 'FOO', true], // Case insensitive
+    ['[0-9A-Fa-f]+', '1A4F', true],
+    ['[0-9A-Fa-f]+', '1A4F-xyz', false]
+  ]
+
+  test.concurrent.each(cases)(
+    'pattern %p with input %p will return %p',
+    (pattern, input, expected) => {
+      const re = RE2JS.compile(pattern)
+
+      // Test UTF-16 String input
+      expect(re.testExact(input)).toEqual(expected)
+
+      // Test UTF-8 Byte Array input
+      const utf8Input = Utils.stringToUtf8ByteArray(input)
+      expect(re.testExact(utf8Input)).toEqual(expected)
+    }
+  )
+})
+
 describe('find', () => {
   const cases = [
     ['ab+c', 0, 'xxabbbc', 'cbbba'],

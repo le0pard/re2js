@@ -145,6 +145,11 @@ export class DFA {
       const rune = r >> 3
       const width = r & 7
 
+      // Prevent infinite loop on EOF
+      if (width === 0) {
+        break
+      }
+
       currentState = this.step(currentState, rune, anchor)
 
       // If we hit an unrecoverable DFA error or bailout, signal fallback

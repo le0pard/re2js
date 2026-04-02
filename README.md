@@ -161,6 +161,40 @@ matchString.group() // 'e'
 matchString.find(7) // false
 ```
 
+## High-Performance Boolean Testing
+
+If you only need to know *whether* a string matches a pattern (without extracting capture groups), you should use the `test()` and `testExact()` methods. Unlike `matches()` or `matcher()`, these methods do not instantiate stateful `Matcher` objects and request exactly `0` capture groups. This guarantees that execution is securely routed to the **DFA (Deterministic Finite Automaton)** engine whenever possible
+
+### `test(input)`
+
+Tests if the regular expression matches **any part** of the provided input (Unanchored). This method mirrors the standard JavaScript `RegExp.prototype.test()` API
+
+```js
+import { RE2JS } from 're2js';
+
+// Compile once, reuse often
+const re = RE2JS.compile('error|warning|critical');
+
+// Extremely fast, unanchored DFA search
+if (re.test('The system encountered a critical failure')) {
+  console.log('Log needs attention!');
+}
+```
+
+### `testExact(input)`
+
+Tests if the regular expression matches the entire input string (Anchored to both start and end)
+
+```js
+import { RE2JS } from 're2js';
+
+const isHex = RE2JS.compile('[0-9A-Fa-f]+');
+
+// Fast, anchored DFA validation
+console.log(isHex.testExact('1A4F'));      // true
+console.log(isHex.testExact('1A4F-xyz'));  // false
+```
+
 ### Checking Initial Match
 
 The `lookingAt()` method determines whether the start of the given string matches the pattern

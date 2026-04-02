@@ -1,9 +1,7 @@
-import { RE2 } from '../RE2'
-import { RE2Flags } from '../RE2Flags'
-import { MachineInput } from '../MachineInput'
+import { RE2JS } from '../index'
 import { describe, test } from '@jest/globals'
 
-// Generate 30,000 dummy Magic: The Gathering cards
+// 1. Generate 30,000 dummy Magic: The Gathering cards
 const cards = []
 for (let i = 0; i < 30000; i++) {
   if (i % 100 === 0) {
@@ -19,47 +17,76 @@ for (let i = 0; i < 30000; i++) {
 cards.push('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!')
 
 const runBenchmark = (name, pattern) => {
-  const re = RE2.compile(pattern)
+  const re = RE2JS.compile(pattern)
 
-  // === NFA BENCHMARK (Legacy) ===
-  const startNFA = performance.now()
-  let nfaMatches = 0
+  // === WARMUP (JIT Compiler) ===
+  // We run the functions a few thousand times so V8 compiles the hot paths
+  for (let i = 0; i < 5000; i++) {
+    const warmupStr = cards[i % cards.length]
+    re.test(warmupStr)
+    re.matcher(warmupStr).find()
+  }
+
+  // === LEGACY BENCHMARK (Matcher / NFA) ===
+  const startLegacy = performance.now()
+  let legacyMatches = 0
   for (let i = 0; i < cards.length; i++) {
-    const input = MachineInput.fromUTF16(cards[i])
-    if (re.doExecuteNFA(input, 0, RE2Flags.UNANCHORED, 0) !== null) {
-      nfaMatches++
+    // .matcher().find() forces NFA because it tracks capture group bounds
+    if (re.matcher(cards[i]).find()) {
+      legacyMatches++
     }
   }
-  const timeNFA = performance.now() - startNFA
+  const timeLegacy = performance.now() - startLegacy
+  const legacyOpsSec = Math.round((cards.length / timeLegacy) * 1000)
 
-  // === DFA BENCHMARK (New ASCII Fast-Path) ===
-  const startDFA = performance.now()
-  let dfaMatches = 0
+  // === FAST-PATH BENCHMARK (DFA) ===
+  const startFast = performance.now()
+  let fastMatches = 0
   for (let i = 0; i < cards.length; i++) {
-    const input = MachineInput.fromUTF16(cards[i])
-    // Calling the DFA directly to bypass the executeEngine heuristic
-    if (re.dfa.match(input, 0, RE2Flags.UNANCHORED) === true) {
-      dfaMatches++
+    // .test() drops capture groups and routes to the DFA
+    if (re.test(cards[i])) {
+      fastMatches++
     }
   }
-  const timeDFA = performance.now() - startDFA
+  const timeFast = performance.now() - startFast
+  const fastOpsSec = Math.round((cards.length / timeFast) * 1000)
 
   // === RESULTS ===
-  const speedup = timeNFA / timeDFA
+  const speedup = timeLegacy / timeFast
+
   // eslint-disable-next-line no-console
   console.log(`
 --- Benchmarking "${name}": /${pattern}/ ---
-NFA : ${timeNFA.toFixed(2)} ms (${nfaMatches} matches)
-DFA : ${timeDFA.toFixed(2)} ms (${dfaMatches} matches)
-Speedup : ${speedup.toFixed(2)}x faster
+Legacy (.matcher.find) : ${timeLegacy.toFixed(2)} ms | ${legacyOpsSec.toLocaleString()} ops/sec
+Fast-Path (.test)      : ${timeFast.toFixed(2)} ms | ${fastOpsSec.toLocaleString()} ops/sec
+Result                 : ${speedup.toFixed(2)}x faster
   `)
+
+  // Safety check to ensure both paths return the exact same number of matches
+  if (legacyMatches !== fastMatches) {
+    throw new Error(`Mismatch in results! Legacy found ${legacyMatches}, Fast found ${fastMatches}`)
+  }
 }
 
 describe('Performance Benchmark', () => {
   test.skip('Run benchmarks', () => {
-    console.log('Generating 30,000 card database...\n') // eslint-disable-line no-console
+    console.log(`Running benchmarks against ${cards.length.toLocaleString()} items...\n`) // eslint-disable-line no-console
+
+    // Basic Literals & Concatenations
     runBenchmark('Simple Literal', 'damage')
     runBenchmark('Wildcard', 'enters.*battlefield')
-    runBenchmark('ReDoS Poison Pill', '^([a-zA-Z0-9]+\\s*)*$')
+
+    // Test DFA's ability to handle Alternations without backtracking
+    runBenchmark('Alternation', 'damage|life|mana')
+
+    // Test DFA's character classes and repetitions
+    runBenchmark('Character Class + Repetition', '[0-9]+ mana')
+    runBenchmark('Complex Char Classes', '[A-Z][a-z]+, [a-z]+')
+
+    // Test case folding paths through the DFA
+    runBenchmark('Case Insensitive', '(?i)swamp')
+
+    // Prove DFA immunity to ReDoS style nested quantifiers targeting the poison pill string
+    runBenchmark('ReDoS Attempt (Catastrophic Backtracking)', '(a+)+!')
   })
 })

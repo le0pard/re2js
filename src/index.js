@@ -1,5 +1,6 @@
 import { RE2Flags } from './RE2Flags'
 import { MatcherInput } from './MatcherInput'
+import { MachineInput } from './MachineInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
 import { Utils } from './Utils'
@@ -211,6 +212,42 @@ class RE2JS {
     }
 
     return new Matcher(this, input)
+  }
+
+  /**
+   * Tests whether the regular expression matches any part of the input string.
+   * Performance Note: This method is highly optimized. Because it only returns
+   * a boolean and does not extract capture groups, it bypasses the `Matcher` overhead
+   * and guarantees execution on the high-speed DFA engine whenever possible.
+   *
+   * @param {string|number[]} input - The input string or UTF-8 byte array to test against.
+   * @returns {boolean} `true` if the pattern is found anywhere in the input, `false` otherwise.
+   */
+  test(input) {
+    if (Array.isArray(input)) {
+      // Reuse the existing UTF-8 fast-path method
+      return this.re2Input.matchUTF8(input)
+    }
+
+    // Reuse the existing UTF-16 fast-path method
+    return this.re2Input.match(input)
+  }
+
+  /**
+   * Tests whether the regular expression matches the ENTIRE input string.
+   * * **Performance Note:** This operates identically to `.matches()`, but is significantly
+   * faster because it does not request capture group data. By requesting 0 capture groups,
+   * it securely routes execution through the DFA fast-path.
+   *
+   * @param {string|number[]} input - The input string or UTF-8 byte array to test against.
+   * @returns {boolean} `true` if the exact input string fully matches the pattern, `false` otherwise.
+   */
+  testExact(input) {
+    const machineInput = Array.isArray(input)
+      ? MachineInput.fromUTF8(input)
+      : MachineInput.fromUTF16(input)
+
+    return this.re2Input.executeEngine(machineInput, 0, RE2Flags.ANCHOR_BOTH, 0) !== null
   }
 
   /**
