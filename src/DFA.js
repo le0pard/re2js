@@ -3,12 +3,31 @@ import { Inst } from './Inst'
 import { RE2Flags } from './RE2Flags'
 import { Unicode } from './Unicode'
 
+// FNV-1a 32-bit hash for an array of integers.
+// Extremely fast, allocates no memory, and produces good distribution.
+const hashPCs = (pcs) => {
+  let h = -2128831035 // 0x811c9dc5 (32-bit signed offset basis)
+  for (let i = 0; i < pcs.length; i++) {
+    h ^= pcs[i]
+    h = Math.imul(h, 16777619) // 0x01000193 (FNV prime)
+  }
+  return h
+}
+
+// Zero-allocation array comparison for hash collision resolution
+const arraysEqual = (a, b) => {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
 class DFAState {
-  constructor(id, nfaStates, isMatch) {
-    this.id = id // Stringified NFA state list (e.g., "1,4,7")
-    this.nfaStates = nfaStates // Array of Instruction PCs
+  constructor(nfaStates, isMatch) {
+    this.nfaStates = nfaStates // Int32Array of Instruction PCs
     this.isMatch = isMatch // Boolean
-    this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null) // Flat array for blisteringly fast ASCII lookups (unanchored)
+    this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
     this.nextMap = new Map() // Cache of Char -> DFAState
   }
 }
@@ -16,9 +35,10 @@ class DFAState {
 export class DFA {
   constructor(prog) {
     this.prog = prog
-    this.stateCache = new Map() // id -> DFAState
+    this.stateCache = new Map() // hash(number) -> DFAState[]
+    this.stateCount = 0 // Tracks total states for memory limits
     this.startState = null
-    this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection), like RE2 max_mem
+    this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
   }
 
   // Follows epsilon (empty) transitions to find all reachable states without consuming a char
@@ -62,18 +82,33 @@ export class DFA {
     const closureResult = this.computeClosure(pcs)
     if (!closureResult) return null // Bailout to NFA required
 
-    const id = closureResult.pcs.join(',')
-    if (this.stateCache.has(id)) {
-      return this.stateCache.get(id)
+    const sortedPCs = closureResult.pcs
+    const hash = hashPCs(sortedPCs)
+
+    // Lookup hash bucket
+    let bucket = this.stateCache.get(hash)
+    if (bucket) {
+      // Resolve potential hash collisions
+      for (let i = 0; i < bucket.length; i++) {
+        const state = bucket[i]
+        if (arraysEqual(state.nfaStates, sortedPCs)) {
+          return state
+        }
+      }
+    } else {
+      bucket = []
+      this.stateCache.set(hash, bucket)
     }
 
     // Safety: prevent memory exhaustion from state explosion
-    if (this.stateCache.size > this.stateLimit) {
+    if (this.stateCount >= this.stateLimit) {
       throw new RE2JSDfaMemoryException('dfa error: Out of memory exception')
     }
 
-    const state = new DFAState(id, closureResult.pcs, closureResult.isMatch)
-    this.stateCache.set(id, state)
+    // State not found, create it and add to bucket
+    const state = new DFAState(sortedPCs, closureResult.isMatch)
+    bucket.push(state)
+    this.stateCount++
     return state
   }
 
@@ -145,7 +180,7 @@ export class DFA {
       const rune = r >> 3
       const width = r & 7
 
-      // Prevent infinite loop on EOF
+      // prevent infinite loop on EOF
       if (width === 0) {
         break
       }
