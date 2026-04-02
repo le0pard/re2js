@@ -45,7 +45,7 @@
     "@babel/preset-env": "^7.29.2",
     "@eslint/js": "^9.39.4",
     "@jest/globals": "^30.3.0",
-    "@rollup/plugin-babel": "^6.1.0",
+    "@rollup/plugin-babel": "^7.0.0",
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@unicode/unicode-16.0.0": "^1.6.16",

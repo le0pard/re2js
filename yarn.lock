@@ -2532,22 +2532,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-babel@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@rollup/plugin-babel@npm:6.1.0"
+"@rollup/plugin-babel@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "@rollup/plugin-babel@npm:7.0.0"
   dependencies:
     "@babel/helper-module-imports": "npm:^7.18.6"
     "@rollup/pluginutils": "npm:^5.0.1"
   peerDependencies:
     "@babel/core": ^7.0.0
     "@types/babel__core": ^7.1.9
-    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    rollup: ^2.0.0||^3.0.0||^4.0.0
   peerDependenciesMeta:
     "@types/babel__core":
       optional: true
     rollup:
       optional: true
-  checksum: 10/9971648c2c9f2d4b7cec1c35541384414d150d50937af3729eb8ea09fa71ad0e3d11ca10a03e4ae97c0d3d5c3d619e1b693cfe81257b8ad50a4844c88dbaf384
+  checksum: 10/0fa85b5dc077d26e9648ba2d2958f8dfed2a47e4657d2a05b73fdd1f8047a80045e890e6935f66963f1167e6e7c1a9188fa74bfd465dfdfe78a0174285a87b84
   languageName: node
   linkType: hard
 
@@ -7130,7 +7130,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.29.2"
     "@eslint/js": "npm:^9.39.4"
     "@jest/globals": "npm:^30.3.0"
-    "@rollup/plugin-babel": "npm:^6.1.0"
+    "@rollup/plugin-babel": "npm:^7.0.0"
     "@rollup/plugin-commonjs": "npm:^29.0.2"
     "@rollup/plugin-node-resolve": "npm:^16.0.3"
     "@unicode/unicode-16.0.0": "npm:^1.6.16"
