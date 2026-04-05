@@ -1079,9 +1079,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.55.0":
-  version: 2.55.0
-  resolution: "@sveltejs/kit@npm:2.55.0"
+"@sveltejs/kit@npm:^2.56.1":
+  version: 2.56.1
+  resolution: "@sveltejs/kit@npm:2.56.1"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     "@sveltejs/acorn-typescript": "npm:^1.0.5"
@@ -1099,7 +1099,7 @@ __metadata:
     "@opentelemetry/api": ^1.0.0
     "@sveltejs/vite-plugin-svelte": ^3.0.0 || ^4.0.0-next.1 || ^5.0.0 || ^6.0.0-next.0 || ^7.0.0
     svelte: ^4.0.0 || ^5.0.0-next.0
-    typescript: ^5.3.3
+    typescript: ^5.3.3 || ^6.0.0
     vite: ^5.0.3 || ^6.0.0 || ^7.0.0-beta.0 || ^8.0.0
   peerDependenciesMeta:
     "@opentelemetry/api":
@@ -1108,7 +1108,7 @@ __metadata:
       optional: true
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10/070df8c7dc8fc6da8dff94cf791eb2395950be9c502fedc6d15c5e238ec042ccda4591ca908e9f42aff5e76c475553a4b0ad3ef8a839a3eced705f69ebe00bc2
+  checksum: 10/603401ee615a8e3dcc90e6ed148225dce09d17e4484262160eb2a12d1c86edfa42ad7b94d8d61c3d25797404297bb8b7dc8b716840a887b15468f0edbce68faa
   languageName: node
   linkType: hard
 
@@ -3937,10 +3937,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"re2js@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "re2js@npm:1.3.1"
-  checksum: 10/0db8bbb694f6a55a243f3d81fea74f1cc48fd7aef2818b5cd61e60ed012ebb0b11da980c777750840356d763abd58b928c05a80df9cd4dce3cfa8b9979267c90
+"re2js@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "re2js@npm:1.3.2"
+  checksum: 10/103c083618fec748d568e8c9b6eda4fb1e565d85eda5541d727f166bb14873d9e64b8d28f231d5447ea0e78e3dc91a66191c3e3bab236112d8cd608481bb9781
   languageName: node
   linkType: hard
 
@@ -3951,7 +3951,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@picocss/pico": "npm:^2.1.1"
     "@sveltejs/adapter-static": "npm:^3.0.10"
-    "@sveltejs/kit": "npm:^2.55.0"
+    "@sveltejs/kit": "npm:^2.56.1"
     "@sveltejs/vite-plugin-svelte": "npm:^7.0.0"
     "@types/cookie": "npm:^1.0.0"
     "@yarnpkg/pnpify": "npm:^4.1.6"
@@ -3966,7 +3966,7 @@ __metadata:
     postcss-preset-env: "npm:^11.2.0"
     prettier: "npm:^3.8.1"
     prettier-plugin-svelte: "npm:^3.5.1"
-    re2js: "npm:^1.3.1"
+    re2js: "npm:^1.3.2"
     svelte: "npm:^5.55.1"
     svelte-check: "npm:^4.4.6"
     svelte-preprocess: "npm:^6.0.3"
