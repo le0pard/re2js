@@ -129,7 +129,7 @@ class RE2JS {
    * @throws RE2JSSyntaxException if the regular expression is malformed
    */
   static matches(regex, input) {
-    return RE2JS.compile(regex).matcher(input).matches()
+    return RE2JS.compile(regex).testExact(input)
   }
 
   /**
@@ -196,7 +196,7 @@ class RE2JS {
    * @returns {boolean} true if the regular expression matches the entire input
    */
   matches(input) {
-    return this.matcher(input).matches()
+    return this.testExact(input)
   }
 
   /**

@@ -100,7 +100,9 @@ RE2JS.LONGEST_MATCH
 
 ### Checking for Matches
 
-RE2JS allows you to check if a string matches a given regex pattern using the `matches()` function
+RE2JS allows you to check if a string matches a given regex pattern using the `matches()` function.
+
+***Performance Note:** The `matches()` method is highly optimized. It performs a strict anchored check and runs directly on the high-speed DFA (Deterministic Finite Automaton) engine without tracking capture groups or instantiating a stateful `Matcher` object.*
 
 ```js
 import { RE2JS } from 're2js'
@@ -163,7 +165,7 @@ matchString.find(7) // false
 
 ### High-Performance Boolean Testing
 
-If you only need to know **whether** a string matches a pattern (without extracting capture groups), you should use the `test()` and `testExact()` methods. Unlike `matches()` or `matcher()`, these methods do not instantiate stateful `Matcher` objects and request exactly `0` capture groups. This guarantees that execution is securely routed to the DFA (Deterministic Finite Automaton) engine whenever possible
+If you only need to know **whether** a string matches a pattern (without extracting capture groups), you should use the `test()`, `testExact()`, or `matches()` methods. Unlike `.matcher()`, these methods do not instantiate stateful `Matcher` objects and request exactly `0` capture groups. This guarantees that execution is securely routed to the high-speed DFA (Deterministic Finite Automaton) engine whenever possible in linear `O(n)` time
 
 #### `test(input)`
 
@@ -183,7 +185,9 @@ if (re.test('The system encountered a critical failure')) {
 
 #### `testExact(input)`
 
-Tests if the regular expression matches the entire input string (anchored to both start and end)
+Tests if the regular expression matches the entire input string (anchored to both start and end).
+
+*Note: `RE2JS.matches()` delegates to this method, so they provide the exact same performance and behavior.*
 
 ```js
 import { RE2JS } from 're2js';
