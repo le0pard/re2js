@@ -356,10 +356,10 @@ import { RE2JS } from 're2js'
 
 RE2JS.compile('(\\w+) (\\w+)')
   .matcher('Hello World')
-  .replaceAll('$0 - $0') // 'Hello World - Hello World'
+  .replaceAll('$& - $&') // 'Hello World - Hello World'
 RE2JS.compile('(\\w+) (\\w+)')
   .matcher('Hello World')
-  .replaceAll('$& - $&', true) // 'Hello World - Hello World'
+  .replaceAll('$0 - $0', true) // 'Hello World - Hello World'
 ```
 
 #### Replacing the First Occurrence
