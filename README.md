@@ -342,7 +342,7 @@ Parameters:
   - `$$` inserts a literal `$`
   - `$<name>` can be used to reference named capture groups
   - on invalid group - ignore it
-- `javaMode (Boolean)`: If set to `true`, the replacement follows Perl/JS's rules for replacement. Defaults to `false`. If `javaMode = true`, changed rules for capture groups and special characters:
+- `javaMode (Boolean)`: If set to `true`, the replacement follows Java's rules for replacement. Defaults to `false`. If `javaMode = true`, changed rules for capture groups and special characters:
   - `$0` refers to the entire matched substring
   - `$1, $2, ...` refer to the corresponding capture groups in the pattern
   - `\$` inserts a literal `$`
