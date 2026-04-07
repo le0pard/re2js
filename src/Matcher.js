@@ -43,7 +43,7 @@ class Matcher {
       .split('')
       .map((s) => {
         const c = s.codePointAt(0)
-        if (c === Codepoint.CODES['\\'] || c === Codepoint.CODES['$']) {
+        if (c === Codepoint.CODES.get('\\') || c === Codepoint.CODES.get('$')) {
           return `\\${s}`
         }
         return s

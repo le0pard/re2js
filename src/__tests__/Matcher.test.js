@@ -396,3 +396,34 @@ it('pattern longest match', () => {
   expect(longMatcher.find()).toBe(true)
   expect(longMatcher.substring(longMatcher.start(), longMatcher.end())).toEqual('aaa bbb')
 })
+
+describe('.quoteReplacement', () => {
+  const cases = [
+    ['hello world', 'hello world'], // No special characters
+    ['$1', '\\$1'], // Single dollar sign
+    ['\\', '\\\\'], // Single backslash
+    ['hello $1 \\ world', 'hello \\$1 \\\\ world'], // Mixed
+    ['$$', '\\$\\$'], // Multiple dollar signs
+    ['\\\\', '\\\\\\\\'], // Multiple backslashes
+    ['$name', '\\$name'], // Named group reference
+    ['$&', '\\$&'] // Entire match reference
+  ]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    expect(Matcher.quoteReplacement(input)).toEqual(expected)
+  })
+})
+
+describe('Replacement string injection prevention', () => {
+  it('should treat user input securely when passed through quoteReplacement', () => {
+    const maliciousUserInput = '$1' // Attempts to reference capture group 1
+    const safeReplacement = Matcher.quoteReplacement(maliciousUserInput)
+
+    // Pattern captures "world" into group 1
+    const matcher = RE2JS.compile('(world)').matcher('hello world')
+
+    // If vulnerable, it would output "hello world" (by evaluating $1).
+    // If fixed, it outputs "hello $1" (treating $1 as a literal string).
+    expect(matcher.replaceAll(safeReplacement)).toEqual('hello $1')
+  })
+})
