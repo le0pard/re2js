@@ -459,77 +459,27 @@ describe('replaceAll and replaceFirst', () => {
     }
   )
 
-  describe('default mode and groups', () => {
-    const defaultGroupCases = [
+  describe('default mode (JS semantics) and groups', () => {
+    const jsGroupCases = [
       ['(\\w+) (\\w+)', 'Hello World', '$2 - $1', 'World - Hello'],
+      ['(\\w+) (\\w+)', 'Hello World', '$5', '$5'], // JS mode leaves unmatched groups as literal string
       ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
       ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
-      ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', 'Hello World - Hello World'],
-      ['(\\w+) (\\w+)', 'Hello World', '$$0 - $$0', '$Hello World - $Hello World'],
-      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', '$& - $&'],
-      ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[$1] [$1] [$1] [$1]'],
-      ['(\\w+)', 'Hello World Dear Friend', '[$$1]', '[$Hello] [$World] [$Dear] [$Friend]'],
-      [
-        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
-        'max.power@example.com',
-        '${name} - user; ${domain} - domain',
-        'max.power - user; example.com - domain'
-      ],
-      [
-        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
-        'max.power@example.com',
-        '\\${name} - user; \\${domain} - domain',
-        '${name} - user; ${domain} - domain'
-      ],
-      [
-        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
-        'max.power@example.com',
-        '$<name> - user; $<domain> - domain',
-        '$<name> - user; $<domain> - domain'
-      ]
-    ]
-
-    test.concurrent.each(defaultGroupCases)(
-      'groups cases: pattern %p with input %p and replacement %p will return %p',
-      (pattern, input, replacement, expected) => {
-        const re = RE2JS.compile(pattern)
-        expect(re.matcher(input).replaceAll(replacement)).toEqual(expected)
-      }
-    )
-
-    it('throws on invalid groups', () => {
-      expect(() => RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$5')).toThrow(
-        new RE2JSGroupException('n > number of groups: 5')
-      )
-      expect(() =>
-        RE2JS.compile('(?P<name>[a-zA-Z0-9._%+-]+)').matcher('Hello World').replaceAll('${test}')
-      ).toThrow(new RE2JSGroupException("group 'test' not found"))
-      expect(() =>
-        RE2JS.compile('(?P<name>[a-zA-Z0-9._%+-]+)').matcher('Hello World').replaceAll('${test')
-      ).toThrow(new RE2JSGroupException("named capture group is missing trailing '}'"))
-    })
-  })
-
-  describe('perl mode and groups', () => {
-    const perlGroupCases = [
-      ['(\\w+) (\\w+)', 'Hello World', '$2 - $1', 'World - Hello'],
-      ['(\\w+) (\\w+)', 'Hello World', '$5', '$5'],
-      ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
-      ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
-      ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', '$0 - $0'],
-      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', 'Hello World - Hello World'],
-      ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[\\Hello] [\\World] [\\Dear] [\\Friend]'],
+      ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', '$0 - $0'], // $0 doesn't mean overall match in JS
+      ['(\\w+) (\\w+)', 'Hello World', '$$0 - $$0', '$0 - $0'], // $$ escapes to $
+      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', 'Hello World - Hello World'], // $& is overall match in JS
+      ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[\\Hello] [\\World] [\\Dear] [\\Friend]'], // \ is literal
       ['(\\w+)', 'Hello World Dear Friend', '[$$1]', '[$1] [$1] [$1] [$1]'],
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
         'max.power@example.com',
         '${name} - user; ${domain} - domain',
-        '${name} - user; ${domain} - domain'
+        '${name} - user; ${domain} - domain' // Java's ${name} is not evaluated
       ],
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
         'max.power@example.com',
-        '$<name> - user; $<domain> - domain',
+        '$<name> - user; $<domain> - domain', // JS uses $<name>
         'max.power - user; example.com - domain'
       ],
       [
@@ -558,13 +508,71 @@ describe('replaceAll and replaceFirst', () => {
       ]
     ]
 
-    test.concurrent.each(perlGroupCases)(
+    test.concurrent.each(jsGroupCases)(
       'groups cases: pattern %p with input %p and replacement %p will return %p',
       (pattern, input, replacement, expected) => {
         const re = RE2JS.compile(pattern)
+        // Verify default parses as JS mode
+        expect(re.matcher(input).replaceAll(replacement)).toEqual(expected)
+        // Verify explicit JS mode
+        expect(re.matcher(input).replaceAll(replacement, false)).toEqual(expected)
+      }
+    )
+  })
+
+  describe('java mode and groups', () => {
+    const javaGroupCases = [
+      ['(\\w+) (\\w+)', 'Hello World', '$2 - $1', 'World - Hello'],
+      ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
+      ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
+      ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', 'Hello World - Hello World'], // $0 is overall match in Java
+      ['(\\w+) (\\w+)', 'Hello World', '$$0 - $$0', '$Hello World - $Hello World'],
+      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', '$& - $&'], // $& is not evaluated
+      ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[$1] [$1] [$1] [$1]'], // \$ escapes the dollar
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '${name} - user; ${domain} - domain', // Java uses ${name}
+        'max.power - user; example.com - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '\\${name} - user; \\${domain} - domain',
+        '${name} - user; ${domain} - domain'
+      ],
+      [
+        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
+        'max.power@example.com',
+        '$<name> - user; $<domain> - domain',
+        '$<name> - user; $<domain> - domain' // JS's $<name> is not evaluated
+      ]
+    ]
+
+    test.concurrent.each(javaGroupCases)(
+      'groups cases: pattern %p with input %p and replacement %p will return %p',
+      (pattern, input, replacement, expected) => {
+        const re = RE2JS.compile(pattern)
+        // Verify explicit Java mode
         expect(re.matcher(input).replaceAll(replacement, true)).toEqual(expected)
       }
     )
+
+    it('throws on invalid groups', () => {
+      expect(() =>
+        RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$5', true)
+      ).toThrow(new RE2JSGroupException('n > number of groups: 5'))
+      expect(() =>
+        RE2JS.compile('(?P<name>[a-zA-Z0-9._%+-]+)')
+          .matcher('Hello World')
+          .replaceAll('${test}', true)
+      ).toThrow(new RE2JSGroupException("group 'test' not found"))
+      expect(() =>
+        RE2JS.compile('(?P<name>[a-zA-Z0-9._%+-]+)')
+          .matcher('Hello World')
+          .replaceAll('${test', true)
+      ).toThrow(new RE2JSGroupException("named capture group is missing trailing '}'"))
+    })
   })
 })
 
@@ -600,13 +608,15 @@ it('date regex', () => {
 
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
-    // Default mode
-    expect(RE2JS.quoteReplacement('$1')).toEqual('\\$1')
-    expect(RE2JS.quoteReplacement('$1', false)).toEqual('\\$1')
-    expect(RE2JS.quoteReplacement('\\')).toEqual('\\\\')
+    // Default mode (JS semantics)
+    expect(RE2JS.quoteReplacement('$1')).toEqual('$$1')
+    expect(RE2JS.quoteReplacement('$1', false)).toEqual('$$1')
+    expect(RE2JS.quoteReplacement('\\')).toEqual('\\')
+    expect(RE2JS.quoteReplacement('foo$bar\\baz')).toEqual('foo$$bar\\baz')
 
-    // Perl mode
-    expect(RE2JS.quoteReplacement('$1', true)).toEqual('$$1')
-    expect(RE2JS.quoteReplacement('\\', true)).toEqual('\\')
+    // Java mode
+    expect(RE2JS.quoteReplacement('$1', true)).toEqual('\\$1')
+    expect(RE2JS.quoteReplacement('\\', true)).toEqual('\\\\')
+    expect(RE2JS.quoteReplacement('foo$bar\\baz', true)).toEqual('foo\\$bar\\\\baz')
   })
 })

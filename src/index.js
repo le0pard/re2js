@@ -68,11 +68,11 @@ class RE2JS {
    * This is a convenience delegation to {@link Matcher.quoteReplacement}.
    *
    * @param {string} str the string to be quoted
-   * @param {boolean} [perlMode=false] whether the replacement will be used in perlMode
+   * @param {boolean} [javaMode=false] whether the replacement will be used in javaMode
    * @returns {string} the quoted string
    */
-  static quoteReplacement(str, perlMode = false) {
-    return Matcher.quoteReplacement(str, perlMode)
+  static quoteReplacement(str, javaMode = false) {
+    return Matcher.quoteReplacement(str, javaMode)
   }
 
   /**

@@ -69,71 +69,187 @@ describe('.macthes', () => {
 })
 
 describe('.replaceAll', () => {
-  const cases = [
-    [
-      "What the Frog's Eye Tells the Frog's Brain",
-      'Frog',
-      'Lizard',
-      "What the Lizard's Eye Tells the Lizard's Brain"
-    ],
-    [
-      "What the Frog's Eye Tells the Frog's Brain",
-      'F(rog)',
-      '\\$Liza\\rd$1',
-      "What the $Lizardrog's Eye Tells the $Lizardrog's Brain"
-    ],
-    [
-      'abcdefghijklmnopqrstuvwxyz123',
-      '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
-      '$10$20',
-      'jb0wo0123'
-    ],
-    ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1><\u0062><\u00e7><\u2655>'],
-    ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$0>', '<\u00e1>\u0062<\u00e7>\u2655'],
-    ['hello world', 'z*', 'x', 'xhxexlxlxox xwxoxrxlxdx'],
-    ['123:foo', '(?:\\w+|\\d+:foo)', 'x', 'x:x'],
-    ['123:foo', '(?:\\d+:foo|\\w+)', 'x', 'x'],
-    ['aab', 'a*', '<$0>', '<aa><>b<>'],
-    ['aab', 'a*?', '<$0>', '<>a<>a<>b<>']
-  ]
+  describe('default mode (javaMode = false, JS semantics)', () => {
+    const cases = [
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'Frog',
+        'Lizard',
+        "What the Lizard's Eye Tells the Lizard's Brain"
+      ],
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'F(rog)',
+        '$$Liza\\rd$1', // JS mode: $$ escapes to $, \r remains \r, $1 evaluates to group 1
+        "What the $Liza\\rdrog's Eye Tells the $Liza\\rdrog's Brain"
+      ],
+      [
+        'abcdefghijklmnopqrstuvwxyz123',
+        '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
+        '$10$20', // JS mode: $10 parses as group 10 ('j'). $20 hits max groups (13), parses as group 2 + '0' ('b0')
+        'jb0wo0123'
+      ],
+      ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1><\u0062><\u00e7><\u2655>'],
+      ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$&>', '<\u00e1>\u0062<\u00e7>\u2655'], // $& refers to full match
+      ['hello world', 'z*', 'x', 'xhxexlxlxox xwxoxrxlxdx'],
+      ['123:foo', '(?:\\w+|\\d+:foo)', 'x', 'x:x'],
+      ['123:foo', '(?:\\d+:foo|\\w+)', 'x', 'x'],
+      ['aab', 'a*', '<$&>', '<aa><>b<>'], // $& refers to full match
+      ['aab', 'a*?', '<$&>', '<>a<>a<>b<>'] // $& refers to full match
+    ]
 
-  test.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
-    for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-      expect(RE2JS.compile(regex).matcher(input).replaceAll(repl)).toEqual(actual)
-    }
+    test.concurrent.each(cases)(
+      'orig %p regex %p repl %p actual %p',
+      (orig, regex, repl, actual) => {
+        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+          // Defaults to JS Mode (false)
+          expect(RE2JS.compile(regex).matcher(input).replaceAll(repl)).toEqual(actual)
+          expect(RE2JS.compile(regex).matcher(input).replaceAll(repl, false)).toEqual(actual)
+        }
+      }
+    )
+  })
+
+  describe('java mode (javaMode = true)', () => {
+    const cases = [
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'Frog',
+        'Lizard',
+        "What the Lizard's Eye Tells the Lizard's Brain"
+      ],
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'F(rog)',
+        '\\$Liza\\rd$1', // Java mode: \$ escapes to $, \r escapes to r
+        "What the $Lizardrog's Eye Tells the $Lizardrog's Brain"
+      ],
+      [
+        'abcdefghijklmnopqrstuvwxyz123',
+        '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
+        '$10$20', // Java mode: works identically here because it also caps parsing safely
+        'jb0wo0123'
+      ],
+      ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1><\u0062><\u00e7><\u2655>'],
+      ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$0>', '<\u00e1>\u0062<\u00e7>\u2655'], // $0 refers to full match
+      ['hello world', 'z*', 'x', 'xhxexlxlxox xwxoxrxlxdx'],
+      ['123:foo', '(?:\\w+|\\d+:foo)', 'x', 'x:x'],
+      ['123:foo', '(?:\\d+:foo|\\w+)', 'x', 'x'],
+      ['aab', 'a*', '<$0>', '<aa><>b<>'],
+      ['aab', 'a*?', '<$0>', '<>a<>a<>b<>']
+    ]
+
+    test.concurrent.each(cases)(
+      'orig %p regex %p repl %p actual %p',
+      (orig, regex, repl, actual) => {
+        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+          expect(RE2JS.compile(regex).matcher(input).replaceAll(repl, true)).toEqual(actual)
+        }
+      }
+    )
   })
 })
 
 describe('.replaceFirst', () => {
-  const cases = [
-    [
-      "What the Frog's Eye Tells the Frog's Brain",
-      'Frog',
-      'Lizard',
-      "What the Lizard's Eye Tells the Frog's Brain"
-    ],
-    [
-      "What the Frog's Eye Tells the Frog's Brain",
-      'F(rog)',
-      '\\$Liza\\rd$1',
-      "What the $Lizardrog's Eye Tells the Frog's Brain"
-    ],
-    [
-      'abcdefghijklmnopqrstuvwxyz123',
-      '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
-      '$10$20',
-      'jb0nopqrstuvwxyz123'
-    ],
-    ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1>\u0062\u00e7\u2655'],
-    ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$0>', '<\u00e1>\u0062\u00e7\u2655'],
-    ['hello world', 'z*', 'x', 'xhello world'],
-    ['aab', 'a*', '<$0>', '<aa>b'],
-    ['aab', 'a*?', '<$0>', '<>aab']
-  ]
+  describe('default mode (javaMode = false, JS semantics)', () => {
+    const cases = [
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'Frog',
+        'Lizard',
+        "What the Lizard's Eye Tells the Frog's Brain"
+      ],
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'F(rog)',
+        '$$Liza\\rd$1',
+        "What the $Liza\\rdrog's Eye Tells the Frog's Brain"
+      ],
+      [
+        'abcdefghijklmnopqrstuvwxyz123',
+        '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
+        '$10$20',
+        'jb0nopqrstuvwxyz123'
+      ],
+      ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1>\u0062\u00e7\u2655'],
+      ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$&>', '<\u00e1>\u0062\u00e7\u2655'], // $& refers to full match
+      ['hello world', 'z*', 'x', 'xhello world'],
+      ['aab', 'a*', '<$&>', '<aa>b'],
+      ['aab', 'a*?', '<$&>', '<>aab']
+    ]
 
-  test.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
-    for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-      expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl)).toEqual(actual)
+    test.concurrent.each(cases)(
+      'orig %p regex %p repl %p actual %p',
+      (orig, regex, repl, actual) => {
+        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+          expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl)).toEqual(actual)
+          expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl, false)).toEqual(actual)
+        }
+      }
+    )
+  })
+
+  describe('java mode (javaMode = true)', () => {
+    const cases = [
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'Frog',
+        'Lizard',
+        "What the Lizard's Eye Tells the Frog's Brain"
+      ],
+      [
+        "What the Frog's Eye Tells the Frog's Brain",
+        'F(rog)',
+        '\\$Liza\\rd$1',
+        "What the $Lizardrog's Eye Tells the Frog's Brain"
+      ],
+      [
+        'abcdefghijklmnopqrstuvwxyz123',
+        '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
+        '$10$20',
+        'jb0nopqrstuvwxyz123'
+      ],
+      ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1>\u0062\u00e7\u2655'],
+      ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$0>', '<\u00e1>\u0062\u00e7\u2655'], // $0 refers to full match
+      ['hello world', 'z*', 'x', 'xhello world'],
+      ['aab', 'a*', '<$0>', '<aa>b'],
+      ['aab', 'a*?', '<$0>', '<>aab']
+    ]
+
+    test.concurrent.each(cases)(
+      'orig %p regex %p repl %p actual %p',
+      (orig, regex, repl, actual) => {
+        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+          expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl, true)).toEqual(actual)
+        }
+      }
+    )
+  })
+})
+
+describe('invalid replacement', () => {
+  it('falls back to literal string in default JS mode instead of throwing', () => {
+    const p = RE2JS.compile('abc')
+
+    const text = 'abc'
+    for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
+      const matchString = p.matcher(input)
+
+      // In JS mode, evaluating a non-existent group outputs literally
+      expect(matchString.replaceFirst('$4')).toEqual('$4')
+      expect(matchString.replaceFirst('$4', false)).toEqual('$4')
+    }
+  })
+
+  it('raises error in java mode', () => {
+    const p = RE2JS.compile('abc')
+
+    const text = 'abc'
+    for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
+      const matchString = p.matcher(input)
+      expect(() => matchString.replaceFirst('$4', true)).toThrow(
+        new RE2JSGroupException('n > number of groups: 4')
+      )
     }
   })
 })
@@ -233,20 +349,6 @@ describe('invalid find', () => {
       const matchString = p.matcher(input)
       expect(() => matchString.find(10)).toThrow(
         new RE2JSGroupException('start index out of bounds: 10')
-      )
-    }
-  })
-})
-
-describe('invalid replacement', () => {
-  it('raise error', () => {
-    const p = RE2JS.compile('abc')
-
-    const text = 'abc'
-    for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
-      const matchString = p.matcher(input)
-      expect(() => matchString.replaceFirst('$4')).toThrow(
-        new RE2JSGroupException('n > number of groups: 4')
       )
     }
   })
@@ -398,35 +500,41 @@ it('pattern longest match', () => {
 })
 
 describe('.quoteReplacement', () => {
-  describe('default mode (perlMode = false)', () => {
+  describe('default mode (javaMode = false, JS semantics)', () => {
     const cases = [
-      ['hello world', 'hello world'],
-      ['$1', '\\$1'],
-      ['\\', '\\\\'],
-      ['hello $1 \\ world', 'hello \\$1 \\\\ world'],
-      ['$$', '\\$\\$'],
-      ['\\\\', '\\\\\\\\'],
-      ['$name', '\\$name'],
-      ['$&', '\\$&']
+      ['', ''], // Empty string
+      ['hello world', 'hello world'], // No special characters
+      ['$1', '$$1'], // Single dollar sign
+      ['\\', '\\'], // Backslash shouldn't be escaped in JS mode
+      ['hello $1 \\ world', 'hello $$1 \\ world'], // Mixed characters
+      ['$$', '$$$$'], // Multiple dollar signs
+      ['\\\\', '\\\\'], // Multiple backslashes
+      ['$name', '$$name'], // Named group reference
+      ['$&', '$$&'], // Entire match reference
+      ['$1$2$3', '$$1$$2$$3'], // Sequential references
+      ['\\$1\\', '\\$$1\\'] // Mixed sequential
     ]
 
     test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
-      // Should default to false if omitted
+      // Should default to JS mode if omitted
       expect(Matcher.quoteReplacement(input)).toEqual(expected)
       expect(Matcher.quoteReplacement(input, false)).toEqual(expected)
     })
   })
 
-  describe('perl mode (perlMode = true)', () => {
+  describe('java mode (javaMode = true)', () => {
     const cases = [
-      ['hello world', 'hello world'],
-      ['$1', '$$1'],
-      ['\\', '\\'], // Backslash shouldn't be escaped in Perl mode
-      ['hello $1 \\ world', 'hello $$1 \\ world'],
-      ['$$', '$$$$'],
-      ['\\\\', '\\\\'],
-      ['$name', '$$name'],
-      ['$&', '$$&']
+      ['', ''], // Empty string
+      ['hello world', 'hello world'], // No special characters
+      ['$1', '\\$1'], // Single dollar sign
+      ['\\', '\\\\'], // Single backslash
+      ['hello $1 \\ world', 'hello \\$1 \\\\ world'], // Mixed characters
+      ['$$', '\\$\\$'], // Multiple dollar signs
+      ['\\\\', '\\\\\\\\'], // Multiple backslashes
+      ['$name', '\\$name'], // Named group reference
+      ['$&', '\\$&'], // Entire match reference
+      ['$1$2$3', '\\$1\\$2\\$3'], // Sequential references
+      ['\\$1\\', '\\\\\\$1\\\\'] // Mixed sequential
     ]
 
     test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
@@ -436,25 +544,26 @@ describe('.quoteReplacement', () => {
 })
 
 describe('Replacement String Injection Prevention', () => {
-  it('should safely replace user input in default mode', () => {
+  it('should safely replace user input in default JS mode', () => {
     const maliciousUserInput = '$1' // Attempts to reference capture group 1
-    const safeReplacement = Matcher.quoteReplacement(maliciousUserInput, false)
+    const safeReplacement = Matcher.quoteReplacement(maliciousUserInput) // Defaults to false
 
     // Pattern captures "world" into group 1
     const matcher = RE2JS.compile('(world)').matcher('hello world')
 
     // If vulnerable, it would output "hello world" (evaluating $1)
-    // If fixed, it outputs "hello $1" (treating $1 as a literal string)
+    // If fixed, it outputs "hello $1" (treating $1 as a literal string via $$1)
+    expect(matcher.replaceAll(safeReplacement)).toEqual('hello $1')
     expect(matcher.replaceAll(safeReplacement, false)).toEqual('hello $1')
   })
 
-  it('should safely replace user input in perl mode', () => {
-    const maliciousUserInput = '$1' // Attempts to reference capture group 1
+  it('should safely replace user input in Java mode', () => {
+    const maliciousUserInput = '$1'
     const safeReplacement = Matcher.quoteReplacement(maliciousUserInput, true)
 
     const matcher = RE2JS.compile('(world)').matcher('hello world')
 
-    // Must output "hello $1" exactly, without any stray backslashes
+    // Must output "hello $1" exactly, treating it as a literal string via \$1
     expect(matcher.replaceAll(safeReplacement, true)).toEqual('hello $1')
   })
 })

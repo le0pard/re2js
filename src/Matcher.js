@@ -32,37 +32,37 @@ class Matcher {
    * {@link #appendReplacement} as a literal replacement of {@code s}.
    *
    * @param {string} str the string to be quoted
-   * @param {boolean} [perlMode=false] whether the replacement will be used in perlMode
+   * @param {boolean} [javaMode=false] whether the replacement will be used in javaMode
    * @returns {string} the quoted string
    */
-  static quoteReplacement(str, perlMode = false) {
-    if (perlMode) {
-      // In Perl mode, '\' is not a special character, but '$' must be escaped as '$$'
-      if (str.indexOf('$') < 0) {
+  static quoteReplacement(str, javaMode = false) {
+    if (javaMode) {
+      // Java mode escape '\' and '$' with a backslash
+      if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
         return str
       }
+
       return str
         .split('')
         .map((s) => {
-          if (s.codePointAt(0) === Codepoint.CODES.get('$')) {
-            return '$$'
+          const c = s.codePointAt(0)
+          if (c === Codepoint.CODES.get('\\') || c === Codepoint.CODES.get('$')) {
+            return `\\${s}`
           }
           return s
         })
         .join('')
     }
 
-    // Default mode: escape '\' and '$' with a backslash
-    if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
+    // In JS mode, '\' is not a special character, but '$' must be escaped as '$$'
+    if (str.indexOf('$') < 0) {
       return str
     }
-
     return str
       .split('')
       .map((s) => {
-        const c = s.codePointAt(0)
-        if (c === Codepoint.CODES.get('\\') || c === Codepoint.CODES.get('$')) {
-          return `\\${s}`
+        if (s.codePointAt(0) === Codepoint.CODES.get('$')) {
+          return '$$'
         }
         return s
       })
@@ -374,13 +374,13 @@ class Matcher {
    * earlier, escape the first digit that should not be used.
    *
    * @param {string} replacement the replacement string
-   * @param {boolean} [perlMode=false] activate perl/js mode (different behaviour for capture groups and special characters)
+   * @param {boolean} [javaMode=false] activate java mode (different behaviour for capture groups and special characters)
    * @returns {string}
    * @throws IllegalStateException if there was no most recent match
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group
    * @private
    */
-  appendReplacement(replacement, perlMode = false) {
+  appendReplacement(replacement, javaMode = false) {
     let res = ''
     const s = this.start()
     const e = this.end()
@@ -388,9 +388,9 @@ class Matcher {
       res += this.substring(this.appendPos, s)
     }
     this.appendPos = e
-    res += perlMode
-      ? this.appendReplacementInternalPerl(replacement)
-      : this.appendReplacementInternal(replacement)
+    res += javaMode
+      ? this.appendReplacementInternalJava(replacement)
+      : this.appendReplacementInternalJs(replacement)
     return res
   }
 
@@ -399,7 +399,7 @@ class Matcher {
    * @returns {string}
    * @private
    */
-  appendReplacementInternal(replacement) {
+  appendReplacementInternalJava(replacement) {
     let res = ''
     let last = 0
     const m = replacement.length
@@ -486,7 +486,7 @@ class Matcher {
    * @returns {string}
    * @private
    */
-  appendReplacementInternalPerl(replacement) {
+  appendReplacementInternalJs(replacement) {
     let res = ''
     let last = 0
     const m = replacement.length
@@ -605,12 +605,12 @@ class Matcher {
    * {@code appendReplacement}.
    *
    * @param {string} replacement - the replacement string
-   * @param {boolean} [perlMode=false] - activate perl/js mode (different behaviour for capture groups and special characters)
+   * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string} the input string with the matches replaced
-   * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
+   * @throws IndexOutOfBoundsException if replacement refers to an invalid group and javaMode is true
    */
-  replaceAll(replacement, perlMode = false) {
-    return this.replace(replacement, true, perlMode)
+  replaceAll(replacement, javaMode = false) {
+    return this.replace(replacement, true, javaMode)
   }
 
   /**
@@ -618,28 +618,28 @@ class Matcher {
    * {@code appendReplacement}.
    *
    * @param {string} replacement - the replacement string
-   * @param {boolean} [perlMode=false] - activate perl/js mode (different behaviour for capture groups and special characters)
+   * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string} the input string with the first match replaced
-   * @throws IndexOutOfBoundsException if replacement refers to an invalid group and perlMode is false
+   * @throws IndexOutOfBoundsException if replacement refers to an invalid group and javaMode is true
    */
-  replaceFirst(replacement, perlMode = false) {
-    return this.replace(replacement, false, perlMode)
+  replaceFirst(replacement, javaMode = false) {
+    return this.replace(replacement, false, javaMode)
   }
 
   /**
    * Helper: replaceAll/replaceFirst hybrid.
    * @param {string} replacement - the replacement string
    * @param {boolean} [all=true] - replace all matches
-   * @param {boolean} [perlMode=false] - activate perl/js mode (different behaviour for capture groups and special characters)
+   * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string}
    * @private
    */
-  replace(replacement, all = true, perlMode = false) {
+  replace(replacement, all = true, javaMode = false) {
     let res = ''
 
     this.reset()
     while (this.find()) {
-      res += this.appendReplacement(replacement, perlMode)
+      res += this.appendReplacement(replacement, javaMode)
       if (!all) {
         break
       }

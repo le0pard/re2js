@@ -337,17 +337,17 @@ Note that the replacement string can include references to capturing groups from
 
 Parameters:
 - `replacement (String)`: The string that replaces the substrings found. Capture groups and special characters in the replacement string have special behavior. For example:
-  - `$0` refers to the entire matched substring
-  - `$1, $2, ...` refer to the corresponding capture groups in the pattern
-  - `\$` inserts a literal `$`
-  - `${name}` can be used to reference named capture groups
-  - on invalid group - throw exception
-- `perlMode (Boolean)`: If set to `true`, the replacement follows Perl/JS's rules for replacement. Defaults to `false`. If `perlMode = true`, changed rules for capture groups and special characters:
   - `$&` refers to the entire matched substring
   - `$1, $2, ...` refer to the corresponding capture groups in the pattern
   - `$$` inserts a literal `$`
   - `$<name>` can be used to reference named capture groups
   - on invalid group - ignore it
+- `javaMode (Boolean)`: If set to `true`, the replacement follows Perl/JS's rules for replacement. Defaults to `false`. If `javaMode = true`, changed rules for capture groups and special characters:
+  - `$0` refers to the entire matched substring
+  - `$1, $2, ...` refer to the corresponding capture groups in the pattern
+  - `\$` inserts a literal `$`
+  - `${name}` can be used to reference named capture groups
+  - on invalid group - throw exception
 
 Examples:
 
@@ -377,13 +377,13 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
 ```
 
-Function support second argument `perlMode`, which work in the same way, as for `replaceAll` function
+Function support second argument `javaMode`, which work in the same way, as for `replaceAll` function
 
 ### Safe Replacements
 
 When using untrusted user input as a replacement string, you must escape special characters so they aren't accidentally evaluated as capture groups (e.g., `$1`).
 
-Use the static method `quoteReplacement(string, perlMode)` to safely escape these characters. **Note:** You must pass the same `perlMode` boolean to `quoteReplacement` that you plan to use in `replaceAll()` / `replaceFirst()`, because the two modes use different escaping logic
+Use the static method `quoteReplacement(string, javaMode)` to safely escape these characters. **Note:** You must pass the same `javaMode` boolean to `quoteReplacement` that you plan to use in `replaceAll()` / `replaceFirst()`, because the two modes use different escaping logic
 
 ```js
 import { RE2JS } from 're2js'
