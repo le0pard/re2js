@@ -398,32 +398,63 @@ it('pattern longest match', () => {
 })
 
 describe('.quoteReplacement', () => {
-  const cases = [
-    ['hello world', 'hello world'], // No special characters
-    ['$1', '\\$1'], // Single dollar sign
-    ['\\', '\\\\'], // Single backslash
-    ['hello $1 \\ world', 'hello \\$1 \\\\ world'], // Mixed
-    ['$$', '\\$\\$'], // Multiple dollar signs
-    ['\\\\', '\\\\\\\\'], // Multiple backslashes
-    ['$name', '\\$name'], // Named group reference
-    ['$&', '\\$&'] // Entire match reference
-  ]
+  describe('default mode (perlMode = false)', () => {
+    const cases = [
+      ['hello world', 'hello world'],
+      ['$1', '\\$1'],
+      ['\\', '\\\\'],
+      ['hello $1 \\ world', 'hello \\$1 \\\\ world'],
+      ['$$', '\\$\\$'],
+      ['\\\\', '\\\\\\\\'],
+      ['$name', '\\$name'],
+      ['$&', '\\$&']
+    ]
 
-  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
-    expect(Matcher.quoteReplacement(input)).toEqual(expected)
+    test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+      // Should default to false if omitted
+      expect(Matcher.quoteReplacement(input)).toEqual(expected)
+      expect(Matcher.quoteReplacement(input, false)).toEqual(expected)
+    })
+  })
+
+  describe('perl mode (perlMode = true)', () => {
+    const cases = [
+      ['hello world', 'hello world'],
+      ['$1', '$$1'],
+      ['\\', '\\'], // Backslash shouldn't be escaped in Perl mode
+      ['hello $1 \\ world', 'hello $$1 \\ world'],
+      ['$$', '$$$$'],
+      ['\\\\', '\\\\'],
+      ['$name', '$$name'],
+      ['$&', '$$&']
+    ]
+
+    test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+      expect(Matcher.quoteReplacement(input, true)).toEqual(expected)
+    })
   })
 })
 
-describe('Replacement string injection prevention', () => {
-  it('should treat user input securely when passed through quoteReplacement', () => {
+describe('Replacement String Injection Prevention', () => {
+  it('should safely replace user input in default mode', () => {
     const maliciousUserInput = '$1' // Attempts to reference capture group 1
-    const safeReplacement = Matcher.quoteReplacement(maliciousUserInput)
+    const safeReplacement = Matcher.quoteReplacement(maliciousUserInput, false)
 
     // Pattern captures "world" into group 1
     const matcher = RE2JS.compile('(world)').matcher('hello world')
 
-    // If vulnerable, it would output "hello world" (by evaluating $1).
-    // If fixed, it outputs "hello $1" (treating $1 as a literal string).
-    expect(matcher.replaceAll(safeReplacement)).toEqual('hello $1')
+    // If vulnerable, it would output "hello world" (evaluating $1)
+    // If fixed, it outputs "hello $1" (treating $1 as a literal string)
+    expect(matcher.replaceAll(safeReplacement, false)).toEqual('hello $1')
+  })
+
+  it('should safely replace user input in perl mode', () => {
+    const maliciousUserInput = '$1' // Attempts to reference capture group 1
+    const safeReplacement = Matcher.quoteReplacement(maliciousUserInput, true)
+
+    const matcher = RE2JS.compile('(world)').matcher('hello world')
+
+    // Must output "hello $1" exactly, without any stray backslashes
+    expect(matcher.replaceAll(safeReplacement, true)).toEqual('hello $1')
   })
 })

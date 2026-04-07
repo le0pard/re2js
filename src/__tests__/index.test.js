@@ -597,3 +597,16 @@ it('date regex', () => {
   expect(m.find()).toBe(true)
   expect(m.group()).toEqual('2023-02-02')
 })
+
+describe('.quoteReplacement', () => {
+  it('delegates to Matcher.quoteReplacement', () => {
+    // Default mode
+    expect(RE2JS.quoteReplacement('$1')).toEqual('\\$1')
+    expect(RE2JS.quoteReplacement('$1', false)).toEqual('\\$1')
+    expect(RE2JS.quoteReplacement('\\')).toEqual('\\\\')
+
+    // Perl mode
+    expect(RE2JS.quoteReplacement('$1', true)).toEqual('$$1')
+    expect(RE2JS.quoteReplacement('\\', true)).toEqual('\\')
+  })
+})

@@ -62,6 +62,20 @@ class RE2JS {
   }
 
   /**
+   * Quotes '\' and '$' in {@code str}, so that the returned string could be used in
+   * replacement methods as a literal replacement of {@code str}.
+   *
+   * This is a convenience delegation to {@link Matcher.quoteReplacement}.
+   *
+   * @param {string} str the string to be quoted
+   * @param {boolean} [perlMode=false] whether the replacement will be used in perlMode
+   * @returns {string} the quoted string
+   */
+  static quoteReplacement(str, perlMode = false) {
+    return Matcher.quoteReplacement(str, perlMode)
+  }
+
+  /**
    * Translates a given regular expression string to ensure compatibility with RE2JS.
    *
    * This function preprocesses the input regex string by applying necessary transformations,

@@ -379,6 +379,30 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
 
 Function support second argument `perlMode`, which work in the same way, as for `replaceAll` function
 
+### Safe Replacements
+
+When using untrusted user input as a replacement string, you must escape special characters so they aren't accidentally evaluated as capture groups (e.g., `$1`).
+
+Use the static method `RE2JS.quoteReplacement(string, perlMode)` to safely escape these characters. **Note:** You must pass the same `perlMode` boolean to `quoteReplacement` that you plan to use in `replaceAll()` / `replaceFirst()`, because the two modes use different escaping logic
+
+#### Example
+
+```js
+import { RE2JS } from 're2js'
+
+const text = 'The cost is 100 bucks.'
+const regex = RE2JS.compile('100 bucks')
+const unsafeUserInput = '$500'
+
+// Safe (Default Mode)
+const safeDefault = RE2JS.quoteReplacement(unsafeUserInput) // "\$500"
+regex.matcher(text).replaceAll(safeDefault) // "The cost is $500."
+
+// Safe (Perl Mode)
+const safePerl = RE2JS.quoteReplacement(unsafeUserInput, true) // "$$500"
+regex.matcher(text).replaceAll(safePerl, true) // "The cost is $500."
+```
+
 ### Translating Regular Expressions
 
 The `translateRegExp()` method preprocesses a given regular expression string to ensure compatibility with RE2JS.

@@ -32,9 +32,27 @@ class Matcher {
    * {@link #appendReplacement} as a literal replacement of {@code s}.
    *
    * @param {string} str the string to be quoted
+   * @param {boolean} [perlMode=false] whether the replacement will be used in perlMode
    * @returns {string} the quoted string
    */
-  static quoteReplacement(str) {
+  static quoteReplacement(str, perlMode = false) {
+    if (perlMode) {
+      // In Perl mode, '\' is not a special character, but '$' must be escaped as '$$'
+      if (str.indexOf('$') < 0) {
+        return str
+      }
+      return str
+        .split('')
+        .map((s) => {
+          if (s.codePointAt(0) === Codepoint.CODES.get('$')) {
+            return '$$'
+          }
+          return s
+        })
+        .join('')
+    }
+
+    // Default mode: escape '\' and '$' with a backslash
     if (str.indexOf('\\') < 0 && str.indexOf('$') < 0) {
       return str
     }
