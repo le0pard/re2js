@@ -383,7 +383,7 @@ Function support second argument `perlMode`, which work in the same way, as for 
 
 When using untrusted user input as a replacement string, you must escape special characters so they aren't accidentally evaluated as capture groups (e.g., `$1`).
 
-Use the static method `RE2JS.quoteReplacement(string, perlMode)` to safely escape these characters. **Note:** You must pass the same `perlMode` boolean to `quoteReplacement` that you plan to use in `replaceAll()` / `replaceFirst()`, because the two modes use different escaping logic
+Use the static method `quoteReplacement(string, perlMode)` to safely escape these characters. **Note:** You must pass the same `perlMode` boolean to `quoteReplacement` that you plan to use in `replaceAll()` / `replaceFirst()`, because the two modes use different escaping logic
 
 ```js
 import { RE2JS } from 're2js'
