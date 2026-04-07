@@ -396,9 +396,9 @@ const unsafeUserInput = '$500'
 const safeDefault = RE2JS.quoteReplacement(unsafeUserInput) // "\$500"
 regex.matcher(text).replaceAll(safeDefault) // "The cost is $500."
 
-// Safe (Perl Mode)
-const safePerl = RE2JS.quoteReplacement(unsafeUserInput, true) // "$$500"
-regex.matcher(text).replaceAll(safePerl, true) // "The cost is $500."
+// Safe (Java Mode)
+const safeJava = RE2JS.quoteReplacement(unsafeUserInput, true) // "$$500"
+regex.matcher(text).replaceAll(safeJava, true) // "The cost is $500."
 ```
 
 ### Escaping Special Characters

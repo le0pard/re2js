@@ -444,7 +444,7 @@ describe('replaceAll and replaceFirst', () => {
     (pattern, input, replacement, expected) => {
       const re = RE2JS.compile(pattern)
       expect(re.matcher(input).replaceAll(replacement)).toEqual(expected)
-      // with perl mode
+      // with java mode
       expect(re.matcher(input).replaceAll(replacement, true)).toEqual(expected)
     }
   )
@@ -454,7 +454,7 @@ describe('replaceAll and replaceFirst', () => {
     (pattern, input, replacement, expected) => {
       const re = RE2JS.compile(pattern)
       expect(re.matcher(input).replaceFirst(replacement)).toEqual(expected)
-      // with perl mode
+      // with java mode
       expect(re.matcher(input).replaceFirst(replacement, true)).toEqual(expected)
     }
   )
