@@ -385,8 +385,6 @@ When using untrusted user input as a replacement string, you must escape special
 
 Use the static method `RE2JS.quoteReplacement(string, perlMode)` to safely escape these characters. **Note:** You must pass the same `perlMode` boolean to `quoteReplacement` that you plan to use in `replaceAll()` / `replaceFirst()`, because the two modes use different escaping logic
 
-#### Example
-
 ```js
 import { RE2JS } from 're2js'
 
