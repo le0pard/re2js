@@ -447,50 +447,66 @@ RE2JS.matches(unicodeRegexp, '😃') // false
 
 ## Performance
 
-The RE2JS engine runs more slowly compared to native RegExp objects. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of optimizations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation (plus Golang stuff, which are not present in Java implementation, like checks for regular expression complexity) to a pure JS version. This is another reason why the pure JS version will perform more slowly compared to the original RE2 engine.
+The RE2JS engine runs more slowly compared to native RegExp objects for simple queries. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of highly optimized memory operations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation (plus Golang additions) to a pure JS version.
 
-Should you require high performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
+Recently, RE2JS was upgraded with a **Lazy DFA (Deterministic Finite Automaton)** fast-path. This allows it to perform non-capturing matches (using `.test()`, `.testExact()`, or `.matches()`) at near-native speeds.
 
- - [Node-RE2](https://github.com/uhop/node-re2/): A powerful RE2 package for Node.js
+Should you require maximum absolute performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
+
+ - [Node-RE2](https://github.com/uhop/node-re2/): A powerful RE2 C++ binding for Node.js
  - [RE2-WASM](https://github.com/google/re2-wasm/): This package is a WASM wrapper for RE2. Please note, as of now, it does not work in browsers
+
+### RE2JS vs RE2-Node (C++ Bindings)
+
+Because RE2JS implements a Just-In-Time (JIT) compiled DFA, it can actually perform on par with—and sometimes faster than—native C++ bindings (`re2-node`) by avoiding the cross-boundary serialization costs between JavaScript and C++.
+
+Here is a benchmark running 30,000 items through both engines using their respective `.test()` fast-paths:
+
+| Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                      |
+|:--------------------------|:---------------------------|:----------------|:---------------|:----------------------------|
+| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | **11.80 ms**    | 14.79 ms       | `re2js` is **1.25x** faster |
+| **Massive Alternation**   | `/White\|Blue\|Black.../`  | **15.42 ms**    | 16.02 ms       | `re2js` is **1.04x** faster |
+| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | 19.34 ms        | **17.16 ms**   | `re2-node` is 1.13x faster  |
+| **Case Insensitive**      | `/(?i)swamp/`              | 20.27 ms        | **17.26 ms**   | `re2-node` is 1.17x faster  |
+| **ReDoS Attempt**         | `/(a+)+!/`                 | 20.56 ms        | **17.33 ms**   | `re2-node` is 1.19x faster  |
+| **Greedy Wildcard**       | `/enters.*battlefield/`    | 18.93 ms        | **14.33 ms**   | `re2-node` is 1.32x faster  |
+| **Lazy Wildcard**         | `/enters.*?battlefield/`   | 18.93 ms        | **14.16 ms**   | `re2-node` is 1.34x faster  |
+| **Simple Literal**        | `/damage/`                 | 19.54 ms        | **14.11 ms**   | `re2-node` is 1.39x faster  |
+| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 296.16 ms       | **16.73 ms**   | `re2-node` is 17.70x faster |
+
+**Takeaways:**
+* **DFA Strengths:** For state-heavy tasks like massive alternations (`White|Blue|...`) or bounded repetitions (`{5,15}`), RE2JS operates entirely within V8's optimized JIT and actually outpaces C++ bindings.
+* **C++ Strengths:** For simple string scanning (like literal or wildcard searches), C++ wins because it can utilize optimized, hardware-level raw memory scanning operations (like `memchr`).
+* **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to the much slower NFA engine, resulting in a large performance gap compared to C++.
 
 ### RE2JS vs JavaScript's native RegExp
 
-These examples illustrate the performance comparison between the RE2JS library and JavaScript's native RegExp for both a simple case and a ReDoS (Regular Expression Denial of Service) scenario
+These examples illustrate the performance comparison between the RE2JS library and JavaScript's native `RegExp` for both a simple case and a ReDoS (Regular Expression Denial of Service) scenario.
 
 ```js
 const regex = 'a+'
 const string = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!'
 
-RE2JS.compile(regex).matcher(string).find() // avg: 5.657783601 ms
-new RegExp(regex).test(string) // avg: 1.504824999 ms
+// Running 30,000 iterations
+RE2JS.compile(regex).test(string) // Total time: ~9.87 ms
+new RegExp(regex).test(string)    // Total time: ~11.43 ms
 ```
 
-The result shows that the RE2JS library took around **5.66 ms** on average to find a match, while the native RegExp took around **1.50 ms**. This indicates that, in this case, RegExp performed faster than RE2JS
+For safe, simple patterns, the RE2JS DFA fast-path is heavily optimized and performs at parity with—or even slightly faster than—V8's native RegExp engine.
 
 ```js
 const regex = '([a-z]+)+$'
 const string = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!'
 
-RE2JS.compile(regex).matcher(string).find() // avg: 3.6155000030994415 ms
-new RegExp(regex).test(string) // avg: 103768.25712499022 ms
+// Running 30,000 iterations
+RE2JS.compile(regex).test(string) // Total time: ~454.17 ms
+// Running EXACTLY 1 iteration
+new RegExp(regex).test(string)    // Total time: ~105802.02 ms (over 105 seconds)
 ```
 
-In the second example, a ReDoS scenario is depicted. The regular expression `([a-z]+)+$` is a potentially problematic one, as it has a nested quantifier. Nested quantifiers can cause catastrophic backtracking, which results in high processing time, leading to a potential Denial of Service (DoS) attack if a malicious user inputs a carefully crafted string.
+In the second example, a ReDoS scenario is depicted. The regular expression `([a-z]+)+$` is a potentially problematic one because it contains a nested quantifier. In standard NFA engines (like JavaScript's native `RegExp`), nested quantifiers can cause catastrophic backtracking. If a malicious user inputs a carefully crafted string, it results in exponentially high processing times, leading to a Denial of Service (DoS) attack.
 
-The string is the same as in the first example, which does not pose a problem for either RE2JS or RegExp under normal circumstances. However, when dealing with the nested quantifier, RE2JS took around **3.62 ms** to find a match, while RegExp took significantly longer, around **103768.26 ms (~103 seconds)**. This demonstrates that RE2JS is much more efficient in handling potentially harmful regular expressions, thus preventing ReDoS attacks.
-
-In conclusion, while JavaScript's native RegExp might be faster for simple regular expressions, RE2JS offers significant performance advantages when dealing with complex or potentially dangerous regular expressions. RE2JS provides protection against excessive backtracking that could lead to performance issues or ReDoS attacks.
-
-## Rationale for RE2 JavaScript port
-
-There are several reasons that underscore the importance of having an RE2 vanilla JavaScript (JS) port.
-
-Firstly, it enables RE2 JS validation on the client side within the browser. This is vital as it allows the implementation and execution of regular expression operations directly in the browser, enhancing performance by reducing the necessity of server-side computations and back-and-forth communication.
-
-Secondly, it provides a platform for simple RE2 parsing, specifically for the extraction of regex groups. This feature is particularly useful when dealing with complex regular expressions, as it allows for the breakdown of regex patterns into manageable and identifiable segments or 'groups'.
-
-These factors combined make the RE2 vanilla JS port a valuable tool for developers needing to work with complex regular expressions within a browser environment.
+RE2JS processed this poison-pill string **30,000 times in just ~454 milliseconds**, while the native RegExp completely locked up the main thread for **over 1 minute and 45 seconds trying to evaluate it just once**. This demonstrates why RE2JS is absolutely essential for securely handling untrusted regular expressions and protecting Node.js and browser applications against ReDoS attacks.
 
 ## Development
 
