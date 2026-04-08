@@ -1,4 +1,6 @@
 import { Utils } from './Utils'
+import { Unicode } from './Unicode'
+
 /**
  * MachineInput abstracts different representations of the input text supplied to the Machine. It
  * provides one-character lookahead.
@@ -35,38 +37,34 @@ class MachineUTF8Input extends MachineInputBase {
   // the lower 3 bits, and the rune (Unicode code point) in the high
   // bits.  Never negative, except for EOF which is represented as -1
   // << 3 | 0.
-  step(i) {
-    i += this.start
-    if (i >= this.end) {
+  step(pos) {
+    pos += this.start
+    if (pos >= this.end) {
       return MachineInputBase.EOF()
     }
-    let x = this.bytes[i++] & 255
-    if ((x & 128) === 0) {
-      return (x << 3) | 1
-    } else if ((x & 224) === 192) {
-      x = x & 31
-      if (i >= this.end) {
-        return MachineInputBase.EOF()
-      }
-      x = (x << 6) | (this.bytes[i++] & 63)
-      return (x << 3) | 2
-    } else if ((x & 240) === 224) {
-      x = x & 15
-      if (i + 1 >= this.end) {
-        return MachineInputBase.EOF()
-      }
-      x = (x << 6) | (this.bytes[i++] & 63)
-      x = (x << 6) | (this.bytes[i++] & 63)
-      return (x << 3) | 3
+
+    // Read UTF-8 bytes to extract the Rune and its width
+    const c = this.bytes[pos] & 0xff
+    if (c < 0x80) {
+      return (c << 3) | 1
+    } else if (c >= 0xc2 && c <= 0xdf && pos + 1 < this.end) {
+      const c1 = this.bytes[pos + 1] & 0xff
+      const rune = ((c & 0x1f) << 6) | (c1 & 0x3f)
+      return (rune << 3) | 2
+    } else if (c >= 0xe0 && c <= 0xef && pos + 2 < this.end) {
+      const c1 = this.bytes[pos + 1] & 0xff
+      const c2 = this.bytes[pos + 2] & 0xff
+      const rune = ((c & 0x0f) << 12) | ((c1 & 0x3f) << 6) | (c2 & 0x3f)
+      return (rune << 3) | 3
+    } else if (c >= 0xf0 && c <= 0xf4 && pos + 3 < this.end) {
+      const c1 = this.bytes[pos + 1] & 0xff
+      const c2 = this.bytes[pos + 2] & 0xff
+      const c3 = this.bytes[pos + 3] & 0xff
+      const rune = ((c & 0x07) << 18) | ((c1 & 0x3f) << 12) | ((c2 & 0x3f) << 6) | (c3 & 0x3f)
+      return (rune << 3) | 4
     } else {
-      x = x & 7
-      if (i + 2 >= this.end) {
-        return MachineInputBase.EOF()
-      }
-      x = (x << 6) | (this.bytes[i++] & 63)
-      x = (x << 6) | (this.bytes[i++] & 63)
-      x = (x << 6) | (this.bytes[i++] & 63)
-      return (x << 3) | 4
+      // Invalid sequence fallback
+      return (c << 3) | 1
     }
   }
 
@@ -144,12 +142,29 @@ class MachineUTF16Input extends MachineInputBase {
   // << 3 | 0.
   step(pos) {
     pos += this.start
-    if (pos < this.end) {
-      const rune = this.charSequence.codePointAt(pos)
-      return (rune << 3) | Utils.charCount(rune)
-    } else {
+    if (pos >= this.end) {
       return MachineInputBase.EOF()
     }
+
+    const c1 = this.charSequence.charCodeAt(pos)
+
+    // Fast path: standard BMP character (not a high surrogate)
+    if (c1 < Unicode.MIN_HIGH_SURROGATE || c1 > Unicode.MAX_HIGH_SURROGATE || pos + 1 >= this.end) {
+      return (c1 << 3) | 1
+    }
+
+    // Slow path: Calculate surrogate pair manually
+    const c2 = this.charSequence.charCodeAt(pos + 1)
+    if (c2 >= Unicode.MIN_LOW_SURROGATE && c2 <= Unicode.MAX_LOW_SURROGATE) {
+      const rune =
+        (c1 - Unicode.MIN_HIGH_SURROGATE) * 0x400 +
+        (c2 - Unicode.MIN_LOW_SURROGATE) +
+        Unicode.MIN_SUPPLEMENTARY_CODE_POINT
+      return (rune << 3) | 2
+    }
+
+    // Invalid surrogate pair fallback
+    return (c1 << 3) | 1
   }
 
   // Returns the index relative to |pos| at which |re2.prefix| is found

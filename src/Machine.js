@@ -15,10 +15,10 @@ class Thread {
 // A queue is a 'sparse array' holding pending threads of execution.  See:
 // research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
 class Queue {
-  constructor() {
-    this.sparse = [] // may contain stale but in-bounds values.
-    this.densePcs = [] // may contain stale pc in slots >= size
-    this.denseThreads = [] // may contain stale Thread in slots >= size
+  constructor(numInst) {
+    this.sparse = new Int32Array(numInst) // may contain stale but in-bounds values.
+    this.densePcs = new Int32Array(numInst) // may contain stale pc in slots >= size
+    this.denseThreads = new Array(numInst) // may contain stale Thread in slots >= size
     this.size = 0
   }
 

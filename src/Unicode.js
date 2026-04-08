@@ -17,6 +17,12 @@ class Unicode {
   static MIN_FOLD = 0x0041
   static MAX_FOLD = 0x1e943
 
+  static MIN_HIGH_SURROGATE = 0xd800
+  static MAX_HIGH_SURROGATE = 0xdbff
+  static MIN_LOW_SURROGATE = 0xdc00
+  static MAX_LOW_SURROGATE = 0xdfff
+  static MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
+
   // is32 uses binary search to test whether rune is in the specified
   // slice of 32-bit ranges.
   static is32(ranges, r) {

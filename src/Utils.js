@@ -183,12 +183,15 @@ class Utils {
           out[p++] = (c >> 6) | 192
           out[p++] = (c & 63) | 128
         } else if (
-          (c & 0xfc00) === 0xd800 &&
+          (c & 0xfc00) === Unicode.MIN_HIGH_SURROGATE &&
           i + 1 < str.length &&
-          (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00
+          (str.charCodeAt(i + 1) & 0xfc00) === Unicode.MIN_LOW_SURROGATE
         ) {
           // Surrogate Pair
-          c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff)
+          c =
+            Unicode.MIN_SUPPLEMENTARY_CODE_POINT +
+            ((c & 0x03ff) << 10) +
+            (str.charCodeAt(++i) & 0x03ff)
           out[p++] = (c >> 18) | 240
           out[p++] = ((c >> 12) & 63) | 128
           out[p++] = ((c >> 6) & 63) | 128
@@ -223,9 +226,11 @@ class Utils {
           let c2 = bytes[pos++]
           let c3 = bytes[pos++]
           let c4 = bytes[pos++]
-          let u = (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) - 0x10000
-          out[c++] = String.fromCharCode(0xd800 + (u >> 10))
-          out[c++] = String.fromCharCode(0xdc00 + (u & 1023))
+          let u =
+            (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) -
+            Unicode.MIN_SUPPLEMENTARY_CODE_POINT
+          out[c++] = String.fromCharCode(Unicode.MIN_HIGH_SURROGATE + (u >> 10))
+          out[c++] = String.fromCharCode(Unicode.MIN_LOW_SURROGATE + (u & 1023))
         } else {
           let c2 = bytes[pos++]
           let c3 = bytes[pos++]
