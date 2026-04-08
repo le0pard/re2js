@@ -178,6 +178,7 @@ export class DFA {
     }
 
     let i = pos
+
     while (i < endPos) {
       const r = input.step(i)
       const rune = r >> 3
