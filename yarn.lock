@@ -1109,9 +1109,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.56.1":
-  version: 2.56.1
-  resolution: "@sveltejs/kit@npm:2.56.1"
+"@sveltejs/kit@npm:^2.57.0":
+  version: 2.57.0
+  resolution: "@sveltejs/kit@npm:2.57.0"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     "@sveltejs/acorn-typescript": "npm:^1.0.5"
@@ -1138,7 +1138,7 @@ __metadata:
       optional: true
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10/603401ee615a8e3dcc90e6ed148225dce09d17e4484262160eb2a12d1c86edfa42ad7b94d8d61c3d25797404297bb8b7dc8b716840a887b15468f0edbce68faa
+  checksum: 10/3433e16ce6de496f96e3800ce0b3ee5c0fd85dceebb8e392fbae4cc5ff0cad97317b4d8cb40fea13b52fdbc1e12195c3a30d080c9145fee478dc02cc3aea9512
   languageName: node
   linkType: hard
 
@@ -3893,6 +3893,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postcss@npm:^8.5.9":
+  version: 8.5.9
+  resolution: "postcss@npm:8.5.9"
+  dependencies:
+    nanoid: "npm:^3.3.11"
+    picocolors: "npm:^1.1.1"
+    source-map-js: "npm:^1.2.1"
+  checksum: 10/b34661c6efca87f7bf747c6c943435e4bfef7617a238c3719103e607c605d16720682fb121b7ebd4f7f748228dfdf8711b82f7ffed80a5c4a9249c070ed5fd87
+  languageName: node
+  linkType: hard
+
 "prelude-ls@npm:^1.2.1":
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
@@ -3967,10 +3978,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"re2js@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "re2js@npm:2.0.0"
-  checksum: 10/4fd69e1b8e9fd027eaab62ec77c25a1be651a5fb2c41f8ee8da0fd0ecf39d0d9a5078cb2f3d56c74fd4ec80788531e80d390eb0f232a34755528275e3d1893f8
+"re2js@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "re2js@npm:2.0.1"
+  checksum: 10/1cc6aed1149bd03282742fe4a78a7687a6fef3f490806f6b7ba9d53a99c750e1c766955aca038fafb24d06c63d9cfb340135ba7dfd880f020190e17e647de3b8
   languageName: node
   linkType: hard
 
@@ -3981,7 +3992,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@picocss/pico": "npm:^2.1.1"
     "@sveltejs/adapter-static": "npm:^3.0.10"
-    "@sveltejs/kit": "npm:^2.56.1"
+    "@sveltejs/kit": "npm:^2.57.0"
     "@sveltejs/vite-plugin-svelte": "npm:^7.0.0"
     "@types/cookie": "npm:^1.0.0"
     "@yarnpkg/pnpify": "npm:^4.1.6"
@@ -3990,13 +4001,13 @@ __metadata:
     eslint-plugin-svelte: "npm:^3.17.0"
     globals: "npm:^17.4.0"
     lodash: "npm:4.18.1"
-    postcss: "npm:^8.5.8"
+    postcss: "npm:^8.5.9"
     postcss-import: "npm:^16.1.1"
     postcss-load-config: "npm:^6.0.1"
     postcss-preset-env: "npm:^11.2.0"
     prettier: "npm:^3.8.1"
     prettier-plugin-svelte: "npm:^3.5.1"
-    re2js: "npm:^2.0.0"
+    re2js: "npm:^2.0.1"
     svelte: "npm:^5.55.2"
     svelte-check: "npm:^4.4.6"
     svelte-preprocess: "npm:^6.0.3"
