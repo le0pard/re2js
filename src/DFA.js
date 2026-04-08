@@ -189,7 +189,11 @@ export class DFA {
         break
       }
 
-      currentState = this.step(currentState, rune, anchor)
+      currentState =
+        (anchor === RE2Flags.UNANCHORED &&
+          rune <= Unicode.MAX_ASCII &&
+          currentState.nextAscii[rune]) ||
+        this.step(currentState, rune, anchor)
 
       // If we hit an unrecoverable DFA error or bailout, signal fallback
       if (currentState === null) return null

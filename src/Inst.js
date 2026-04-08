@@ -72,7 +72,7 @@ class Inst {
     let lo = 0
     let hi = (this.runes.length / 2) | 0
     while (lo < hi) {
-      const m = lo + (((hi - lo) / 2) | 0)
+      const m = (lo + hi) >> 1 // native cpu instruction for "lo + (((hi - lo) / 2) | 0)"
       const c = this.runes[2 * m]
       if (c <= r) {
         if (r <= this.runes[2 * m + 1]) {
