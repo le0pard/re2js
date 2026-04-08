@@ -447,9 +447,7 @@ RE2JS.matches(unicodeRegexp, '😃') // false
 
 ## Performance
 
-The RE2JS engine runs more slowly compared to native RegExp objects for simple queries. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of highly optimized memory operations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation (plus Golang additions) to a pure JS version.
-
-Recently, RE2JS was upgraded with a **Lazy DFA (Deterministic Finite Automaton)** fast-path. This allows it to perform non-capturing matches (using `.test()`, `.testExact()`, or `.matches()`) at near-native speeds.
+The RE2JS engine runs more slowly compared to native RegExp objects for simple queries. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of highly optimized memory operations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation (plus Golang additions + Lazy DFA fast-path) to a pure JS version.
 
 Should you require maximum absolute performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
 
