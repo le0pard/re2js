@@ -1,8 +1,8 @@
 class UnicodeRangeTable {
-  constructor(data, strideIsAlwaysOne = false) {
+  constructor(data, isStride1 = false) {
     this.data = data // A Uint32Array
-    this.strideIsAlwaysOne = strideIsAlwaysOne
-    this.SIZE = strideIsAlwaysOne ? 2 : 3
+    this.isStride1 = isStride1
+    this.SIZE = isStride1 ? 2 : 3
   }
 
   // High-performance getters that do NOT allocate memory
@@ -13,7 +13,7 @@ class UnicodeRangeTable {
     return this.data[index * this.SIZE + 1]
   }
   getStride(index) {
-    return this.strideIsAlwaysOne ? 1 : this.data[index * this.SIZE + 2]
+    return this.isStride1 ? 1 : this.data[index * this.SIZE + 2]
   }
 
   get(index) {
