@@ -2,49 +2,34 @@ import { CodepointRange } from './codepointRange.js'
 import unicode from '@unicode/unicode-16.0.0'
 import CommonCaseFolding from '@unicode/unicode-16.0.0/Case_Folding/C/code-points.js'
 import SimpleCaseFolding from '@unicode/unicode-16.0.0/Case_Folding/S/code-points.js'
-// import TurkishCaseFolding from '@unicode/unicode-16.0.0/Case_Folding/T/code-points.js'
 import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 
 const MAX_CODE_POINT = 0x10ffff
-
 const SKIP_CATEGORIES = ['cntrl', 'Cn', 'LC', 'Combining_Mark', 'digit', 'punct']
-
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
 const toUpperCase = (codepoint) => {
   const s = String.fromCodePoint(codepoint).toUpperCase()
-  if (s.length > 1) {
-    return codepoint
-  }
+  if (s.length > 1) return codepoint
   const sOrigin = String.fromCodePoint(s.codePointAt(0)).toLowerCase()
-  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
-    return codepoint
-  }
+  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) return codepoint
   return s.codePointAt(0)
 }
+
 const toLowerCase = (codepoint) => {
   const s = String.fromCodePoint(codepoint).toLowerCase()
-  if (s.length > 1) {
-    return codepoint
-  }
+  if (s.length > 1) return codepoint
   const sOrigin = String.fromCodePoint(s.codePointAt(0)).toUpperCase()
-  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
-    return codepoint
-  }
+  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) return codepoint
   return s.codePointAt(0)
 }
 
 const generateCaseFoldOrbits = () => {
   let orbits = new Map()
-
   for (let i = 0; i < MAX_CODE_POINT; i++) {
-    if (!CommonCaseFolding.has(i) && !SimpleCaseFolding.has(i)) {
-      continue
-    }
-
+    if (!CommonCaseFolding.has(i) && !SimpleCaseFolding.has(i)) continue
     const f = CommonCaseFolding.get(i) || SimpleCaseFolding.get(i)
-
     let orbit = orbits.get(f) || new Set()
     orbit.add(f)
     orbit.add(i)
@@ -52,10 +37,7 @@ const generateCaseFoldOrbits = () => {
   }
 
   for (let i = 0; i < MAX_CODE_POINT; i++) {
-    if (!orbits.has(i)) {
-      continue
-    }
-
+    if (!orbits.has(i)) continue
     let orb = orbits.get(i)
     let u = toUpperCase(i)
     let l = toLowerCase(i)
@@ -64,12 +46,8 @@ const generateCaseFoldOrbits = () => {
       orbits.delete(i)
     } else if (orb.size === 2) {
       const [first, second] = Array.from(orb)
-      if (toLowerCase(first) === second && toUpperCase(second) === first) {
-        orbits.delete(i)
-      }
-      if (toUpperCase(first) === second && toLowerCase(second) === first) {
-        orbits.delete(i)
-      }
+      if (toLowerCase(first) === second && toUpperCase(second) === first) orbits.delete(i)
+      if (toUpperCase(first) === second && toLowerCase(second) === first) orbits.delete(i)
     }
   }
 
@@ -78,7 +56,6 @@ const generateCaseFoldOrbits = () => {
     let orbitWithKey = new Set(value)
     orbitWithKey.add(key)
     orbitWithKey = Array.from(orbitWithKey).sort((a, b) => a - b)
-
     let a = orbitWithKey[0]
     for (let i of orbitWithKey.slice(1)) {
       finalResult.set(a, i)
@@ -86,7 +63,6 @@ const generateCaseFoldOrbits = () => {
     }
     finalResult.set(orbitWithKey[orbitWithKey.length - 1], orbitWithKey[0])
   }
-
   return finalResult
 }
 
@@ -96,15 +72,10 @@ const addFoldExceptions = (codepoints) => {
   const exceptionCodepoints = new Set()
   for (let codepoint of codepoints) {
     if (!sortedOrbits.has(codepoint)) {
-      // Just uppercase and lowercase.
       const u = toLowerCase(codepoint)
-      if (u !== codepoint) {
-        exceptionCodepoints.add(u)
-      }
+      if (u !== codepoint) exceptionCodepoints.add(u)
       const l = toUpperCase(codepoint)
-      if (l !== codepoint) {
-        exceptionCodepoints.add(l)
-      }
+      if (l !== codepoint) exceptionCodepoints.add(l)
       exceptionCodepoints.add(codepoint)
     } else {
       let start = codepoint
@@ -121,7 +92,6 @@ const addFoldExceptions = (codepoints) => {
     range.addAll(diff)
     return range.finish()
   }
-
   return null
 }
 
@@ -141,104 +111,218 @@ const genRanges = async (codePoints) => {
 const genPrintRanges = async () => {
   const categoriesToMerge = ['L', 'M', 'N', 'P', 'S']
   let allCodePoints = []
-
   for (const alias of categoriesToMerge) {
     const name = aliasesToNames.get(alias)
     if (name) {
       const codePoints = await getCodePoints('General_Category', name)
-      for (const point of codePoints) {
-        allCodePoints.push(point)
-      }
+      for (const point of codePoints) allCodePoints.push(point)
     }
   }
-
   const uniqueSortedCodePoints = Array.from(new Set(allCodePoints)).sort((a, b) => a - b)
   return await genRanges(uniqueSortedCodePoints)
 }
 
+// === VLQ BASE64 DELTA COMPRESSION LOGIC ===
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-'
+const encodeVLQ = (value) => {
+  let res = ''
+  do {
+    let digit = value & 0x1f
+    value >>>= 5
+    if (value > 0) digit |= 0x20 // Continuation bit
+    res += B64[digit]
+  } while (value > 0)
+  return res
+}
+
+const encodeRanges = (ranges) => {
+  let encoded = ''
+  let current = 0
+  const stride1 = ranges.every((r) => r[2] === 1)
+  for (const r of ranges) {
+    encoded += encodeVLQ(r[0] - current)
+    encoded += encodeVLQ(r[1] - r[0])
+    if (!stride1) encoded += encodeVLQ(r[2]) // Stride is kept absolute
+    current = r[1]
+  }
+  return { encoded, stride1 }
+}
+
+// === OUTPUT GENERATION ===
 let code = [
   '// GENERATED BY tools/scripts/genUnicodeTable.js; DO NOT EDIT.',
   '// yarn node ./tools/scripts/genUnicodeTable.js > src/UnicodeTables.js',
   '',
   "import { UnicodeRangeTable } from './UnicodeRangeTable'",
   '',
-  'class UnicodeTables {',
-  ''
+  'const B64_MAP = new Uint8Array(256);',
+  'for (let i = 0, b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-"; i < 64; i++) {',
+  '  B64_MAP[b.charCodeAt(i)] = i;',
+  '}',
+  '',
+  'const decodeVLQ = (str) => {',
+  '  const res = [];',
+  '  let value = 0, shift = 0;',
+  '  for (let i = 0; i < str.length; i++) {',
+  '    let digit = B64_MAP[str.charCodeAt(i)];',
+  '    value |= (digit & 0x1F) << shift;',
+  '    if ((digit & 0x20) === 0) {',
+  '      res.push(value);',
+  '      value = 0;',
+  '      shift = 0;',
+  '    } else {',
+  '      shift += 5;',
+  '    }',
+  '  }',
+  '  return res;',
+  '};',
+  '',
+  'const decodeRanges = (str, isStride1) => {',
+  '  const res = decodeVLQ(str);',
+  '  const numRanges = isStride1 ? (res.length / 2) : (res.length / 3);',
+  '  const out = new Uint32Array(numRanges * 3);',
+  '  let current = 0, resIdx = 0;',
+  '  for (let i = 0; i < numRanges; i++) {',
+  '    current += res[resIdx++];',
+  '    out[i * 3] = current;',
+  '    current += res[resIdx++];',
+  '    out[i * 3 + 1] = current;',
+  '    out[i * 3 + 2] = isStride1 ? 1 : res[resIdx++];', // Re-injects missing strides natively!
+  '  }',
+  '  return out;',
+  '};',
+  '',
+  'const decodeOrbit = (str) => {',
+  '  const res = decodeVLQ(str);',
+  '  const map = new Map();',
+  '  let currentKey = 0;',
+  '  for (let i = 0; i < res.length; i += 2) {',
+  '    currentKey += res[i];',
+  '    map.set(currentKey, res[i + 1]);',
+  '  }',
+  '  return map;',
+  '};',
+  '',
+  'class LazyMap {',
+  '  constructor(initializer) {',
+  '    this.initializer = initializer;',
+  '    this.cache = new Map();',
+  '  }',
+  '  has(key) {',
+  '    return key in this.initializer;',
+  '  }',
+  '  get(key) {',
+  '    if (this.cache.has(key)) return this.cache.get(key);',
+  '    const fn = this.initializer[key];',
+  '    const val = fn ? fn() : null;', // Safe null return avoids "cannot read property of undefined"
+  '    this.cache.set(key, val);',
+  '    return val;',
+  '  }',
+  '}',
+  '',
+  'class UnicodeTables {'
 ]
 
-let categoriesCode = []
-let scriptsCode = []
-let foldCategoryCode = []
-let foldScriptCode = []
+let catLines = []
+let scrLines = []
+let foldCatLines = []
+let foldScrLines = []
 
-code = [...code, '  static CASE_ORBIT = new Map([']
-
-for (const [key, value] of sortedOrbits.entries()) {
-  code = [...code, `    [${key}, ${value}],`]
+// 1. COMPRESS CASE_ORBIT MAP (Eagerly Loaded)
+const caseOrbitEntries = Array.from(sortedOrbits.entries()).sort((a, b) => a[0] - b[0])
+let orbitEnc = ''
+let curr = 0
+for (const [k, v] of caseOrbitEntries) {
+  orbitEnc += encodeVLQ(k - curr)
+  orbitEnc += encodeVLQ(v) // Value is absolute
+  curr = k
 }
 
-code = [...code, '  ])']
+code.push('  static _CASE_ORBIT = null;')
+code.push('  static get CASE_ORBIT() {')
+code.push('    if (!this._CASE_ORBIT) {')
+code.push(`      this._CASE_ORBIT = decodeOrbit('${orbitEnc}');`)
+code.push('    }')
+code.push('    return this._CASE_ORBIT;')
+code.push('  }')
+code.push('')
 
+// 2. Compress Print Range (Eagerly Loaded)
+const printRanges = await genPrintRanges()
+const pEnc = encodeRanges(printRanges)
+code.push('  static _Print = null;')
+code.push('  static get Print() {')
+code.push('    if (!this._Print) {')
+code.push(
+  `      this._Print = new UnicodeRangeTable(decodeRanges('${pEnc.encoded}', ${pEnc.stride1}));`
+)
+code.push('    }')
+code.push('    return this._Print;')
+code.push('  }')
+code.push('')
+
+// 3. Compress General Categories (Lazily Loaded)
 for (const [alias, name] of aliasesToNames.entries()) {
-  if (SKIP_CATEGORIES.includes(alias)) {
-    continue
-  }
+  if (SKIP_CATEGORIES.includes(alias)) continue
 
   const codePoints = await getCodePoints('General_Category', name)
   const ranges = await genRanges(codePoints)
-  const flattened = ranges.flat().join(', ')
-  code = [...code, `  static ${alias} = new UnicodeRangeTable(new Uint32Array([${flattened}]))`]
-  categoriesCode = [...categoriesCode, `  ['${alias}', UnicodeTables.${alias}],`]
-  if (alias === 'Lu') {
-    code = [...code, `  static Upper = this.${alias}`]
-  }
+  const enc = encodeRanges(ranges)
+  catLines.push(
+    `    '${alias}': () => new UnicodeRangeTable(decodeRanges('${enc.encoded}', ${enc.stride1})),`
+  )
 
   const foldRes = addFoldExceptions(codePoints)
   if (foldRes !== null) {
-    const flattenedFold = foldRes.flat().join(', ')
-    code = [
-      ...code,
-      `  static fold${alias} = new UnicodeRangeTable(new Uint32Array([${flattenedFold}]))`
-    ]
-    foldCategoryCode = [...foldCategoryCode, `  ['${alias}', UnicodeTables.fold${alias}],`]
+    const fEnc = encodeRanges(foldRes)
+    foldCatLines.push(
+      `    '${alias}': () => new UnicodeRangeTable(decodeRanges('${fEnc.encoded}', ${fEnc.stride1})),`
+    )
   }
 }
 
+code.push('  static CATEGORIES = new LazyMap({')
+code.push(...catLines)
+code.push('  });')
+code.push('')
+
+// Alias Upper to the eager load of 'Lu' Category
+code.push("  static get Upper() { return this.CATEGORIES.get('Lu'); }")
+code.push('')
+
+// 4. Compress Scripts (Lazily Loaded)
 for (const name of unicode['Script']) {
   const codePoints = await getCodePoints('Script', name)
   const ranges = await genRanges(codePoints)
-  const flattened = ranges.flat().join(', ')
-
-  code = [...code, `  static ${name} = new UnicodeRangeTable(new Uint32Array([${flattened}]))`]
-  scriptsCode = [...scriptsCode, `  ['${name}', UnicodeTables.${name}],`]
+  const enc = encodeRanges(ranges)
+  scrLines.push(
+    `    '${name}': () => new UnicodeRangeTable(decodeRanges('${enc.encoded}', ${enc.stride1})),`
+  )
 
   const foldRes = addFoldExceptions(codePoints)
   if (foldRes !== null) {
-    const flattenedFold = foldRes.flat().join(', ')
-    code = [
-      ...code,
-      `  static fold${name} = new UnicodeRangeTable(new Uint32Array([${flattenedFold}]))`
-    ]
-    foldScriptCode = [...foldScriptCode, `  ['${name}', UnicodeTables.fold${name}],`]
+    const fEnc = encodeRanges(foldRes)
+    foldScrLines.push(
+      `    '${name}': () => new UnicodeRangeTable(decodeRanges('${fEnc.encoded}', ${fEnc.stride1})),`
+    )
   }
 }
 
-code = [...code, '', '  static CATEGORIES = new Map([', ...categoriesCode, '  ])', '']
+code.push('  static SCRIPTS = new LazyMap({')
+code.push(...scrLines)
+code.push('  });')
+code.push('')
 
-code = [...code, '', '  static SCRIPTS = new Map([', ...scriptsCode, '  ])', '']
+code.push('  static FOLD_CATEGORIES = new LazyMap({')
+code.push(...foldCatLines)
+code.push('  });')
+code.push('')
 
-code = [...code, '', '  static FOLD_CATEGORIES = new Map([', ...foldCategoryCode, '  ])', '']
-
-code = [...code, '', '  static FOLD_SCRIPT = new Map([', ...foldScriptCode, '  ])', '']
-
-// merge print categories for speed
-const printRanges = await genPrintRanges()
-const flattenedPrintRanges = printRanges.flat().join(', ')
-code = [
-  ...code,
-  `  static Print = new UnicodeRangeTable(new Uint32Array([${flattenedPrintRanges}]))`
-]
-
-code = [...code, '}', '', 'export { UnicodeTables }']
+code.push('  static FOLD_SCRIPT = new LazyMap({')
+code.push(...foldScrLines)
+code.push('  });')
+code.push('}')
+code.push('')
+code.push('export { UnicodeTables }')
 
 console.log(code.join('\n')) // eslint-disable-line no-console
