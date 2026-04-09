@@ -1,3 +1,5 @@
+import { Utils } from './Utils'
+
 /**
  * Transform JS regex string to RE2 regex string
  */
@@ -8,14 +10,6 @@ class TranslateRegExpString {
 
   static isHexadecimal(ch) {
     return ('0' <= ch && ch <= '9') || ('A' <= ch && ch <= 'F') || ('a' <= ch && ch <= 'f')
-  }
-
-  static getUtf8CharSize(ch) {
-    const code = ch.charCodeAt(0)
-    if (code < 0x80) return 1 // 1-byte (ASCII)
-    if (code < 0x800) return 2 // 2-byte
-    if (code < 0x10000) return 3 // 3-byte
-    return 4 // 4-byte (surrogate pairs, rare characters)
   }
 
   static translate(data) {
@@ -90,7 +84,7 @@ class TranslateRegExpString {
             }
             default: {
               result += '\\'
-              let symSize = TranslateRegExpString.getUtf8CharSize(ch)
+              let symSize = Utils.charCount(ch.codePointAt(0))
               result += data.substring(i + 1, i + 1 + symSize)
               i += symSize + 1
               continue
@@ -111,7 +105,7 @@ class TranslateRegExpString {
         }
       }
 
-      let symSize = TranslateRegExpString.getUtf8CharSize(ch)
+      let symSize = Utils.charCount(ch.codePointAt(0))
       result += data.substring(i, i + symSize)
       i += symSize
     }

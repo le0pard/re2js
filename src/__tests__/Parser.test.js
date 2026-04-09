@@ -407,3 +407,27 @@ describe('.equals', () => {
     }
   )
 })
+
+describe('large AST flat structures', () => {
+  it('should not exceed call stack size on massive alternations', () => {
+    // Generate a massive alternation: "a|a|a|a|a..." 100,000 times.
+    // 100,000 is safely within RE2's MAX_SIZE limit, but high enough
+    // to easily crash V8's function argument limits if the spread operator (...args) is used.
+    const massiveAlternation = new Array(100000).fill('a').join('|')
+
+    // If the spread operator is still in Parser.js -> collapse(), this will throw:
+    // "RangeError: Maximum call stack size exceeded"
+    expect(() => {
+      Parser.parse(massiveAlternation, RE2Flags.PERL)
+    }).not.toThrow()
+  })
+
+  it('should not exceed call stack size on massive concatenations', () => {
+    // Generate a massive concatenation: "(a)(a)(a)..." 100,000 times
+    const massiveConcat = new Array(100000).fill('(a)').join('')
+
+    expect(() => {
+      Parser.parse(massiveConcat, RE2Flags.PERL)
+    }).not.toThrow()
+  })
+})

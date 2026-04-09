@@ -28,7 +28,10 @@ describe('.translateRegExp', () => {
     ['', '(?:)'],
     ['foo/bar', 'foo\\/bar'],
     ['foo\\/bar', 'foo\\/bar'],
-    ['(?<foo>bar)', '(?P<foo>bar)']
+    ['(?<foo>bar)', '(?P<foo>bar)'],
+    ['é\\b', 'é\\b'],
+    ['😊.*', '😊.*'],
+    ['[α-ε]?', '[α-ε]?']
   ])('#translateRegExp(%p) === %p', (input, expected) => {
     expect(RE2JS.translateRegExp(input)).toEqual(expected)
   })

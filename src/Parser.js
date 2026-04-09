@@ -962,8 +962,9 @@ class Parser {
     let i = 0
     for (let sub of subs) {
       if (sub.op === op) {
-        newsubs.splice(i, sub.subs.length, ...sub.subs)
-        i += sub.subs.length
+        for (let j = 0; j < sub.subs.length; j++) {
+          newsubs[i++] = sub.subs[j]
+        }
         this.reuse(sub)
       } else {
         newsubs[i++] = sub
