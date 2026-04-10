@@ -8,7 +8,7 @@ import { Inst } from './Inst'
 class Thread {
   constructor() {
     this.inst = null
-    this.cap = []
+    this.cap = null // Initialized to Int32Array later
   }
 }
 
@@ -40,9 +40,11 @@ class Queue {
   }
 
   clear() {
-    this.sparse = []
-    this.densePcs = []
-    this.denseThreads = []
+    // Prevent memory leaks by nulling out used object references
+    for (let i = 0; i < this.size; i++) {
+      this.denseThreads[i] = null
+    }
+    // The sparse set logic safely ignores stale integers in Typed Arrays.
     this.size = 0
   }
 
@@ -72,7 +74,8 @@ class Machine {
     m.pool = []
     m.poolSize = 0
     m.matched = false
-    m.matchcap = Array(m.prog.numCap < 2 ? 2 : m.prog.numCap).fill(0)
+    // Use Int32Array instead of standard JS array
+    m.matchcap = new Int32Array(m.prog.numCap < 2 ? 2 : m.prog.numCap)
     m.ncap = 0
     return m
   }
@@ -87,30 +90,32 @@ class Machine {
     if (ncap > this.matchcap.length) {
       this.initNewCap(ncap)
     } else {
-      this.resetCap(ncap)
+      this.resetCap()
     }
   }
 
-  resetCap(ncap) {
+  // Wipes existing typed array memory without reallocating
+  resetCap() {
     for (let i = 0; i < this.poolSize; i++) {
       const t = this.pool[i]
-      t.cap = Array(ncap).fill(0)
+      t.cap.fill(0)
     }
   }
 
   initNewCap(ncap) {
     for (let i = 0; i < this.poolSize; i++) {
       const t = this.pool[i]
-      t.cap = Array(ncap).fill(0)
+      t.cap = new Int32Array(ncap)
     }
-    this.matchcap = Array(ncap).fill(0)
+    this.matchcap = new Int32Array(ncap)
   }
 
   submatches() {
     if (this.ncap === 0) {
       return Utils.emptyInts()
     }
-    return this.matchcap.slice(0, this.ncap)
+    // Return a standard array format or typed array slice
+    return Array.from(this.matchcap.slice(0, this.ncap))
   }
 
   // alloc() allocates a new thread with the given instruction.
@@ -122,6 +127,7 @@ class Machine {
       t = this.pool[this.poolSize]
     } else {
       t = new Thread()
+      t.cap = new Int32Array(this.ncap)
     }
     t.inst = inst
     return t
@@ -152,7 +158,7 @@ class Machine {
       return false
     }
     this.matched = false
-    this.matchcap = Array(this.prog.numCap).fill(-1)
+    this.matchcap = new Int32Array(this.prog.numCap).fill(-1)
 
     let runq = this.q0
     let nextq = this.q1
@@ -256,7 +262,9 @@ class Machine {
           }
           if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
             t.cap[1] = pos
-            this.matchcap = t.cap.slice(0, this.ncap)
+            // Using subarray creates a fast view, avoiding a full array copy
+            // until the submatches are finalized at the very end.
+            this.matchcap.set(t.cap.subarray(0, this.ncap))
           }
           if (!longest) {
             this.freeQueue(runq, j + 1)
@@ -336,6 +344,7 @@ class Machine {
           t.inst = inst
         }
         if (this.ncap > 0 && t.cap !== cap) {
+          // Direct assignment utilizing Typed Array performance
           for (let c = 0; c < this.ncap; c++) {
             t.cap[c] = cap[c]
           }
