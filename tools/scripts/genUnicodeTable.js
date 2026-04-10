@@ -6,29 +6,46 @@ import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 
 const MAX_CODE_POINT = 0x10ffff
+
 const SKIP_CATEGORIES = ['cntrl', 'Cn', 'LC', 'Combining_Mark', 'digit', 'punct']
+
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
 const toUpperCase = (codepoint) => {
   const s = String.fromCodePoint(codepoint).toUpperCase()
-  if (s.length > 1) return codepoint
+  if (s.length > 1) {
+    return codepoint
+  }
+
   const sOrigin = String.fromCodePoint(s.codePointAt(0)).toLowerCase()
-  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) return codepoint
+  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
+    return codepoint
+  }
+
   return s.codePointAt(0)
 }
 
 const toLowerCase = (codepoint) => {
   const s = String.fromCodePoint(codepoint).toLowerCase()
-  if (s.length > 1) return codepoint
+  if (s.length > 1) {
+    return codepoint
+  }
+
   const sOrigin = String.fromCodePoint(s.codePointAt(0)).toUpperCase()
-  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) return codepoint
+  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
+    return codepoint
+  }
+
   return s.codePointAt(0)
 }
 
 const generateCaseFoldOrbits = () => {
   let orbits = new Map()
   for (let i = 0; i < MAX_CODE_POINT; i++) {
-    if (!CommonCaseFolding.has(i) && !SimpleCaseFolding.has(i)) continue
+    if (!CommonCaseFolding.has(i) && !SimpleCaseFolding.has(i)) {
+      continue
+    }
+
     const f = CommonCaseFolding.get(i) || SimpleCaseFolding.get(i)
     let orbit = orbits.get(f) || new Set()
     orbit.add(f)
@@ -37,7 +54,10 @@ const generateCaseFoldOrbits = () => {
   }
 
   for (let i = 0; i < MAX_CODE_POINT; i++) {
-    if (!orbits.has(i)) continue
+    if (!orbits.has(i)) {
+      continue
+    }
+
     let orb = orbits.get(i)
     let u = toUpperCase(i)
     let l = toLowerCase(i)
@@ -71,6 +91,7 @@ const sortedOrbits = generateCaseFoldOrbits()
 const addFoldExceptions = (codepoints) => {
   const exceptionCodepoints = new Set()
   for (let codepoint of codepoints) {
+    // Just uppercase and lowercase.
     if (!sortedOrbits.has(codepoint)) {
       const u = toLowerCase(codepoint)
       if (u !== codepoint) exceptionCodepoints.add(u)
@@ -138,6 +159,7 @@ const encodeVLQ = (value) => {
 const encodeRanges = (ranges) => {
   let encoded = ''
   let current = 0
+
   const stride1 = ranges.every((r) => r[2] === 1)
   for (const r of ranges) {
     encoded += encodeVLQ(r[0] - current)
@@ -214,7 +236,7 @@ let code = [
   '  get(key) {',
   '    if (this.cache.has(key)) return this.cache.get(key);',
   '    const fn = this.initializer[key];',
-  '    const val = fn ? fn() : null;', // Safe null return avoids "cannot read property of undefined"
+  '    const val = fn ? fn() : null;',
   '    this.cache.set(key, val);',
   '    return val;',
   '  }',
@@ -228,10 +250,11 @@ let scrLines = []
 let foldCatLines = []
 let foldScrLines = []
 
-// 1. COMPRESS CASE_ORBIT MAP (Eagerly Loaded)
+// COMPRESS CASE_ORBIT MAP (Eagerly Loaded)
 const caseOrbitEntries = Array.from(sortedOrbits.entries()).sort((a, b) => a[0] - b[0])
 let orbitEnc = ''
 let curr = 0
+
 for (const [k, v] of caseOrbitEntries) {
   orbitEnc += encodeVLQ(k - curr)
   orbitEnc += encodeVLQ(v) // Value is absolute
@@ -247,7 +270,7 @@ code.push('    return this._CASE_ORBIT;')
 code.push('  }')
 code.push('')
 
-// 2. Compress Print Range (Eagerly Loaded)
+// Compress Print Range (Eagerly Loaded)
 const printRanges = await genPrintRanges()
 const pEnc = encodeRanges(printRanges)
 code.push('  static _Print = null;')
@@ -261,7 +284,7 @@ code.push('    return this._Print;')
 code.push('  }')
 code.push('')
 
-// 3. Compress General Categories (Lazily Loaded)
+// Compress General Categories (Lazily Loaded)
 for (const [alias, name] of aliasesToNames.entries()) {
   if (SKIP_CATEGORIES.includes(alias)) continue
 
@@ -290,7 +313,7 @@ code.push('')
 code.push("  static get Upper() { return this.CATEGORIES.get('Lu'); }")
 code.push('')
 
-// 4. Compress Scripts (Lazily Loaded)
+// Compress Scripts (Lazily Loaded)
 for (const name of unicode['Script']) {
   const codePoints = await getCodePoints('Script', name)
   const ranges = await genRanges(codePoints)
