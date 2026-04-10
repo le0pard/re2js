@@ -1,6 +1,25 @@
 /**
  * Various constants and helper for unicode codepoints.
  */
+const ASCII_SIZE = 128
+const ASCII_TO_UPPER = new Int32Array(ASCII_SIZE)
+const ASCII_TO_LOWER = new Int32Array(ASCII_SIZE)
+
+for (let i = 0; i < ASCII_SIZE; i++) {
+  if (i >= 97 && i <= 122) {
+    // a-z
+    ASCII_TO_UPPER[i] = i - 32
+  } else {
+    ASCII_TO_UPPER[i] = i
+  }
+  if (i >= 65 && i <= 90) {
+    // A-Z
+    ASCII_TO_LOWER[i] = i + 32
+  } else {
+    ASCII_TO_LOWER[i] = i
+  }
+}
+
 class Codepoint {
   // codePointAt(0)
   static CODES = new Map([
@@ -68,6 +87,8 @@ class Codepoint {
   // convert unicode codepoint to upper case codepoint
   // return same codepoint, if cannot do it (or codepoint not have upper variation)
   static toUpperCase(codepoint) {
+    if (codepoint < ASCII_SIZE) return ASCII_TO_UPPER[codepoint]
+
     const s = String.fromCodePoint(codepoint).toUpperCase()
     if (s.length > 1) {
       return codepoint
@@ -82,6 +103,8 @@ class Codepoint {
   // convert unicode codepoint to lower case codepoint
   // return same codepoint, if cannot do it (or codepoint not have lower variation)
   static toLowerCase(codepoint) {
+    if (codepoint < ASCII_SIZE) return ASCII_TO_LOWER[codepoint]
+
     const s = String.fromCodePoint(codepoint).toLowerCase()
     if (s.length > 1) {
       return codepoint

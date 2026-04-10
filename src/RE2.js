@@ -132,7 +132,7 @@ class RE2 {
     this.prefixComplete = false // true if prefix is the entire regexp
     this.prefixRune = 0 // first rune in prefix
     this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
-    this.dfa = new DFA(prog) // Initialize the Lazy DFA
+    this.dfa = null // Lazy DFA
   }
 
   executeEngine(input, pos, anchor, ncap) {
@@ -140,6 +140,10 @@ class RE2 {
     // We must use the NFA.
     if (ncap > 0) {
       return this.doExecuteNFA(input, pos, anchor, ncap)
+    }
+
+    if (this.dfa === null) {
+      this.dfa = new DFA(this.prog) // DFA lazy initialize
     }
 
     const dfaResult = this.dfa.match(input, pos, anchor)
