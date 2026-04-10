@@ -114,8 +114,8 @@ class Machine {
     if (this.ncap === 0) {
       return Utils.emptyInts()
     }
-    // Return a standard array format or typed array slice
-    return Array.from(this.matchcap.slice(0, this.ncap))
+    // Use subarray() to create a zero-allocation view before converting
+    return Array.from(this.matchcap.subarray(0, this.ncap))
   }
 
   // alloc() allocates a new thread with the given instruction.
@@ -158,7 +158,7 @@ class Machine {
       return false
     }
     this.matched = false
-    this.matchcap = new Int32Array(this.prog.numCap).fill(-1)
+    this.matchcap.fill(-1)
 
     let runq = this.q0
     let nextq = this.q1
