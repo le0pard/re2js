@@ -1,4 +1,5 @@
 import { Unicode } from '../Unicode'
+import { UnicodeTables } from '../UnicodeTables'
 import { codePoint } from '../__utils__/chars'
 import { expect, describe, test } from '@jest/globals'
 
@@ -89,4 +90,65 @@ describe('#equalsIgnoreCase', () => {
       expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
     }
   )
+})
+
+describe('UnicodeTables VLQ Decompression', () => {
+  it('should decompress the Zl (Line Separator) table correctly', () => {
+    const zlTable = UnicodeTables.CATEGORIES.get('Zl')
+
+    // Zl only contains exactly one character: U+2028 (Line Separator)
+    expect(zlTable.length).toBe(1)
+    expect(zlTable.getLo(0)).toBe(0x2028)
+    expect(zlTable.getHi(0)).toBe(0x2028)
+    expect(zlTable.getStride(0)).toBe(1)
+  })
+
+  it('should decompress the Zp (Paragraph Separator) table correctly', () => {
+    const zpTable = UnicodeTables.CATEGORIES.get('Zp')
+
+    // Zp only contains exactly one character: U+2029 (Paragraph Separator)
+    expect(zpTable.length).toBe(1)
+    expect(zpTable.getLo(0)).toBe(0x2029)
+    expect(zpTable.getHi(0)).toBe(0x2029)
+    expect(zpTable.getStride(0)).toBe(1)
+  })
+
+  it('should decompress the CASE_ORBIT map correctly', () => {
+    const orbit = UnicodeTables.CASE_ORBIT
+
+    // Standard ASCII letters are NOT in the table (they fallback to JS toLowerCase)
+    expect(orbit.has(65)).toBe(false)
+
+    // 'K' (75) -> 'k' (107)
+    expect(orbit.has(75)).toBe(true)
+    expect(orbit.get(75)).toBe(107)
+
+    // 'S' (83) -> 's' (115)
+    expect(orbit.has(83)).toBe(true)
+    expect(orbit.get(83)).toBe(115)
+
+    // 'k' (107) -> 'K' (8490) (Kelvin symbol)
+    expect(orbit.has(107)).toBe(true)
+    expect(orbit.get(107)).toBe(8490)
+  })
+
+  it('should decompress the Nd (Decimal Digits) table correctly with strides', () => {
+    const ndTable = UnicodeTables.CATEGORIES.get('Nd')
+
+    // The table should have decompressed successfully into an array of ranges
+    expect(ndTable.length).toBeGreaterThan(0)
+
+    // Find the range for standard ASCII digits '0' (48) to '9' (57)
+    let foundAsciiDigits = false
+    for (let i = 0; i < ndTable.length; i++) {
+      if (ndTable.getLo(i) === 48 && ndTable.getHi(i) === 57) {
+        foundAsciiDigits = true
+        // In the Nd table, '0'-'9' are consecutive, so the stride should be 1
+        expect(ndTable.getStride(i)).toBe(1)
+        break
+      }
+    }
+
+    expect(foundAsciiDigits).toBe(true)
+  })
 })
