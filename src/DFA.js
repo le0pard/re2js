@@ -31,7 +31,7 @@ class DFAState {
   }
 }
 
-export class DFA {
+class DFA {
   constructor(prog) {
     this.prog = prog
     this.stateCache = new Map() // hash(number) -> DFAState[]
@@ -100,6 +100,7 @@ export class DFA {
       this.stateCache.set(hash, bucket)
     }
 
+    // DFA already failed once - exit
     if (this.failed) return null
 
     // Safety: prevent memory exhaustion from state explosion
@@ -220,3 +221,5 @@ export class DFA {
     return false
   }
 }
+
+export { DFA }
