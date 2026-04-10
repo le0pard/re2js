@@ -127,7 +127,7 @@ class Machine {
       t = this.pool[this.poolSize]
     } else {
       t = new Thread()
-      t.cap = new Int32Array(this.ncap)
+      t.cap = new Int32Array(this.matchcap.length)
     }
     t.inst = inst
     return t

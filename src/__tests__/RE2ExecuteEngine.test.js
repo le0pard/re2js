@@ -68,3 +68,24 @@ describe('RE2 executeEngine Routing', () => {
     expect(nfaSpy).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('Memory Management', () => {
+  it('should safely recycle NFA threads without TypedArray zero-length deadlocks', () => {
+    // This regex uses \b, which forces the DFA to bail out and use the NFA
+    const re = RE2.compile('\\b(a+)\\b')
+
+    // Execute a boolean match.
+    // DFA bails, routes to NFA with ncap = 0.
+    // If the Machine is flawed, it allocates an Int32Array of length 0 for the thread
+    expect(re.match(' aaa ')).toBe(true)
+
+    // Execute a submatch extraction.
+    // Routes to NFA with ncap > 0. It pulls the recycled thread from the pool.
+    // If the array is length 0, it silently drops captures and returns empty values
+    const match = re.findSubmatch(' aaa ')
+
+    // Verify the capture group was successfully populated
+    expect(match).not.toBeNull()
+    expect(match[1]).toEqual('aaa')
+  })
+})
