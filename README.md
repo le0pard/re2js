@@ -456,8 +456,6 @@ Should you require maximum absolute performance on the server side when using RE
 
 ### RE2JS vs RE2-Node (C++ Bindings)
 
-### RE2JS vs RE2-Node (C++ Bindings)
-
 Because RE2JS implements a Just-In-Time (JIT) compiled DFA, it can perform incredibly close to native C++ bindings (`re2-node`) for many operations, avoiding the cross-boundary serialization costs between JavaScript and C++.
 
 Here is a benchmark running 30,000 items through both engines using their respective `.test()` fast-paths:
