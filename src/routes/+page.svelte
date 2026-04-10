@@ -21,13 +21,15 @@
       const p = RE2JS.compile(regexInput, flagsInput)
       const m = p.matcher(stringInput)
       const found = m.find()
+      const matches = m.matches()
+      const contains = p.test(stringInput)
       const end = performance.now()
 
       results = {
         success: true,
         time: end - start,
-        matches: m.matches(),
-        contains: p.test(stringInput),
+        matches: matches,
+        contains: contains,
         startWith: m.lookingAt(),
         groupCount: p.groupCount(),
         namedGroups: p.namedGroups(),
