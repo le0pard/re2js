@@ -1,8 +1,8 @@
 class UnicodeRangeTable {
-  SIZE = 3
-
-  constructor(data) {
+  constructor(data, isStride1 = false) {
     this.data = data // A Uint32Array
+    this.isStride1 = isStride1
+    this.SIZE = isStride1 ? 2 : 3
   }
 
   // High-performance getters that do NOT allocate memory
@@ -13,14 +13,12 @@ class UnicodeRangeTable {
     return this.data[index * this.SIZE + 1]
   }
   getStride(index) {
-    return this.data[index * this.SIZE + 2]
+    return this.isStride1 ? 1 : this.data[index * this.SIZE + 2]
   }
 
-  // Convenience getter (slower, for debugging or non-critical paths)
   get(index) {
     const i = index * this.SIZE
-    // Returns [lo, hi, stride]
-    return [this.data[i], this.data[i + 1], this.data[i + 2]]
+    return [this.data[i], this.data[i + 1], this.getStride(index)]
   }
 
   get length() {

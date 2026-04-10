@@ -38,6 +38,7 @@ export class DFA {
     this.stateCount = 0 // Tracks total states for memory limits
     this.startState = null
     this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
+    this.failed = false // mark if DFA cannot work with provided prog
   }
 
   // Follows epsilon (empty) transitions to find all reachable states without consuming a char
@@ -99,12 +100,15 @@ export class DFA {
       this.stateCache.set(hash, bucket)
     }
 
+    if (this.failed) return null
+
     // Safety: prevent memory exhaustion from state explosion
     // We flush the cache and return null, which seamlessly routes execution to the NFA
     if (this.stateCount >= this.stateLimit) {
       this.stateCache.clear()
       this.stateCount = 0
       this.startState = null
+      this.failed = true
       return null
     }
 

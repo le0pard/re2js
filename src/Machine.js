@@ -78,17 +78,7 @@ class Machine {
   }
 
   static fromMachine(machine) {
-    const m = new Machine()
-    m.re2 = machine.re2
-    m.prog = machine.prog
-    m.q0 = machine.q0
-    m.q1 = machine.q1
-    m.pool = machine.pool
-    m.poolSize = machine.poolSize
-    m.matched = machine.matched
-    m.matchcap = machine.matchcap
-    m.ncap = machine.ncap
-    return m
+    return Machine.fromRE2(machine.re2)
   }
 
   // init() reinitializes an existing Machine for re-use on a new input.
@@ -139,16 +129,10 @@ class Machine {
 
   // Frees all threads on the thread queue, returning them to the free pool.
   freeQueue(queue, from = 0) {
-    const numberOfThread = queue.size - from
-    const requiredPoolLength = this.poolSize + numberOfThread
-    if (this.pool.length < requiredPoolLength) {
-      this.pool = this.pool.slice(0, Math.max(this.pool.length * 2, requiredPoolLength))
-    }
     for (let i = from; i < queue.size; i++) {
       const t = queue.denseThreads[i]
       if (t !== null) {
-        this.pool[this.poolSize] = t
-        this.poolSize++
+        this.pool[this.poolSize++] = t
       }
     }
     queue.clear()
@@ -156,11 +140,7 @@ class Machine {
 
   // freeThread() returns t to the free pool.
   freeThread(t) {
-    if (this.pool.length <= this.poolSize) {
-      this.pool = this.pool.slice(0, this.pool.length * 2)
-    }
-    this.pool[this.poolSize] = t
-    this.poolSize++
+    this.pool[this.poolSize++] = t
   }
 
   match(input, pos, anchor) {
@@ -356,7 +336,9 @@ class Machine {
           t.inst = inst
         }
         if (this.ncap > 0 && t.cap !== cap) {
-          t.cap = cap.slice(0, this.ncap)
+          for (let c = 0; c < this.ncap; c++) {
+            t.cap[c] = cap[c]
+          }
         }
         q.denseThreads[d] = t
         t = null
