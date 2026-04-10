@@ -27,7 +27,7 @@
         success: true,
         time: end - start,
         matches: m.matches(),
-        contains: found,
+        contains: p.test(stringInput),
         startWith: m.lookingAt(),
         groupCount: p.groupCount(),
         namedGroups: p.namedGroups(),
@@ -184,7 +184,7 @@
             </td>
           </tr>
           <tr>
-            <td class="key-cell">Contain regex pattern ? <small>(find)</small></td>
+            <td class="key-cell">Contain regex pattern ? <small>(test)</small></td>
             <td class="val-cell">
               <span
                 class="status-tag"
