@@ -420,7 +420,7 @@ it('RE2 search', async () => {
   await testRE2('re2-search.txt')
 })
 
-it.skip('RE2 exhaustive', async () => {
+it('RE2 exhaustive', async () => {
   await testRE2('re2-exhaustive.txt.gz')
 }, 2000000) // long running test, run only locally
 
