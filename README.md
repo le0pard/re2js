@@ -467,7 +467,7 @@ Should you require maximum absolute performance on the server side when using RE
 
 ### RE2JS vs RE2-Node (C++ Bindings)
 
-Because RE2JS implements a Just-In-Time (JIT) compiled DFA, it can perform incredibly close to native C++ bindings (`re2-node`) for many operations, avoiding the cross-boundary serialization costs between JavaScript and C++.
+Because RE2JS's Lazy DFA and OnePass engines operate efficiently within V8's Just-In-Time (JIT) compiler, they can perform incredibly close to native C++ bindings (`re2-node`) for many operations, avoiding the cross-boundary serialization costs between JavaScript and C++.
 
 Here is a benchmark running 30,000 items through both engines using their respective `.test()` fast-paths:
 
@@ -486,7 +486,7 @@ Here is a benchmark running 30,000 items through both engines using their respec
 **Takeaways:**
 * **DFA Strengths (JS wins/ties):** For state-heavy tasks like bounded repetitions (`{5,15}`) or massive alternations (`White|Blue|...`), RE2JS operates entirely within V8's highly optimized JIT. By avoiding the JS-to-C++ N-API bridge overhead, pure JavaScript actually outpaces or operates at parity with the native bindings.
 * **C++ Strengths:** For simple string scanning (like literal or wildcard searches), C++ wins by ~1.4x. Native code can utilize highly optimized, hardware-level raw memory scanning instructions that the JS engine cannot perfectly replicate.
-* **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA is significantly slower than the C++ NFA. **For maximum performance in RE2JS, avoid `\b` or capture groups when doing bulk boolean `.test()` matching.**
+* **The Fallback Engines:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its Backtracker or NFA engines. As shown in the benchmarks, the pure JS fallback engines are slower than the C++ NFA. **For maximum performance in RE2JS, avoid `\b` when doing bulk boolean `.test()` matching.**
 
 ### RE2JS vs JavaScript's native RegExp
 
@@ -519,13 +519,13 @@ RE2JS processed this poison-pill string **30,000 times in just ~454 milliseconds
 
 ## Development
 
-Some files like `CharGroup.js` and `UnicodeTables.js` is generated and should be edited in generator files
+Some files like `CharGroup.js` and `UnicodeTables.js` are generated and should be edited in their respective generator files:
 
 ```bash
 ./tools/scripts/make_perl_groups.pl > src/CharGroup.js
 yarn node ./tools/scripts/genUnicodeTable.js > src/UnicodeTables.js
 ```
 
-To run `make_perl_groups.pl` you need to have install perl (version inside `.tool-versions`)
+To run `make_perl_groups.pl`, you need to have Perl installed (the required version is specified inside `.tool-versions`).
 
 [Playground website](https://re2js.leopard.in.ua/) maintained in `www` branch
