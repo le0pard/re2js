@@ -3,6 +3,8 @@ import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
 import { DFA } from './DFA'
+import { Backtracker } from './Backtracker'
+import { OnePass } from './OnePass'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
@@ -133,12 +135,25 @@ class RE2 {
     this.prefixRune = 0 // first rune in prefix
     this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
     this.dfa = new DFA(this.prog) // initialize Lazy DFA
+    this.onepass = OnePass.compile(this.prog) // compile OnePass
   }
 
   executeEngine(input, pos, anchor, ncap) {
+    // Fast path: OnePass DFA engine.
+    // If compiled successfully, it perfectly supports capture groups
+    // and is blisteringly fast since it skips thread queues completely.
+    if (this.onepass !== null) {
+      return OnePass.execute(this, input, pos, anchor, ncap)
+    }
+
     // If the user wants capturing groups (ncap > 0), the DFA mathematically CANNOT do it.
     // We must use the NFA.
     if (ncap > 0) {
+      // Backtracker bit-state execution bounds check
+      if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
+        return Backtracker.execute(this, input, pos, anchor, ncap)
+      }
+      // NFA execution
       return this.doExecuteNFA(input, pos, anchor, ncap)
     }
 
@@ -146,6 +161,11 @@ class RE2 {
     if (dfaResult !== null) {
       // DFA succeeded (returned true or false)
       return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
+    }
+
+    // Backtracker bit-state execution bounds check
+    if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
+      return Backtracker.execute(this, input, pos, anchor, ncap)
     }
 
     // Fallback to NFA

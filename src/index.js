@@ -10,7 +10,8 @@ import {
   RE2JSSyntaxException,
   RE2JSCompileException,
   RE2JSGroupException,
-  RE2JSFlagsException
+  RE2JSFlagsException,
+  RE2JSInternalException
 } from './exceptions'
 
 /**
@@ -398,5 +399,6 @@ export {
   RE2JSSyntaxException,
   RE2JSCompileException,
   RE2JSGroupException,
-  RE2JSFlagsException
+  RE2JSFlagsException,
+  RE2JSInternalException
 }
