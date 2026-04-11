@@ -120,6 +120,7 @@ class PrefilterTree {
           }
         }
       }
+
       if (newSubs.length === 0) return new Prefilter(Prefilter.Type.NONE)
       if (newSubs.length === 1) return newSubs[0]
       pf.subs = newSubs
