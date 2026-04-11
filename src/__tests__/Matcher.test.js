@@ -500,6 +500,45 @@ describe('groups', () => {
       last: 'Doe'
     })
   })
+
+  it('prevents Prototype Pollution via __proto__ capture group names', () => {
+    // Malicious regex attempting to poison the __proto__ key
+    const p = RE2JS.compile('(?P<__proto__>malicious_payload)')
+    const m = p.matcher('malicious_payload')
+
+    expect(m.matches()).toBe(true)
+
+    const groups = m.getNamedGroups()
+
+    // The dictionary should correctly store the value without polluting the prototype chain
+    expect(groups.__proto__).toBe('malicious_payload')
+
+    // Prove that the object's actual prototype is perfectly null
+    expect(Object.getPrototypeOf(groups)).toBeNull()
+
+    // Prove that the global Object prototype remains completely untouched
+    expect({}.malicious_payload).toBeUndefined()
+  })
+
+  it('returns -1 for start and end of unmatched optional named group', () => {
+    const p = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)')
+    const m = p.matcher('John Doe')
+
+    expect(m.matches()).toBe(true)
+
+    // middle group didn't match, bounds should be -1
+    expect(m.start('middle')).toBe(-1)
+    expect(m.end('middle')).toBe(-1)
+    expect(m.group('middle')).toBeNull()
+  })
+
+  it('throws when getting named groups before match is attempted', () => {
+    const p = RE2JS.compile('(?P<first>\\w+)')
+    const m = p.matcher('John')
+
+    // We haven't called m.matches() or m.find() yet!
+    expect(() => m.getNamedGroups()).toThrow('perhaps no match attempted')
+  })
 })
 
 it('froup zero width assertions', () => {

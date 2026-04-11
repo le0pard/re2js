@@ -228,7 +228,7 @@ class Matcher {
       throw new RE2JSGroupException('perhaps no match attempted')
     }
 
-    const result = {}
+    const result = Object.create(null)
     for (const name of Object.keys(this.namedGroups)) {
       result[name] = this.group(name)
     }
