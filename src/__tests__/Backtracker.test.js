@@ -1,4 +1,5 @@
-import { RE2JS } from '../index'
+import { RE2JS, RE2JSInternalException } from '../index'
+import { Inst } from '../Inst'
 import { Backtracker } from '../Backtracker'
 
 describe('Backtracker Execution Engine', () => {
@@ -42,5 +43,43 @@ describe('Backtracker Execution Engine', () => {
 
     expect(anchoredRE.testExact('foo')).toBe(true)
     expect(anchoredRE.testExact(' foo ')).toBe(false)
+  })
+})
+
+describe('Backtracker Internal Exception Handling', () => {
+  it('throws RE2JSInternalException on unexpected Inst.FAIL', () => {
+    const re = RE2JS.compile('a')
+
+    // The `start` instruction is processed via `push()`, which explicitly ignores Inst.FAIL.
+    // To trigger the exception inside the inner execution loop, we must corrupt an instruction
+    // that is branched to *after* the initial push (e.g., via `currentPc = inst.out`).
+    const startPc = re.re2Input.prog.start
+    const nextPc = re.re2Input.prog.inst[startPc].out
+
+    re.re2Input.prog.inst[nextPc].op = Inst.FAIL
+
+    expect(() => {
+      re.matcher('a').find()
+    }).toThrow(RE2JSInternalException)
+
+    expect(() => {
+      re.matcher('a').find()
+    }).toThrow('unexpected InstFail')
+  })
+
+  it('throws RE2JSInternalException on an unknown/bad instruction', () => {
+    const re = RE2JS.compile('a')
+
+    // The `push` filter doesn't know about opcode 999, so it will push it to the stack.
+    // The inner loop will pop it, fail to match it in the switch statement, and throw.
+    re.re2Input.prog.inst[re.re2Input.prog.start].op = 999
+
+    expect(() => {
+      re.matcher('a').find()
+    }).toThrow(RE2JSInternalException)
+
+    expect(() => {
+      re.matcher('a').find()
+    }).toThrow('bad inst')
   })
 })

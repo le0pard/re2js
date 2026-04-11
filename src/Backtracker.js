@@ -2,6 +2,7 @@ import { Inst } from './Inst'
 import { MachineInputBase } from './MachineInput'
 import { Utils } from './Utils'
 import { RE2Flags } from './RE2Flags'
+import { RE2JSInternalException } from './exceptions'
 
 const VISITED_BITS = 32
 const MAX_BACKTRACK_PROG = 500
@@ -108,7 +109,7 @@ class BitState {
 
         switch (inst.op) {
           case Inst.FAIL: {
-            throw new Error('unexpected InstFail')
+            throw new RE2JSInternalException('unexpected InstFail')
           }
           case Inst.ALT: {
             if (arg) {
@@ -213,7 +214,7 @@ class BitState {
             break
           }
           default: {
-            throw new Error('bad inst')
+            throw new RE2JSInternalException('bad inst')
           }
         }
         break
