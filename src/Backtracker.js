@@ -6,7 +6,8 @@ import { RE2JSInternalException } from './exceptions'
 
 const VISITED_BITS = 32
 const MAX_BACKTRACK_PROG = 500
-const MAX_BACKTRACK_VECTOR = 256 * 1024
+const INITIAL_JOB_CAPACITY = 256 // Starting size for the job stack arrays
+const MAX_BACKTRACK_VECTOR = 256 * 1024 // 32 KB limit for the visited bit-mask
 
 class BitState {
   constructor() {
@@ -16,9 +17,9 @@ class BitState {
     this.ncap = 0
 
     // Parallel arrays acting as the backtrack job stack
-    this.jobPc = new Int32Array(256)
-    this.jobArg = new Uint8Array(256)
-    this.jobPos = new Int32Array(256)
+    this.jobPc = new Int32Array(INITIAL_JOB_CAPACITY)
+    this.jobArg = new Uint8Array(INITIAL_JOB_CAPACITY)
+    this.jobPos = new Int32Array(INITIAL_JOB_CAPACITY)
     this.jobLen = 0
 
     this.visited = new Uint32Array(0)
@@ -31,7 +32,7 @@ class BitState {
 
     const visitedSize = Math.floor((prog.numInst() * (end + 1) + VISITED_BITS - 1) / VISITED_BITS)
     if (this.visited.length < visitedSize) {
-      this.visited = new Uint32Array(visitedSize)
+      this.visited = new Uint32Array(Math.floor(MAX_BACKTRACK_VECTOR / VISITED_BITS))
     } else {
       this.visited.fill(0, 0, visitedSize)
     }
