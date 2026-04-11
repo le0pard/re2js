@@ -1,0 +1,52 @@
+import { Inst } from '../Inst'
+import { RE2Flags } from '../RE2Flags'
+
+describe('Inst.matchRune Array Search Logic', () => {
+  it('correctly matches using the linear search fast-path (length 4)', () => {
+    const inst = new Inst(Inst.RUNE)
+    // [10, 20, 30, 40] represents the ranges 10-20 and 30-40
+    inst.runes = [10, 20, 30, 40]
+    inst.arg = 0 // No case folding
+
+    // Test boundaries
+    expect(inst.matchRune(9)).toBe(false)
+    expect(inst.matchRune(10)).toBe(true) // Start of range 1
+    expect(inst.matchRune(15)).toBe(true)
+    expect(inst.matchRune(20)).toBe(true) // End of range 1
+
+    expect(inst.matchRune(25)).toBe(false) // Gap
+
+    expect(inst.matchRune(30)).toBe(true) // Start of range 2
+    expect(inst.matchRune(35)).toBe(true)
+    expect(inst.matchRune(41)).toBe(false)
+  })
+
+  it('correctly matches using binary search for large arrays (length > 8)', () => {
+    const inst = new Inst(Inst.RUNE)
+    // Length 10 (falls through to binary search)
+    inst.runes = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    inst.arg = 0
+
+    // Test first, middle, and last ranges
+    expect(inst.matchRune(9)).toBe(false)
+
+    expect(inst.matchRune(15)).toBe(true) // In first range
+    expect(inst.matchRune(45)).toBe(false) // In gap
+    expect(inst.matchRune(55)).toBe(true) // In middle range
+    expect(inst.matchRune(85)).toBe(false) // In gap
+    expect(inst.matchRune(95)).toBe(true) // In last range
+
+    expect(inst.matchRune(101)).toBe(false)
+  })
+
+  it('correctly handles case-folding single runes', () => {
+    const inst = new Inst(Inst.RUNE)
+    inst.runes = ['a'.codePointAt(0)]
+    inst.arg = RE2Flags.FOLD_CASE // Enable case insensitivity
+
+    // Should match both lowercase and uppercase 'a'
+    expect(inst.matchRune('a'.codePointAt(0))).toBe(true)
+    expect(inst.matchRune('A'.codePointAt(0))).toBe(true)
+    expect(inst.matchRune('b'.codePointAt(0))).toBe(false)
+  })
+})
