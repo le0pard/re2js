@@ -478,6 +478,28 @@ describe('groups', () => {
     expect(m.end('baz')).toEqual(4)
     expect(m.end('bag')).toEqual(9)
   })
+
+  it('returns all named groups as a dictionary', () => {
+    const p = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)')
+
+    // Test without middle name
+    const m1 = p.matcher('John Doe')
+    expect(m1.matches()).toBe(true)
+    expect(m1.getNamedGroups()).toEqual({
+      first: 'John',
+      middle: null, // Did not match
+      last: 'Doe'
+    })
+
+    // Test with middle name
+    const m2 = p.matcher('John William Doe')
+    expect(m2.matches()).toBe(true)
+    expect(m2.getNamedGroups()).toEqual({
+      first: 'John',
+      middle: 'William',
+      last: 'Doe'
+    })
+  })
 })
 
 it('froup zero width assertions', () => {

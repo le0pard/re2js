@@ -308,6 +308,27 @@ if (mString.matches()) {
 }
 ```
 
+#### Extracting All Named Groups
+
+If you have multiple named capturing groups, the `getNamedGroups()` method provides a convenient way to retrieve all of them at once as a JavaScript dictionary (object). If an optional group was not matched, its value will be `null`.
+
+```js
+import { RE2JS } from 're2js'
+
+const p = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)')
+const matchString = p.matcher('John Doe')
+
+if (matchString.matches()) {
+  matchString.getNamedGroups()
+  // Returns:
+  // {
+  //   first: 'John',
+  //   middle: null,
+  //   last: 'Doe'
+  // }
+}
+```
+
 ### Replacing Matches
 
 RE2JS allows you to replace all occurrences or the first occurrence of a pattern match in a string with a specific replacement string

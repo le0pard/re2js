@@ -32,12 +32,15 @@ class DFAState {
 }
 
 class DFA {
+  static MAX_CACHE_CLEARS = 5
+
   constructor(prog) {
     this.prog = prog
     this.stateCache = new Map() // hash(number) -> DFAState[]
     this.stateCount = 0 // Tracks total states for memory limits
     this.startState = null
     this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
+    this.cacheClears = 0 // Track thrashing
     this.failed = false // mark if DFA cannot work with provided prog
   }
 
@@ -109,7 +112,13 @@ class DFA {
       this.stateCache.clear()
       this.stateCount = 0
       this.startState = null
-      this.failed = true
+      this.cacheClears++
+
+      // If this regex causes continuous cache thrashing, permanently fall back to NFA
+      // to avoid spending CPU cycles constantly rebuilding the DFA tree.
+      if (this.cacheClears >= DFA.MAX_CACHE_CLEARS) {
+        this.failed = true
+      }
       return null
     }
 
