@@ -19,6 +19,15 @@ class MachineInputBase {
   endPos() {
     return this.end
   }
+
+  hasString() {
+    return false
+  }
+
+  // Helper for the exact-literal fast-path execution router
+  prefixLength() {
+    return 0
+  }
 }
 
 // An implementation of MachineInput for UTF-8 byte arrays.
@@ -29,6 +38,15 @@ class MachineUTF8Input extends MachineInputBase {
     this.bytes = bytes
     this.start = start
     this.end = end
+  }
+
+  hasString(prefilter, pos) {
+    const target = prefilter.bytes
+    if (target.length === 0) return true
+
+    // Reuse the high-speed indexOf method already implemented below
+    const idx = this.indexOf(this.bytes, target, this.start + pos)
+    return idx !== -1 && idx <= this.end - target.length
   }
 
   // Returns the rune at the specified index; the units are
@@ -107,11 +125,11 @@ class MachineUTF8Input extends MachineInputBase {
   indexOf(source, target, fromIndex = 0) {
     let targetLength = target.length
     if (targetLength === 0) {
-      return -1
+      return fromIndex <= this.end ? fromIndex : -1
     }
 
-    let sourceLength = source.length
-    for (let i = fromIndex; i <= sourceLength - targetLength; i++) {
+    let limit = this.end - targetLength
+    for (let i = fromIndex; i <= limit; i++) {
       for (let j = 0; j < targetLength; j++) {
         if (source[i + j] !== target[j]) {
           break
@@ -123,6 +141,10 @@ class MachineUTF8Input extends MachineInputBase {
 
     return -1
   }
+
+  prefixLength(re2) {
+    return re2.prefixUTF8.length
+  }
 }
 
 // |pos| and |width| are in JS "char" units.
@@ -132,6 +154,11 @@ class MachineUTF16Input extends MachineInputBase {
     this.charSequence = charSequence
     this.start = start
     this.end = end
+  }
+
+  hasString(prefilter, pos) {
+    const idx = this.charSequence.indexOf(prefilter.str, this.start + pos)
+    return idx !== -1 && idx <= this.end - prefilter.str.length
   }
 
   // Returns the rune at the specified index; the units are
@@ -182,6 +209,10 @@ class MachineUTF16Input extends MachineInputBase {
       pos > 0 && pos <= this.charSequence.length ? this.charSequence.codePointAt(pos - 1) : -1
     const r2 = pos < this.charSequence.length ? this.charSequence.codePointAt(pos) : -1
     return Utils.emptyOpContext(r1, r2)
+  }
+
+  prefixLength(re2) {
+    return re2.prefix.length
   }
 }
 

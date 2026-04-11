@@ -50,6 +50,11 @@ describe('Backtracker Internal Exception Handling', () => {
   it('throws RE2JSInternalException on unexpected Inst.FAIL', () => {
     const re = RE2JS.compile('a')
 
+    // SABOTAGE: Force bypass the Literal and OnePass fast-paths
+    // so execution is guaranteed to fall into the Backtracker/NFA!
+    re.re2Input.prefixComplete = false
+    re.re2Input.onepass = null
+
     // The `start` instruction is processed via `push()`, which explicitly ignores Inst.FAIL.
     // To trigger the exception inside the inner execution loop, we must corrupt an instruction
     // that is branched to *after* the initial push (e.g., via `currentPc = inst.out`).
@@ -69,6 +74,10 @@ describe('Backtracker Internal Exception Handling', () => {
 
   it('throws RE2JSInternalException on an unknown/bad instruction', () => {
     const re = RE2JS.compile('a')
+
+    // SABOTAGE: Force bypass the Literal and OnePass fast-paths
+    re.re2Input.prefixComplete = false
+    re.re2Input.onepass = null
 
     // The `push` filter doesn't know about opcode 999, so it will push it to the stack.
     // The inner loop will pop it, fail to match it in the switch statement, and throw.

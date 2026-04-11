@@ -5,6 +5,7 @@ import { MachineInput } from './MachineInput'
 import { DFA } from './DFA'
 import { Backtracker } from './Backtracker'
 import { OnePass } from './OnePass'
+import { PrefilterTree, Prefilter } from './Prefilter'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
@@ -55,6 +56,7 @@ class RE2 {
     res.prefixUTF8 = re2.prefixUTF8
     res.prefixComplete = re2.prefixComplete
     res.prefixRune = re2.prefixRune
+    res.prefilter = re2.prefilter
     return res
   }
 
@@ -98,8 +100,12 @@ class RE2 {
     const maxCap = re.maxCap()
     re = Simplify.simplify(re)
 
+    const prefilter = PrefilterTree.build(re)
+
     const prog = Compiler.compileRegexp(re)
     const re2 = new RE2(expr, prog, maxCap, longest)
+
+    re2.prefilter = prefilter.type === Prefilter.Type.NONE ? null : prefilter
 
     const [prefixCompl, prefixStr] = prog.prefix()
     re2.prefixComplete = prefixCompl
@@ -136,10 +142,67 @@ class RE2 {
     this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
     this.dfa = new DFA(this.prog) // initialize Lazy DFA
     this.onepass = OnePass.compile(this.prog) // compile OnePass
+    this.prefilter = null
+  }
+
+  matchPrefixComplete(input, pos, anchor, ncap) {
+    // If strictly anchored, execution must start at 0
+    if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+      return null
+    }
+
+    let matchStart = -1
+    let matchEnd = -1
+    const pLen = input.prefixLength(this)
+
+    if (anchor === RE2Flags.UNANCHORED) {
+      const idx = input.index(this, pos)
+      if (idx < 0) return null
+      matchStart = pos + idx
+      matchEnd = matchStart + pLen
+    } else if (anchor === RE2Flags.ANCHOR_BOTH) {
+      if (input.endPos() !== pLen) return null
+      const idx = input.index(this, 0)
+      if (idx !== 0) return null
+      matchStart = 0
+      matchEnd = pLen
+    } else if (anchor === RE2Flags.ANCHOR_START) {
+      const idx = input.index(this, 0)
+      if (idx !== 0) return null
+      matchStart = 0
+      matchEnd = pLen
+    }
+
+    if (matchStart < 0) return null
+
+    // If captures are requested (e.g. findSubmatch instead of test), populate bounds
+    if (ncap > 0) {
+      const matchcap = new Int32Array(ncap).fill(-1)
+      matchcap[0] = matchStart
+      matchcap[1] = matchEnd
+      return Array.from(matchcap)
+    }
+    return [] // Matched successfully, but no capture data requested
   }
 
   executeEngine(input, pos, anchor, ncap) {
-    // Fast path: OnePass DFA engine.
+    // LITERAL FAST PATH
+    // If the entire regex is just a literal string (and no nested capture boundaries are requested),
+    // bypass all state machines and execute via V8's blistering fast native indexOf
+    if (this.prefixComplete && (ncap === 0 || this.numSubexp === 0)) {
+      return this.matchPrefixComplete(input, pos, anchor, ncap)
+    }
+
+    // PREFILTER FAST PATH
+    // If the unanchored query requires specific literal strings (e.g. "a.*b"),
+    // verify those strings exist using high-speed JS string searches before waking up the state engines.
+    if (this.prefilter !== null && anchor === RE2Flags.UNANCHORED) {
+      if (!this.prefilter.eval(input, pos)) {
+        return null
+      }
+    }
+
+    // FAST PATH: OnePass DFA engine.
     // If compiled successfully, it perfectly supports capture groups
     // and is blisteringly fast since it skips thread queues completely.
     if (this.onepass !== null) {
