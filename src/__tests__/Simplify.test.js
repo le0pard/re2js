@@ -121,7 +121,14 @@ describe('.simplify', () => {
     ['(){1}', '()'],
     ['(){1,}', '()+'],
     ['(){0,2}', '(?:()()?)?'],
-    ['(?:(a){0})', '(?:)']
+    ['(?:(a){0})', '(?:)'],
+
+    // Aggressive AST Simplification and Pruning
+    ['a{1}b{0}', 'a'], // CONCAT(a, EMPTY) flattens to a
+    ['a(b|[^\x00-\u{10FFFF}])c', 'a(b)c'], // NO_MATCH is mathematically stripped from ALTERNATE
+    ['(?:a|b|[^\x00-\u{10FFFF}])', '[a-b]'], // NO_MATCH stripped without capture groups
+    ['(?:a{0}b{0})', '(?:)'], // CONCAT(EMPTY, EMPTY) resolves to a single EMPTY
+    ['(a|b|c){0}', '(?:)'] // 0 Repetitions resolve to EMPTY
   ]
 
   test.concurrent.each(cases)('regex %p simplify to %p', (input, expected) => {
