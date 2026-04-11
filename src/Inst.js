@@ -91,6 +91,43 @@ class Inst {
 
     return false
   }
+
+  // matchRunePos checks whether the instruction matches (and consumes) r.
+  // If so, it returns the index of the matching rune pair.
+  // If not, it returns -1.
+  matchRunePos(r) {
+    if (this.runes.length === 1) {
+      const r0 = this.runes[0]
+      if ((this.arg & RE2Flags.FOLD_CASE) !== 0) {
+        return Unicode.equalsIgnoreCase(r0, r) ? 0 : -1
+      }
+      return r === r0 ? 0 : -1
+    }
+
+    const len = this.runes.length
+    if (len === 2 || len === 4 || len === 6 || len === 8) {
+      for (let j = 0; j < len; j += 2) {
+        if (r < this.runes[j]) return -1
+        if (r <= this.runes[j + 1]) return Math.floor(j / 2)
+      }
+      return -1
+    }
+
+    let lo = 0
+    let hi = Math.floor(len / 2)
+    while (lo < hi) {
+      const m = (lo + hi) >> 1
+      const c = this.runes[2 * m]
+      if (c <= r) {
+        if (r <= this.runes[2 * m + 1]) return m
+        lo = m + 1
+      } else {
+        hi = m
+      }
+    }
+
+    return -1
+  }
   /**
    *
    * @returns {string}
