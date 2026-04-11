@@ -84,7 +84,8 @@ class TranslateRegExpString {
             }
             default: {
               result += '\\'
-              let symSize = Utils.charCount(ch.codePointAt(0))
+              let cp = data.codePointAt(i + 1)
+              let symSize = Utils.charCount(cp)
               result += data.substring(i + 1, i + 1 + symSize)
               i += symSize + 1
               continue
@@ -105,7 +106,8 @@ class TranslateRegExpString {
         }
       }
 
-      let symSize = Utils.charCount(ch.codePointAt(0))
+      let cp = data.codePointAt(i)
+      let symSize = Utils.charCount(cp)
       result += data.substring(i, i + symSize)
       i += symSize
     }

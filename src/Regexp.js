@@ -74,7 +74,7 @@ export class Regexp {
     this.max = 0 // max for REPEAT
     this.cap = 0 // capturing index, for CAPTURE
     this.name = null // capturing name, for CAPTURE
-    this.namedGroups = {} // map of group name -> capturing index
+    this.namedGroups = Object.create(null) // map of group name -> capturing index
   }
 
   reinit() {
@@ -85,7 +85,7 @@ export class Regexp {
     this.min = 0
     this.max = 0
     this.name = null
-    this.namedGroups = {}
+    this.namedGroups = Object.create(null)
   }
 
   toString() {

@@ -9,17 +9,6 @@ import { CharClass } from './CharClass'
 import { RE2JSSyntaxException } from './exceptions'
 import { Regexp } from './Regexp'
 
-class Pair {
-  static of(first, second) {
-    return new Pair(first, second)
-  }
-
-  constructor(first, second) {
-    this.first = first
-    this.second = second
-  }
-}
-
 // StringIterator: a stream of runes with an opaque cursor, permitting
 // rewinding.  The units of the cursor are not specified beyond the
 // fact that ASCII characters are single width.  (Cursor positions
@@ -168,18 +157,60 @@ class Parser {
   // stride).
   static ANY_TABLE = new UnicodeRangeTable(new Uint32Array([0, Unicode.MAX_RUNE, 1]))
 
+  // Ascii tables
+  static ASCII_TABLE = new UnicodeRangeTable(new Uint32Array([0, 0x7f, 1]))
+  static ASCII_FOLD_TABLE = new UnicodeRangeTable(
+    new Uint32Array([
+      0,
+      0x7f,
+      1,
+      0x017f,
+      0x017f,
+      1, // Old English long s (ſ), folds to S/s.
+      0x212a,
+      0x212a,
+      1 // Kelvin K, folds to K/k.
+    ])
+  )
+
   // unicodeTable() returns the Unicode RangeTable identified by name
   // and the table of additional fold-equivalent code points.
   // Returns null if |name| does not identify a Unicode character range.
   static unicodeTable(name) {
     if (name === 'Any') {
-      return Pair.of(Parser.ANY_TABLE, Parser.ANY_TABLE)
+      return { tab: Parser.ANY_TABLE, fold: Parser.ANY_TABLE, sign: +1 }
+    }
+    if (name === 'Ascii') {
+      return { tab: Parser.ASCII_TABLE, fold: Parser.ASCII_FOLD_TABLE, sign: +1 }
+    }
+    if (name === 'Assigned') {
+      // Assigned is the mathematical inversion of Cn (Unassigned)
+      return {
+        tab: UnicodeTables.CATEGORIES.get('Cn'),
+        fold: UnicodeTables.CATEGORIES.get('Cn'),
+        sign: -1
+      }
+    }
+    if (name === 'Lc') {
+      return {
+        tab: UnicodeTables.CATEGORIES.get('LC'),
+        fold: UnicodeTables.FOLD_CATEGORIES.get('LC'),
+        sign: +1
+      }
     }
     if (UnicodeTables.CATEGORIES.has(name)) {
-      return Pair.of(UnicodeTables.CATEGORIES.get(name), UnicodeTables.FOLD_CATEGORIES.get(name))
+      return {
+        tab: UnicodeTables.CATEGORIES.get(name),
+        fold: UnicodeTables.FOLD_CATEGORIES.get(name),
+        sign: +1
+      }
     }
     if (UnicodeTables.SCRIPTS.has(name)) {
-      return Pair.of(UnicodeTables.SCRIPTS.get(name), UnicodeTables.FOLD_SCRIPT.get(name))
+      return {
+        tab: UnicodeTables.SCRIPTS.get(name),
+        fold: UnicodeTables.FOLD_SCRIPT.get(name),
+        sign: +1
+      }
     }
     return null
   }
@@ -517,7 +548,7 @@ class Parser {
     this.flags = flags
     // number of capturing groups seen
     this.numCap = 0
-    this.namedGroups = {}
+    this.namedGroups = Object.create(null)
     // Stack of parsed expressions.
     this.stack = []
     this.free = null
@@ -1415,9 +1446,11 @@ class Parser {
                   const i = lit.indexOf('\\E')
                   if (i >= 0) {
                     lit = lit.substring(0, i)
+                    t.skipString(lit)
+                    t.skipString('\\E')
+                  } else {
+                    t.skipString(lit)
                   }
-                  t.skipString(lit)
-                  t.skipString('\\E')
 
                   let j = 0
                   while (j < lit.length) {
@@ -1435,6 +1468,9 @@ class Parser {
                   t.rewindTo(savedPos)
                   break
               }
+            } else {
+              // Unconditionally rewind if PERL_X is off, or if string ended abruptly
+              t.rewindTo(savedPos)
             }
 
             const re = this.newRegexp(Regexp.Op.CHAR_CLASS)
@@ -1782,9 +1818,12 @@ class Parser {
     if (pair === null) {
       throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, t.from(startPos))
     }
+    if (pair.sign < 0) {
+      sign = 0 - sign
+    }
 
-    const tab = pair.first
-    const fold = pair.second // fold-equivalent table
+    const tab = pair.tab
+    const fold = pair.fold // fold-equivalent table
     // Variation of CharClass.appendGroup() for tables.
     if ((this.flags & RE2Flags.FOLD_CASE) === 0 || fold === null) {
       cc.appendTableWithSign(tab, sign)

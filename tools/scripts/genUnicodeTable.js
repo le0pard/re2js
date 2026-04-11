@@ -7,7 +7,7 @@ import lodash from 'lodash'
 
 const MAX_CODE_POINT = 0x10ffff
 
-const SKIP_CATEGORIES = ['cntrl', 'Cn', 'LC', 'Combining_Mark', 'digit', 'punct']
+const SKIP_CATEGORIES = ['cntrl', 'Combining_Mark', 'digit', 'punct']
 
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 

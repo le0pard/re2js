@@ -623,3 +623,45 @@ describe('.quoteReplacement', () => {
     expect(RE2JS.quoteReplacement('foo$bar\\baz', true)).toEqual('foo\\$bar\\\\baz')
   })
 })
+
+describe('Core Unicode Properties (Ascii, Assigned, Lc)', () => {
+  it('compiles without error', () => {
+    expect(() => RE2JS.compile('\\p{Ascii}')).not.toThrow()
+    expect(() => RE2JS.compile('\\p{Assigned}')).not.toThrow()
+    expect(() => RE2JS.compile('\\p{Lc}')).not.toThrow()
+  })
+
+  it('matches \\p{Ascii} correctly', () => {
+    const p = RE2JS.compile('^\\p{Ascii}+$')
+
+    // Standard ASCII
+    expect(p.matches('abc123!@#\x7F')).toBe(true)
+
+    // Contains non-ASCII (Emoji)
+    expect(p.matches('abc😊')).toBe(false)
+  })
+
+  it('matches \\p{Lc} (Cased Letters) correctly', () => {
+    const p = RE2JS.compile('^\\p{Lc}+$')
+
+    // All cased letters
+    expect(p.matches('aBcDeFéÜ')).toBe(true)
+
+    // Contains a digit (not a letter)
+    expect(p.matches('aBcDeF1')).toBe(false)
+
+    // Contains a space
+    expect(p.matches('aBcDeF ')).toBe(false)
+  })
+
+  it('matches \\p{Assigned} correctly (Inverse of Cn)', () => {
+    const p = RE2JS.compile('^\\p{Assigned}+$')
+
+    // Most standard strings are assigned characters
+    expect(p.matches('abc123!@#😊')).toBe(true)
+
+    // U+0378 is a permanently unassigned character in the Greek block (Cn category)
+    const unassignedChar = String.fromCodePoint(0x0378)
+    expect(p.matches(unassignedChar)).toBe(false)
+  })
+})

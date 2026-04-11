@@ -85,6 +85,10 @@ describe('.parse', () => {
     //  ["\\C", "byte{}"],  // probably never
 
     // Unicode, negatives, and a double negative.
+    ['\\p{Ascii}', 'cc{0x0-0x7f}'],
+    ['\\P{Ascii}', 'cc{0x80-0x10ffff}'],
+    ['\\p{^Ascii}', 'cc{0x80-0x10ffff}'],
+    ['\\P{^Ascii}', 'cc{0x0-0x7f}'],
     ['\\p{Braille}', 'cc{0x2800-0x28ff}'],
     ['\\P{Braille}', 'cc{0x0-0x27ff 0x2900-0x10ffff}'],
     ['\\p{^Braille}', 'cc{0x0-0x27ff 0x2900-0x10ffff}'],
@@ -429,5 +433,22 @@ describe('large AST flat structures', () => {
     expect(() => {
       Parser.parse(massiveConcat, RE2Flags.PERL)
     }).not.toThrow()
+  })
+})
+
+describe('Flag interactions and rewinding', () => {
+  it('should parse \\p correctly when PERL_X is disabled but UNICODE_GROUPS is enabled', () => {
+    // If the rewind bug is present, the parser will fail to recognize \p{Any}
+    // because the cursor doesn't rewind properly after checking for Perl extensions.
+    const re = Parser.parse('\\p{Any}', RE2Flags.UNICODE_GROUPS)
+    expect(dumpRegexp(re)).toEqual('dot{}')
+  })
+
+  it('should throw on unhandled alphanumeric escapes without PERL_X', () => {
+    // \A is a Perl extension. Without PERL_X, escaping an alphanumeric character
+    // is strictly an invalid escape sequence in RE2, not a fallback to a literal.
+    expect(() => {
+      Parser.parse('\\A', RE2Flags.UNICODE_GROUPS)
+    }).toThrow('error parsing regexp: invalid escape sequence: `\\A`')
   })
 })
