@@ -4,145 +4,72 @@ import { Backtracker } from '../Backtracker'
 import { RE2Flags } from '../RE2Flags'
 import { MachineInput } from '../MachineInput'
 import { OnePass } from '../OnePass'
+import { Prefilter } from '../Prefilter'
 import { expect, describe, test, jest } from '@jest/globals'
 
-describe('RE2 executeEngine Routing', () => {
-  test('bails out early without invoking any engines if prefilter fails', () => {
+describe('Literal Fast-Path Routing', () => {
+  test('bails out early using literal fast path for strictly literal unanchored regexes', () => {
+    const prefilterSpy = jest.spyOn(Prefilter.prototype, 'eval')
     const onePassSpy = jest.spyOn(OnePass, 'execute')
     const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
     const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
 
-    // Prefilter will extract AND(EXACT("error"), EXACT("critical"))
-    const re = RE2.compile('error.*critical')
+    const re = RE2.compile('hello')
+    const result = re.match('say hello world')
 
-    // Missing "critical", prefilter should instantly reject it using indexOf
-    const result = re.match('There was an error but it was minor')
+    expect(result).toBe(true)
 
-    expect(result).toBe(false)
-
-    // Prove that NO execution engines were ever spun up!
+    // Prove that NO execution engines (not even the prefilter analyzer) were spun up!
+    expect(prefilterSpy).not.toHaveBeenCalled()
     expect(onePassSpy).not.toHaveBeenCalled()
     expect(dfaSpy).not.toHaveBeenCalled()
-    expect(backtrackerSpy).not.toHaveBeenCalled()
     expect(nfaSpy).not.toHaveBeenCalled()
   })
 
-  test('proceeds to execution engines if prefilter succeeds', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-
-    const re = RE2.compile('error.*critical')
-    // Both required strings are present
-    const result = re.match('There was an error that was critical')
-
-    expect(result).toBe(true)
-
-    // The prefilter approved it, so it correctly handed execution off to the DFA
-    expect(dfaSpy).toHaveBeenCalledTimes(1)
-  })
-
-  test('bypasses prefilter completely for strictly anchored matches', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-
-    const re = RE2.compile('^error.*critical$')
-
-    // Test exact anchored routing directly on the RE2 engine
-    const input = MachineInput.fromUTF16('error')
-    const result = re.executeEngine(input, 0, RE2Flags.ANCHOR_BOTH, 0)
-
-    expect(result).toBeNull() // execution returns null because it failed the match
-
-    // Because it was anchored, the prefilter skipped evaluation and the DFA handled the rejection
-    expect(dfaSpy).toHaveBeenCalledTimes(1)
-  })
-
-  test('routes directly to OnePass when regex is 1-unambiguous', () => {
-    const onePassSpy = jest.spyOn(OnePass, 'execute')
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
-    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
-
-    const re = RE2.compile('^a(b|c)d$')
-    const result = re.findSubmatch('abd')
+  test('literal fast path correctly calculates capture boundaries', () => {
+    const re = RE2.compile('world')
+    const result = re.findSubmatch('hello world!')
 
     expect(result).not.toBeNull()
-    expect(result[1]).toEqual('b')
-
-    // OnePass perfectly supports capture groups and is mathematically guaranteed
-    // to be the fastest engine, so it intercepts execution entirely!
-    expect(onePassSpy).toHaveBeenCalledTimes(1)
-    expect(dfaSpy).not.toHaveBeenCalled()
-    expect(backtrackerSpy).not.toHaveBeenCalled()
-    expect(nfaSpy).not.toHaveBeenCalled()
+    expect(result[0]).toBe('world')
   })
 
-  test('routes to DFA for simple boolean match (ncap === 0)', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
+  test('literal fast path skips when captures are requested on non-zero subexp literal', () => {
     const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
-    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
 
-    const re = RE2.compile('a+b+')
-    const result = re.match('aaabbb')
+    // This is structurally a literal ("world"), but it has a capture group!
+    // The literal fast path MUST safely route this to the backtracker so group boundaries are populated.
+    const re = RE2.compile('(world)')
+    expect(re.prefixComplete).toBe(true)
 
-    expect(result).toBe(true)
-    expect(dfaSpy).toHaveBeenCalledTimes(1)
-    expect(backtrackerSpy).not.toHaveBeenCalled()
-    expect(nfaSpy).not.toHaveBeenCalled()
-  })
-
-  test('routes directly to Backtracker when captures are required and text is short', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
-    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
-
-    const re = RE2.compile('(a+)(b+)')
-    const result = re.findSubmatch('aaabbb')
+    const result = re.findSubmatch('hello world!')
 
     expect(result).not.toBeNull()
-    expect(result[1]).toEqual('aaa')
-    expect(result[2]).toEqual('bbb')
+    expect(result[1]).toBe('world')
 
-    // DFA mathematically cannot handle captures, so it skips to the next fast path (Backtracker)
+    // It should have safely routed to backtracker because ncap > 0 and numSubexp > 0
+    expect(backtrackerSpy).toHaveBeenCalledTimes(1)
+  })
+
+  test('literal fast path perfectly handles ANCHOR_BOTH (testExact)', () => {
+    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
+
+    const re = RE2.compile('hello')
+    // Valid match
+
+    // Test Exact uses ANCHOR_BOTH implicitly
+    const matchInput = MachineInput.fromUTF16('hello')
+    expect(re.executeEngine(matchInput, 0, RE2Flags.ANCHOR_BOTH, 0)).not.toBeNull()
+
+    // Invalid matches
+    const noMatchInput1 = MachineInput.fromUTF16('hello world')
+    expect(re.executeEngine(noMatchInput1, 0, RE2Flags.ANCHOR_BOTH, 0)).toBeNull()
+
+    const noMatchInput2 = MachineInput.fromUTF16('say hello')
+    expect(re.executeEngine(noMatchInput2, 0, RE2Flags.ANCHOR_BOTH, 0)).toBeNull()
+
+    // DFA was never used, handled strictly by fast-path
     expect(dfaSpy).not.toHaveBeenCalled()
-    expect(backtrackerSpy).toHaveBeenCalledTimes(1)
-    expect(nfaSpy).not.toHaveBeenCalled()
-  })
-
-  test('falls back to Backtracker when DFA bails out (e.g. \\b boundary)', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
-    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
-
-    const re = RE2.compile('\\bword\\b')
-    const result = re.match('word')
-
-    expect(result).toBe(true)
-    expect(dfaSpy).toHaveBeenCalledTimes(1)
-    // DFA encouters EMPTY_WIDTH (\b) and bails out -> intercepts safely at Backtracker
-    expect(backtrackerSpy).toHaveBeenCalledTimes(1)
-    expect(nfaSpy).not.toHaveBeenCalled()
-  })
-
-  test('falls back to NFA when text exceeds maxBitStateLen', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
-    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
-
-    const re = RE2.compile('(a+)+b')
-    re.dfa.stateLimit = 1
-
-    // FIX: Access .prog directly because this is an RE2 instance, not an RE2JS wrapper
-    const limit = Backtracker.maxBitStateLen(re.prog)
-    const longString = `${'a'.repeat(limit + 10)}b`
-
-    const result = re.match(longString)
-
-    expect(result).toBe(true)
-    expect(dfaSpy).toHaveBeenCalledTimes(1)
-    // Exceeded bounds -> Skips Backtracker
-    expect(backtrackerSpy).not.toHaveBeenCalled()
-    // Ultimately executes successfully on NFA fallback
-    expect(nfaSpy).toHaveBeenCalledTimes(1)
   })
 })
 

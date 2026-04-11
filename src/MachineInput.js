@@ -23,6 +23,11 @@ class MachineInputBase {
   hasString() {
     return false
   }
+
+  // Helper for the exact-literal fast-path execution router
+  prefixLength() {
+    return 0
+  }
 }
 
 // An implementation of MachineInput for UTF-8 byte arrays.
@@ -120,7 +125,7 @@ class MachineUTF8Input extends MachineInputBase {
   indexOf(source, target, fromIndex = 0) {
     let targetLength = target.length
     if (targetLength === 0) {
-      return -1
+      return fromIndex <= this.end ? fromIndex : -1
     }
 
     let limit = this.end - targetLength
@@ -135,6 +140,10 @@ class MachineUTF8Input extends MachineInputBase {
     }
 
     return -1
+  }
+
+  prefixLength(re2) {
+    return re2.prefixUTF8.length
   }
 }
 
@@ -200,6 +209,10 @@ class MachineUTF16Input extends MachineInputBase {
       pos > 0 && pos <= this.charSequence.length ? this.charSequence.codePointAt(pos - 1) : -1
     const r2 = pos < this.charSequence.length ? this.charSequence.codePointAt(pos) : -1
     return Utils.emptyOpContext(r1, r2)
+  }
+
+  prefixLength(re2) {
+    return re2.prefix.length
   }
 }
 
