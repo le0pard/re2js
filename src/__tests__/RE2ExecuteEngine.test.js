@@ -101,12 +101,13 @@ describe('Memory Management', () => {
 
     // Access .prog directly because this is an RE2 instance, not an RE2JS wrapper
     const limit = Backtracker.maxBitStateLen(re.prog)
-    const longString = ` ${'a'.repeat(limit + 10)} `
+    const matchString = 'a'.repeat(limit + 10)
+    const longString = ` ${matchString} `
 
     expect(re.match(longString)).toBe(true)
 
     const match = re.findSubmatch(longString)
     expect(match).not.toBeNull()
-    expect(match[1]).toEqual('a'.repeat(limit + 10))
+    expect(match[1]).toEqual(matchString)
   })
 })

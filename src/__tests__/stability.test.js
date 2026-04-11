@@ -10,7 +10,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
 
     const start = Date.now()
     // Evaluate against a malicious string designed to trigger the worst-case scenario
-    const maliciousString = 'a '.repeat(60) + '!'
+    const maliciousString = `${'a '.repeat(60)}!`
     const result = re.matches(maliciousString)
     const elapsed = Date.now() - start
 
@@ -23,7 +23,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   test('Safely matches massive strings without exceeding Maximum Call Stack Size', () => {
     const re = RE2JS.compile('a*b')
     // 1 million characters
-    const hugeString = 'a'.repeat(1000000) + 'b'
+    const hugeString = `${'a'.repeat(1000000)}b`
 
     // Because RE2JS manages threads using heap-based arrays rather than recursive function calls,
     // this will parse massive strings flawlessly without throwing Call Stack errors.

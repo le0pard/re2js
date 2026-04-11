@@ -445,9 +445,20 @@ RE2JS.matches(unicodeRegexp, '😀') // true
 RE2JS.matches(unicodeRegexp, '😃') // false
 ```
 
-## Performance
+## Performance and Architecture
 
-The RE2JS engine runs more slowly compared to native RegExp objects for simple queries. This reduced speed is also noticeable when comparing RE2JS to the original RE2 engine. The C++ implementation of the RE2 engine includes both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines, as well as a variety of highly optimized memory operations. Russ Cox ported a simplified version of the NFA engine to Go. Later, Alan Donovan ported the NFA-based Go implementation to Java. I then ported the NFA-based Java implementation (plus Golang additions + Lazy DFA fast-path) to a pure JS version.
+The RE2JS engine provides strict linear-time $O(n)$ safety guarantees against Regular Expression Denial of Service (ReDoS) attacks, a critical vulnerability inherent to native JavaScript `RegExp` objects.
+
+Originally, the C++ implementation of the RE2 engine included both NFA (Nondeterministic Finite Automaton) and DFA (Deterministic Finite Automaton) engines with highly optimized memory operations. Russ Cox later ported the core engine to Go, and Alan Donovan ported it to Java.
+
+`re2js` achieves full architectural parity with the highly optimized Go `regexp` package. To maximize execution speed on everyday queries without ever sacrificing memory safety, `re2js` intelligently and dynamically routes execution through four distinct engines:
+
+* **OnePass DFA:** Provides high-speed capture group extraction for mathematically 1-unambiguous patterns, bypassing thread queues entirely.
+* **Lazy Powerset DFA:** Executes high-speed boolean matches (e.g., `.test()`) by fusing active states dynamically on the fly.
+* **BitState Backtracker:** Avoids heavy object array allocations by using bitwise operations to extract captures on short-to-medium length strings.
+* **Pike VM (NFA):** Acts as the robust, bounded-memory fallback engine for complex, ambiguous patterns that exceed fast-path limits.
+
+Thanks to these dynamic fast-paths, `re2js` delivers performance comparable to native engines for simple queries, while remaining completely immune to catastrophic backtracking and stack overflow crashes.
 
 Should you require maximum absolute performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
 
@@ -462,19 +473,19 @@ Here is a benchmark running 30,000 items through both engines using their respec
 
 | Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                      |
 |:--------------------------|:---------------------------|:----------------|:---------------|:----------------------------|
-| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | **11.79 ms**    | 14.09 ms       | `re2js` is **1.19x** faster |
-| **Massive Alternation**   | `/White\|Blue\|Black.../`  | 15.30 ms        | **15.26 ms**   | Parity (`1.00x`)            |
-| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | 19.24 ms        | **16.32 ms**   | `re2-node` is 1.18x faster  |
-| **ReDoS Attempt**         | `/(a+)+!/`                 | 20.52 ms        | **17.07 ms**   | `re2-node` is 1.20x faster  |
-| **Case Insensitive**      | `/(?i)swamp/`              | 20.12 ms        | **16.42 ms**   | `re2-node` is 1.23x faster  |
-| **Greedy Wildcard**       | `/enters.*battlefield/`    | 18.83 ms        | **13.48 ms**   | `re2-node` is 1.40x faster  |
-| **Lazy Wildcard**         | `/enters.*?battlefield/`   | 18.86 ms        | **13.51 ms**   | `re2-node` is 1.40x faster  |
-| **Simple Literal**        | `/damage/`                 | 24.84 ms        | **13.21 ms**   | `re2-node` is 1.88x faster  |
-| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 599.75 ms       | **15.87 ms**   | `re2-node` is 37.80x faster |
+| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | **12.31 ms**    | 14.35 ms       | `re2js` is **1.17x** faster |
+| **Massive Alternation**   | `/White\|Blue\|Black.../`  | 15.90 ms        | **15.73 ms**   | Parity (`1.01x`)            |
+| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | 20.39 ms        | **16.76 ms**   | `re2-node` is 1.22x faster  |
+| **Case Insensitive**      | `/(?i)swamp/`              | 20.96 ms        | **16.91 ms**   | `re2-node` is 1.24x faster  |
+| **ReDoS Attempt**         | `/(a+)+!/`                 | 21.63 ms        | **17.02 ms**   | `re2-node` is 1.27x faster  |
+| **Simple Literal**        | `/damage/`                 | 20.15 ms        | **13.90 ms**   | `re2-node` is 1.45x faster  |
+| **Greedy Wildcard**       | `/enters.*battlefield/`    | 19.95 ms        | **13.66 ms**   | `re2-node` is 1.46x faster  |
+| **Lazy Wildcard**         | `/enters.*?battlefield/`   | 20.14 ms        | **13.73 ms**   | `re2-node` is 1.47x faster  |
+| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 201.29 ms       | **16.32 ms**   | `re2-node` is 12.33x faster |
 
 **Takeaways:**
-* **DFA Strengths (JS wins/ties):** For state-heavy tasks like bounded repetitions (`{5,15}`) or massive alternations (`White|Blue|...`), RE2JS operates entirely within V8's highly optimized JIT. By avoiding the JS-to-C++ N-API bridge overhead, pure JavaScript actually outpaces or ties with the native bindings.
-* **C++ Strengths:** For simple string scanning (like literal or wildcard searches), C++ wins. Native code can utilize highly optimized, hardware-level raw memory scanning instructions (like `memchr` and SIMD) that the JS engine cannot perfectly replicate.
+* **DFA Strengths (JS wins/ties):** For state-heavy tasks like bounded repetitions (`{5,15}`) or massive alternations (`White|Blue|...`), RE2JS operates entirely within V8's highly optimized JIT. By avoiding the JS-to-C++ N-API bridge overhead, pure JavaScript actually outpaces or operates at parity with the native bindings.
+* **C++ Strengths:** For simple string scanning (like literal or wildcard searches), C++ wins by ~1.4x. Native code can utilize highly optimized, hardware-level raw memory scanning instructions that the JS engine cannot perfectly replicate.
 * **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA is significantly slower than the C++ NFA. **For maximum performance in RE2JS, avoid `\b` or capture groups when doing bulk boolean `.test()` matching.**
 
 ### RE2JS vs JavaScript's native RegExp
