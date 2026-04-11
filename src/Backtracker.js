@@ -30,7 +30,8 @@ class BitState {
     this.jobLen = 0
     this.ncap = ncap
 
-    const visitedSize = Math.floor((prog.numInst() * (end + 1) + VISITED_BITS - 1) / VISITED_BITS)
+    // Bitwise shift (>>> 5) instead of Math.floor( / 32)
+    const visitedSize = (prog.numInst() * (end + 1) + VISITED_BITS - 1) >>> 5
     if (this.visited.length < visitedSize) {
       this.visited = new Uint32Array(Math.floor(MAX_BACKTRACK_VECTOR / VISITED_BITS))
     } else {
@@ -53,8 +54,9 @@ class BitState {
 
   shouldVisit(pc, pos) {
     const n = pc * (this.end + 1) + pos
-    const idx = Math.floor(n / VISITED_BITS)
-    const mask = 1 << (n & (VISITED_BITS - 1))
+    const idx = n >>> 5 // Equivalent to Math.floor(n / 32)
+    const mask = 1 << (n & 31) // Equivalent to n % 32
+
     if ((this.visited[idx] & mask) !== 0) {
       return false
     }
