@@ -1,9 +1,30 @@
 import { RE2 } from '../RE2'
 import { DFA } from '../DFA'
 import { Backtracker } from '../Backtracker'
+import { OnePass } from '../OnePass'
 import { expect, describe, test, jest } from '@jest/globals'
 
 describe('RE2 executeEngine Routing', () => {
+  test('routes directly to OnePass when regex is 1-unambiguous', () => {
+    const onePassSpy = jest.spyOn(OnePass, 'execute')
+    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
+    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
+    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
+
+    const re = RE2.compile('^a(b|c)d$')
+    const result = re.findSubmatch('abd')
+
+    expect(result).not.toBeNull()
+    expect(result[1]).toEqual('b')
+
+    // OnePass perfectly supports capture groups and is mathematically guaranteed
+    // to be the fastest engine, so it intercepts execution entirely!
+    expect(onePassSpy).toHaveBeenCalledTimes(1)
+    expect(dfaSpy).not.toHaveBeenCalled()
+    expect(backtrackerSpy).not.toHaveBeenCalled()
+    expect(nfaSpy).not.toHaveBeenCalled()
+  })
+
   test('routes to DFA for simple boolean match (ncap === 0)', () => {
     const dfaSpy = jest.spyOn(DFA.prototype, 'match')
     const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
