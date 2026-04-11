@@ -55,8 +55,6 @@ describe('RE2 executeEngine Routing', () => {
 
     const re = RE2.compile('(a+)+b')
 
-    if (re.dfa === null) re.dfa = new DFA(re.prog)
-
     // Out Of Memory exception
     re.dfa.stateLimit = 1
 
