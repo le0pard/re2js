@@ -4,7 +4,7 @@ import { Unicode } from './Unicode'
 import { Utils } from './Utils'
 import { Regexp } from './Regexp'
 import { Inst } from './Inst'
-import { Prog } from './Prog'
+import { Prog, PatchList } from './Prog'
 import { RE2JSCompileException } from './exceptions'
 
 /**
@@ -14,7 +14,7 @@ import { RE2JSCompileException } from './exceptions'
  * @class
  */
 class Frag {
-  constructor(i = 0, out = 0, nullable = false) {
+  constructor(i = 0, out = new PatchList(), nullable = false) {
     this.i = i // an instruction address (pc).
     this.out = out // a patch list; see explanation in Prog.js
     this.nullable = nullable // whether the fragment can match the empty string
@@ -55,7 +55,7 @@ class Compiler {
   // Returns a no-op fragment.  Sometimes unavoidable.
   nop() {
     const f = this.newInst(Inst.NOP)
-    f.out = f.i << 1
+    f.out = new PatchList(f.i << 1, f.i << 1)
     return f
   }
 
@@ -67,7 +67,7 @@ class Compiler {
   // Given a fragment a, returns a fragment with capturing parens around a.
   cap(arg) {
     const f = this.newInst(Inst.CAPTURE)
-    f.out = f.i << 1
+    f.out = new PatchList(f.i << 1, f.i << 1)
     this.prog.getInst(f.i).arg = arg
     if (this.prog.numCap < arg + 1) {
       this.prog.numCap = arg + 1
@@ -115,10 +115,10 @@ class Compiler {
     const i = this.prog.getInst(f.i)
     if (nongreedy) {
       i.arg = f1.i
-      f.out = f.i << 1
+      f.out = new PatchList(f.i << 1, f.i << 1)
     } else {
       i.out = f1.i
-      f.out = (f.i << 1) | 1
+      f.out = new PatchList((f.i << 1) | 1, (f.i << 1) | 1)
     }
     this.prog.patch(f1.out, f.i)
     return f
@@ -130,10 +130,10 @@ class Compiler {
     const i = this.prog.getInst(f.i)
     if (nongreedy) {
       i.arg = f1.i
-      f.out = f.i << 1
+      f.out = new PatchList(f.i << 1, f.i << 1)
     } else {
       i.out = f1.i
-      f.out = (f.i << 1) | 1
+      f.out = new PatchList((f.i << 1) | 1, (f.i << 1) | 1)
     }
     f.out = this.prog.append(f.out, f1.out)
     return f
@@ -156,7 +156,7 @@ class Compiler {
   empty(op) {
     const f = this.newInst(Inst.EMPTY_WIDTH)
     this.prog.getInst(f.i).arg = op
-    f.out = f.i << 1
+    f.out = new PatchList(f.i << 1, f.i << 1)
     return f
   }
 
@@ -171,7 +171,7 @@ class Compiler {
       flags &= ~RE2Flags.FOLD_CASE
     }
     i.arg = flags
-    f.out = f.i << 1
+    f.out = new PatchList(f.i << 1, f.i << 1)
     if (
       ((flags & RE2Flags.FOLD_CASE) === 0 && runes.length === 1) ||
       (runes.length === 2 && runes[0] === runes[1])

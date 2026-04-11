@@ -58,16 +58,21 @@ class Inst {
       }
       return r === r0
     }
-    // Peek at the first few pairs.
-    // Should handle ASCII well.
-    for (let j = 0; j < this.runes.length && j <= 8; j += 2) {
-      if (r < this.runes[j]) {
-        return false
+
+    const len = this.runes.length
+    // If the array is exactly 2, 4, 6, or 8 items, DO NOT fall through to binary search
+    if (len === 2 || len === 4 || len === 6 || len === 8) {
+      for (let j = 0; j < len; j += 2) {
+        if (r < this.runes[j]) {
+          return false
+        }
+        if (r <= this.runes[j + 1]) {
+          return true
+        }
       }
-      if (r <= this.runes[j + 1]) {
-        return true
-      }
+      return false // Stop here
     }
+
     // Otherwise binary search.
     let lo = 0
     let hi = (this.runes.length / 2) | 0

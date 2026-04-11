@@ -1,5 +1,27 @@
 import { RE2Flags } from './RE2Flags'
 import { Inst } from './Inst'
+
+/**
+ * A list of instruction pointers waiting to be patched.
+ * Tracks both `head` and `tail` to allow O(1) appending during compilation.
+ * * Values are encoded integers, not standard memory pointers:
+ * - Program instruction index: `l >> 1`
+ * - Patch `.out` field if: `(l & 1) === 0`
+ * - Patch `.arg` field if: `(l & 1) === 1`
+ * - `0` denotes an empty list.
+ * * @see https://swtch.com/~rsc/regexp/regexp1.html
+ */
+class PatchList {
+  /**
+   * @param {number} head - Encoded pointer to the start of the patch list.
+   * @param {number} tail - Encoded pointer to the end of the patch list.
+   */
+  constructor(head = 0, tail = 0) {
+    this.head = head
+    this.tail = tail
+  }
+}
+
 /**
  * A Prog is a compiled regular expression program.
  */
@@ -107,44 +129,32 @@ class Prog {
   }
 
   patch(l, val) {
-    while (l !== 0) {
-      const i = this.inst[l >> 1]
-      if ((l & 1) === 0) {
-        l = i.out
+    let head = l.head
+    while (head !== 0) {
+      const i = this.inst[head >> 1]
+      if ((head & 1) === 0) {
+        head = i.out
         i.out = val
       } else {
-        l = i.arg
+        head = i.arg
         i.arg = val
       }
     }
   }
 
   append(l1, l2) {
-    if (l1 === 0) {
-      return l2
-    }
+    if (l1.head === 0) return l2
+    if (l2.head === 0) return l1
 
-    if (l2 === 0) {
-      return l1
-    }
-
-    let last = l1
-    for (;;) {
-      const next = this.next(last)
-      if (next === 0) {
-        break
-      }
-      last = next
-    }
-
-    const i = this.inst[last >> 1]
-    if ((last & 1) === 0) {
-      i.out = l2
+    // We know exactly where the tail is
+    const i = this.inst[l1.tail >> 1]
+    if ((l1.tail & 1) === 0) {
+      i.out = l2.head
     } else {
-      i.arg = l2
+      i.arg = l2.head
     }
 
-    return l1
+    return new PatchList(l1.head, l2.tail)
   }
   /**
    *
@@ -166,4 +176,4 @@ class Prog {
   }
 }
 
-export { Prog }
+export { Prog, PatchList }
