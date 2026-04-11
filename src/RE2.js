@@ -3,6 +3,7 @@ import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
 import { DFA } from './DFA'
+import { Backtracker } from './Backtracker'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
@@ -139,6 +140,11 @@ class RE2 {
     // If the user wants capturing groups (ncap > 0), the DFA mathematically CANNOT do it.
     // We must use the NFA.
     if (ncap > 0) {
+      // Backtracker bit-state execution bounds check
+      if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
+        return Backtracker.execute(this, input, pos, anchor, ncap)
+      }
+      // NFA execution
       return this.doExecuteNFA(input, pos, anchor, ncap)
     }
 
@@ -146,6 +152,11 @@ class RE2 {
     if (dfaResult !== null) {
       // DFA succeeded (returned true or false)
       return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
+    }
+
+    // Backtracker bit-state execution bounds check
+    if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
+      return Backtracker.execute(this, input, pos, anchor, ncap)
     }
 
     // Fallback to NFA
