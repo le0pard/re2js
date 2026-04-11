@@ -50,3 +50,17 @@ describe('Inst.matchRune Array Search Logic', () => {
     expect(inst.matchRune('b'.codePointAt(0))).toBe(false)
   })
 })
+
+describe('Inst.toString Formatting', () => {
+  it('formats MATCH correctly for standard execution (arg === 0)', () => {
+    const inst = new Inst(Inst.MATCH)
+    inst.arg = 0 // Default behavior
+    expect(inst.toString()).toBe('match')
+  })
+
+  it('formats MATCH correctly for Multi-Pattern Sets (arg > 0)', () => {
+    const inst = new Inst(Inst.MATCH)
+    inst.arg = 5 // Simulates the 6th regex added to an RE2Set
+    expect(inst.toString()).toBe('match 5')
+  })
+})

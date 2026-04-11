@@ -230,6 +230,57 @@ RE2JS.compile(':').split('boo:and:foo', 2) // ['boo', 'and:foo']
 RE2JS.compile(':').split('boo:and:foo', 5) // ['boo', 'and', 'foo']
 ```
 
+### Multi-Pattern Matching (RE2Set)
+
+RE2JS includes a highly optimized `RE2Set` API that allows you to match multiple regular expressions against a single string simultaneously. Instead of running 100 different regexes in a loop ($O(100n)$ time), `RE2Set` compiles them into a single state machine and finds all matches in a single pass ($O(n)$ linear time).
+
+This is incredibly powerful for profanity filters, routing engines, or log parsers.
+
+```js
+import { RE2Set, RE2Flags } from 're2js'
+
+// Create a new set. You can optionally pass anchoring and flags.
+// Default: RE2Flags.UNANCHORED, RE2Flags.PERL
+const set = new RE2Set()
+
+// Add patterns to the set.
+// The add() method returns the integer ID of the pattern.
+set.add('error')    // ID: 0
+set.add('warning')  // ID: 1
+set.add('critical') // ID: 2
+
+// You must compile the set before matching!
+set.compile()
+
+// Match against a string.
+// Returns an array of IDs for all patterns that successfully matched.
+console.log(set.match('The system encountered a critical error.'))
+// Outputs: [0, 2]
+
+console.log(set.match('All systems operational.'))
+// Outputs: []
+```
+
+#### Anchoring a Set
+
+You can strictly anchor the entire set by passing an anchor flag to the constructor
+
+```js
+import { RE2Set, RE2Flags } from 're2js'
+
+const set = new RE2Set(RE2Flags.ANCHOR_BOTH)
+set.add('foo') // ID: 0
+set.add('bar') // ID: 1
+set.add('.*')  // ID: 2
+
+set.compile()
+
+console.log(set.match('foo'))    // [0, 2] (Matches 'foo' and '.*')
+console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string)
+```
+
+***Performance Note:** `RE2Set` heavily utilizes the high-speed DFA engine to process multi-pattern matches simultaneously. However, if your patterns contain boundaries (e.g., `\b`) or trigger a massive state explosion, it will seamlessly and safely fall back to the bounded NFA engine.*
+
 ### Working with Groups
 
 RE2JS supports capturing groups in regex patterns
