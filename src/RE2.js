@@ -5,6 +5,7 @@ import { MachineInput } from './MachineInput'
 import { DFA } from './DFA'
 import { Backtracker } from './Backtracker'
 import { OnePass } from './OnePass'
+import { PrefilterTree, Prefilter } from './Prefilter'
 import { Compiler } from './Compiler'
 import { Simplify } from './Simplify'
 import { Parser } from './Parser'
@@ -55,6 +56,7 @@ class RE2 {
     res.prefixUTF8 = re2.prefixUTF8
     res.prefixComplete = re2.prefixComplete
     res.prefixRune = re2.prefixRune
+    res.prefilter = re2.prefilter
     return res
   }
 
@@ -98,8 +100,12 @@ class RE2 {
     const maxCap = re.maxCap()
     re = Simplify.simplify(re)
 
+    const prefilter = PrefilterTree.build(re)
+
     const prog = Compiler.compileRegexp(re)
     const re2 = new RE2(expr, prog, maxCap, longest)
+
+    re2.prefilter = prefilter.type === Prefilter.Type.NONE ? null : prefilter
 
     const [prefixCompl, prefixStr] = prog.prefix()
     re2.prefixComplete = prefixCompl
@@ -136,9 +142,17 @@ class RE2 {
     this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
     this.dfa = new DFA(this.prog) // initialize Lazy DFA
     this.onepass = OnePass.compile(this.prog) // compile OnePass
+    this.prefilter = null
   }
 
   executeEngine(input, pos, anchor, ncap) {
+    // If the unanchored query requires specific literal strings (e.g. "a.*b"),
+    // verify those strings exist using high-speed JS string searches before waking up the state engines.
+    if (this.prefilter !== null && anchor === RE2Flags.UNANCHORED) {
+      if (!this.prefilter.eval(input, pos)) {
+        return null
+      }
+    }
     // Fast path: OnePass DFA engine.
     // If compiled successfully, it perfectly supports capture groups
     // and is blisteringly fast since it skips thread queues completely.

@@ -19,6 +19,10 @@ class MachineInputBase {
   endPos() {
     return this.end
   }
+
+  hasString() {
+    return false
+  }
 }
 
 // An implementation of MachineInput for UTF-8 byte arrays.
@@ -29,6 +33,15 @@ class MachineUTF8Input extends MachineInputBase {
     this.bytes = bytes
     this.start = start
     this.end = end
+  }
+
+  hasString(prefilter, pos) {
+    const target = prefilter.bytes
+    if (target.length === 0) return true
+
+    // Reuse the high-speed indexOf method already implemented below
+    const idx = this.indexOf(this.bytes, target, this.start + pos)
+    return idx !== -1 && idx <= this.end - target.length
   }
 
   // Returns the rune at the specified index; the units are
@@ -132,6 +145,11 @@ class MachineUTF16Input extends MachineInputBase {
     this.charSequence = charSequence
     this.start = start
     this.end = end
+  }
+
+  hasString(prefilter, pos) {
+    const idx = this.charSequence.indexOf(prefilter.str, this.start + pos)
+    return idx !== -1 && idx <= this.end - prefilter.str.length
   }
 
   // Returns the rune at the specified index; the units are
