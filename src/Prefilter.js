@@ -54,8 +54,9 @@ class PrefilterTree {
       case Regexp.Op.NO_WORD_BOUNDARY:
       case Regexp.Op.CHAR_CLASS:
       case Regexp.Op.ANY_CHAR_NOT_NL:
-      case Regexp.Op.ANY_CHAR:
+      case Regexp.Op.ANY_CHAR: {
         return new Prefilter(Prefilter.Type.NONE)
+      }
 
       case Regexp.Op.LITERAL: {
         if (re.runes.length === 0 || (re.flags & RE2Flags.FOLD_CASE) !== 0) {
@@ -73,14 +74,16 @@ class PrefilterTree {
       }
 
       case Regexp.Op.CAPTURE:
-      case Regexp.Op.PLUS:
+      case Regexp.Op.PLUS: {
         return PrefilterTree.fromRegexp(re.subs[0])
+      }
 
-      case Regexp.Op.REPEAT:
+      case Regexp.Op.REPEAT: {
         if (re.min >= 1) {
           return PrefilterTree.fromRegexp(re.subs[0])
         }
         return new Prefilter(Prefilter.Type.NONE)
+      }
 
       case Regexp.Op.CONCAT: {
         const pf = new Prefilter(Prefilter.Type.AND)

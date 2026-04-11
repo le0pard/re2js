@@ -123,8 +123,8 @@ class MachineUTF8Input extends MachineInputBase {
       return -1
     }
 
-    let sourceLength = source.length
-    for (let i = fromIndex; i <= sourceLength - targetLength; i++) {
+    let limit = this.end - targetLength
+    for (let i = fromIndex; i <= limit; i++) {
       for (let j = 0; j < targetLength; j++) {
         if (source[i + j] !== target[j]) {
           break

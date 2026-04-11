@@ -127,3 +127,41 @@ describe('Engine Integration', () => {
     expect(re.testExact('foo and baz')).toBe(false)
   })
 })
+
+describe('Advanced Prefilter Evaluation', () => {
+  it('handles complex AND/OR logic branches correctly', () => {
+    // Expected AST: AND(OR("foo", "bar"), "baz")
+    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse('(foo|bar)baz', RE2Flags.PERL)))
+
+    expect(pf.eval(MachineInput.fromUTF16('foobaz'), 0)).toBe(true)
+    expect(pf.eval(MachineInput.fromUTF16('barbaz'), 0)).toBe(true)
+    expect(pf.eval(MachineInput.fromUTF16('foo'), 0)).toBe(false) // missing baz
+    expect(pf.eval(MachineInput.fromUTF16('baz'), 0)).toBe(false) // missing foo or bar
+    expect(pf.eval(MachineInput.fromUTF16('quxbaz'), 0)).toBe(false) // missing foo or bar
+  })
+
+  it('evaluates emojis and multi-byte unicode safely', () => {
+    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse('🚀.*🌕', RE2Flags.PERL)))
+
+    // UTF-16
+    expect(pf.eval(MachineInput.fromUTF16('To the 🚀 and then 🌕!'), 0)).toBe(true)
+    expect(pf.eval(MachineInput.fromUTF16('To the 🚀 and then back!'), 0)).toBe(false)
+
+    // UTF-8
+    expect(pf.eval(MachineInput.fromUTF8(Buffer.from('To the 🚀 and then 🌕!')), 0)).toBe(true)
+    expect(pf.eval(MachineInput.fromUTF8(Buffer.from('To the 🚀 and then back!')), 0)).toBe(false)
+  })
+
+  it('respects end boundaries on bounded input buffers', () => {
+    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse('hidden', RE2Flags.PERL)))
+    const text = 'visible hidden'
+
+    // Create an input bounded to only the first 7 characters ("visible")
+    // The prefilter MUST NOT find "hidden" because it sits outside the boundary
+    const utf16Input = MachineInput.fromUTF16(text, 0, 7)
+    expect(pf.eval(utf16Input, 0)).toBe(false)
+
+    const utf8Input = MachineInput.fromUTF8(Buffer.from(text), 0, 7)
+    expect(pf.eval(utf8Input, 0)).toBe(false)
+  })
+})
