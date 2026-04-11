@@ -28,14 +28,16 @@
       results = {
         success: true,
         time: end - start,
+        programSize: p.programSize(),
         matches: matches,
         contains: contains,
         startWith: m.lookingAt(),
         groupCount: p.groupCount(),
         namedGroups: p.namedGroups(),
-        groupsResuls: found
+        groupsArray: found
           ? Array.from(Array(p.groupCount() + 1)).map((_, index) => m.group(index))
-          : null
+          : null,
+        groupsHash: found ? m.getNamedGroups() : null
       }
     } catch (err) {
       results = {
@@ -176,7 +178,7 @@
             <td class="val-cell">{round(results.time, 5)} ms</td>
           </tr>
           <tr>
-            <td class="key-cell">Fully match regex pattern ? <small>(matches)</small></td>
+            <td class="key-cell">Fully match regex pattern <small>(matches/testExact)</small></td>
             <td class="val-cell">
               <span
                 class="status-tag"
@@ -186,7 +188,7 @@
             </td>
           </tr>
           <tr>
-            <td class="key-cell">Contain regex pattern ? <small>(test)</small></td>
+            <td class="key-cell">Contain regex pattern <small>(test)</small></td>
             <td class="val-cell">
               <span
                 class="status-tag"
@@ -196,7 +198,7 @@
             </td>
           </tr>
           <tr>
-            <td class="key-cell">Start with regex pattern ? <small>(lookingAt)</small></td>
+            <td class="key-cell">Start with regex pattern <small>(lookingAt)</small></td>
             <td class="val-cell">
               <span
                 class="status-tag"
@@ -218,8 +220,28 @@
           <tr>
             <td class="key-cell">Groups Content <small>(group)</small></td>
             <td class="val-cell">
-              {#if results.groupsResuls}
-                <div class="long-text">{JSON.stringify(results.groupsResuls)}</div>
+              {#if results.groupsArray}
+                <div class="long-text">{JSON.stringify(results.groupsArray)}</div>
+              {:else}
+                <span class="status-tag status-tag__no">no match</span>
+              {/if}
+            </td>
+          </tr>
+          <tr>
+            <td class="key-cell">All Named Groups <small>(getNamedGroups)</small></td>
+            <td class="val-cell">
+              {#if results.groupsHash}
+                <div class="long-text">{JSON.stringify(results.groupsHash)}</div>
+              {:else}
+                <span class="status-tag status-tag__no">no match</span>
+              {/if}
+            </td>
+          </tr>
+          <tr>
+            <td class="key-cell">Program Size <small>(programSize)</small></td>
+            <td class="val-cell">
+              {#if results.programSize}
+                <div>{results.programSize}</div>
               {:else}
                 <span class="status-tag status-tag__no">no match</span>
               {/if}
