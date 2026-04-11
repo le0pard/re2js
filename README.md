@@ -3,21 +3,15 @@
 
 ## [Playground](https://re2js.leopard.in.ua/)
 
-## TLDR
-
-The built-in JavaScript regular expression engine can, under certain special combinations, run in exponential time. This situation can trigger what's referred to as a [Regular Expression Denial of Service (ReDoS)](https://www.owasp.org/index.php/Regular_expression_Denial_of_Service_-_ReDoS). RE2, a different regular expression engine, can effectively safeguard your Node.js applications from ReDoS attacks. With RE2JS, this protective feature extends to browser environments as well, enabling you to utilize the RE2 engine more comprehensively.
-
 ## What is RE2?
 
-RE2 is a regular expression engine designed to operate in time proportional to the size of the input, ensuring linear time complexity. RE2JS, on the other hand, is a pure JavaScript port of the [RE2 library](https://github.com/google/re2) — more specifically, it's a port of the [RE2/J library](https://github.com/google/re2j).
+RE2 is a regular expression engine designed to operate in time proportional to the size of the input, ensuring linear time complexity. RE2JS is a pure JavaScript port that achieves full architectural parity with the [Go regexp implementation](https://pkg.go.dev/regexp).
 
-JavaScript standard regular expression package, [RegExp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions), and many other widely used regular expression packages such as PCRE, Perl and Python use a backtracking implementation strategy: when a pattern presents two alternatives such as a|b, the engine will try to match subpattern a first, and if that yields no match, it will reset the input stream and try to match b instead.
+JavaScript's standard regular expression engine, [RegExp](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions), and many other widely used packages (Perl, Python, PCRE) use a backtracking implementation strategy. When a pattern presents alternatives like `a|b`, the engine tries to match subpattern `a` first; if that fails, it resets the input and tries subpattern `b`.
 
-If such choices are deeply nested, this strategy requires an exponential number of passes over the input data before it can detect whether the input matches. If the input is large, it is easy to construct a pattern whose running time would exceed the lifetime of the universe. This creates a security risk when accepting regular expression patterns from untrusted sources, such as users of a web application.
+If such choices are deeply nested, this strategy requires an exponential number of passes over the input data, potentially exceeding the lifetime of the universe for large inputs. This creates a security risk known as Regular Expression Denial of Service (ReDoS) when accepting patterns from untrusted sources.
 
-In contrast, the RE2 algorithm explores all matches simultaneously in a single pass over the input data by using a nondeterministic finite automaton.
-
-There are certain features of PCRE or Perl regular expressions that cannot be implemented in linear time, for example, backreferences, but the vast majority of regular expressions patterns in practice avoid such features.
+In contrast, RE2JS utilizes a combination of Deterministic Finite Automaton (DFA) and Nondeterministic Finite Automaton (NFA) strategies to explore all matches simultaneously in a single pass over the input data. This approach guarantees $O(n)$ linear time complexity, providing a secure environment for both Node.js and browser applications.
 
 ## Installation
 
