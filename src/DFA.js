@@ -23,21 +23,25 @@ const arraysEqual = (a, b) => {
 }
 
 class DFAState {
-  constructor(nfaStates, isMatch) {
+  constructor(nfaStates, isMatch, matchIDs = []) {
     this.nfaStates = nfaStates // Int32Array of Instruction PCs
     this.isMatch = isMatch // Boolean
+    this.matchIDs = matchIDs // Array of integers indicating which Set patterns matched
     this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
     this.nextMap = new Map() // Cache of Char -> DFAState
   }
 }
 
 class DFA {
+  static MAX_CACHE_CLEARS = 5
+
   constructor(prog) {
     this.prog = prog
     this.stateCache = new Map() // hash(number) -> DFAState[]
     this.stateCount = 0 // Tracks total states for memory limits
     this.startState = null
     this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
+    this.cacheClears = 0 // Track thrashing
     this.failed = false // mark if DFA cannot work with provided prog
   }
 
@@ -46,6 +50,7 @@ class DFA {
     const closure = new Set()
     const stack = [...pcs]
     let isMatch = false
+    const matchIDs = []
 
     while (stack.length > 0) {
       const pc = stack.pop()
@@ -56,6 +61,7 @@ class DFA {
       switch (inst.op) {
         case Inst.MATCH:
           isMatch = true
+          if (!matchIDs.includes(inst.arg)) matchIDs.push(inst.arg)
           break
         case Inst.ALT:
         case Inst.ALT_MATCH:
@@ -74,7 +80,8 @@ class DFA {
     }
 
     const sortedPCs = Int32Array.from(closure).sort()
-    return { pcs: sortedPCs, isMatch }
+    matchIDs.sort((a, b) => a - b)
+    return { pcs: sortedPCs, isMatch, matchIDs }
   }
 
   // Get or create a DFA state from a list of NFA PCs
@@ -109,12 +116,18 @@ class DFA {
       this.stateCache.clear()
       this.stateCount = 0
       this.startState = null
-      this.failed = true
+      this.cacheClears++
+
+      // If this regex causes continuous cache thrashing, permanently fall back to NFA
+      // to avoid spending CPU cycles constantly rebuilding the DFA tree.
+      if (this.cacheClears >= DFA.MAX_CACHE_CLEARS) {
+        this.failed = true
+      }
       return null
     }
 
     // State not found, create it and add to bucket
-    const state = new DFAState(sortedPCs, closureResult.isMatch)
+    const state = new DFAState(sortedPCs, closureResult.isMatch, closureResult.matchIDs)
     bucket.push(state)
     this.stateCount++
     return state
@@ -219,6 +232,62 @@ class DFA {
     }
 
     return false
+  }
+
+  // The hot loop for evaluating Multi-Pattern Sets
+  matchSet(input, pos, anchor) {
+    if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+      return []
+    }
+
+    if (!this.startState) {
+      this.startState = this.getState([this.prog.start])
+      if (!this.startState) return null // Fallback to NFA
+    }
+
+    let endPos = input.endPos()
+    let currentState = this.startState
+    const matches = new Set()
+
+    const checkMatch = (state, currentPos) => {
+      if (state.isMatch) {
+        if (anchor === RE2Flags.ANCHOR_BOTH) {
+          if (currentPos === endPos) {
+            state.matchIDs.forEach((id) => matches.add(id))
+          }
+        } else {
+          state.matchIDs.forEach((id) => matches.add(id))
+        }
+      }
+    }
+
+    checkMatch(currentState, pos)
+
+    let i = pos
+    while (i < endPos) {
+      const r = input.step(i)
+      const rune = r >> 3
+      const width = r & 7
+
+      if (width === 0) break
+
+      currentState =
+        (anchor === RE2Flags.UNANCHORED &&
+          rune <= Unicode.MAX_ASCII &&
+          currentState.nextAscii[rune]) ||
+        this.step(currentState, rune, anchor)
+
+      if (currentState === null) return null // Bailout to NFA
+
+      i += width
+      checkMatch(currentState, i)
+
+      if (currentState.nfaStates.length === 0) {
+        if (anchor !== RE2Flags.UNANCHORED) break
+      }
+    }
+
+    return Array.from(matches).sort((a, b) => a - b)
   }
 }
 

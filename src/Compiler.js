@@ -42,6 +42,36 @@ class Compiler {
     return c.prog
   }
 
+  static compileSet(regexps) {
+    const c = new Compiler()
+
+    if (regexps.length === 0) {
+      c.prog.start = c.newInst(Inst.FAIL).i
+      return c.prog
+    }
+
+    let starts = []
+    for (let i = 0; i < regexps.length; i++) {
+      const f = c.compile(regexps[i])
+      const m = c.newInst(Inst.MATCH)
+      c.prog.getInst(m.i).arg = i // Store the regex index
+      c.prog.patch(f.out, m.i)
+      starts.push(f.i)
+    }
+
+    // Link starts together via ALT
+    let start = starts[0]
+    for (let i = 1; i < starts.length; i++) {
+      const f = c.newInst(Inst.ALT)
+      const inst = c.prog.getInst(f.i)
+      inst.out = start
+      inst.arg = starts[i]
+      start = f.i
+    }
+    c.prog.start = start
+    return c.prog
+  }
+
   constructor() {
     this.prog = new Prog()
     this.newInst(Inst.FAIL)

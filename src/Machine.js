@@ -1,6 +1,7 @@
 import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
 import { MachineInputBase } from './MachineInput'
+import { RE2JSInternalException } from './exceptions'
 import { Utils } from './Utils'
 import { Inst } from './Inst'
 
@@ -241,6 +242,95 @@ class Machine {
     return this.matched
   }
 
+  matchSet(input, pos, anchor) {
+    const startCond = this.re2.cond
+    if (startCond === Utils.EMPTY_ALL) return []
+    if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+      return []
+    }
+
+    let runq = this.q0
+    let nextq = this.q1
+    let r = input.step(pos)
+    let rune = r >> 3
+    let width = r & 7
+    let rune1 = -1
+    let width1 = 0
+
+    if (r !== MachineInputBase.EOF()) {
+      r = input.step(pos + width)
+      rune1 = r >> 3
+      width1 = r & 7
+    }
+
+    let flag = pos === 0 ? Utils.emptyOpContext(-1, rune) : input.context(pos)
+    const matches = new Set()
+
+    while (true) {
+      if (runq.isEmpty()) {
+        if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) break
+      }
+      if (pos === 0 || anchor === RE2Flags.UNANCHORED) {
+        this.add(runq, this.prog.start, pos, this.matchcap, flag, null)
+      }
+
+      const nextPos = pos + width
+      flag = input.context(nextPos)
+
+      for (let j = 0; j < runq.size; j++) {
+        let t = runq.denseThreads[j]
+        if (t === null) continue
+
+        const i = t.inst
+        let add = false
+        switch (i.op) {
+          case Inst.MATCH:
+            if (anchor === RE2Flags.ANCHOR_BOTH && pos !== input.endPos()) break
+            matches.add(i.arg) // Record the matched Set ID
+            break
+          case Inst.RUNE:
+            add = i.matchRune(rune)
+            break
+          case Inst.RUNE1:
+            add = rune === i.runes[0]
+            break
+          case Inst.RUNE_ANY:
+            add = true
+            break
+          case Inst.RUNE_ANY_NOT_NL:
+            add = rune !== Codepoint.CODES.get('\n')
+            break
+          default:
+            throw new RE2JSInternalException('bad inst')
+        }
+        if (add) {
+          t = this.add(nextq, i.out, nextPos, t.cap, flag, t)
+        }
+        if (t !== null) {
+          this.freeThread(t)
+          runq.denseThreads[j] = null
+        }
+      }
+      runq.clear()
+
+      if (width === 0) break
+
+      pos += width
+      rune = rune1
+      width = width1
+      if (rune !== -1) {
+        r = input.step(pos + width)
+        rune1 = r >> 3
+        width1 = r & 7
+      }
+      const tmpq = runq
+      runq = nextq
+      nextq = tmpq
+    }
+    this.freeQueue(nextq)
+    return Array.from(matches).sort((a, b) => a - b)
+  }
+
   step(runq, nextq, pos, nextPos, c, nextCond, anchor, atEnd) {
     const longest = this.re2.longest
     for (let j = 0; j < runq.size; j++) {
@@ -284,7 +374,7 @@ class Machine {
           add = c !== Codepoint.CODES.get('\n')
           break
         default:
-          throw new Error('bad inst')
+          throw new RE2JSInternalException('bad inst')
       }
       if (add) {
         t = this.add(nextq, i.out, nextPos, t.cap, nextCond, t)

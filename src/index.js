@@ -3,6 +3,7 @@ import { MatcherInput } from './MatcherInput'
 import { MachineInput } from './MachineInput'
 import { Matcher } from './Matcher'
 import { RE2 } from './RE2'
+import { RE2Set } from './Set'
 import { Utils } from './Utils'
 import { TranslateRegExpString } from './TranslateRegExpString'
 import {
@@ -394,6 +395,7 @@ class RE2JS {
 
 export {
   RE2JS,
+  RE2Set,
   Matcher,
   RE2JSException,
   RE2JSSyntaxException,

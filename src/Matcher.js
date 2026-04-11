@@ -217,6 +217,24 @@ class Matcher {
     }
     return this.substring(start, end)
   }
+
+  /**
+   * Returns a dictionary map of all named capturing groups and their matched values.
+   * If a group was not matched, its value will be `null`.
+   * @returns {Record<string, string|null>}
+   */
+  getNamedGroups() {
+    if (!this.hasMatch) {
+      throw new RE2JSGroupException('perhaps no match attempted')
+    }
+
+    const result = {}
+    for (const name of Object.keys(this.namedGroups)) {
+      result[name] = this.group(name)
+    }
+    return result
+  }
+
   /**
    * Returns the number of subgroups in this pattern.
    *

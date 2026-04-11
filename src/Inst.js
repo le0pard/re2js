@@ -143,7 +143,7 @@ class Inst {
       case Inst.EMPTY_WIDTH:
         return `empty ${this.arg} -> ${this.out}`
       case Inst.MATCH:
-        return 'match'
+        return `match${this.arg !== 0 ? ` ${this.arg}` : ''}`
       case Inst.FAIL:
         return 'fail'
       case Inst.NOP:

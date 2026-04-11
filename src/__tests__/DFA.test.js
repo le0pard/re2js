@@ -94,3 +94,22 @@ describe('DFA', () => {
     })
   })
 })
+
+describe('Memory Limit (ReDoS Protection)', () => {
+  test('flushes cache and falls back, permanently disabling after thrashing', () => {
+    // Force a complex nested repetition that generates massive states
+    const dfa = createDFA('(a+)+b')
+    dfa.stateLimit = 1
+
+    // 1st to 5th attempt will flush the cache, increment cacheClears, and return null
+    for (let i = 0; i < DFA.MAX_CACHE_CLEARS; i++) {
+      expect(runDFA(dfa, 'aaaaaab')).toBeNull()
+    }
+
+    // After 5 clears, it officially sets failed = true
+    expect(dfa.failed).toBe(true)
+
+    // 6th attempt should return immediately with null
+    expect(runDFA(dfa, 'aaaaaab')).toBeNull()
+  })
+})
