@@ -47,7 +47,9 @@ class RE2JS {
    * Flag: matches longest possible string.
    */
   static LONGEST_MATCH = 16
-  // Opt-in flag to enable linear-time captureless lookbehinds
+  /**
+   * Flag: enable linear-time captureless lookbehinds.
+   */
   static LOOKBEHINDS = 512
 
   /**

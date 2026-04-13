@@ -648,6 +648,8 @@ class Parser {
         size = re.runes.length
         break
       }
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB:
       case Regexp.Op.CAPTURE:
       case Regexp.Op.STAR: {
         // star can be 1+ or 2+; assume 2 pessimistically

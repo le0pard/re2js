@@ -90,6 +90,10 @@ RE2JS.DISABLE_UNICODE_GROUPS
  * Flag: matches longest possible string (changes the match semantics to leftmost-longest).
  */
 RE2JS.LONGEST_MATCH
+/**
+ * Flag: enable linear-time captureless lookbehinds.
+ */
+RE2JS.LOOKBEHINDS = 512
 ```
 
 ### Checking for Matches
@@ -586,6 +590,35 @@ new RegExp(regex).test(string)    // Total time: ~105802.02 ms (over 105 seconds
 In the second example, a ReDoS scenario is depicted. The regular expression `([a-z]+)+$` is a potentially problematic one because it contains a nested quantifier. In standard NFA engines (like JavaScript's native `RegExp`), nested quantifiers can cause catastrophic backtracking. If a malicious user inputs a carefully crafted string, it results in exponentially high processing times, leading to a Denial of Service (DoS) attack.
 
 RE2JS processed this poison-pill string **30,000 times in just ~454 milliseconds**, while the native RegExp completely locked up the main thread for **over 1 minute and 45 seconds trying to evaluate it just once**. This demonstrates why RE2JS is absolutely essential for securely handling untrusted regular expressions and protecting Node.js and browser applications against ReDoS attacks.
+
+### Lookbehinds (Linear-Time Execution)
+
+Historically, the RE2 specification has strictly forbidden lookaround assertions (like lookbehinds) because traditional regex engines use backtracking to evaluate them, leading to catastrophic exponential execution times and ReDoS vulnerabilities.
+
+However, `re2js` implements a breakthrough algorithmic approach ([developed by researchers at EPFL](https://arxiv.org/pdf/2311.17620)) that evaluates **captureless lookbehinds in strict linear $O(n)$ time** without backtracking. Because this diverges from the standard RE2 specification and carries a slight performance trade-off, it is disabled by default.
+
+You can enable it by passing the `RE2JS.LOOKBEHINDS` flag during compilation:
+
+```js
+import { RE2JS } from 're2js';
+
+// Positive Lookbehind: Match 'bar' only if preceded by 'foo'
+const positive = RE2JS.compile('(?<=foo)bar', RE2JS.LOOKBEHINDS);
+positive.test('foobar'); // true
+positive.test('bazbar'); // false
+
+// Negative Lookbehind: Match 'bar' only if NOT preceded by 'foo'
+const negative = RE2JS.compile('(?<!foo)bar', RE2JS.LOOKBEHINDS);
+negative.test('bazbar'); // true
+negative.test('foobar'); // false
+```
+
+#### Important Limitations and Warnings
+
+1. **Performance Overhead:** If a regex contains a lookbehind, the engine is forced to safely bypass the ultra-fast Lazy DFA and OnePass engines. It evaluates the lookbehinds using parallel automata running on the NFA (Pike VM). While execution remains mathematically safe and linear $O(n)$, the NFA engine is generally slower than the DFA fast-paths. Use lookbehinds only when necessary.
+2. **Prefix Acceleration is Disabled:** To ensure the parallel tracking automata initialize correctly, high-speed string prefix skipping (e.g., using `indexOf` to jump to a starting literal) is disabled when lookbehinds are present.
+3. **Captureless Guarantee:** To prevent state-explosion vulnerabilities, lookbehinds are strictly evaluated as *captureless*. If you include a capturing group inside a lookbehind (e.g., `(?<=(foo))bar`), the engine will match successfully, but `group(1)` will safely return `null`.
+
 
 ## Development
 

@@ -1,4 +1,5 @@
-import { RE2JS } from '../index'
+import { RE2JS, RE2Set } from '../index'
+import { RE2Flags } from '../RE2Flags'
 import { expect, describe, test } from '@jest/globals'
 
 // more info - https://systemf.epfl.ch/blog/re2-lookbehinds/
@@ -64,5 +65,52 @@ describe('Lookbehinds (Linear Time EPFL Algorithm)', () => {
 
     // FullMatch translates to testExact
     expect(RE2JS.compile('good(?<!d)bye', RE2JS.LOOKBEHINDS).testExact('goodbye')).toBe(false)
+  })
+})
+
+describe('Advanced Integrations', () => {
+  test('RE2Set matches multiple lookbehinds simultaneously', () => {
+    // Proves that Multi-Pattern Sets can compile and evaluate
+    // lookbehinds simultaneously in a single linear O(N) pass.
+    const set = new RE2Set(RE2Flags.UNANCHORED, RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    set.add('(?<=a)b') // ID: 0
+    set.add('(?<!a)b') // ID: 1
+    set.add('(?<=x)y') // ID: 2
+    set.compile()
+
+    expect(set.match('ab')).toEqual([0])
+    expect(set.match('cb')).toEqual([1])
+    expect(set.match('xy')).toEqual([2])
+    expect(set.match('b')).toEqual([1])
+  })
+
+  test('replaceAll and split work with zero-width lookbehinds', () => {
+    const re = RE2JS.compile('(?<= )foo', RE2JS.LOOKBEHINDS)
+    // FIX: replaceAll must be called on the Matcher instance!
+    expect(re.matcher('foo bar foo').replaceAll('baz')).toBe('foo bar baz')
+
+    const reSplit = RE2JS.compile('(?<=,) ', RE2JS.LOOKBEHINDS)
+    // Splits strictly on the space following a comma
+    expect(reSplit.split('a, b, c')).toEqual(['a,', 'b,', 'c'])
+  })
+
+  test('Anchors and bounds inside lookbehinds evaluate correctly', () => {
+    const re = RE2JS.compile('(?<=^a)b', RE2JS.LOOKBEHINDS)
+    expect(re.test('ab')).toBe(true)
+    expect(re.test('cab')).toBe(false) // 'a' is not at the start of the line
+
+    const re2 = RE2JS.compile('(?<=a$)b', RE2JS.LOOKBEHINDS)
+    // a$ matches 'a' strictly at the END of the string.
+    // So (?<=a$)b means 'b' must follow an 'a' that is at the end of the string.
+    // Mathematically impossible, so it should safely reject everything!
+    expect(re2.test('ab')).toBe(false)
+    expect(re2.test('a')).toBe(false)
+    expect(re2.test('b')).toBe(false)
+  })
+
+  test('Empty string lookbehinds evaluate safely', () => {
+    const re = RE2JS.compile('(?<=)a', RE2JS.LOOKBEHINDS)
+    expect(re.test('a')).toBe(true)
+    expect(re.test('ba')).toBe(true)
   })
 })
