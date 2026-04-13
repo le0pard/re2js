@@ -198,7 +198,11 @@ class Machine {
         if (this.matched) {
           break
         }
+        // Disable Prefix Acceleration if the regex contains lookbehinds
+        // Fast-forwarding the string pointer will skip over the positions where
+        // the parallel lookbehind automata need to be spawned.
         if (
+          this.prog.numLb === 0 &&
           !(this.re2.prefix.length === 0) &&
           rune1 !== this.re2.prefixRune &&
           input.canCheckPrefix()
