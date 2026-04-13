@@ -599,7 +599,7 @@ RE2JS processed this poison-pill string **30,000 times in just ~454 milliseconds
 
 Historically, the RE2 specification has strictly forbidden lookaround assertions (like lookbehinds) because traditional regex engines use backtracking to evaluate them, leading to catastrophic exponential execution times and ReDoS vulnerabilities.
 
-However, `re2js` implements a breakthrough algorithmic approach ([developed by researchers at EPFL](https://arxiv.org/pdf/2311.17620)) that evaluates **captureless lookbehinds in strict linear $O(n)$ time** without backtracking. Because this diverges from the standard RE2 specification and carries a slight performance trade-off, it is disabled by default.
+However, `re2js` implements a breakthrough algorithmic approach ([developed by researchers at EPFL](https://arxiv.org/pdf/2311.17620), [RE2 guide how to add it](https://systemf.epfl.ch/blog/re2-lookbehinds/)) that evaluates **captureless lookbehinds in strict linear $O(n)$ time** without backtracking. Because this diverges from the standard RE2 specification and carries a slight performance trade-off, it is disabled by default.
 
 You can enable it by passing the `RE2JS.LOOKBEHINDS` flag during compilation:
 
