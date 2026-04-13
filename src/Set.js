@@ -9,9 +9,9 @@ import { PublicFlags } from './PublicFlags'
 import { RE2JSCompileException } from './exceptions'
 
 class RE2Set {
-  static UNANCHORED = 0
-  static ANCHOR_START = 1
-  static ANCHOR_BOTH = 2
+  static UNANCHORED = RE2Flags.UNANCHORED
+  static ANCHOR_START = RE2Flags.ANCHOR_START
+  static ANCHOR_BOTH = RE2Flags.ANCHOR_BOTH
 
   constructor(anchor = RE2Set.UNANCHORED, flags = 0) {
     this.anchor = anchor
