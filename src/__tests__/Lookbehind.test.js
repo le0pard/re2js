@@ -1,5 +1,4 @@
 import { RE2JS, RE2Set } from '../index'
-import { RE2Flags } from '../RE2Flags'
 import { expect, describe, test } from '@jest/globals'
 
 // more info - https://systemf.epfl.ch/blog/re2-lookbehinds/
@@ -72,7 +71,7 @@ describe('Advanced Integrations', () => {
   test('RE2Set matches multiple lookbehinds simultaneously', () => {
     // Proves that Multi-Pattern Sets can compile and evaluate
     // lookbehinds simultaneously in a single linear O(N) pass.
-    const set = new RE2Set(RE2Flags.UNANCHORED, RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    const set = new RE2Set(RE2Set.UNANCHORED, RE2JS.LOOKBEHINDS)
     set.add('(?<=a)b') // ID: 0
     set.add('(?<!a)b') // ID: 1
     set.add('(?<=x)y') // ID: 2

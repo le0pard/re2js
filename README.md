@@ -241,10 +241,10 @@ RE2JS includes a highly optimized `RE2Set` API that allows you to match multiple
 This is incredibly powerful for profanity filters, routing engines, or log parsers.
 
 ```js
-import { RE2Set, RE2Flags } from 're2js'
+import { RE2Set } from 're2js'
 
-// Create a new set. You can optionally pass anchoring and flags.
-// Default: RE2Flags.UNANCHORED, RE2Flags.PERL
+// Create a new set. You can optionally pass an anchor and public RE2JS flags.
+// Default anchor: RE2Set.UNANCHORED
 const set = new RE2Set()
 
 // Add patterns to the set.
@@ -267,20 +267,24 @@ console.log(set.match('All systems operational.'))
 
 #### Anchoring a Set
 
-You can strictly anchor the entire set by passing an anchor flag to the constructor
+You can strictly anchor the entire set by passing an anchor constant to the constructor (`RE2Set.UNANCHORED`, `RE2Set.ANCHOR_START`, or `RE2Set.ANCHOR_BOTH`).
+
+Additionally, you can pass standard public `RE2JS` flags (like `CASE_INSENSITIVE` or `LOOKBEHINDS`) as the second argument to apply them to all patterns in the set.
 
 ```js
-import { RE2Set, RE2Flags } from 're2js'
+import { RE2Set, RE2JS } from 're2js'
 
-const set = new RE2Set(RE2Flags.ANCHOR_BOTH)
+// Anchor the set to match the entire string, and make it case-insensitive
+const set = new RE2Set(RE2Set.ANCHOR_BOTH, RE2JS.CASE_INSENSITIVE)
+
 set.add('foo') // ID: 0
 set.add('bar') // ID: 1
 set.add('.*')  // ID: 2
 
 set.compile()
 
-console.log(set.match('foo'))    // [0, 2] (Matches 'foo' and '.*')
-console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string)
+console.log(set.match('FOO'))    // [0, 2] (Matches 'foo' and '.*' because of CASE_INSENSITIVE)
+console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string because of ANCHOR_BOTH)
 ```
 
 ***Performance Note:** `RE2Set` heavily utilizes the high-speed DFA engine to process multi-pattern matches simultaneously. However, if your patterns contain boundaries (e.g., `\b`) or trigger a massive state explosion, it will seamlessly and safely fall back to the bounded NFA engine.*
