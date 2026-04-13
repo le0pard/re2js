@@ -387,6 +387,20 @@ describe('invalid regexp cases', () => {
   )
 })
 
+describe('lookbehinds cases', () => {
+  const cases = [
+    ['ab(?<=cde)', 'cat{str{ab}plb{str{cde}}}'],
+    ['ab(?<!cde)', 'cat{str{ab}nlb{str{cde}}}'],
+    ['ab(?<=c(?<=d)e)', 'cat{str{ab}plb{cat{lit{c}plb{lit{d}}lit{e}}}}'],
+    ['ab(?<=c(?<!d)e)', 'cat{str{ab}plb{cat{lit{c}nlb{lit{d}}lit{e}}}}']
+  ]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    const re = Parser.parse(input, RE2Flags.LOOKBEHIND)
+    expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
 describe('.equals', () => {
   const cases = [
     ['abc', 'abc', RE2Flags.POSIX, true],
