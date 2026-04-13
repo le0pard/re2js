@@ -289,7 +289,7 @@ console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string bec
 
 ***Performance Note:** `RE2Set` heavily utilizes the high-speed DFA engine to process multi-pattern matches simultaneously. However, if your patterns contain boundaries (e.g., `\b`) or trigger a massive state explosion, it will seamlessly and safely fall back to the bounded NFA engine.*
 
-#### Example: JS router with RE2Set
+#### Example: Fast JS Routing with RE2Set
 
 ```js
 import { RE2Set, RE2JS } from 're2js'
@@ -320,7 +320,7 @@ class Router {
     const matchedIDs = this.set.match(path)
 
     if (matchedIDs.length === 0) {
-      return "404 Not Found"
+      return '404 Not Found'
     }
 
     // extract groups ONLY for the routes that won
