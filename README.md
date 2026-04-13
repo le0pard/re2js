@@ -93,7 +93,7 @@ RE2JS.LONGEST_MATCH
 /**
  * Flag: enable linear-time captureless lookbehinds.
  */
-RE2JS.LOOKBEHINDS = 512
+RE2JS.LOOKBEHINDS
 ```
 
 ### Checking for Matches
