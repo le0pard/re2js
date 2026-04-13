@@ -705,7 +705,7 @@ class Parser {
       return
     }
     if (this.height === null) {
-      this.height = {}
+      this.height = Object.create(null)
       for (let reEx of this.stack) {
         this.checkHeight(reEx)
       }
@@ -716,7 +716,7 @@ class Parser {
   }
 
   calcHeight(re, force = false) {
-    if (!force) {
+    if (!force && this.height !== null) {
       if (Object.prototype.hasOwnProperty.call(this.height, re)) {
         return this.height[re]
       }
@@ -727,6 +727,10 @@ class Parser {
       if (h < 1 + hsub) {
         h = 1 + hsub
       }
+    }
+
+    if (this.height === null) {
+      this.height = Object.create(null)
     }
     this.height[re] = h
     return h
