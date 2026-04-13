@@ -47,6 +47,8 @@ class RE2JS {
    * Flag: matches longest possible string.
    */
   static LONGEST_MATCH = 16
+  // Opt-in flag to enable linear-time captureless lookbehinds
+  static LOOKBEHINDS = 512
 
   /**
    * Returns a literal pattern string for the specified string.
@@ -128,6 +130,9 @@ class RE2JS {
     let re2Flags = RE2Flags.PERL
     if ((flags & RE2JS.DISABLE_UNICODE_GROUPS) !== 0) {
       re2Flags &= ~RE2Flags.UNICODE_GROUPS
+    }
+    if ((flags & RE2JS.LOOKBEHINDS) !== 0) {
+      re2Flags |= RE2Flags.LOOKBEHIND
     }
 
     const p = new RE2JS(regex, flags)

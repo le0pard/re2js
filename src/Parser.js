@@ -558,6 +558,7 @@ class Parser {
     this.repeats = 0 // product of all repetitions seen
     this.height = null // regexp height, for height limit check
     this.size = null // regexp compiled size, for size limit check
+    this.nlb = 0 // Number of lookbehinds seen
   }
 
   // Allocate a Regexp, from the free list if possible.
@@ -1343,6 +1344,20 @@ class Parser {
         let repeatPos = -1
         bigswitch: switch (t.peek()) {
           case Codepoint.CODES.get('('):
+            // Intercept Lookbehinds if the flag is enabled
+            if ((this.flags & RE2Flags.LOOKBEHIND) !== 0) {
+              if (t.lookingAt('(?<=')) {
+                this.parsePosLookBehind()
+                t.skip(4) // Skip over '(?<='
+                break
+              }
+              if (t.lookingAt('(?<!')) {
+                this.parseNegLookBehind()
+                t.skip(4) // Skip over '(?<!'
+                break
+              }
+            }
+
             if ((this.flags & RE2Flags.PERL_X) !== 0 && t.lookingAt('(?')) {
               // Flag changes and non-capturing groups.
               this.parsePerlFlags(t)
@@ -1626,6 +1641,19 @@ class Parser {
     throw new RE2JSSyntaxException(Parser.ERR_INVALID_PERL_OP, t.from(startPos))
   }
 
+  // Lookbehinds parsing
+  parsePosLookBehind() {
+    const re = this.newRegexp(Regexp.Op.LEFT_PAREN)
+    re.lb = ++this.nlb
+    return this.push(re)
+  }
+
+  parseNegLookBehind() {
+    const re = this.newRegexp(Regexp.Op.LEFT_PAREN)
+    re.lb = -++this.nlb
+    return this.push(re)
+  }
+
   // parseVerticalBar handles a | in the input.
   parseVerticalBar() {
     this.concat()
@@ -1701,6 +1729,19 @@ class Parser {
     }
     // Restore flags at time of paren.
     this.flags = re2.flags
+
+    // Handle lookbehinds
+    if (re2.lb !== 0) {
+      if (re2.lb > 0) {
+        re2.op = Regexp.Op.PLB
+      } else {
+        re2.op = Regexp.Op.NLB
+      }
+      re2.subs = [re1]
+      this.push(re2)
+      return
+    }
+
     if (re2.cap === 0) {
       // Just for grouping.
       this.push(re1)
