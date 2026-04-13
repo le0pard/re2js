@@ -18,6 +18,8 @@ class Simplify {
     }
 
     switch (re.op) {
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB:
       case Regexp.Op.CAPTURE: {
         const sub = Simplify.simplify(re.subs[0])
         if (sub !== re.subs[0]) {

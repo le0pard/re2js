@@ -93,6 +93,14 @@ class Machine {
     } else {
       this.resetCap()
     }
+
+    // Initialize the Lookbehind tracking table
+    if (this.prog.numLb > 0) {
+      if (!this.lbTable || this.lbTable.length < this.prog.numLb + 1) {
+        this.lbTable = new Int32Array(this.prog.numLb + 1)
+      }
+      this.lbTable.fill(-1)
+    }
   }
 
   // Wipes existing typed array memory without reallocating
@@ -212,6 +220,10 @@ class Machine {
         if (this.ncap > 0) {
           this.matchcap[0] = pos
         }
+        // Spawn Lookbehind threads BEFORE the main pattern
+        for (let i = 0; i < this.prog.lbStarts.length; i++) {
+          this.add(runq, this.prog.lbStarts[i], pos, this.matchcap, flag, null)
+        }
         this.add(runq, this.prog.start, pos, this.matchcap, flag, null)
       }
 
@@ -271,6 +283,10 @@ class Machine {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) break
       }
       if (pos === 0 || anchor === RE2Flags.UNANCHORED) {
+        // Spawn Lookbehind threads BEFORE the main pattern
+        for (let i = 0; i < this.prog.lbStarts.length; i++) {
+          this.add(runq, this.prog.lbStarts[i], pos, this.matchcap, flag, null)
+        }
         this.add(runq, this.prog.start, pos, this.matchcap, flag, null)
       }
 
@@ -420,6 +436,21 @@ class Machine {
           this.add(q, inst.out, pos, cap, cond, null)
           cap[inst.arg] = opos
         } else {
+          t = this.add(q, inst.out, pos, cap, cond, t)
+        }
+        break
+      case Inst.LB_WRITE:
+        this.lbTable[Math.abs(inst.lb)] = pos
+        t = this.add(q, inst.out, pos, cap, cond, t)
+        break
+      case Inst.LB_CHECK:
+        if (inst.lb > 0) {
+          // Positive Lookbehind
+          if (this.lbTable[inst.lb] === pos) {
+            t = this.add(q, inst.out, pos, cap, cond, t)
+          }
+        } else if (this.lbTable[-inst.lb] !== pos) {
+          // Negative Lookbehind
           t = this.add(q, inst.out, pos, cap, cond, t)
         }
         break

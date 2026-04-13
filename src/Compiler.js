@@ -221,6 +221,30 @@ class Compiler {
     return f
   }
 
+  lookBehind(a, lb) {
+    const id = this.newInst(Inst.LB_WRITE)
+    this.prog.getInst(id.i).lb = lb
+
+    // Create the prefix wildcard `.*` for the lookbehind automaton
+    const any = this.rune(Compiler.ANY_RUNE(), 0)
+    const dotStar = this.star(any, true) // nongreedy = true
+    const lbAutomaton = this.cat(dotStar, a)
+
+    this.prog.patch(lbAutomaton.out, id.i)
+
+    const checkId = this.newInst(Inst.LB_CHECK)
+    this.prog.getInst(checkId.i).lb = lb
+
+    // Save the starting point of this lookbehind automaton
+    this.prog.lbStarts.push(lbAutomaton.i)
+    if (Math.abs(lb) > this.prog.numLb) {
+      this.prog.numLb = Math.abs(lb)
+    }
+
+    checkId.out = new PatchList(checkId.i << 1, checkId.i << 1)
+    return checkId
+  }
+
   compile(re) {
     switch (re.op) {
       case Regexp.Op.NO_MATCH:
@@ -256,6 +280,9 @@ class Compiler {
         return this.empty(Utils.EMPTY_WORD_BOUNDARY)
       case Regexp.Op.NO_WORD_BOUNDARY:
         return this.empty(Utils.EMPTY_NO_WORD_BOUNDARY)
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB:
+        return this.lookBehind(this.compile(re.subs[0]), re.lb)
       case Regexp.Op.CAPTURE: {
         const bra = this.cap(re.cap << 1)
         const sub = this.compile(re.subs[0])

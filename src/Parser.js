@@ -1644,12 +1644,14 @@ class Parser {
   // Lookbehinds parsing
   parsePosLookBehind() {
     const re = this.newRegexp(Regexp.Op.LEFT_PAREN)
+    re.flags = this.flags
     re.lb = ++this.nlb
     return this.push(re)
   }
 
   parseNegLookBehind() {
     const re = this.newRegexp(Regexp.Op.LEFT_PAREN)
+    re.flags = this.flags
     re.lb = -++this.nlb
     return this.push(re)
   }

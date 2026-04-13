@@ -304,6 +304,8 @@ const cleanupOnePass = (p, original) => {
 export class OnePass {
   static compile(prog) {
     if (prog.start === 0) return null
+    // OnePass cannot evaluate Lookbehinds
+    if (prog.numLb > 0) return null
 
     const startInst = prog.inst[prog.start]
     // onepass regexps must be strictly anchored

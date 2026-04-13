@@ -341,9 +341,12 @@ class Matcher {
    * @private
    */
   genMatch(startByte, anchor) {
+    const hasLookbehinds = this.patternInput.re2().prog.numLb > 0
+    const ngroup = hasLookbehinds ? 1 + this.patternGroupCount : 1
+
     const res = this.patternInput
       .re2()
-      .matchMachineInput(this.matcherInput, startByte, this.matcherInputLength, anchor, 1)
+      .matchMachineInput(this.matcherInput, startByte, this.matcherInputLength, anchor, ngroup)
 
     const ok = res[0]
     if (!ok) {
@@ -351,7 +354,7 @@ class Matcher {
     }
     this.groups = res[1]
     this.hasMatch = true
-    this.hasGroups = false
+    this.hasGroups = hasLookbehinds || this.patternGroupCount === 0
     this.anchorFlag = anchor
     return true
   }

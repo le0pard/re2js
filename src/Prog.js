@@ -32,6 +32,8 @@ class Prog {
     // number of CAPTURE insts in re
     // 2 => implicit ( and ) for whole match $0
     this.numCap = 2
+    this.lbStarts = [] // Track starting PCs of lookbehind automata
+    this.numLb = 0 // Total number of lookbehinds
   }
 
   // Returns the instruction at the specified pc.

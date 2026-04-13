@@ -44,6 +44,8 @@ class PrefilterTree {
     if (!re) return new Prefilter(Prefilter.Type.NONE)
 
     switch (re.op) {
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB:
       case Regexp.Op.NO_MATCH:
       case Regexp.Op.EMPTY_MATCH:
       case Regexp.Op.BEGIN_LINE:

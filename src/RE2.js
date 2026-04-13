@@ -213,22 +213,25 @@ class RE2 {
     // We must use the NFA.
     if (ncap > 0) {
       // Backtracker bit-state execution bounds check
-      if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
+      if (this.prog.numLb === 0 && input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
         return Backtracker.execute(this, input, pos, anchor, ncap)
       }
       // NFA execution
       return this.doExecuteNFA(input, pos, anchor, ncap)
     }
 
-    const dfaResult = this.dfa.match(input, pos, anchor)
-    if (dfaResult !== null) {
-      // DFA succeeded (returned true or false)
-      return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
-    }
+    // The DFA will safely return null (bailout) if it encounters a lookbehind
+    if (this.prog.numLb === 0) {
+      const dfaResult = this.dfa.match(input, pos, anchor)
+      if (dfaResult !== null) {
+        // DFA succeeded (returned true or false)
+        return dfaResult ? [] : null // Return empty array to signify "matched but no captures"
+      }
 
-    // Backtracker bit-state execution bounds check
-    if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
-      return Backtracker.execute(this, input, pos, anchor, ncap)
+      // Backtracker bit-state execution bounds check
+      if (input.endPos() <= Backtracker.maxBitStateLen(this.prog)) {
+        return Backtracker.execute(this, input, pos, anchor, ncap)
+      }
     }
 
     // Fallback to NFA
