@@ -254,6 +254,11 @@ describe('program size', () => {
 
     expect(programSize).toEqual(count)
   })
+
+  test('taken into account LOOKBEHINDS flag', () => {
+    const p = RE2JS.compile('(?<=(a|aa)+)b', RE2JS.LOOKBEHINDS)
+    expect(p.programSize()).toEqual(14)
+  })
 })
 
 describe('group count', () => {
