@@ -289,6 +289,64 @@ console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string bec
 
 ***Performance Note:** `RE2Set` heavily utilizes the high-speed DFA engine to process multi-pattern matches simultaneously. However, if your patterns contain boundaries (e.g., `\b`) or trigger a massive state explosion, it will seamlessly and safely fall back to the bounded NFA engine.*
 
+#### Example: JS router with RE2Set
+
+```js
+import { RE2Set, RE2JS } from 're2js'
+
+class Router {
+  constructor() {
+    this.set = new RE2Set()
+    this.routes = []
+  }
+
+  addRoute(pattern, handler) {
+    // compile the individual regex (for extracting groups later)
+    const re = RE2JS.compile(pattern)
+
+    // add the raw string to the blazing-fast Set
+    const id = this.set.add(pattern)
+
+    // store them together
+    this.routes[id] = { re, handler }
+  }
+
+  compile() {
+    this.set.compile()
+  }
+
+  execute(path) {
+    // find WHICH routes matched in O(N) time
+    const matchedIDs = this.set.match(path)
+
+    if (matchedIDs.length === 0) {
+      return "404 Not Found"
+    }
+
+    // extract groups ONLY for the routes that won
+    for (const id of matchedIDs) {
+      const route = this.routes[id]
+      const matcher = route.re.matcher(path)
+
+      if (matcher.matches()) {
+        const params = matcher.getNamedGroups()
+        return route.handler(params)
+      }
+    }
+  }
+}
+
+// --- Usage ---
+const router = new Router()
+
+router.addRoute('^/users/(?P<id>\\d+)$', (params) => `User ID: ${params.id}`)
+router.addRoute('^/posts/(?P<slug>[a-z-]+)$', (params) => `Post: ${params.slug}`)
+
+router.compile()
+
+console.log(router.execute('/users/42')) // Outputs: "User ID: 42"
+```
+
 ### Working with Groups
 
 RE2JS supports capturing groups in regex patterns
