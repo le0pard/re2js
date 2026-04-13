@@ -624,7 +624,7 @@ class Parser {
       // We need to start tracking size.
       // Make the map and belatedly populate it
       // with info about everything we've constructed so far.
-      this.size = {}
+      this.size = Object.create(null)
       for (let reEx of this.stack) {
         this.checkSize(reEx)
       }
@@ -636,7 +636,7 @@ class Parser {
   }
 
   calcSize(re, force = false) {
-    if (!force) {
+    if (!force && this.size !== null) {
       if (Object.prototype.hasOwnProperty.call(this.size, re)) {
         return this.size[re]
       }
@@ -693,6 +693,9 @@ class Parser {
     }
 
     size = Math.max(1, size)
+    if (this.size === null) {
+      this.size = Object.create(null)
+    }
     this.size[re] = size
     return size
   }
