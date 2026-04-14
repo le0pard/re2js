@@ -90,6 +90,10 @@ RE2JS.DISABLE_UNICODE_GROUPS
  * Flag: matches longest possible string (changes the match semantics to leftmost-longest).
  */
 RE2JS.LONGEST_MATCH
+/**
+ * Flag: enable linear-time captureless lookbehinds.
+ */
+RE2JS.LOOKBEHINDS
 ```
 
 ### Checking for Matches
@@ -237,10 +241,10 @@ RE2JS includes a highly optimized `RE2Set` API that allows you to match multiple
 This is incredibly powerful for profanity filters, routing engines, or log parsers.
 
 ```js
-import { RE2Set, RE2Flags } from 're2js'
+import { RE2Set } from 're2js'
 
-// Create a new set. You can optionally pass anchoring and flags.
-// Default: RE2Flags.UNANCHORED, RE2Flags.PERL
+// Create a new set. You can optionally pass an anchor and public RE2JS flags.
+// Default anchor: RE2Set.UNANCHORED
 const set = new RE2Set()
 
 // Add patterns to the set.
@@ -263,23 +267,85 @@ console.log(set.match('All systems operational.'))
 
 #### Anchoring a Set
 
-You can strictly anchor the entire set by passing an anchor flag to the constructor
+You can strictly anchor the entire set by passing an anchor constant to the constructor (`RE2Set.UNANCHORED`, `RE2Set.ANCHOR_START`, or `RE2Set.ANCHOR_BOTH`).
+
+Additionally, you can pass standard public `RE2JS` flags (like `CASE_INSENSITIVE` or `LOOKBEHINDS`) as the second argument to apply them to all patterns in the set.
 
 ```js
-import { RE2Set, RE2Flags } from 're2js'
+import { RE2Set, RE2JS } from 're2js'
 
-const set = new RE2Set(RE2Flags.ANCHOR_BOTH)
+// Anchor the set to match the entire string, and make it case-insensitive
+const set = new RE2Set(RE2Set.ANCHOR_BOTH, RE2JS.CASE_INSENSITIVE)
+
 set.add('foo') // ID: 0
 set.add('bar') // ID: 1
 set.add('.*')  // ID: 2
 
 set.compile()
 
-console.log(set.match('foo'))    // [0, 2] (Matches 'foo' and '.*')
-console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string)
+console.log(set.match('FOO'))    // [0, 2] (Matches 'foo' and '.*' because of CASE_INSENSITIVE)
+console.log(set.match('foobar')) // [2] (Only '.*' matches the entire string because of ANCHOR_BOTH)
 ```
 
 ***Performance Note:** `RE2Set` heavily utilizes the high-speed DFA engine to process multi-pattern matches simultaneously. However, if your patterns contain boundaries (e.g., `\b`) or trigger a massive state explosion, it will seamlessly and safely fall back to the bounded NFA engine.*
+
+#### Example: Fast JS Routing with RE2Set
+
+```js
+import { RE2Set, RE2JS } from 're2js'
+
+class Router {
+  constructor() {
+    this.set = new RE2Set()
+    this.routes = []
+  }
+
+  addRoute(pattern, handler) {
+    // compile the individual regex (for extracting groups later)
+    const re = RE2JS.compile(pattern)
+
+    // add the raw string to the blazing-fast Set
+    const id = this.set.add(pattern)
+
+    // store them together
+    this.routes[id] = { re, handler }
+  }
+
+  compile() {
+    this.set.compile()
+  }
+
+  execute(path) {
+    // find WHICH routes matched in O(N) time
+    const matchedIDs = this.set.match(path)
+
+    if (matchedIDs.length === 0) {
+      return '404 Not Found'
+    }
+
+    // extract groups ONLY for the routes that won
+    for (const id of matchedIDs) {
+      const route = this.routes[id]
+      const matcher = route.re.matcher(path)
+
+      if (matcher.matches()) {
+        const params = matcher.getNamedGroups()
+        return route.handler(params)
+      }
+    }
+  }
+}
+
+// --- Usage ---
+const router = new Router()
+
+router.addRoute('^/users/(?P<id>\\d+)$', (params) => `User ID: ${params.id}`)
+router.addRoute('^/posts/(?P<slug>[a-z-]+)$', (params) => `Post: ${params.slug}`)
+
+router.compile()
+
+console.log(router.execute('/users/42')) // Outputs: "User ID: 42"
+```
 
 ### Working with Groups
 
@@ -586,6 +652,35 @@ new RegExp(regex).test(string)    // Total time: ~105802.02 ms (over 105 seconds
 In the second example, a ReDoS scenario is depicted. The regular expression `([a-z]+)+$` is a potentially problematic one because it contains a nested quantifier. In standard NFA engines (like JavaScript's native `RegExp`), nested quantifiers can cause catastrophic backtracking. If a malicious user inputs a carefully crafted string, it results in exponentially high processing times, leading to a Denial of Service (DoS) attack.
 
 RE2JS processed this poison-pill string **30,000 times in just ~454 milliseconds**, while the native RegExp completely locked up the main thread for **over 1 minute and 45 seconds trying to evaluate it just once**. This demonstrates why RE2JS is absolutely essential for securely handling untrusted regular expressions and protecting Node.js and browser applications against ReDoS attacks.
+
+## Lookbehinds (Linear-Time Execution)
+
+Historically, the RE2 specification has strictly forbidden lookaround assertions (like lookbehinds) because traditional regex engines use backtracking to evaluate them, leading to catastrophic exponential execution times and ReDoS vulnerabilities.
+
+However, `re2js` implements a breakthrough algorithmic approach ([developed by researchers at EPFL](https://arxiv.org/pdf/2311.17620), [RE2 guide how to add it](https://systemf.epfl.ch/blog/re2-lookbehinds/)) that evaluates **captureless lookbehinds in strict linear $O(n)$ time** without backtracking. Because this diverges from the standard RE2 specification and carries a slight performance trade-off, it is disabled by default.
+
+You can enable it by passing the `RE2JS.LOOKBEHINDS` flag during compilation:
+
+```js
+import { RE2JS } from 're2js';
+
+// Positive Lookbehind: Match 'bar' only if preceded by 'foo'
+const positive = RE2JS.compile('(?<=foo)bar', RE2JS.LOOKBEHINDS);
+positive.test('foobar'); // true
+positive.test('bazbar'); // false
+
+// Negative Lookbehind: Match 'bar' only if NOT preceded by 'foo'
+const negative = RE2JS.compile('(?<!foo)bar', RE2JS.LOOKBEHINDS);
+negative.test('bazbar'); // true
+negative.test('foobar'); // false
+```
+
+### Important Limitations and Warnings
+
+1. **Performance Overhead:** If a regex contains a lookbehind, the engine is forced to safely bypass the ultra-fast Lazy DFA and OnePass engines. It evaluates the lookbehinds using parallel automata running on the NFA (Pike VM). While execution remains mathematically safe and linear $O(n)$, the NFA engine is generally slower than the DFA fast-paths. Use lookbehinds only when necessary.
+2. **Prefix Acceleration is Disabled:** To ensure the parallel tracking automata initialize correctly, high-speed string prefix skipping (e.g., using `indexOf` to jump to a starting literal) is disabled when lookbehinds are present.
+3. **Captureless Guarantee:** To prevent state-explosion vulnerabilities, lookbehinds are strictly evaluated as *captureless*. If you include a capturing group inside a lookbehind (e.g., `(?<=(foo))bar`), the engine will match successfully, but `group(1)` will safely return `null`.
+
 
 ## Development
 

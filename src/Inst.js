@@ -18,6 +18,8 @@ class Inst {
   static RUNE1 = 9
   static RUNE_ANY = 10
   static RUNE_ANY_NOT_NL = 11
+  static LB_WRITE = 12
+  static LB_CHECK = 13
 
   static isRuneOp(op) {
     return Inst.RUNE <= op && op <= Inst.RUNE_ANY_NOT_NL
@@ -148,6 +150,10 @@ class Inst {
         return 'fail'
       case Inst.NOP:
         return `nop -> ${this.out}`
+      case Inst.LB_WRITE:
+        return `lbwrite ${this.lb} -> ${this.out}`
+      case Inst.LB_CHECK:
+        return `lbcheck ${this.lb} -> ${this.out}, ${this.arg}`
       case Inst.RUNE:
         if (this.runes === null) {
           return 'rune <null>'

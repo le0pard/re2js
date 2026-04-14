@@ -21,7 +21,9 @@ const OP_NAMES = new Map([
   [Regexp.Op.QUEST, 'que'],
   [Regexp.Op.REPEAT, 'rep'],
   [Regexp.Op.CONCAT, 'cat'],
-  [Regexp.Op.ALTERNATE, 'alt']
+  [Regexp.Op.ALTERNATE, 'alt'],
+  [Regexp.Op.PLB, 'plb'],
+  [Regexp.Op.NLB, 'nlb']
 ])
 
 export const dumpRegexp = (re) => {
@@ -94,6 +96,10 @@ export const dumpRegexp = (re) => {
         b += re.name
         b += ':'
       }
+      b += dumpRegexp(re.subs[0])
+      break
+    case Regexp.Op.PLB:
+    case Regexp.Op.NLB:
       b += dumpRegexp(re.subs[0])
       break
     case Regexp.Op.CHAR_CLASS: {

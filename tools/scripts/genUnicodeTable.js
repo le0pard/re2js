@@ -1,7 +1,7 @@
 import { CodepointRange } from './codepointRange.js'
-import unicode from '@unicode/unicode-16.0.0'
-import CommonCaseFolding from '@unicode/unicode-16.0.0/Case_Folding/C/code-points.js'
-import SimpleCaseFolding from '@unicode/unicode-16.0.0/Case_Folding/S/code-points.js'
+import unicode from '@unicode/unicode-17.0.0'
+import CommonCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/C/code-points.js'
+import SimpleCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/S/code-points.js'
 import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 
@@ -118,7 +118,7 @@ const addFoldExceptions = (codepoints) => {
 
 const getCodePoints = async (type, name) => {
   const { default: codePoints } = await import(
-    `@unicode/unicode-16.0.0/${type}/${name}/code-points.js`
+    `@unicode/unicode-17.0.0/${type}/${name}/code-points.js`
   )
   return codePoints.sort((a, b) => a - b)
 }

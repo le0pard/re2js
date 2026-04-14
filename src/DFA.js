@@ -75,6 +75,8 @@ class DFA {
         // Bailing out on complex empty-width assertions to keep DFA fast.
         // Engine will seamlessly fall back to the NFA.
         case Inst.EMPTY_WIDTH:
+        case Inst.LB_WRITE:
+        case Inst.LB_CHECK:
           return null
       }
     }

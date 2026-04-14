@@ -1,4 +1,5 @@
 import { RE2Flags } from './RE2Flags'
+import { PublicFlags } from './PublicFlags'
 import { MatcherInput } from './MatcherInput'
 import { MachineInput } from './MachineInput'
 import { Matcher } from './Matcher'
@@ -29,24 +30,28 @@ class RE2JS {
   /**
    * Flag: case insensitive matching.
    */
-  static CASE_INSENSITIVE = 1
+  static CASE_INSENSITIVE = PublicFlags.CASE_INSENSITIVE
   /**
    * Flag: dot ({@code .}) matches all characters, including newline.
    */
-  static DOTALL = 2
+  static DOTALL = PublicFlags.DOTALL
   /**
    * Flag: multiline matching: {@code ^} and {@code $} match at beginning and end of line, not just
    * beginning and end of input.
    */
-  static MULTILINE = 4
+  static MULTILINE = PublicFlags.MULTILINE
   /**
    * Flag: Unicode groups (e.g. {@code \p\ Greek\} ) will be syntax errors.
    */
-  static DISABLE_UNICODE_GROUPS = 8
+  static DISABLE_UNICODE_GROUPS = PublicFlags.DISABLE_UNICODE_GROUPS
   /**
    * Flag: matches longest possible string.
    */
-  static LONGEST_MATCH = 16
+  static LONGEST_MATCH = PublicFlags.LONGEST_MATCH
+  /**
+   * Flag: enable linear-time captureless lookbehinds.
+   */
+  static LOOKBEHINDS = PublicFlags.LOOKBEHINDS
 
   /**
    * Returns a literal pattern string for the specified string.
@@ -116,18 +121,22 @@ class RE2JS {
           RE2JS.DOTALL |
           RE2JS.CASE_INSENSITIVE |
           RE2JS.DISABLE_UNICODE_GROUPS |
-          RE2JS.LONGEST_MATCH
+          RE2JS.LONGEST_MATCH |
+          RE2JS.LOOKBEHINDS
         )) !==
       0
     ) {
       throw new RE2JSFlagsException(
-        'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH'
+        'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS'
       )
     }
 
     let re2Flags = RE2Flags.PERL
     if ((flags & RE2JS.DISABLE_UNICODE_GROUPS) !== 0) {
       re2Flags &= ~RE2Flags.UNICODE_GROUPS
+    }
+    if ((flags & RE2JS.LOOKBEHINDS) !== 0) {
+      re2Flags |= RE2Flags.LOOKBEHIND
     }
 
     const p = new RE2JS(regex, flags)

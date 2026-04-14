@@ -163,3 +163,28 @@ describe('.compileRegexp', () => {
     expect(p.toString()).toEqual(expected)
   })
 })
+
+describe('Prog - Lookbehinds Compilation', () => {
+  it('compiles lookbehinds and tracks numLb and lbStarts correctly', () => {
+    const re = Parser.parse('(?<=foo)(?<!bar)baz', RE2Flags.LOOKBEHIND)
+    const prog = Compiler.compileRegexp(re)
+
+    // The regex has 2 lookbehinds, so numLb must be exactly 2
+    expect(prog.numLb).toBe(2)
+
+    // It must have registered 2 starting PCs for the parallel automata
+    expect(prog.lbStarts.length).toBe(2)
+
+    // Verify that the lbStarts points to valid instructions
+    expect(prog.inst[prog.lbStarts[0]]).toBeDefined()
+    expect(prog.inst[prog.lbStarts[1]]).toBeDefined()
+
+    // One of the instructions in the automata should be LB_WRITE
+    const hasLbWrite = prog.inst.some((i) => i.op === 12) // Inst.LB_WRITE = 12
+    expect(hasLbWrite).toBe(true)
+
+    // One of the instructions in the main thread should be LB_CHECK
+    const hasLbCheck = prog.inst.some((i) => i.op === 13) // Inst.LB_CHECK = 13
+    expect(hasLbCheck).toBe(true)
+  })
+})

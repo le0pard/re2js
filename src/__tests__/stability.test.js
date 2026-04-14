@@ -5,10 +5,12 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Catastrophic Backtracking Immunity (ReDoS)', () => {
     // A helper to assert that an execution finishes in under 50ms,
     // whereas native RegExp would hang the main thread indefinitely.
-    const assertLinearTime = (regexStr, inputStr, expectedMatch) => {
-      const re = RE2JS.compile(regexStr)
+    const assertLinearTime = (regexStr, inputStr, expectedMatch, flags = 0) => {
+      const re = RE2JS.compile(regexStr, flags)
       const start = Date.now()
-      const result = re.matches(inputStr)
+      // Use .test() instead of .matches() so unanchored zero-width
+      // lookbehinds can correctly scan the string rather than forcing a full-string match.
+      const result = re.test(inputStr)
       const elapsed = Date.now() - start
 
       expect(result).toBe(expectedMatch)
@@ -41,6 +43,32 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       const pathRegex = '^(/[^/]+)+$'
       const maliciousPath = `${'/a'.repeat(60)}/`
       assertLinearTime(pathRegex, maliciousPath, false)
+    })
+
+    test('Defeats classic nested repetition ReDoS inside Lookbehinds (Failing Match): (?<=(a+)+)b', () => {
+      // Lookbehinds evaluate right-to-left in standard engines, but a complex nested
+      // quantifier will still trigger exponential explosion. RE2JS evaluates this in linear time.
+      const regexStr = '(?<=(a+)+)b'
+      const maliciousInput = `${'a'.repeat(60)}!b` // The '!' causes the prefix match to fail
+      assertLinearTime(regexStr, maliciousInput, false, RE2JS.LOOKBEHINDS)
+    })
+
+    test('Defeats overlapping alternation ReDoS inside Lookbehinds (Failing Match): (?<=(a|aa)+)b', () => {
+      const regexStr = '(?<=(a|aa)+)b'
+      const maliciousInput = `${'a'.repeat(60)}!b`
+      assertLinearTime(regexStr, maliciousInput, false, RE2JS.LOOKBEHINDS)
+    })
+
+    test('Defeats classic nested repetition ReDoS inside Lookbehinds (Successful Match): (?<=(a+)+)b', () => {
+      const regexStr = '(?<=(a+)+)b'
+      const maliciousInput = `${'a'.repeat(60)}b` // The prefix perfectly matches
+      assertLinearTime(regexStr, maliciousInput, true, RE2JS.LOOKBEHINDS)
+    })
+
+    test('Defeats overlapping alternation ReDoS inside Lookbehinds (Successful Match): (?<=(a|aa)+)b', () => {
+      const regexStr = '(?<=(a|aa)+)b'
+      const maliciousInput = `${'a'.repeat(60)}b` // The prefix perfectly matches
+      assertLinearTime(regexStr, maliciousInput, true, RE2JS.LOOKBEHINDS)
     })
   })
 

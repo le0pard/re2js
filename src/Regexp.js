@@ -30,6 +30,8 @@ export class Regexp {
     'REPEAT', // Matches subs[0] [min, max] times; max=-1 => no limit.
     'CONCAT', // Matches concatenation of subs[]
     'ALTERNATE', // Matches union of subs[]
+    'PLB', // Positive LookBehind
+    'NLB', // Negative LookBehind
     // Pseudo ops, used internally by Parser for parsing stack:
     'LEFT_PAREN',
     'VERTICAL_BAR'
@@ -60,6 +62,7 @@ export class Regexp {
     regex.max = re.max
     regex.name = re.name
     regex.namedGroups = re.namedGroups
+    regex.lb = re.lb // Track lookbehind index
     return regex
   }
 
@@ -75,6 +78,7 @@ export class Regexp {
     this.cap = 0 // capturing index, for CAPTURE
     this.name = null // capturing name, for CAPTURE
     this.namedGroups = Object.create(null) // map of group name -> capturing index
+    this.lb = 0 // Lookbehind index tracking
   }
 
   reinit() {
@@ -86,6 +90,7 @@ export class Regexp {
     this.max = 0
     this.name = null
     this.namedGroups = Object.create(null)
+    this.lb = 0
   }
 
   toString() {
@@ -176,6 +181,12 @@ export class Regexp {
         break
       case Regexp.Op.ANY_CHAR:
         out += '(?s:.)'
+        break
+      case Regexp.Op.PLB:
+        out += `(?<=${this.subs[0].appendTo()})`
+        break
+      case Regexp.Op.NLB:
+        out += `(?<!${this.subs[0].appendTo()})`
         break
       case Regexp.Op.CAPTURE:
         if (this.name === null || this.name.length === 0) {
@@ -346,6 +357,13 @@ export class Regexp {
           (this.name === null ? that.name !== null : this.name !== that.name) ||
           !this.subs[0].equals(that.subs[0])
         ) {
+          return false
+        }
+        break
+      }
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB: {
+        if (this.lb !== that.lb || !this.subs[0].equals(that.subs[0])) {
           return false
         }
         break

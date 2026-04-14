@@ -1,6 +1,7 @@
 import { RE2Flags } from '../RE2Flags'
 import { RE2JSSyntaxException } from '../exceptions'
 import { Parser } from '../Parser'
+import { Regexp } from '../Regexp'
 import { Unicode } from '../Unicode'
 import { dumpRegexp, mkCharClass } from '../__utils__/parser'
 import { expect, describe, test } from '@jest/globals'
@@ -386,6 +387,20 @@ describe('invalid regexp cases', () => {
   )
 })
 
+describe('lookbehinds cases', () => {
+  const cases = [
+    ['ab(?<=cde)', 'cat{str{ab}plb{str{cde}}}'],
+    ['ab(?<!cde)', 'cat{str{ab}nlb{str{cde}}}'],
+    ['ab(?<=c(?<=d)e)', 'cat{str{ab}plb{cat{lit{c}plb{lit{d}}lit{e}}}}'],
+    ['ab(?<=c(?<!d)e)', 'cat{str{ab}plb{cat{lit{c}nlb{lit{d}}lit{e}}}}']
+  ]
+
+  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    const re = Parser.parse(input, RE2Flags.LOOKBEHIND)
+    expect(dumpRegexp(re)).toEqual(expected)
+  })
+})
+
 describe('.equals', () => {
   const cases = [
     ['abc', 'abc', RE2Flags.POSIX, true],
@@ -450,5 +465,54 @@ describe('Flag interactions and rewinding', () => {
     expect(() => {
       Parser.parse('\\A', RE2Flags.UNICODE_GROUPS)
     }).toThrow('error parsing regexp: invalid escape sequence: `\\A`')
+  })
+})
+
+describe('Parser - Lookbehinds', () => {
+  it('parses positive and negative lookbehinds into PLB and NLB nodes', () => {
+    const re = Parser.parse('(?<=a)(?<!b)c', RE2Flags.LOOKBEHIND | RE2Flags.PERL_X)
+
+    // The top level is a CONCAT of 3 things: PLB, NLB, LITERAL
+    expect(re.op).toBe(Regexp.Op.CONCAT)
+    expect(re.subs.length).toBe(3)
+
+    // Positive Lookbehind
+    expect(re.subs[0].op).toBe(Regexp.Op.PLB)
+    expect(re.subs[0].lb).toBe(1)
+    expect(re.subs[0].subs[0].op).toBe(Regexp.Op.LITERAL) // 'a'
+
+    // Negative Lookbehind
+    expect(re.subs[1].op).toBe(Regexp.Op.NLB)
+    expect(re.subs[1].lb).toBe(-2)
+    expect(re.subs[1].subs[0].op).toBe(Regexp.Op.LITERAL) // 'b'
+
+    // Literal
+    expect(re.subs[2].op).toBe(Regexp.Op.LITERAL) // 'c'
+  })
+
+  it('inherits flags correctly into lookbehind sub-expressions', () => {
+    // Because of our re.flags = this.flags fix, the inner literal should
+    // respect the CASE_INSENSITIVE flag applied at the top level
+    const re = Parser.parse('(?<=a)', RE2Flags.LOOKBEHIND | RE2Flags.FOLD_CASE)
+
+    expect(re.op).toBe(Regexp.Op.PLB)
+    const innerLiteral = re.subs[0]
+    expect(innerLiteral.op).toBe(Regexp.Op.LITERAL)
+    // FOLD_CASE flag should be perfectly preserved inside the lookbehind
+    expect((innerLiteral.flags & RE2Flags.FOLD_CASE) !== 0).toBe(true)
+  })
+
+  it('calculates AST size properly for lookbehinds to prevent OOM', () => {
+    const parser = new Parser('(?<=a)', RE2Flags.LOOKBEHIND)
+    const re = parser.parseInternal()
+
+    // Size of PLB = 2 + size(a) = 2 + 1 = 3
+    expect(parser.calcSize(re)).toBe(3)
+
+    const parserNested = new Parser('(?<=(?<!a))', RE2Flags.LOOKBEHIND)
+    const reNested = parserNested.parseInternal()
+
+    // Size of PLB = 2 + size(NLB) = 2 + (2 + size(a)) = 5
+    expect(parserNested.calcSize(reNested)).toBe(5)
   })
 })

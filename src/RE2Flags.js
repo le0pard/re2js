@@ -30,6 +30,8 @@ class RE2Flags {
   static UNICODE_GROUPS = 0x80
   // Regexp END_TEXT was $, not \z.  Internal use only.
   static WAS_DOLLAR = 0x100
+  // Allow captureless Lookbehinds (?<=) and (?<!)
+  static LOOKBEHIND = 0x200
 
   static MATCH_NL = RE2Flags.CLASS_NL | RE2Flags.DOT_NL
   // As close to Perl as possible.
