@@ -50,7 +50,14 @@
 
   const execRE2JSDebounce = debounce(execRE2JS, 300)
 
-  const { CASE_INSENSITIVE, DOTALL, MULTILINE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS } = RE2JS
+  const {
+    CASE_INSENSITIVE,
+    DOTALL,
+    MULTILINE,
+    DISABLE_UNICODE_GROUPS,
+    LONGEST_MATCH,
+    LOOKBEHINDS
+  } = RE2JS
 
   $effect(() => {
     let flags = 0
