@@ -12,6 +12,7 @@
   let multilineFlag = $state(false)
   let disableUnicodeGroupsflag = $state(false)
   let longestMatchFlag = $state(false)
+  let lookbehindsFlag = $state(false)
 
   let results = $state({})
 
@@ -49,7 +50,7 @@
 
   const execRE2JSDebounce = debounce(execRE2JS, 300)
 
-  const { CASE_INSENSITIVE, DOTALL, MULTILINE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH } = RE2JS
+  const { CASE_INSENSITIVE, DOTALL, MULTILINE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS } = RE2JS
 
   $effect(() => {
     let flags = 0
@@ -67,6 +68,9 @@
     }
     if (longestMatchFlag) {
       flags = flags | LONGEST_MATCH
+    }
+    if (lookbehindsFlag) {
+      flags = flags | LOOKBEHINDS
     }
     // debounce result
     execRE2JSDebounce(regex, string, flags)
@@ -153,6 +157,15 @@
           bind:checked={longestMatchFlag}
         />
         Matches longest possible string
+      </label>
+      <label for="lookbehindsFlag">
+        <input
+          type="checkbox"
+          id="lookbehindsFlag"
+          name="lookbehindsFlag"
+          bind:checked={lookbehindsFlag}
+        />
+        Captureless lookbehinds
       </label>
     </fieldset>
 
