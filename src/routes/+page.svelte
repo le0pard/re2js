@@ -125,54 +125,72 @@
   <div>
     <fieldset>
       <legend>Regular expression flags</legend>
-      <label for="caseInsensitiveFlag">
+      <label class="label-wrapper" for="caseInsensitiveFlag">
         <input
           type="checkbox"
           id="caseInsensitiveFlag"
           name="caseInsensitiveFlag"
           bind:checked={caseInsensitiveFlag}
         />
-        Case insensitive matching
+        <div class="label-text-wrapper">
+          <span>Case insensitive</span>
+          <span class="label-text-flag">(CASE_INSENSITIVE)</span>
+        </div>
       </label>
-      <label for="dotallFlag">
+      <label class="label-wrapper" for="dotallFlag">
         <input type="checkbox" id="dotallFlag" name="dotallFlag" bind:checked={dotallFlag} />
-        "." matches all characters
+        <div class="label-text-wrapper">
+          <span>"." matches all characters</span>
+          <span class="label-text-flag">(DOTALL)</span>
+        </div>
       </label>
-      <label for="multilineFlag">
+      <label class="label-wrapper" for="multilineFlag">
         <input
           type="checkbox"
           id="multilineFlag"
           name="multilineFlag"
           bind:checked={multilineFlag}
         />
-        Multiline matching
+        <div class="label-text-wrapper">
+          <span>Multiline matching</span>
+          <span class="label-text-flag">(MULTILINE)</span>
+        </div>
       </label>
-      <label for="disableUnicodeGroupsflag">
+      <label class="label-wrapper" for="disableUnicodeGroupsflag">
         <input
           type="checkbox"
           id="disableUnicodeGroupsflag"
           name="disableUnicodeGroupsflag"
           bind:checked={disableUnicodeGroupsflag}
         />
-        Disable unicode groups
+        <div class="label-text-wrapper">
+          <span>Disable unicode groups</span>
+          <span class="label-text-flag">(DISABLE_UNICODE_GROUPS)</span>
+        </div>
       </label>
-      <label for="longestMatchFlag">
+      <label class="label-wrapper" for="longestMatchFlag">
         <input
           type="checkbox"
           id="longestMatchFlag"
           name="longestMatchFlag"
           bind:checked={longestMatchFlag}
         />
-        Matches longest possible string
+        <div class="label-text-wrapper">
+          <span>Matches longest possible string</span>
+          <span class="label-text-flag">(LONGEST_MATCH)</span>
+        </div>
       </label>
-      <label for="lookbehindsFlag">
+      <label class="label-wrapper" for="lookbehindsFlag">
         <input
           type="checkbox"
           id="lookbehindsFlag"
           name="lookbehindsFlag"
           bind:checked={lookbehindsFlag}
         />
-        Captureless lookbehinds
+        <div class="label-text-wrapper">
+          <span>Captureless lookbehinds</span>
+          <span class="label-text-flag">(LOOKBEHINDS)</span>
+        </div>
       </label>
     </fieldset>
 
@@ -304,6 +322,28 @@
 
   .status-tag__no {
     background-color: var(--pico-del-color);
+  }
+
+  .label-wrapper {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .label-wrapper input {
+    flex-shrink: 0;
+  }
+
+  .label-text-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .label-text-flag {
+    font-size: 0.8rem;
   }
 
   .long-text {
