@@ -118,49 +118,6 @@ RE2JS.compile(
 ).matches('AB\nc') // true
 ```
 
-### Finding Matches
-
-To find a match for a given regex pattern in a string, you can use the `find()` function
-
-```js
-import { RE2JS } from 're2js'
-
-RE2JS.compile('ab+c').matcher('xxabbbc').find() // true
-RE2JS.compile('ab+c').matcher('cbbba').find() // false
-// with flags
-RE2JS.compile('ab+c', RE2JS.CASE_INSENSITIVE).matcher('abBBc').find() // true
-```
-
-Example to collect all matches in string
-
-```js
-import { RE2JS } from 're2js'
-
-const p = RE2JS.compile('abc+')
-const matchString = p.matcher('abc abcccc abcc')
-const results = []
-while (matchString.find()) {
-  results.push(matchString.group())
-}
-results // ['abc', 'abcccc', 'abcc']
-```
-
-The `find()` method searches for a pattern match in a string starting from a specific index
-
-```js
-import { RE2JS } from 're2js'
-
-const p = RE2JS.compile('.*[aeiou]')
-const matchString = p.matcher('abcdefgh')
-matchString.find(0) // true
-matchString.group() // 'abcde'
-matchString.find(1) // true
-matchString.group() // 'bcde'
-matchString.find(4) // true
-matchString.group() // 'e'
-matchString.find(7) // false
-```
-
 ### High-Performance Boolean Testing
 
 If you only need to know **whether** a string matches a pattern (without extracting capture groups), you should use the `test()`, `testExact()`, or `matches()` methods. Unlike `.matcher()`, these methods do not instantiate stateful `Matcher` objects and request exactly `0` capture groups. This guarantees that execution is securely routed to the high-speed DFA (Deterministic Finite Automaton) engine whenever possible in linear `O(n)` time
@@ -210,28 +167,47 @@ RE2JS.compile('abc').matcher('ab').lookingAt() // false
 
 Note that the `lookingAt` method only checks the start of the string. It does not search the entire string for a match
 
-### Splitting Strings
+### Finding Matches
 
-You can split a string based on a regex pattern using the `split()` function
+To find a match for a given regex pattern in a string, you can use the `find()` function
 
 ```js
 import { RE2JS } from 're2js'
 
-RE2JS.compile('/').split('abcde') // ['abcde']
-RE2JS.compile('/').split('a/b/cc//d/e//') // ['a', 'b', 'cc', '', 'd', 'e']
-RE2JS.compile(':').split(':a::b') // ['', 'a', '', 'b']
+RE2JS.compile('ab+c').matcher('xxabbbc').find() // true
+RE2JS.compile('ab+c').matcher('cbbba').find() // false
+// with flags
+RE2JS.compile('ab+c', RE2JS.CASE_INSENSITIVE).matcher('abBBc').find() // true
 ```
 
-The `split()` function also supports a limit parameter
+Example to collect all matches in string
 
 ```js
 import { RE2JS } from 're2js'
 
-RE2JS.compile('/').split('a/b/cc//d/e//', 3) // ['a', 'b', 'cc//d/e//']
-RE2JS.compile('/').split('a/b/cc//d/e//', 4) // ['a', 'b', 'cc', '/d/e//']
-RE2JS.compile('/').split('a/b/cc//d/e//', 9) // ['a', 'b', 'cc', '', 'd', 'e', '', '']
-RE2JS.compile(':').split('boo:and:foo', 2) // ['boo', 'and:foo']
-RE2JS.compile(':').split('boo:and:foo', 5) // ['boo', 'and', 'foo']
+const p = RE2JS.compile('abc+')
+const matchString = p.matcher('abc abcccc abcc')
+const results = []
+while (matchString.find()) {
+  results.push(matchString.group())
+}
+results // ['abc', 'abcccc', 'abcc']
+```
+
+The `find()` method searches for a pattern match in a string starting from a specific index
+
+```js
+import { RE2JS } from 're2js'
+
+const p = RE2JS.compile('.*[aeiou]')
+const matchString = p.matcher('abcdefgh')
+matchString.find(0) // true
+matchString.group() // 'abcde'
+matchString.find(1) // true
+matchString.group() // 'bcde'
+matchString.find(4) // true
+matchString.group() // 'e'
+matchString.find(7) // false
 ```
 
 ### Multi-Pattern Matching (RE2Set)
@@ -345,6 +321,30 @@ router.addRoute('^/posts/(?P<slug>[a-z-]+)$', (params) => `Post: ${params.slug}`
 router.compile()
 
 console.log(router.execute('/users/42')) // Outputs: "User ID: 42"
+```
+
+### Splitting Strings
+
+You can split a string based on a regex pattern using the `split()` function
+
+```js
+import { RE2JS } from 're2js'
+
+RE2JS.compile('/').split('abcde') // ['abcde']
+RE2JS.compile('/').split('a/b/cc//d/e//') // ['a', 'b', 'cc', '', 'd', 'e']
+RE2JS.compile(':').split(':a::b') // ['', 'a', '', 'b']
+```
+
+The `split()` function also supports a limit parameter
+
+```js
+import { RE2JS } from 're2js'
+
+RE2JS.compile('/').split('a/b/cc//d/e//', 3) // ['a', 'b', 'cc//d/e//']
+RE2JS.compile('/').split('a/b/cc//d/e//', 4) // ['a', 'b', 'cc', '/d/e//']
+RE2JS.compile('/').split('a/b/cc//d/e//', 9) // ['a', 'b', 'cc', '', 'd', 'e', '', '']
+RE2JS.compile(':').split('boo:and:foo', 2) // ['boo', 'and:foo']
+RE2JS.compile(':').split('boo:and:foo', 5) // ['boo', 'and', 'foo']
 ```
 
 ### Working with Groups
