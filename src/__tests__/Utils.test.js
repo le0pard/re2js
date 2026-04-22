@@ -90,6 +90,9 @@ describe('Utils', () => {
       delete globalThis.TextEncoder
       delete globalThis.TextDecoder
 
+      expect(globalThis.TextEncoder).toBeUndefined()
+      expect(globalThis.TextDecoder).toBeUndefined()
+
       // The surrogate pair for '𐍈' (U+10348)
       // High surrogate: 0xD800, Low surrogate: 0xDF48
       const str = '𐍈'
@@ -105,6 +108,9 @@ describe('Utils', () => {
     test('correctly converts strings to and from UTF-8 byte arrays using fallback', () => {
       delete globalThis.TextEncoder
       delete globalThis.TextDecoder
+
+      expect(globalThis.TextEncoder).toBeUndefined()
+      expect(globalThis.TextDecoder).toBeUndefined()
 
       // String covering standard ASCII, Multi-byte characters, and Surrogate Pair Emojis
       const str = 'Hello \uD83D\uDE00 world \u00e1\u0062\u00e7'
