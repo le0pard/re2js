@@ -576,8 +576,8 @@ class Parser {
   }
 
   reuse(re) {
-    if (this.height !== null && Object.prototype.hasOwnProperty.call(this.height, re)) {
-      delete this.height[re]
+    if (this.height !== null && this.height.has(re)) {
+      this.height.delete(re)
     }
     if (re.subs !== null && re.subs.length > 0) {
       re.subs[0] = this.free
@@ -624,7 +624,7 @@ class Parser {
       // We need to start tracking size.
       // Make the map and belatedly populate it
       // with info about everything we've constructed so far.
-      this.size = Object.create(null)
+      this.size = new Map()
       for (let reEx of this.stack) {
         this.checkSize(reEx)
       }
@@ -637,8 +637,8 @@ class Parser {
 
   calcSize(re, force = false) {
     if (!force && this.size !== null) {
-      if (Object.prototype.hasOwnProperty.call(this.size, re)) {
-        return this.size[re]
+      if (this.size.has(re)) {
+        return this.size.get(re)
       }
     }
 
@@ -694,9 +694,9 @@ class Parser {
 
     size = Math.max(1, size)
     if (this.size === null) {
-      this.size = Object.create(null)
+      this.size = new Map()
     }
-    this.size[re] = size
+    this.size.set(re, size)
     return size
   }
 
@@ -705,7 +705,7 @@ class Parser {
       return
     }
     if (this.height === null) {
-      this.height = Object.create(null)
+      this.height = new Map()
       for (let reEx of this.stack) {
         this.checkHeight(reEx)
       }
@@ -717,8 +717,8 @@ class Parser {
 
   calcHeight(re, force = false) {
     if (!force && this.height !== null) {
-      if (Object.prototype.hasOwnProperty.call(this.height, re)) {
-        return this.height[re]
+      if (this.height.has(re)) {
+        return this.height.get(re)
       }
     }
     let h = 1
@@ -730,9 +730,9 @@ class Parser {
     }
 
     if (this.height === null) {
-      this.height = Object.create(null)
+      this.height = new Map()
     }
-    this.height[re] = h
+    this.height.set(re, h)
     return h
   }
 

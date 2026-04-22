@@ -33,7 +33,7 @@ class BitState {
     // Bitwise shift (>>> 5) instead of Math.floor( / 32)
     const visitedSize = (prog.numInst() * (end + 1) + VISITED_BITS - 1) >>> 5
     if (this.visited.length < visitedSize) {
-      this.visited = new Uint32Array(Math.floor(MAX_BACKTRACK_VECTOR / VISITED_BITS))
+      this.visited = new Uint32Array(visitedSize)
     } else {
       this.visited.fill(0, 0, visitedSize)
     }
