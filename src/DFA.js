@@ -27,8 +27,15 @@ class DFAState {
     this.nfaStates = nfaStates // Int32Array of Instruction PCs
     this.isMatch = isMatch // Boolean
     this.matchIDs = matchIDs // Array of integers indicating which Set patterns matched
-    this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
-    this.nextMap = new Map() // Cache of Char -> DFAState
+
+    // Latin-1 (Unicode.MAX_LATIN1 + 1) flat arrays for blisteringly fast O(1) lookups
+    // completely covering standard English, European languages, and 1-byte encodings.
+    this.nextLatin1 = new Array(Unicode.MAX_LATIN1 + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
+    this.nextLatin1Anchored = new Array(Unicode.MAX_LATIN1 + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
+    // 2 arrays used as hash map for V8 optimization (N is small number, so O(n) faster than Map O(1))
+    this.transKeys = []
+    this.transVals = []
+
     this.lastSeen = 0 // Track when this state was last used for LRU eviction
   }
 }
@@ -173,8 +180,11 @@ class DFA {
       const state = survivorsArray[i]
 
       // Sever ties to all states to prevent memory leaks and dangling pointers
-      state.nextAscii.fill(null)
-      state.nextMap.clear()
+      state.nextLatin1.fill(null)
+      state.nextLatin1Anchored.fill(null)
+      // zero-allocation cleanup
+      state.transKeys.length = 0
+      state.transVals.length = 0
 
       const hash = hashPCs(state.nfaStates)
       let bucket = this.stateCache.get(hash)
@@ -194,16 +204,23 @@ class DFA {
 
   // Compute the next DFA state given a current state and a character
   step(state, charCode, anchor) {
-    // OPTIMIZATION: ASCII Fast-Path
-    if (anchor === RE2Flags.UNANCHORED && charCode <= Unicode.MAX_ASCII) {
-      const next = state.nextAscii[charCode]
-      if (next !== null) {
-        return next
+    // OPTIMIZATION: Latin-1 Array Fast-Path
+    if (charCode <= Unicode.MAX_LATIN1) {
+      if (anchor === RE2Flags.UNANCHORED) {
+        const next = state.nextLatin1[charCode]
+        if (next !== null) return next
+      } else {
+        const next = state.nextLatin1Anchored[charCode]
+        if (next !== null) return next
       }
     } else {
+      // Dense Array Linear Search fallback for Runes > 255
       const key = charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1)
-      if (state.nextMap.has(key)) {
-        return state.nextMap.get(key)
+      // get [key] -> nextState
+      const keys = state.transKeys
+      const len = keys.length
+      for (let i = 0; i < len; i++) {
+        if (keys[i] === key) return state.transVals[i]
       }
     }
 
@@ -223,11 +240,17 @@ class DFA {
     const nextState = this.getState(nextPCs)
 
     // Cache the result
-    if (anchor === RE2Flags.UNANCHORED && charCode <= Unicode.MAX_ASCII) {
-      state.nextAscii[charCode] = nextState
+    if (charCode <= Unicode.MAX_LATIN1) {
+      if (anchor === RE2Flags.UNANCHORED) {
+        state.nextLatin1[charCode] = nextState
+      } else {
+        state.nextLatin1Anchored[charCode] = nextState
+      }
     } else {
       const key = charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1)
-      state.nextMap.set(key, nextState)
+      // store key -> nextState
+      state.transKeys.push(key)
+      state.transVals.push(nextState)
     }
 
     return nextState
@@ -268,8 +291,8 @@ class DFA {
 
       currentState =
         (anchor === RE2Flags.UNANCHORED &&
-          rune <= Unicode.MAX_ASCII &&
-          currentState.nextAscii[rune]) ||
+          rune <= Unicode.MAX_LATIN1 &&
+          currentState.nextLatin1[rune]) ||
         this.step(currentState, rune, anchor)
 
       // If we hit an unrecoverable DFA error or bailout, signal fallback
@@ -334,8 +357,8 @@ class DFA {
 
       currentState =
         (anchor === RE2Flags.UNANCHORED &&
-          rune <= Unicode.MAX_ASCII &&
-          currentState.nextAscii[rune]) ||
+          rune <= Unicode.MAX_LATIN1 &&
+          currentState.nextLatin1[rune]) ||
         this.step(currentState, rune, anchor)
 
       if (currentState === null) return null // Bailout to NFA
