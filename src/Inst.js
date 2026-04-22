@@ -75,23 +75,20 @@ class Inst {
       return false // Stop here
     }
 
-    // Otherwise binary search.
-    let lo = 0
-    let hi = (this.runes.length / 2) | 0
-    while (lo < hi) {
-      const m = (lo + hi) >> 1 // native cpu instruction for "lo + (((hi - lo) / 2) | 0)"
-      const c = this.runes[2 * m]
-      if (c <= r) {
-        if (r <= this.runes[2 * m + 1]) {
-          return true
-        }
-        lo = m + 1
-      } else {
-        hi = m
-      }
+    // Branchless Binary Search (Lower Bound)
+    // Compiles to optimal conditional move (cmov) machine code, preventing
+    // branch mispredictions on large, chaotic Unicode arrays
+    let base = 0
+    let n = len >> 1
+    while (n > 1) {
+      const half = n >> 1
+      base += this.runes[(base + half) << 1] <= r ? half : 0
+      n -= half
     }
+    base += this.runes[base << 1] <= r ? 1 : 0
 
-    return false
+    const m = base - 1
+    return m >= 0 && r <= this.runes[(m << 1) | 1]
   }
 
   // matchRunePos checks whether the instruction matches (and consumes) r.
@@ -115,20 +112,18 @@ class Inst {
       return -1
     }
 
-    let lo = 0
-    let hi = Math.floor(len / 2)
-    while (lo < hi) {
-      const m = (lo + hi) >> 1
-      const c = this.runes[2 * m]
-      if (c <= r) {
-        if (r <= this.runes[2 * m + 1]) return m
-        lo = m + 1
-      } else {
-        hi = m
-      }
+    // Branchless Binary Search (Lower Bound)
+    let base = 0
+    let n = len >> 1
+    while (n > 1) {
+      const half = n >> 1
+      base += this.runes[(base + half) << 1] <= r ? half : 0
+      n -= half
     }
+    base += this.runes[base << 1] <= r ? 1 : 0
 
-    return -1
+    const m = base - 1
+    return m >= 0 && r <= this.runes[(m << 1) | 1] ? m : -1
   }
   /**
    *
