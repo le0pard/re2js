@@ -216,6 +216,10 @@ class BitState {
             if (currentPos === this.end) return true
             break
           }
+          case Inst.LB_WRITE:
+          case Inst.LB_CHECK: {
+            throw new RE2JSInternalException('Backtracker cannot evaluate Lookbehind instructions')
+          }
           default: {
             throw new RE2JSInternalException('bad inst')
           }

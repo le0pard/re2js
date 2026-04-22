@@ -1,5 +1,10 @@
 import { RE2JS, RE2JSInternalException } from '../index'
 import { Inst } from '../Inst'
+import { Compiler } from '../Compiler'
+import { Parser } from '../Parser'
+import { MachineInput } from '../MachineInput'
+import { RE2Flags } from '../RE2Flags'
+import { RE2 } from '../RE2'
 import { Backtracker } from '../Backtracker'
 
 describe('Backtracker Execution Engine', () => {
@@ -90,5 +95,29 @@ describe('Backtracker Internal Exception Handling', () => {
     expect(() => {
       re.matcher('a').find()
     }).toThrow('bad inst')
+  })
+})
+
+describe('Backtracker Advanced Coverage', () => {
+  test('gracefully throws on unsupported Lookbehind instructions', () => {
+    // A lookbehind pattern
+    const pattern = '(?<=a)b'
+    const re = Parser.parse(pattern, RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    const prog = Compiler.compileRegexp(re)
+
+    const mockRE2 = new RE2(pattern, prog, 0, false)
+    mockRE2.prefix = ''
+    mockRE2.cond = prog.startCond()
+
+    const input = MachineInput.fromUTF16('ab')
+
+    // The backtracker must throw an internal exception rather than a generic 'bad inst'
+    expect(() => {
+      Backtracker.execute(mockRE2, input, 0, RE2Flags.UNANCHORED, 0)
+    }).toThrow(RE2JSInternalException)
+
+    expect(() => {
+      Backtracker.execute(mockRE2, input, 0, RE2Flags.UNANCHORED, 0)
+    }).toThrow('Backtracker cannot evaluate Lookbehind instructions')
   })
 })
