@@ -98,7 +98,7 @@ class TranslateRegExpString {
         changed = true
         continue
       } else if (ch === '(' && i + 2 < size && data[i + 1] === '?' && data[i + 2] === '<') {
-        if (i + 3 >= size || (data[i + 3] !== '=' && data[i + 3] !== '!')) {
+        if (i + 3 < size && !'=!>)'.includes(data[i + 3])) {
           result += '(?P<'
           i += 3
           changed = true

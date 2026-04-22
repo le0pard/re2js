@@ -1,5 +1,6 @@
 import { RE2Flags } from '../RE2Flags'
 import { Parser } from '../Parser'
+import { Regexp } from '../Regexp'
 import { Simplify } from '../Simplify'
 import { expect, describe, test } from '@jest/globals'
 
@@ -134,5 +135,22 @@ describe('.simplify', () => {
   test.concurrent.each(cases)('regex %p simplify to %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.MATCH_NL | (RE2Flags.PERL & ~RE2Flags.ONE_LINE))
     expect(Simplify.simplify(re).toString()).toEqual(expected)
+  })
+})
+
+describe('edge cases', () => {
+  test('returns null when passed a null Regexp', () => {
+    expect(Simplify.simplify(null)).toBeNull()
+  })
+
+  test('simplify1 gracefully handles returning the original AST node if flags match', () => {
+    const re = new Regexp(Regexp.Op.STAR)
+    const sub = new Regexp(Regexp.Op.LITERAL)
+    re.subs = [sub]
+    re.flags = 0
+
+    // Force simplify1 to process it with identical flags
+    const simplified = Simplify.simplify1(Regexp.Op.STAR, 0, sub, re)
+    expect(simplified).toBe(re) // Must strictly return the same reference
   })
 })

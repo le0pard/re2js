@@ -19,3 +19,28 @@ describe('.translate', () => {
     expect(TranslateRegExpString.translate(input)).toEqual(expected)
   })
 })
+
+describe('edge cases', () => {
+  test('gracefully handles incomplete or invalid \\c escapes', () => {
+    // Missing character after \c
+    expect(TranslateRegExpString.translate('\\c')).toBe('\\c')
+    // Lowercase alpha after \c (must be uppercase)
+    expect(TranslateRegExpString.translate('\\ca')).toBe('\\ca')
+  })
+
+  test('gracefully handles incomplete or invalid \\u escapes', () => {
+    // Missing hex sequence
+    expect(TranslateRegExpString.translate('\\u')).toBe('\\u')
+    // Invalid hex characters
+    expect(TranslateRegExpString.translate('\\uXYZ')).toBe('\\uXYZ')
+    // Empty braces
+    expect(TranslateRegExpString.translate('\\u{}')).toBe('\\x{}')
+  })
+
+  test('safely bypasses lookaround assertions without treating them as named captures', () => {
+    // Should NOT be translated to (?P< if there's no valid group name
+    expect(TranslateRegExpString.translate('(?<)')).toBe('(?<)')
+    expect(TranslateRegExpString.translate('(?<=a)b')).toBe('(?<=a)b') // Positive lookbehind
+    expect(TranslateRegExpString.translate('(?<!a)b')).toBe('(?<!a)b') // Negative lookbehind
+  })
+})
