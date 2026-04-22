@@ -73,43 +73,41 @@ describe('DFA', () => {
       }
     )
   })
+})
 
-  describe('Bailout / Unsupported Features', () => {
-    test('Bails out on lookaround or complex empty width assertions', () => {
-      const dfa = createDFA('\\bword\\b')
-      expect(runDFA(dfa, 'word')).toBeNull()
-    })
-  })
-
-  describe('Memory Limit (ReDoS Protection)', () => {
-    test('return null', () => {
-      // Force a complex nested repetition that generates massive states
-      const dfa = createDFA('(a+)+b')
-      // An NFA state combination for a simple query like (a+)+b is highly optimized
-      // and will recycle very few unique DFA states. Setting the limit to 1 guarantees
-      // it throws the memory limit exception gracefully on the very first character transition.
-      dfa.stateLimit = 1
-
-      expect(runDFA(dfa, 'aaaaaab')).toBeNull()
-    })
+describe('Bailout / Unsupported Features', () => {
+  test('Bails out on lookaround or complex empty width assertions', () => {
+    const dfa = createDFA('\\bword\\b')
+    expect(runDFA(dfa, 'word')).toBeNull()
   })
 })
 
 describe('Memory Limit (ReDoS Protection)', () => {
-  test('flushes cache and falls back, permanently disabling after thrashing', () => {
-    // Force a complex nested repetition that generates massive states
+  test('granular eviction allows completion for simple patterns despite low limits', () => {
     const dfa = createDFA('(a+)+b')
+    // An NFA state combination for a simple query like (a+)+b is highly optimized
+    // and will recycle very few unique DFA states. Setting the limit to 1 guarantees
+    // it leverages granular eviction to complete successfully without permanently disabling.
+    dfa.stateLimit = 1
+
+    expect(runDFA(dfa, 'aaaaaab')).toBe(true)
+  })
+
+  test('flushes cache and falls back, permanently disabling after thrashing', () => {
+    // A pattern and string that creates a continuously growing NFA state set,
+    // guaranteeing a unique DFA state for every character.
+    const dfa = createDFA('a.*b.*c.*d.*e.*f')
     dfa.stateLimit = 1
 
     // 1st to 5th attempt will flush the cache, increment cacheClears, and return null
     for (let i = 0; i < DFA.MAX_CACHE_CLEARS; i++) {
-      expect(runDFA(dfa, 'aaaaaab')).toBeNull()
+      expect(runDFA(dfa, 'abcdef')).toBeNull()
     }
 
     // After 5 clears, it officially sets failed = true
     expect(dfa.failed).toBe(true)
 
     // 6th attempt should return immediately with null
-    expect(runDFA(dfa, 'aaaaaab')).toBeNull()
+    expect(runDFA(dfa, 'abcdef')).toBeNull()
   })
 })

@@ -29,6 +29,7 @@ class DFAState {
     this.matchIDs = matchIDs // Array of integers indicating which Set patterns matched
     this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
     this.nextMap = new Map() // Cache of Char -> DFAState
+    this.lastSeen = 0 // Track when this state was last used for LRU eviction
   }
 }
 
@@ -43,6 +44,7 @@ class DFA {
     this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
     this.cacheClears = 0 // Track thrashing
     this.failed = false // mark if DFA cannot work with provided prog
+    this.clock = 0 // Global clock for LRU eviction
   }
 
   // Follows epsilon (empty) transitions to find all reachable states without consuming a char
@@ -101,6 +103,7 @@ class DFA {
       for (let i = 0; i < bucket.length; i++) {
         const state = bucket[i]
         if (arraysEqual(state.nfaStates, sortedPCs)) {
+          state.lastSeen = ++this.clock
           return state
         }
       }
@@ -113,26 +116,80 @@ class DFA {
     if (this.failed) return null
 
     // Safety: prevent memory exhaustion from state explosion
-    // We flush the cache and return null, which seamlessly routes execution to the NFA
+    // We prune the cache to keep the newest 50%
     if (this.stateCount >= this.stateLimit) {
-      this.stateCache.clear()
-      this.stateCount = 0
-      this.startState = null
       this.cacheClears++
 
       // If this regex causes continuous cache thrashing, permanently fall back to NFA
       // to avoid spending CPU cycles constantly rebuilding the DFA tree.
       if (this.cacheClears >= DFA.MAX_CACHE_CLEARS) {
         this.failed = true
+        this.stateCache.clear()
+        this.stateCount = 0
+        this.startState = null
+        return null
       }
-      return null
+
+      this.evictCache()
+
+      // After eviction, the bucket reference might be stale or empty.
+      // We must re-fetch or re-create the bucket.
+      bucket = this.stateCache.get(hash)
+      if (!bucket) {
+        bucket = []
+        this.stateCache.set(hash, bucket)
+      }
     }
 
     // State not found, create it and add to bucket
     const state = new DFAState(sortedPCs, closureResult.isMatch, closureResult.matchIDs)
+    state.lastSeen = ++this.clock
     bucket.push(state)
     this.stateCount++
     return state
+  }
+
+  evictCache() {
+    const allStates = []
+    for (const bucket of this.stateCache.values()) {
+      for (let i = 0; i < bucket.length; i++) {
+        allStates.push(bucket[i])
+      }
+    }
+
+    // Sort ascending by lastSeen (oldest first)
+    allStates.sort((a, b) => a.lastSeen - b.lastSeen)
+
+    // Keep the newest 50%
+    const keepCount = Math.floor(this.stateLimit / 2)
+    const startIndex = allStates.length - keepCount
+    const survivorsArray = allStates.slice(startIndex)
+    const survivors = new Set(survivorsArray)
+
+    this.stateCache.clear()
+    this.stateCount = 0
+
+    for (let i = 0; i < survivorsArray.length; i++) {
+      const state = survivorsArray[i]
+
+      // Sever ties to all states to prevent memory leaks and dangling pointers
+      state.nextAscii.fill(null)
+      state.nextMap.clear()
+
+      const hash = hashPCs(state.nfaStates)
+      let bucket = this.stateCache.get(hash)
+      if (!bucket) {
+        bucket = []
+        this.stateCache.set(hash, bucket)
+      }
+      bucket.push(state)
+      this.stateCount++
+    }
+
+    // Start state must either be preserved or nullified so it gets re-created
+    if (this.startState && !survivors.has(this.startState)) {
+      this.startState = null
+    }
   }
 
   // Compute the next DFA state given a current state and a character
@@ -218,6 +275,8 @@ class DFA {
       // If we hit an unrecoverable DFA error or bailout, signal fallback
       if (currentState === null) return null
 
+      currentState.lastSeen = ++this.clock
+
       if (currentState.isMatch) {
         if (anchor === RE2Flags.ANCHOR_BOTH) {
           if (i + width === endPos) return true
@@ -280,6 +339,8 @@ class DFA {
         this.step(currentState, rune, anchor)
 
       if (currentState === null) return null // Bailout to NFA
+
+      currentState.lastSeen = ++this.clock
 
       i += width
       checkMatch(currentState, i)
