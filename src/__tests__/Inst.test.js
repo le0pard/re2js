@@ -66,6 +66,29 @@ describe('Inst.matchRune Array Search Logic', () => {
   })
 })
 
+describe('Inst.matchRunePos Branchless Binary Search', () => {
+  it('correctly finds target indices for large rune arrays (length > 8)', () => {
+    const inst = new Inst(Inst.RUNE)
+    // 5 ranges (length 10 array) forces the branchless cmov algorithm
+    inst.runes = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+
+    // Out of bounds
+    expect(inst.matchRunePos(9)).toBe(-1)
+    expect(inst.matchRunePos(101)).toBe(-1)
+
+    // Matches inside the ranges (returns the logical pair index, not the array index)
+    expect(inst.matchRunePos(15)).toBe(0) // 1st range
+    expect(inst.matchRunePos(35)).toBe(1) // 2nd range
+    expect(inst.matchRunePos(55)).toBe(2) // 3rd range
+    expect(inst.matchRunePos(75)).toBe(3) // 4th range
+    expect(inst.matchRunePos(95)).toBe(4) // 5th range
+
+    // Gaps between ranges
+    expect(inst.matchRunePos(25)).toBe(-1)
+    expect(inst.matchRunePos(45)).toBe(-1)
+  })
+})
+
 describe('Inst.toString Formatting', () => {
   it('formats MATCH correctly for standard execution (arg === 0)', () => {
     const inst = new Inst(Inst.MATCH)

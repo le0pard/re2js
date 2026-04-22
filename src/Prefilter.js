@@ -2,6 +2,95 @@ import { Regexp } from './Regexp'
 import { Utils } from './Utils'
 import { RE2Flags } from './RE2Flags'
 
+// High-speed, single-pass Aho-Corasick string matcher optimized for V8.
+// Builds a trie with failure links to search for multiple prefixes simultaneously.
+class AhoCorasick {
+  constructor(wordArrays) {
+    this.next = [{}]
+    this.fail = [0]
+    this.match = [false]
+
+    // Build Trie
+    for (const word of wordArrays) {
+      let node = 0
+      for (let i = 0; i < word.length; i++) {
+        const val = word[i]
+        if (!(val in this.next[node])) {
+          this.next.push({})
+          this.fail.push(0)
+          this.match.push(false)
+          this.next[node][val] = this.next.length - 1
+        }
+        node = this.next[node][val]
+      }
+      this.match[node] = true
+    }
+
+    // Build Failure Links (BFS)
+    const queue = []
+    for (const val in this.next[0]) {
+      if (Object.prototype.hasOwnProperty.call(this.next[0], val)) {
+        const child = this.next[0][val]
+        this.fail[child] = 0
+        queue.push(child)
+      }
+    }
+
+    while (queue.length > 0) {
+      const curr = queue.shift()
+      for (const val in this.next[curr]) {
+        if (Object.prototype.hasOwnProperty.call(this.next[curr], val)) {
+          const child = this.next[curr][val]
+          let failNode = this.fail[curr]
+
+          while (failNode !== 0 && !(val in this.next[failNode])) {
+            failNode = this.fail[failNode]
+          }
+
+          if (val in this.next[failNode]) {
+            this.fail[child] = this.next[failNode][val]
+          } else {
+            this.fail[child] = 0
+          }
+
+          this.match[child] = this.match[child] || this.match[this.fail[child]]
+          queue.push(child)
+        }
+      }
+    }
+  }
+
+  searchUTF16(charSeq, start, end) {
+    let node = 0
+    for (let i = start; i < end; i++) {
+      const val = charSeq.charCodeAt(i)
+      while (node !== 0 && !(val in this.next[node])) {
+        node = this.fail[node]
+      }
+      if (val in this.next[node]) {
+        node = this.next[node][val]
+      }
+      if (this.match[node]) return true
+    }
+    return false
+  }
+
+  searchUTF8(bytes, start, end) {
+    let node = 0
+    for (let i = start; i < end; i++) {
+      const val = bytes[i]
+      while (node !== 0 && !(val in this.next[node])) {
+        node = this.fail[node]
+      }
+      if (val in this.next[node]) {
+        node = this.next[node][val]
+      }
+      if (this.match[node]) return true
+    }
+    return false
+  }
+}
+
 class Prefilter {
   static Type = { NONE: 0, EXACT: 1, AND: 2, OR: 3 }
 
@@ -10,6 +99,8 @@ class Prefilter {
     this.subs = []
     this.str = ''
     this.bytes = null
+    this.ac16 = null
+    this.ac8 = null
   }
 
   eval(input, pos) {
@@ -24,6 +115,10 @@ class Prefilter {
         }
         return true
       case Prefilter.Type.OR:
+        // Exploit Aho-Corasick if it was successfully built
+        if (this.ac16 && this.ac8) {
+          return input.hasAnyString(this, pos)
+        }
         for (let i = 0; i < this.subs.length; i++) {
           if (this.subs[i].eval(input, pos)) return true
         }
@@ -163,6 +258,30 @@ class PrefilterTree {
         }
       }
       pf.subs = uniqueSubs
+
+      // Build an Aho-Corasick automaton if all children are exact matches
+      let allExact = true
+      for (const sub of uniqueSubs) {
+        if (sub.type !== Prefilter.Type.EXACT) {
+          allExact = false
+          break
+        }
+      }
+
+      if (allExact && uniqueSubs.length > 1) {
+        const words16 = uniqueSubs.map((s) => {
+          const arr = []
+          for (let i = 0; i < s.str.length; i++) {
+            arr.push(s.str.charCodeAt(i))
+          }
+          return arr
+        })
+        pf.ac16 = new AhoCorasick(words16)
+
+        const words8 = uniqueSubs.map((s) => s.bytes)
+        pf.ac8 = new AhoCorasick(words8)
+      }
+
       return pf
     }
 

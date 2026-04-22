@@ -165,3 +165,48 @@ describe('Advanced Prefilter Evaluation', () => {
     expect(pf.eval(utf8Input, 0)).toBe(false)
   })
 })
+
+describe('Prefilter Aho-Corasick Automaton', () => {
+  test('safely handles Object.prototype pollution', () => {
+    // Maliciously pollute the global Object prototype
+    Object.prototype.pollutedProperty = 'hacked' // eslint-disable-line no-extend-native
+
+    // Build an OR prefilter that triggers AhoCorasick generation.
+    // If the for...in loops are unguarded, this will crash the Trie builder.
+    const re = Simplify.simplify(Parser.parse('apple|banana|cherry', RE2Flags.PERL))
+    let pf
+
+    expect(() => {
+      pf = PrefilterTree.build(re)
+    }).not.toThrow()
+
+    expect(pf.ac16).toBeDefined()
+    expect(pf.ac8).toBeDefined()
+
+    // Clean up global pollution
+    delete Object.prototype.pollutedProperty
+  })
+
+  test('searches UTF-8 and UTF-16 simultaneously via AhoCorasick', () => {
+    const re = Simplify.simplify(Parser.parse('foo|bar|baz', RE2Flags.PERL))
+    const pf = PrefilterTree.build(re)
+
+    // Ensure the AST simplified into the AhoCorasick optimization
+    expect(pf.ac16).toBeDefined()
+    expect(pf.ac8).toBeDefined()
+
+    const utf16InputMatch = MachineInput.fromUTF16('I have a baz in here')
+    const utf16InputFail = MachineInput.fromUTF16('I have a qux in here')
+
+    // Test UTF-16 evaluation
+    expect(pf.eval(utf16InputMatch, 0)).toBe(true)
+    expect(pf.eval(utf16InputFail, 0)).toBe(false)
+
+    // Test UTF-8 evaluation
+    const utf8InputMatch = MachineInput.fromUTF8(Buffer.from('I have a baz in here'))
+    const utf8InputFail = MachineInput.fromUTF8(Buffer.from('I have a qux in here'))
+
+    expect(pf.eval(utf8InputMatch, 0)).toBe(true)
+    expect(pf.eval(utf8InputFail, 0)).toBe(false)
+  })
+})
