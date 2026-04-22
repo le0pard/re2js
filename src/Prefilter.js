@@ -6,7 +6,7 @@ import { RE2Flags } from './RE2Flags'
 // Builds a trie with failure links to search for multiple prefixes simultaneously.
 class AhoCorasick {
   constructor(wordArrays) {
-    this.next = [{}]
+    this.next = [Object.create(null)]
     this.fail = [0]
     this.match = [false]
 
@@ -16,7 +16,7 @@ class AhoCorasick {
       for (let i = 0; i < word.length; i++) {
         const val = word[i]
         if (!(val in this.next[node])) {
-          this.next.push({})
+          this.next.push(Object.create(null))
           this.fail.push(0)
           this.match.push(false)
           this.next[node][val] = this.next.length - 1
