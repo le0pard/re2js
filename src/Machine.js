@@ -66,6 +66,8 @@ class Queue {
 //
 // Called by RE2.doExecute.
 class Machine {
+  static THREADS_CHUNK_SIZE = 128
+
   static fromRE2(re2) {
     const m = new Machine()
     m.prog = re2.prog
@@ -130,14 +132,21 @@ class Machine {
   // alloc() allocates a new thread with the given instruction.
   // It uses the free pool if possible.
   alloc(inst) {
-    let t
-    if (this.poolSize > 0) {
-      this.poolSize--
-      t = this.pool[this.poolSize]
-    } else {
-      t = new Thread()
-      t.cap = new Int32Array(this.matchcap.length)
+    if (this.poolSize === 0) {
+      const capLen = this.matchcap.length
+
+      // Bulk allocate threads in a tight loop so the V8 engine
+      // places them adjacently in the young generation heap
+      for (let i = 0; i < Machine.THREADS_CHUNK_SIZE; i++) {
+        const t = new Thread()
+        t.cap = new Int32Array(capLen)
+        this.pool[this.poolSize++] = t
+      }
     }
+
+    // Pop a thread from the top of the pool stack
+    this.poolSize--
+    const t = this.pool[this.poolSize]
     t.inst = inst
     return t
   }
