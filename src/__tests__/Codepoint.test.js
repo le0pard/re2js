@@ -27,16 +27,16 @@ describe('Codepoint', () => {
       // Greek 'Ω' (U+03A9) -> 'ω' (U+03C9)
       expect(Codepoint.toLowerCase(0x03a9)).toBe(0x03c9)
     })
-  })
 
-  test('safely transforms supplementary characters without false length bailouts', () => {
-    // Deseret Capital Letter Long I (U+10400)
-    const upper = 0x10400
-    // Deseret Small Letter Long I (U+10428)
-    const lower = 0x10428
+    test('safely transforms supplementary characters without false length bailouts', () => {
+      // Deseret Capital Letter Long I (U+10400)
+      const upper = 0x10400
+      // Deseret Small Letter Long I (U+10428)
+      const lower = 0x10428
 
-    // Correctly returns 0x10428
-    expect(Codepoint.toLowerCase(upper)).toBe(lower)
-    expect(Codepoint.toUpperCase(lower)).toBe(upper)
+      // Correctly returns 0x10428
+      expect(Codepoint.toLowerCase(upper)).toBe(lower)
+      expect(Codepoint.toUpperCase(lower)).toBe(upper)
+    })
   })
 })
