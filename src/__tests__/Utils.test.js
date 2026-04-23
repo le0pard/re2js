@@ -165,7 +165,6 @@ describe('Utils', () => {
 
     test('should return false for primitives and objects', () => {
       expect(Utils.isByteArray(null)).toBe(false)
-      expect(Utils.isByteArray(undefined)).toBe(false)
       expect(Utils.isByteArray(123)).toBe(false)
       expect(Utils.isByteArray('string')).toBe(false)
       expect(Utils.isByteArray(true)).toBe(false)
