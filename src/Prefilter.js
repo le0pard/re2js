@@ -238,7 +238,9 @@ class PrefilterTree {
           return new Prefilter(Prefilter.Type.NONE)
         }
         if (s.type === Prefilter.Type.OR) {
-          newSubs.push(...s.subs)
+          for (let j = 0; j < s.subs.length; j++) {
+            newSubs.push(s.subs[j])
+          }
         } else {
           newSubs.push(s)
         }

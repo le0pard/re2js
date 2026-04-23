@@ -213,7 +213,9 @@ const makeOnePass = (p) => {
           }
           runes.sort((a, b) => a - b)
         } else {
-          runes.push(...inst.runes)
+          for (let j = 0; j < inst.runes.length; j++) {
+            runes.push(inst.runes[j])
+          }
         }
         onePassRunes[pc] = runes
         inst.next = new Uint32Array(Math.floor(runes.length / 2) + 1).fill(inst.out)
