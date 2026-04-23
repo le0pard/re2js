@@ -58,28 +58,30 @@ class TranslateRegExpString {
             case 'u': {
               if (i + 2 < size) {
                 let nextCh = data[i + 2]
-                if (TranslateRegExpString.isHexadecimal(nextCh)) {
-                  result += '\\x{' + nextCh
-                  i += 3
-                  for (let j = 0; j < 3 && i < size; ++i, ++j) {
-                    nextCh = data[i]
-                    if (!TranslateRegExpString.isHexadecimal(nextCh)) {
-                      break
-                    }
-                    result += nextCh
-                  }
-                  result += '}'
-                  changed = true
-                  continue
-                } else if (nextCh === '{') {
+                if (nextCh === '{') {
                   result += '\\x'
                   i += 2
                   changed = true
                   continue
+                } else if (i + 5 < size) {
+                  let isHex4 = true
+                  for (let j = 0; j < 4; j++) {
+                    if (!TranslateRegExpString.isHexadecimal(data[i + 2 + j])) {
+                      isHex4 = false
+                      break
+                    }
+                  }
+                  if (isHex4) {
+                    result += '\\x{' + data.substring(i + 2, i + 6) + '}'
+                    i += 6
+                    changed = true
+                    continue
+                  }
                 }
               }
-              result += '\\u'
+              result += 'u'
               i += 2
+              changed = true
               continue
             }
             default: {
