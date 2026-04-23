@@ -700,6 +700,22 @@ test('case-insensitive regex correctly matches supplementary characters', () => 
   expect(re.test(String.fromCodePoint(0x10428))).toBe(true)
 })
 
+test('does not re-evaluate characters inside named groups in JS mode', () => {
+  const re = RE2JS.compile('(world)')
+  const m = re.matcher('hello world')
+
+  // $<na$1> references a non-existent group 'na$1'.
+  // In JS mode, it should output exactly 'hello $<na$1>'
+  expect(m.replaceAll('$<na$1>')).toBe('hello $<na$1>')
+})
+
+test('does not re-evaluate characters inside malformed named groups in JS mode', () => {
+  const re = RE2JS.compile('(world)')
+  const m = re.matcher('hello world')
+
+  expect(m.replaceAll('$<na$1 ')).toBe('hello $<na$1 ')
+})
+
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
     // Default mode (JS semantics)

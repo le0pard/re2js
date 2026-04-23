@@ -503,6 +503,8 @@ class Matcher {
           const groupName = replacement.substring(i + 1, j)
           res += this.group(groupName)
           last = j + 1
+          i = j
+          continue
         }
       }
     }
@@ -602,6 +604,7 @@ class Matcher {
           if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('>')) {
             res += replacement.substring(i - 1, j + 1)
             last = j + 1
+            i = j
             continue
           }
 
@@ -613,6 +616,8 @@ class Matcher {
           }
 
           last = j + 1
+          i = j
+          continue
         }
       }
     }
