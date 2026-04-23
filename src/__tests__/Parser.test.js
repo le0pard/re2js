@@ -468,6 +468,50 @@ describe('Flag interactions and rewinding', () => {
   })
 })
 
+describe('Octal Escape Parsing Fixes', () => {
+  test('single-digit octal escapes are valid', () => {
+    const re = Parser.parse('\\1', RE2Flags.PERL_X)
+    expect(re.op).toBe(Regexp.Op.LITERAL)
+    expect(re.runes[0]).toBe(1)
+  })
+
+  test('multi-digit octal escapes within bounds', () => {
+    // \40 is space (32)
+    let re = Parser.parse('\\40', RE2Flags.PERL_X)
+    expect(re.runes[0]).toBe(32)
+
+    // \377 is the max allowed octal (255)
+    re = Parser.parse('\\377', RE2Flags.PERL_X)
+    expect(re.runes[0]).toBe(255)
+  })
+
+  test('octal escapes cap at 255 (Boundary Check)', () => {
+    // \400: \40 is 32, the trailing '0' is a literal.
+    // The parser should stop at \40 because 40*8 + 0 = 320 (> 255).
+    const re = Parser.parse('\\400', RE2Flags.PERL_X)
+
+    // Result should be a concatenation of \40 (space) and literal '0'
+    expect(re.op).toBe(Regexp.Op.LITERAL)
+    expect(re.runes).toEqual([32, 48]) // 32 is ' ', 48 is '0'
+  })
+
+  test('non-octal digits terminate the escape sequence', () => {
+    // \60 is '0' (48). '8' is not an octal digit.
+    // Result should be '08'
+    const re = Parser.parse('\\608', RE2Flags.PERL_X)
+
+    expect(re.op).toBe(Regexp.Op.LITERAL)
+    expect(re.runes).toEqual([48, 56]) // 48 is '0', 56 is '8'
+  })
+
+  test('complex concatenation with octals', () => {
+    // \1\2\3 should be codepoints 1, 2, 3
+    const re = Parser.parse('\\1\\2\\3', RE2Flags.PERL_X)
+    expect(re.op).toBe(Regexp.Op.LITERAL)
+    expect(re.runes).toEqual([1, 2, 3])
+  })
+})
+
 describe('Parser - Lookbehinds', () => {
   it('parses positive and negative lookbehinds into PLB and NLB nodes', () => {
     const re = Parser.parse('(?<=a)(?<!b)c', RE2Flags.LOOKBEHIND | RE2Flags.PERL_X)

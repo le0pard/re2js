@@ -429,6 +429,7 @@ class Parser {
     }
     let c = t.pop()
     bigswitch: switch (c) {
+      case Codepoint.CODES.get('0'):
       case Codepoint.CODES.get('1'):
       case Codepoint.CODES.get('2'):
       case Codepoint.CODES.get('3'):
@@ -436,16 +437,6 @@ class Parser {
       case Codepoint.CODES.get('5'):
       case Codepoint.CODES.get('6'):
       case Codepoint.CODES.get('7'): {
-        if (
-          !t.more() ||
-          t.peek() < Codepoint.CODES.get('0') ||
-          t.peek() > Codepoint.CODES.get('7')
-        ) {
-          break
-        }
-      }
-      // eslint-disable-next-line no-fallthrough
-      case Codepoint.CODES.get('0'): {
         let r = c - Codepoint.CODES.get('0')
         for (let i = 1; i < 3; i++) {
           if (
@@ -455,7 +446,12 @@ class Parser {
           ) {
             break
           }
-          r = r * 8 + t.peek() - Codepoint.CODES.get('0')
+
+          let digit = t.peek() - Codepoint.CODES.get('0')
+          if (r * 8 + digit > Unicode.MAX_LATIN1) {
+            break
+          }
+          r = r * 8 + digit
           t.skip(1)
         }
         return r
