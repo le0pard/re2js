@@ -611,13 +611,13 @@ class Parser {
         if (n <= 0) {
           n = 1
         }
-        if (n > Parser.MAX_SIZE / this.repeats) {
+        if (n > Math.floor(Parser.MAX_SIZE / this.repeats)) {
           this.repeats = Parser.MAX_SIZE
         } else {
           this.repeats *= n
         }
       }
-      if (this.numRegexp < Parser.MAX_SIZE / this.repeats) {
+      if (this.numRegexp < Math.floor(Parser.MAX_SIZE / this.repeats)) {
         return
       }
 
