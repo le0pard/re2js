@@ -6,6 +6,7 @@ import { Machine } from './Machine'
 import { MachineInput } from './MachineInput'
 import { RE2Flags } from './RE2Flags'
 import { PublicFlags } from './PublicFlags'
+import { Utils } from './Utils'
 import { RE2JSCompileException } from './exceptions'
 
 class RE2Set {
@@ -69,7 +70,7 @@ class RE2Set {
   match(input) {
     if (!this.prog) this.compile()
 
-    const machineInput = Array.isArray(input)
+    const machineInput = Utils.isByteArray(input)
       ? MachineInput.fromUTF8(input)
       : MachineInput.fromUTF16(input)
 

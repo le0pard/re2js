@@ -19,6 +19,10 @@ class Utils {
     return []
   }
 
+  static isByteArray(input) {
+    return Array.isArray(input) || input instanceof Uint8Array
+  }
+
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
     return (

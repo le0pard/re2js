@@ -42,17 +42,20 @@ class TranslateRegExpString {
             case 'c': {
               if (i + 2 < size) {
                 let nextCh = data[i + 2]
-                if (TranslateRegExpString.isUpperCaseAlpha(nextCh)) {
+                let code = nextCh.charCodeAt(0)
+                if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+                  let val = code % 32
                   result += '\\x'
-                  result += ((nextCh.charCodeAt(0) - 64) >> 4).toString(16).toUpperCase()
-                  result += ((nextCh.charCodeAt(0) - 64) & 15).toString(16).toUpperCase()
+                  result += (val >> 4).toString(16).toUpperCase()
+                  result += (val & 15).toString(16).toUpperCase()
                   i += 3
                   changed = true
                   continue
                 }
               }
-              result += '\\c'
+              result += 'c'
               i += 2
+              changed = true
               continue
             }
             case 'u': {

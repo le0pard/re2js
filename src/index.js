@@ -231,7 +231,7 @@ class RE2JS {
    * @returns {Matcher}
    */
   matcher(input) {
-    if (Array.isArray(input)) {
+    if (Utils.isByteArray(input)) {
       input = MatcherInput.utf8(input)
     }
 
@@ -248,7 +248,7 @@ class RE2JS {
    * @returns {boolean} `true` if the pattern is found anywhere in the input, `false` otherwise.
    */
   test(input) {
-    if (Array.isArray(input)) {
+    if (Utils.isByteArray(input)) {
       // Reuse the existing UTF-8 fast-path method
       return this.re2Input.matchUTF8(input)
     }
@@ -267,7 +267,7 @@ class RE2JS {
    * @returns {boolean} `true` if the exact input string fully matches the pattern, `false` otherwise.
    */
   testExact(input) {
-    const machineInput = Array.isArray(input)
+    const machineInput = Utils.isByteArray(input)
       ? MachineInput.fromUTF8(input)
       : MachineInput.fromUTF16(input)
 

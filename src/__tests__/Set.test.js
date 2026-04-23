@@ -120,3 +120,13 @@ describe('RE2Set Multi-Pattern Matching', () => {
     expect(set.match(utf8Input)).toEqual([0])
   })
 })
+
+test('RE2Set correctly evaluates Uint8Array inputs', () => {
+  const set = new RE2Set()
+  set.add('foo')
+  set.compile()
+
+  // Uint8Array representing the UTF-8 bytes for "hello foo"
+  const utf8Input = new Uint8Array([104, 101, 108, 108, 111, 32, 102, 111, 111])
+  expect(set.match(utf8Input)).toEqual([0])
+})

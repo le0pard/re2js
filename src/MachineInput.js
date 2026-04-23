@@ -231,7 +231,12 @@ class MachineUTF16Input extends MachineInputBase {
   index(re2, pos) {
     pos += this.start
     const i = this.charSequence.indexOf(re2.prefix, pos)
-    return i < 0 ? i : i - pos
+
+    if (i < 0 || i > this.end - re2.prefix.length) {
+      return -1
+    }
+
+    return i - pos
   }
 
   // Returns a bitmask of EMPTY_* flags.

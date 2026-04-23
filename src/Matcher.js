@@ -94,7 +94,7 @@ class Matcher {
 
     if (input instanceof MatcherInputBase) {
       this.resetMatcherInput(input)
-    } else if (Array.isArray(input)) {
+    } else if (Utils.isByteArray(input)) {
       this.resetMatcherInput(MatcherInput.utf8(input))
     } else {
       this.resetMatcherInput(MatcherInput.utf16(input))

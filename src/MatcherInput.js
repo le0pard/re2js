@@ -114,7 +114,7 @@ class MatcherInput {
    * @returns {Utf8MatcherInput}
    */
   static utf8(input) {
-    if (Array.isArray(input)) {
+    if (Utils.isByteArray(input)) {
       return new Utf8MatcherInput(input)
     }
 

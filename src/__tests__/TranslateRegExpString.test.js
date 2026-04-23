@@ -21,11 +21,20 @@ describe('.translate', () => {
 })
 
 describe('edge cases', () => {
-  test('gracefully handles incomplete or invalid \\c escapes', () => {
-    // Missing character after \c
-    expect(TranslateRegExpString.translate('\\c')).toBe('\\c')
-    // Lowercase alpha after \c (must be uppercase)
-    expect(TranslateRegExpString.translate('\\ca')).toBe('\\ca')
+  test('strictly supports both uppercase and lowercase \\c control escapes', () => {
+    // Both \ca and \cA should evaluate to \x01 (Start of Heading)
+    expect(TranslateRegExpString.translate('\\ca')).toBe('\\x01')
+    expect(TranslateRegExpString.translate('\\cA')).toBe('\\x01')
+
+    // \cz and \cZ should evaluate to \x1A (Substitute)
+    expect(TranslateRegExpString.translate('\\cz')).toBe('\\x1A')
+    expect(TranslateRegExpString.translate('\\cZ')).toBe('\\x1A')
+  })
+
+  test('gracefully degrades incomplete or invalid \\c escapes', () => {
+    // Native JS evaluates invalid \c escapes as the literal character 'c'.
+    expect(TranslateRegExpString.translate('\\c')).toBe('c')
+    expect(TranslateRegExpString.translate('\\c1')).toBe('c1')
   })
 
   test('gracefully handles incomplete or invalid \\u escapes', () => {

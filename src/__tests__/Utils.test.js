@@ -137,4 +137,41 @@ describe('Utils', () => {
       expect(Utils.unhex('z'.codePointAt(0))).toBe(-1) // Invalid hex
     })
   })
+
+  describe('.isByteArray', () => {
+    test('should return true for standard Arrays', () => {
+      expect(Utils.isByteArray([])).toBe(true)
+      expect(Utils.isByteArray([1, 2, 3])).toBe(true)
+      expect(Utils.isByteArray(['a', 'b', 'c'])).toBe(true)
+    })
+
+    test('should return true for Uint8Array instances', () => {
+      expect(Utils.isByteArray(new Uint8Array())).toBe(true)
+      expect(Utils.isByteArray(new Uint8Array([1, 2, 3]))).toBe(true)
+      expect(Utils.isByteArray(new Uint8Array(new ArrayBuffer(8)))).toBe(true)
+    })
+
+    test('should return false for other Typed Arrays', () => {
+      expect(Utils.isByteArray(new Int8Array([1, 2, 3]))).toBe(false)
+      expect(Utils.isByteArray(new Uint16Array([1, 2, 3]))).toBe(false)
+      expect(Utils.isByteArray(new Float32Array([1.5, 2.5]))).toBe(false)
+    })
+
+    test('should return false for ArrayBuffers and DataViews', () => {
+      const buffer = new ArrayBuffer(8)
+      expect(Utils.isByteArray(buffer)).toBe(false)
+      expect(Utils.isByteArray(new DataView(buffer))).toBe(false)
+    })
+
+    test('should return false for primitives and objects', () => {
+      expect(Utils.isByteArray(null)).toBe(false)
+      expect(Utils.isByteArray(undefined)).toBe(false)
+      expect(Utils.isByteArray(123)).toBe(false)
+      expect(Utils.isByteArray('string')).toBe(false)
+      expect(Utils.isByteArray(true)).toBe(false)
+      expect(Utils.isByteArray({})).toBe(false)
+      expect(Utils.isByteArray({ a: 1, b: 2 })).toBe(false)
+      expect(Utils.isByteArray(() => {})).toBe(false)
+    })
+  })
 })

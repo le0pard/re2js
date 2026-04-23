@@ -757,6 +757,26 @@ test('does not catastrophically corrupt UTF-8 byte sequences', () => {
   expect(matcher.start()).toBe(3)
 })
 
+test('safely evaluates Node Buffers and Uint8Arrays without crashing', () => {
+  const re = RE2JS.compile('hello')
+
+  // Uint8Array representing the UTF-8 bytes for "hello world"
+  const u8 = new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
+
+  // .test() Unanchored DFA/NFA
+  expect(re.test(u8)).toBe(true)
+
+  // .testExact() Anchored DFA
+  expect(re.testExact(u8)).toBe(false)
+  const exactU8 = new Uint8Array([104, 101, 108, 108, 111]) // "hello"
+  expect(re.testExact(exactU8)).toBe(true)
+
+  // .matcher() extraction
+  const m = re.matcher(u8)
+  expect(m.find()).toBe(true)
+  expect(m.group(0)).toBe('hello')
+})
+
 test('case-insensitive regex correctly matches supplementary characters', () => {
   const re = RE2JS.compile('(?i)\\x{10400}')
 
