@@ -423,79 +423,84 @@ class Machine {
   }
 
   add(q, pc, pos, cap, cond, t) {
-    if (pc === 0) {
-      return t
-    }
-    if (q.contains(pc)) {
-      return t
-    }
+    while (true) {
+      if (pc === 0) {
+        return t
+      }
+      if (q.contains(pc)) {
+        return t
+      }
 
-    const d = q.add(pc)
-    const inst = this.prog.inst[pc]
-    switch (inst.op) {
-      case Inst.FAIL:
-        break
-      case Inst.ALT:
-      case Inst.ALT_MATCH:
-        t = this.add(q, inst.out, pos, cap, cond, t)
-        t = this.add(q, inst.arg, pos, cap, cond, t)
-        break
-      case Inst.EMPTY_WIDTH:
-        if ((inst.arg & ~cond) === 0) {
+      const d = q.add(pc)
+      const inst = this.prog.inst[pc]
+      switch (inst.op) {
+        case Inst.FAIL:
+          return t
+        case Inst.ALT:
+        case Inst.ALT_MATCH:
           t = this.add(q, inst.out, pos, cap, cond, t)
-        }
-        break
-      case Inst.NOP:
-        t = this.add(q, inst.out, pos, cap, cond, t)
-        break
-      case Inst.CAPTURE:
-        if (inst.arg < this.ncap) {
-          const opos = cap[inst.arg]
-          cap[inst.arg] = pos
-          this.add(q, inst.out, pos, cap, cond, null)
-          cap[inst.arg] = opos
-        } else {
-          t = this.add(q, inst.out, pos, cap, cond, t)
-        }
-        break
-      case Inst.LB_WRITE:
-        this.lbTable[Math.abs(inst.lb)] = pos
-        t = this.add(q, inst.out, pos, cap, cond, t)
-        break
-      case Inst.LB_CHECK:
-        if (inst.lb > 0) {
-          // Positive Lookbehind
-          if (this.lbTable[inst.lb] === pos) {
-            t = this.add(q, inst.out, pos, cap, cond, t)
+          pc = inst.arg // Flattened tail recursion
+          continue
+        case Inst.EMPTY_WIDTH:
+          if ((inst.arg & ~cond) === 0) {
+            pc = inst.out // Flattened tail recursion
+            continue
           }
-        } else if (this.lbTable[-inst.lb] !== pos) {
-          // Negative Lookbehind
-          t = this.add(q, inst.out, pos, cap, cond, t)
-        }
-        break
-      case Inst.MATCH:
-      case Inst.RUNE:
-      case Inst.RUNE1:
-      case Inst.RUNE_ANY:
-      case Inst.RUNE_ANY_NOT_NL:
-        if (t === null) {
-          t = this.alloc(inst)
-        } else {
-          t.inst = inst
-        }
-        if (this.ncap > 0 && t.cap !== cap) {
-          // Direct assignment utilizing Typed Array performance
-          for (let c = 0; c < this.ncap; c++) {
-            t.cap[c] = cap[c]
+          return t
+        case Inst.NOP:
+          pc = inst.out // Flattened tail recursion
+          continue
+        case Inst.CAPTURE:
+          if (inst.arg < this.ncap) {
+            const opos = cap[inst.arg]
+            cap[inst.arg] = pos
+            this.add(q, inst.out, pos, cap, cond, null)
+            cap[inst.arg] = opos
+            return t
+          } else {
+            pc = inst.out // Flattened tail recursion
+            continue
           }
-        }
-        q.denseThreads[d] = t
-        t = null
-        break
-      default:
-        throw new Error('unhandled')
+        case Inst.LB_WRITE:
+          this.lbTable[Math.abs(inst.lb)] = pos
+          pc = inst.out
+          continue
+        case Inst.LB_CHECK:
+          if (inst.lb > 0) {
+            // Positive Lookbehind
+            if (this.lbTable[inst.lb] === pos) {
+              pc = inst.out // Flattened tail recursion
+              continue
+            }
+          } else if (this.lbTable[-inst.lb] !== pos) {
+            // Negative Lookbehind
+            pc = inst.out // Flattened tail recursion
+            continue
+          }
+          return t
+        case Inst.MATCH:
+        case Inst.RUNE:
+        case Inst.RUNE1:
+        case Inst.RUNE_ANY:
+        case Inst.RUNE_ANY_NOT_NL:
+          if (t === null) {
+            t = this.alloc(inst)
+          } else {
+            t.inst = inst
+          }
+          if (this.ncap > 0 && t.cap !== cap) {
+            // Direct assignment utilizing Typed Array performance
+            for (let c = 0; c < this.ncap; c++) {
+              t.cap[c] = cap[c]
+            }
+          }
+          q.denseThreads[d] = t
+          t = null
+          return t
+        default:
+          throw new Error('unhandled')
+      }
     }
-    return t
   }
 }
 

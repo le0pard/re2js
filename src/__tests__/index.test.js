@@ -729,6 +729,24 @@ test('does not swallow ASCII characters following an invalid UTF-8 sequence', ()
   expect(re.test(utf8Input)).toBe(true)
 })
 
+test('does not exceed V8 maximum call stack size on massive NFA state chains', () => {
+  // Generate an extremely deep AST of ALTs and NOPs (10,000 deep).
+  // We bypass the parser's 1000 repetition limit by chaining them:
+  // "(?:a?){1000}(?:a?){1000}..." 10 times.
+  const massiveChain = '(' + '(?:a?){1000}'.repeat(10) + 'b)'
+
+  const re = RE2JS.compile(massiveChain)
+
+  const nfaInput = 'a'.repeat(30) + 'b'
+  // Evaluates safely and returns true
+  expect(() => {
+    const matcher = re.matcher(nfaInput)
+    matcher.find()
+  }).not.toThrow()
+
+  expect(re.matcher(nfaInput).find()).toBe(true)
+})
+
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
     // Default mode (JS semantics)
