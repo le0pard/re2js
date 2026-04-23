@@ -20,7 +20,7 @@
     "@yarnpkg/pnpify": "^4.1.6",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-svelte": "^3.17.0",
+    "eslint-plugin-svelte": "^3.17.1",
     "globals": "^17.5.0",
     "lodash": "4.18.1",
     "postcss": "^8.5.10",
@@ -29,12 +29,12 @@
     "postcss-preset-env": "^11.2.1",
     "prettier": "^3.8.3",
     "prettier-plugin-svelte": "^3.5.1",
-    "re2js": "^2.2.0",
+    "re2js": "^2.2.1",
     "svelte": "^5.55.4",
     "svelte-check": "^4.4.6",
     "svelte-preprocess": "^6.0.3",
     "typescript": "^6.0.3",
-    "vite": "^8.0.8"
+    "vite": "^8.0.10"
   },
   "type": "module",
   "packageManager": "yarn@4.14.1"
