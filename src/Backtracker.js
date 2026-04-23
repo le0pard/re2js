@@ -132,7 +132,7 @@ class BitState {
               currentPc = inst.out
               continue
             }
-            this.push(re2, inst.out, this.end, false)
+            this.push(re2, inst.out, currentPos, false)
             currentPc = inst.arg
             continue
           }

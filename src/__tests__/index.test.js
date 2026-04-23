@@ -650,6 +650,23 @@ it('evaluates boundary conditions properly when fast-forwarding (NFA Fallback)',
   expect(re2.matcher(longString).find()).toBe(true)
 })
 
+test('testExact should strictly match the end of the string in OnePass', () => {
+  // The '^' assertion guarantees compilation into the OnePass DFA engine.
+  // testExact() forces the ANCHOR_BOTH flag under the hood.
+  const re = RE2JS.compile('^foo')
+
+  expect(re.testExact('foo')).toBe(true)
+  // Expected behavior: false (because 'foobar' has trailing characters)
+  expect(re.testExact('foobar')).toBe(false)
+})
+
+test('matches() should fail if the string is not fully consumed', () => {
+  // .matches() also forces ANCHOR_BOTH
+  const re = RE2JS.compile('^hello')
+  expect(re.matches('hello')).toBe(true)
+  expect(re.matches('hello world')).toBe(false)
+})
+
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
     // Default mode (JS semantics)

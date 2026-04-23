@@ -394,6 +394,11 @@ export class OnePass {
 
       switch (inst.op) {
         case Inst.MATCH: {
+          // Verify ANCHOR_BOTH constraint before accepting the match
+          if (anchor === RE2Flags.ANCHOR_BOTH && pos !== input.endPos()) {
+            return null
+          }
+
           matched = true
           if (matchcap.length > 0) {
             matchcap[0] = 0
