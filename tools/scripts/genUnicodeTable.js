@@ -5,6 +5,7 @@ import SimpleCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/S/code-point
 import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 
+const MAX_BMP = 0xffff
 const MAX_CODE_POINT = 0x10ffff
 
 const SKIP_CATEGORIES = ['cntrl', 'Combining_Mark', 'digit', 'punct']
@@ -13,12 +14,14 @@ const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
 const toUpperCase = (codepoint) => {
   const s = String.fromCodePoint(codepoint).toUpperCase()
-  if (s.length > 1) {
+  const expectedLen = s.codePointAt(0) > MAX_BMP ? 2 : 1
+  if (s.length > expectedLen) {
     return codepoint
   }
 
   const sOrigin = String.fromCodePoint(s.codePointAt(0)).toLowerCase()
-  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
+  const originExpectedLen = sOrigin.codePointAt(0) > MAX_BMP ? 2 : 1
+  if (sOrigin.length > originExpectedLen || sOrigin.codePointAt(0) !== codepoint) {
     return codepoint
   }
 
@@ -27,12 +30,14 @@ const toUpperCase = (codepoint) => {
 
 const toLowerCase = (codepoint) => {
   const s = String.fromCodePoint(codepoint).toLowerCase()
-  if (s.length > 1) {
+  const expectedLen = s.codePointAt(0) > MAX_BMP ? 2 : 1
+  if (s.length > expectedLen) {
     return codepoint
   }
 
   const sOrigin = String.fromCodePoint(s.codePointAt(0)).toUpperCase()
-  if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
+  const originExpectedLen = sOrigin.codePointAt(0) > MAX_BMP ? 2 : 1
+  if (sOrigin.length > originExpectedLen || sOrigin.codePointAt(0) !== codepoint) {
     return codepoint
   }
 

@@ -676,7 +676,7 @@ test('does not corrupt UTF-16 surrogate pairs when stepping past zero-width matc
   expect(matcher.start()).toBe(0) // Matches at ^
 
   expect(matcher.find()).toBe(true)
-  // afely jumped over the 2-unit surrogate pair
+  // Safely jumped over the 2-unit surrogate pair
   expect(matcher.start()).toBe(2)
 })
 
@@ -690,8 +690,14 @@ test('does not catastrophically corrupt UTF-8 byte sequences', () => {
   expect(matcher.start()).toBe(0)
 
   expect(matcher.find()).toBe(true)
-  // returns 3 (Safely jumped over the 3-byte Kanji)
+  // Safely jumped over the 3-byte Kanji
   expect(matcher.start()).toBe(3)
+})
+
+test('case-insensitive regex correctly matches supplementary characters', () => {
+  const re = RE2JS.compile('(?i)\\x{10400}')
+
+  expect(re.test(String.fromCodePoint(0x10428))).toBe(true)
 })
 
 describe('.quoteReplacement', () => {

@@ -4,6 +4,8 @@
 const ASCII_SIZE = 128
 const ASCII_TO_UPPER = new Int32Array(ASCII_SIZE)
 const ASCII_TO_LOWER = new Int32Array(ASCII_SIZE)
+// The highest legal Basic Multilingual Plane (BMP) value.
+const MAX_BMP = 0xffff
 
 for (let i = 0; i < ASCII_SIZE; i++) {
   if (i >= 97 && i <= 122) {
@@ -90,13 +92,17 @@ class Codepoint {
     if (codepoint < ASCII_SIZE) return ASCII_TO_UPPER[codepoint]
 
     const s = String.fromCodePoint(codepoint).toUpperCase()
-    if (s.length > 1) {
+    const expectedLen = s.codePointAt(0) > MAX_BMP ? 2 : 1
+    if (s.length > expectedLen) {
       return codepoint
     }
+
     const sOrigin = String.fromCodePoint(s.codePointAt(0)).toLowerCase()
-    if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
+    const originExpectedLen = sOrigin.codePointAt(0) > MAX_BMP ? 2 : 1
+    if (sOrigin.length > originExpectedLen || sOrigin.codePointAt(0) !== codepoint) {
       return codepoint
     }
+
     return s.codePointAt(0)
   }
 
@@ -106,13 +112,17 @@ class Codepoint {
     if (codepoint < ASCII_SIZE) return ASCII_TO_LOWER[codepoint]
 
     const s = String.fromCodePoint(codepoint).toLowerCase()
-    if (s.length > 1) {
+    const expectedLen = s.codePointAt(0) > MAX_BMP ? 2 : 1
+    if (s.length > expectedLen) {
       return codepoint
     }
+
     const sOrigin = String.fromCodePoint(s.codePointAt(0)).toUpperCase()
-    if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
+    const originExpectedLen = sOrigin.codePointAt(0) > MAX_BMP ? 2 : 1
+    if (sOrigin.length > originExpectedLen || sOrigin.codePointAt(0) !== codepoint) {
       return codepoint
     }
+
     return s.codePointAt(0)
   }
 }
