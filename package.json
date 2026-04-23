@@ -8,7 +8,7 @@
     "re2",
     "regex engine"
   ],
-  "author": "Alexey Vasiliev",
+  "author": "Oleksii Vasyliev",
   "license": "MIT",
   "repository": "github:le0pard/re2js",
   "bugs": {
