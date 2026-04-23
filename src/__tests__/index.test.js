@@ -672,7 +672,7 @@ test('testExact should strictly match the end of the string in OnePass', () => {
   const re = RE2JS.compile('^foo')
 
   expect(re.testExact('foo')).toBe(true)
-  // Expected behavior: false (because 'foobar' has trailing characters)
+  // because 'foobar' has trailing characters
   expect(re.testExact('foobar')).toBe(false)
 })
 

@@ -129,11 +129,12 @@ class BitState {
             const outInst = re2.prog.getInst(inst.out)
             if (Inst.isRuneOp(outInst.op)) {
               this.push(re2, inst.arg, currentPos, false)
-              currentPc = inst.out
+              currentPc = inst.arg
+              currentPos = this.end
               continue
             }
-            this.push(re2, inst.out, currentPos, false)
-            currentPc = inst.arg
+            this.push(re2, inst.out, this.end, false)
+            currentPc = inst.out
             continue
           }
 
