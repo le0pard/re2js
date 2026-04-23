@@ -584,6 +584,22 @@ describe('replaceAll and replaceFirst', () => {
   })
 })
 
+test('does not re-evaluate characters inside named groups in JS mode', () => {
+  const re = RE2JS.compile('(world)')
+  const m = re.matcher('hello world')
+
+  // $<na$1> references a non-existent group 'na$1'.
+  // In JS mode, it should output exactly 'hello $<na$1>'
+  expect(m.replaceAll('$<na$1>')).toBe('hello $<na$1>')
+})
+
+test('does not re-evaluate characters inside malformed named groups in JS mode', () => {
+  const re = RE2JS.compile('(world)')
+  const m = re.matcher('hello world')
+
+  expect(m.replaceAll('$<na$1 ')).toBe('hello $<na$1 ')
+})
+
 it('equals', () => {
   const pattern1 = RE2JS.compile('abc')
   const pattern2 = RE2JS.compile('abc')
@@ -698,22 +714,6 @@ test('case-insensitive regex correctly matches supplementary characters', () => 
   const re = RE2JS.compile('(?i)\\x{10400}')
 
   expect(re.test(String.fromCodePoint(0x10428))).toBe(true)
-})
-
-test('does not re-evaluate characters inside named groups in JS mode', () => {
-  const re = RE2JS.compile('(world)')
-  const m = re.matcher('hello world')
-
-  // $<na$1> references a non-existent group 'na$1'.
-  // In JS mode, it should output exactly 'hello $<na$1>'
-  expect(m.replaceAll('$<na$1>')).toBe('hello $<na$1>')
-})
-
-test('does not re-evaluate characters inside malformed named groups in JS mode', () => {
-  const re = RE2JS.compile('(world)')
-  const m = re.matcher('hello world')
-
-  expect(m.replaceAll('$<na$1 ')).toBe('hello $<na$1 ')
 })
 
 describe('.quoteReplacement', () => {
