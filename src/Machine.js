@@ -204,6 +204,9 @@ class Machine {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) {
           break
         }
+        if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+          break
+        }
         if (this.matched) {
           break
         }
@@ -294,6 +297,9 @@ class Machine {
     while (true) {
       if (runq.isEmpty()) {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) break
+        if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+          break
+        }
       }
       if (pos === 0 || anchor === RE2Flags.UNANCHORED) {
         // Spawn Lookbehind threads BEFORE the main pattern
