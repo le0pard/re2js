@@ -214,7 +214,9 @@ class PrefilterTree {
         const s = PrefilterTree.simplify(sub)
         if (s.type !== Prefilter.Type.NONE) {
           if (s.type === Prefilter.Type.AND) {
-            newSubs.push(...s.subs)
+            for (let j = 0; j < s.subs.length; j++) {
+              newSubs.push(s.subs[j])
+            }
           } else {
             newSubs.push(s)
           }

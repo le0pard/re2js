@@ -538,7 +538,10 @@ class Parser {
   }
 
   static concatRunes(x, y) {
-    return [...x, ...y]
+    for (let i = 0; i < y.length; i++) {
+      x.push(y[i])
+    }
+    return x
   }
 
   constructor(wholeRegexp, flags = 0) {

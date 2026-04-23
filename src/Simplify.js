@@ -57,7 +57,9 @@ class Simplify {
             // Flatten nested concatenations
             if (nsub.op === Regexp.Op.CONCAT) {
               changed = true
-              newSubs.push(...nsub.subs)
+              for (let j = 0; j < nsub.subs.length; j++) {
+                newSubs.push(nsub.subs[j])
+              }
               continue
             }
           } else if (re.op === Regexp.Op.ALTERNATE) {
