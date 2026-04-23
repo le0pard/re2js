@@ -71,7 +71,9 @@ class Simplify {
             // Flatten nested alternations
             if (nsub.op === Regexp.Op.ALTERNATE) {
               changed = true
-              newSubs.push(...nsub.subs)
+              for (let j = 0; j < nsub.subs.length; j++) {
+                newSubs.push(nsub.subs[j])
+              }
               continue
             }
           }

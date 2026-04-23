@@ -716,6 +716,19 @@ test('case-insensitive regex correctly matches supplementary characters', () => 
   expect(re.test(String.fromCodePoint(0x10428))).toBe(true)
 })
 
+test('does not swallow ASCII characters following an invalid UTF-8 sequence', () => {
+  // [0xE0, 0x41, 0x42] -> 0xE0 is an incomplete 3-byte sequence header.
+  // It is immediately followed by 'A' (0x41) and 'B' (0x42).
+  // The UTF-8 decoder must realize 0xE0 is invalid (because 0x41 is not a continuation byte),
+  // safely consume only 1 unit for the bad byte, and proceed to read 'A' and 'B' normally.
+  // Use '(A+)' instead of 'A' to disable the Literal Fast-Path
+  const re = RE2JS.compile('(A+)')
+  const utf8Input = [0xe0, 0x41, 0x42] // 0xE0, 'A', 'B'
+
+  // because 'A' is clearly in the string and should be evaluated
+  expect(re.test(utf8Input)).toBe(true)
+})
+
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
     // Default mode (JS semantics)

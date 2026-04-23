@@ -79,17 +79,29 @@ class MachineUTF8Input extends MachineInputBase {
       return (c << 3) | 1
     } else if (c >= 0xc2 && c <= 0xdf && pos + 1 < this.end) {
       const c1 = this.bytes[pos + 1] & 0xff
+      if ((c1 & 0xc0) !== 0x80) return (c << 3) | 1
+
       const rune = ((c & 0x1f) << 6) | (c1 & 0x3f)
       return (rune << 3) | 2
     } else if (c >= 0xe0 && c <= 0xef && pos + 2 < this.end) {
       const c1 = this.bytes[pos + 1] & 0xff
+      if ((c1 & 0xc0) !== 0x80) return (c << 3) | 1
+
       const c2 = this.bytes[pos + 2] & 0xff
+      if ((c2 & 0xc0) !== 0x80) return (c << 3) | 1
+
       const rune = ((c & 0x0f) << 12) | ((c1 & 0x3f) << 6) | (c2 & 0x3f)
       return (rune << 3) | 3
     } else if (c >= 0xf0 && c <= 0xf4 && pos + 3 < this.end) {
       const c1 = this.bytes[pos + 1] & 0xff
+      if ((c1 & 0xc0) !== 0x80) return (c << 3) | 1
+
       const c2 = this.bytes[pos + 2] & 0xff
+      if ((c2 & 0xc0) !== 0x80) return (c << 3) | 1
+
       const c3 = this.bytes[pos + 3] & 0xff
+      if ((c3 & 0xc0) !== 0x80) return (c << 3) | 1
+
       const rune = ((c & 0x07) << 18) | ((c1 & 0x3f) << 12) | ((c2 & 0x3f) << 6) | (c3 & 0x3f)
       return (rune << 3) | 4
     } else {
