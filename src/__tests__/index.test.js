@@ -667,6 +667,33 @@ test('matches() should fail if the string is not fully consumed', () => {
   expect(re.matches('hello world')).toBe(false)
 })
 
+test('does not corrupt UTF-16 surrogate pairs when stepping past zero-width matches', () => {
+  // A regex that guarantees a match at the start and end of the string
+  const re = RE2JS.compile('^|$')
+  const matcher = re.matcher('😊') // Surrogate pair length 2
+
+  expect(matcher.find()).toBe(true)
+  expect(matcher.start()).toBe(0) // Matches at ^
+
+  expect(matcher.find()).toBe(true)
+  // afely jumped over the 2-unit surrogate pair
+  expect(matcher.start()).toBe(2)
+})
+
+test('does not catastrophically corrupt UTF-8 byte sequences', () => {
+  const re = RE2JS.compile('^|$')
+  // '日' is 3 bytes in UTF-8
+  const utf8Input = Utils.stringToUtf8ByteArray('日')
+  const matcher = re.matcher(utf8Input)
+
+  expect(matcher.find()).toBe(true)
+  expect(matcher.start()).toBe(0)
+
+  expect(matcher.find()).toBe(true)
+  // returns 3 (Safely jumped over the 3-byte Kanji)
+  expect(matcher.start()).toBe(3)
+})
+
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
     // Default mode (JS semantics)

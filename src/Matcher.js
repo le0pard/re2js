@@ -1,5 +1,6 @@
 import { Codepoint } from './Codepoint'
 import { RE2Flags } from './RE2Flags'
+import { MachineInput } from './MachineInput'
 import { MatcherInput, MatcherInputBase } from './MatcherInput'
 import { Utils } from './Utils'
 import { RE2JSGroupException } from './exceptions'
@@ -326,7 +327,18 @@ class Matcher {
     if (this.hasMatch) {
       start = this.groups[1]
       if (this.groups[0] === this.groups[1]) {
-        start++
+        // Safely calculate structural encoding width to avoid sequence corruption
+        const machineInput = this.matcherInput.isUTF16Encoding()
+          ? MachineInput.fromUTF16(this.matcherInput.asCharSequence(), 0, this.matcherInputLength)
+          : MachineInput.fromUTF8(this.matcherInput.asBytes(), 0, this.matcherInputLength)
+
+        const r = machineInput.step(start)
+        if (r < 0) {
+          // EOF
+          start++ // Advance past length to force loop exit
+        } else {
+          start += r & 7 // Advance by safely decoded width
+        }
       }
     }
 
