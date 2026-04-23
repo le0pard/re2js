@@ -122,14 +122,6 @@ class Prog {
   // start every program with a fail instruction, so we'll never want to point
   // at its output link.
 
-  next(l) {
-    const i = this.inst[l >> 1]
-    if ((l & 1) === 0) {
-      return i.out
-    }
-    return i.arg
-  }
-
   patch(l, val) {
     let head = l.head
     while (head !== 0) {
