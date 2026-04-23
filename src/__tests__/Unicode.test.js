@@ -92,6 +92,12 @@ describe('#equalsIgnoreCase', () => {
   )
 })
 
+describe('Unicode equalsIgnoreCase EOF', () => {
+  it('should safely reject EOF markers on case-insensitive assertions', () => {
+    expect(Unicode.equalsIgnoreCase(-1, 97)).toBe(false)
+  })
+})
+
 describe('UnicodeTables VLQ Decompression', () => {
   it('should decompress the Zl (Line Separator) table correctly', () => {
     const zlTable = UnicodeTables.CATEGORIES.get('Zl')

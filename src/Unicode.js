@@ -129,9 +129,14 @@ class Unicode {
   // to compare it to |r2|.
   // -1 is interpreted as the end-of-file mark.
   static equalsIgnoreCase(r1, r2) {
-    // Runes already match, or one of them is EOF
-    if (r1 < 0 || r2 < 0 || r1 === r2) {
+    // Runes already match
+    if (r1 === r2) {
       return true
+    }
+
+    // Safely fail if either is EOF (and they didn't explicitly match above)
+    if (r1 < 0 || r2 < 0) {
+      return false
     }
 
     // Fast path for the common case where both runes are ASCII characters.

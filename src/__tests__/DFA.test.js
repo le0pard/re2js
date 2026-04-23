@@ -192,6 +192,23 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     expect(survivorCount).toBeGreaterThan(0)
   })
 
+  test('survives extreme limit thrashing without 100% cache wipes', () => {
+    const dfa = createDFA('a+b')
+    dfa.stateLimit = 1
+
+    runDFA(dfa, 'aaab')
+
+    // Even though limit is 1, the eviction formula Math.max(1, floor(1/2))
+    // ensures exactly 1 state survives the wipe. The engine then immediately
+    // pushes the 1 newly evaluated state, leaving exactly 2 states in the cache.
+    let survivorCount = 0
+    for (const bucket of dfa.stateCache.values()) {
+      survivorCount += bucket.length
+    }
+
+    expect(survivorCount).toBe(2)
+  })
+
   test('uses nextLatin1Anchored array when anchor is strictly enforced', () => {
     const dfa = createDFA('a')
 

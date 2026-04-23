@@ -168,7 +168,7 @@ class DFA {
     allStates.sort((a, b) => a.lastSeen - b.lastSeen)
 
     // Keep the newest 50%
-    const keepCount = Math.floor(this.stateLimit / 2)
+    const keepCount = Math.max(1, Math.floor(this.stateLimit / 2))
     const startIndex = allStates.length - keepCount
     const survivorsArray = allStates.slice(startIndex)
     const survivors = new Set(survivorsArray)

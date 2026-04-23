@@ -109,16 +109,16 @@ class Machine {
   resetCap() {
     for (let i = 0; i < this.poolSize; i++) {
       const t = this.pool[i]
-      t.cap.fill(0)
+      t.cap.fill(-1)
     }
   }
 
   initNewCap(ncap) {
     for (let i = 0; i < this.poolSize; i++) {
       const t = this.pool[i]
-      t.cap = new Int32Array(ncap)
+      t.cap = new Int32Array(ncap).fill(-1)
     }
-    this.matchcap = new Int32Array(ncap)
+    this.matchcap = new Int32Array(ncap).fill(-1)
   }
 
   submatches() {

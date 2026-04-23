@@ -614,6 +614,42 @@ it('date regex', () => {
   expect(m.group()).toEqual('2023-02-02')
 })
 
+it('should not match EOF when FOLD_CASE is enabled', () => {
+  const re = RE2JS.compile('a', RE2JS.CASE_INSENSITIVE)
+
+  expect(re.testExact('')).toBe(false)
+  expect(re.test('')).toBe(false)
+})
+
+it('should correctly update execution flag after fast-forwarding pointer', () => {
+  const re = RE2JS.compile('\\Bfoo')
+
+  const m = re.matcher('afoo')
+  expect(m.find()).toBe(true)
+
+  // Additional boundary validations
+  const re2 = RE2JS.compile('\\bfoo')
+  expect(re2.matcher('a foo').find()).toBe(true)
+  expect(re2.matcher('afoo').find()).toBe(false)
+})
+
+it('evaluates boundary conditions properly when fast-forwarding (NFA Fallback)', () => {
+  // We MUST use a string longer than Backtracker.maxBitStateLen to force the NFA engine.
+  // For a simple regex, maxBitStateLen is ~43,000. 90,000 guarantees NFA execution.
+  const longString = 'a'.repeat(90000) + 'foo'
+
+  // Without the fix, the stale flag at pos=0 (BOF to 'a' -> WORD_BOUNDARY) is preserved.
+  // True context at 90000 ('a' to 'f') is NO_WORD_BOUNDARY.
+
+  // \b demands WORD_BOUNDARY. Stale flag has it, so it FALSELY MATCHES.
+  const re1 = RE2JS.compile('\\bfoo')
+  expect(re1.matcher(longString).find()).toBe(false)
+
+  // \B demands NO_WORD_BOUNDARY. Stale flag lacks it, so it FALSELY FAILS.
+  const re2 = RE2JS.compile('\\Bfoo')
+  expect(re2.matcher(longString).find()).toBe(true)
+})
+
 describe('.quoteReplacement', () => {
   it('delegates to Matcher.quoteReplacement', () => {
     // Default mode (JS semantics)

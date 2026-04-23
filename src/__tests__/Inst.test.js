@@ -64,6 +64,14 @@ describe('Inst.matchRune Array Search Logic', () => {
     expect(inst.matchRune('A'.codePointAt(0))).toBe(true)
     expect(inst.matchRune('b'.codePointAt(0))).toBe(false)
   })
+
+  it('safely handles empty rune arrays without undefined mathematical checks', () => {
+    const inst = new Inst(Inst.RUNE)
+    inst.runes = [] // Explicitly empty
+
+    expect(inst.matchRune(97)).toBe(false)
+    expect(inst.matchRunePos(97)).toBe(-1)
+  })
 })
 
 describe('Inst.matchRunePos Branchless Binary Search', () => {

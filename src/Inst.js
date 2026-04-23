@@ -62,6 +62,8 @@ class Inst {
     }
 
     const len = this.runes.length
+    if (len === 0) return false
+
     // If the array is exactly 2, 4, 6, or 8 items, DO NOT fall through to binary search
     if (len === 2 || len === 4 || len === 6 || len === 8) {
       for (let j = 0; j < len; j += 2) {
@@ -104,6 +106,8 @@ class Inst {
     }
 
     const len = this.runes.length
+    if (len === 0) return -1
+
     if (len === 2 || len === 4 || len === 6 || len === 8) {
       for (let j = 0; j < len; j += 2) {
         if (r < this.runes[j]) return -1
