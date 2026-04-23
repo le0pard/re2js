@@ -1,4 +1,5 @@
 import { RE2JS } from '../index'
+import { RE2Flags } from '../RE2Flags'
 import { MatcherInput } from '../MatcherInput'
 import { Utils } from '../Utils'
 import { RE2JSGroupException } from '../exceptions'
@@ -781,6 +782,23 @@ test('case-insensitive regex correctly matches supplementary characters', () => 
   const re = RE2JS.compile('(?i)\\x{10400}')
 
   expect(re.test(String.fromCodePoint(0x10428))).toBe(true)
+})
+
+test('respects bounded regions for zero-width end assertions ($)', () => {
+  // Regex looks for "c" at the absolute end of the string ($)
+  const re = RE2JS.compile('c$')
+
+  // We evaluate against "abcdef", but strictly bound the execution region to "abc" (length 3).
+  // Since "c" is at the end of "abc", it MUST match.
+
+  // UTF-16 String evaluation
+  const result16 = re.re2Input.matchWithGroup('abcdef', 0, 3, RE2Flags.UNANCHORED, 0)
+  expect(result16[0]).toBe(true)
+
+  // UTF-8 Byte Array evaluation
+  const utf8Input = Utils.stringToUtf8ByteArray('abcdef')
+  const result8 = re.re2Input.matchWithGroup(utf8Input, 0, 3, RE2Flags.UNANCHORED, 0)
+  expect(result8[0]).toBe(true)
 })
 
 test('does not swallow ASCII characters following an invalid UTF-8 sequence', () => {

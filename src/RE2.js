@@ -365,7 +365,11 @@ class RE2 {
    */
   matchWithGroup(input, start, end, anchor, ngroup) {
     if (!(input instanceof MatcherInputBase)) {
-      input = MatcherInput.utf16(input)
+      if (Utils.isByteArray(input)) {
+        input = MatcherInput.utf8(input)
+      } else {
+        input = MatcherInput.utf16(input)
+      }
     }
 
     return this.matchMachineInput(input, start, end, anchor, ngroup)

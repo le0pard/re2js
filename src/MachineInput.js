@@ -137,10 +137,10 @@ class MachineUTF8Input extends MachineInputBase {
         if (start < this.start) {
           start = this.start
         }
-        r1 = this.step(start) >> 3
+        r1 = this.step(start - this.start) >> 3
       }
     }
-    const r2 = pos < this.end ? this.step(pos) >> 3 : -1
+    const r2 = pos < this.end ? this.step(pos - this.start) >> 3 : -1
     return Utils.emptyOpContext(r1, r2)
   }
 
@@ -242,9 +242,10 @@ class MachineUTF16Input extends MachineInputBase {
   // Returns a bitmask of EMPTY_* flags.
   context(pos) {
     pos += this.start
-    const r1 =
-      pos > 0 && pos <= this.charSequence.length ? this.charSequence.codePointAt(pos - 1) : -1
-    const r2 = pos < this.charSequence.length ? this.charSequence.codePointAt(pos) : -1
+
+    const r1 = pos > this.start && pos <= this.end ? this.charSequence.codePointAt(pos - 1) : -1
+    const r2 = pos < this.end ? this.charSequence.codePointAt(pos) : -1
+
     return Utils.emptyOpContext(r1, r2)
   }
 

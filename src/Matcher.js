@@ -263,10 +263,7 @@ class Matcher {
       return
     }
 
-    let end = this.groups[1] + 1
-    if (end > this.matcherInputLength) {
-      end = this.matcherInputLength
-    }
+    const end = this.matcherInputLength
 
     const res = this.patternInput
       .re2()
