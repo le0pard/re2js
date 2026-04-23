@@ -130,11 +130,10 @@ class BitState {
             if (Inst.isRuneOp(outInst.op)) {
               this.push(re2, inst.arg, currentPos, false)
               currentPc = inst.out
-              currentPos = this.end
               continue
             }
             this.push(re2, inst.out, this.end, false)
-            currentPc = inst.out
+            currentPc = inst.arg
             continue
           }
 
