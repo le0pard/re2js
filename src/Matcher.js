@@ -501,7 +501,10 @@ class Matcher {
           }
 
           const groupName = replacement.substring(i + 1, j)
-          res += this.group(groupName)
+          const groupVal = this.group(groupName)
+          if (groupVal !== null) {
+            res += groupVal
+          }
           last = j + 1
           i = j
           continue
@@ -550,6 +553,24 @@ class Matcher {
           } else {
             res += '$&'
           }
+          i++
+          last = i + 1
+          continue
+        } else if (Codepoint.CODES.get('`') === c) {
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          res += this.substring(0, this.start(0))
+          i++
+          last = i + 1
+          continue
+        } else if (Codepoint.CODES.get("'") === c) {
+          if (last < i) {
+            res += replacement.substring(last, i)
+          }
+
+          res += this.substring(this.end(0), this.matcherInputLength)
           i++
           last = i + 1
           continue
@@ -610,7 +631,10 @@ class Matcher {
 
           const groupName = replacement.substring(i + 1, j)
           if (Object.prototype.hasOwnProperty.call(this.namedGroups, groupName)) {
-            res += this.group(groupName)
+            const groupVal = this.group(groupName)
+            if (groupVal !== null) {
+              res += groupVal
+            }
           } else {
             res += `$<${groupName}>`
           }

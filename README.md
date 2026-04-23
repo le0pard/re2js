@@ -473,6 +473,8 @@ Parameters:
   - `$1, $2, ...` refer to the corresponding capture groups in the pattern
   - `$$` inserts a literal `$`
   - `$<name>` can be used to reference named capture groups
+  - `` $` `` inserts the portion of the string that precedes the matched substring
+  - `$'` inserts the portion of the string that follows the matched substring
   - on invalid group - ignore it
 - `javaMode (Boolean)`: If set to `true`, the replacement follows Java's rules for replacement. Defaults to `false`. If `javaMode = true`, changed rules for capture groups and special characters:
   - `$0` refers to the entire matched substring

@@ -1,4 +1,5 @@
 import { RE2JS } from '../index'
+import { MatcherInput } from '../MatcherInput'
 import { Utils } from '../Utils'
 import { RE2JSGroupException } from '../exceptions'
 import { expect, describe, test } from '@jest/globals'
@@ -598,6 +599,52 @@ test('does not re-evaluate characters inside malformed named groups in JS mode',
   const m = re.matcher('hello world')
 
   expect(m.replaceAll('$<na$1 ')).toBe('hello $<na$1 ')
+})
+
+test('unmatched named groups append empty string', () => {
+  // Regex containing two named groups.
+  // Matching 'foo' will leave the 'bar' group unmatched.
+  const re = RE2JS.compile('(?P<foo>foo)|(?P<bar>bar)')
+
+  // Test for both UTF-16 strings and UTF-8 Byte Array targets
+  for (let input of [MatcherInput.utf16('foo'), MatcherInput.utf8('foo')]) {
+    const mJs = re.matcher(input)
+    // JS Mode: $<bar> is unmatched, should be safely ignored
+    expect(mJs.replaceFirst('$<foo>-$<bar>', false)).toBe('foo-')
+
+    const mJava = re.matcher(input)
+    // Java Mode: ${bar} is unmatched, should be safely ignored
+    expect(mJava.replaceAll('${foo}-${bar}', true)).toBe('foo-')
+  }
+})
+
+test("supports $` (prefix) and $' (suffix) in JS replacement mode", () => {
+  const re = RE2JS.compile('world')
+
+  // Test for both UTF-16 strings and UTF-8 Byte Array targets
+  for (let input of [
+    MatcherInput.utf16('hello world today'),
+    MatcherInput.utf8('hello world today')
+  ]) {
+    const mPrefix = re.matcher(input)
+    // $` should evaluate to the prefix: "hello "
+    expect(mPrefix.replaceFirst('[$`]')).toBe('hello [hello ] today')
+
+    const mSuffix = re.matcher(input)
+    // $' should evaluate to the suffix: " today"
+    expect(mSuffix.replaceFirst("[$']")).toBe('hello [ today] today')
+  }
+})
+
+test("safely evaluates $` and $' on zero-width boundary matches", () => {
+  // Edge case: matching the exact beginning of the string (0 width)
+  const re = RE2JS.compile('^')
+
+  for (let input of [MatcherInput.utf16('abc'), MatcherInput.utf8('abc')]) {
+    const m = re.matcher(input)
+    // $` is empty prefix, $' is full suffix "abc"
+    expect(m.replaceFirst("[$`|$']")).toBe('[|abc]abc')
+  }
 })
 
 it('equals', () => {
