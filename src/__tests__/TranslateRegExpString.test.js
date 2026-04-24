@@ -60,7 +60,7 @@ describe('.translate', () => {
     // Bypasses lookaround assertions without treating them as named captures
     ['(?<)', '(?<)'],
     ['(?<=a)b', '(?<=a)b'], // Positive lookbehind
-    ['(?<!a)b', '(?<!a)b']  // Negative lookbehind
+    ['(?<!a)b', '(?<!a)b'] // Negative lookbehind
   ])('#translate(%p) === %p', (input, expected) => {
     expect(TranslateRegExpString.translate(input)).toEqual(expected)
   })

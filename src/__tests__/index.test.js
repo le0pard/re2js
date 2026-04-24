@@ -76,7 +76,7 @@ describe('.translateRegExp', () => {
     // Bypasses lookaround assertions without treating them as named captures
     ['(?<)', '(?<)'],
     ['(?<=a)b', '(?<=a)b'], // Positive lookbehind
-    ['(?<!a)b', '(?<!a)b']  // Negative lookbehind
+    ['(?<!a)b', '(?<!a)b'] // Negative lookbehind
   ])('#translateRegExp(%p) === %p', (input, expected) => {
     expect(RE2JS.translateRegExp(input)).toEqual(expected)
   })
