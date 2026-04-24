@@ -455,7 +455,7 @@ class Parser {
             t.peek() < Codepoint.CODES.get('0') ||
             t.peek() > Codepoint.CODES.get('7')
           ) {
-            break
+            break bigswitch
           }
           r = r * 8 + t.peek() - Codepoint.CODES.get('0')
           t.skip(1)
