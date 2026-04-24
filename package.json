@@ -1,12 +1,14 @@
 {
   "name": "re2js",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "RE2JS is the JavaScript port of RE2, a regular expression engine that provides linear time matching",
   "type": "module",
   "keywords": [
     "re2js",
     "re2",
-    "regex engine"
+    "regex engine",
+    "redos",
+    "regex"
   ],
   "author": "Oleksii Vasyliev",
   "license": "MIT",
