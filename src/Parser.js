@@ -429,7 +429,6 @@ class Parser {
     }
     let c = t.pop()
     bigswitch: switch (c) {
-      case Codepoint.CODES.get('0'):
       case Codepoint.CODES.get('1'):
       case Codepoint.CODES.get('2'):
       case Codepoint.CODES.get('3'):
