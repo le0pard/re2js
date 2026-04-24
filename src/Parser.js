@@ -437,6 +437,18 @@ class Parser {
       case Codepoint.CODES.get('5'):
       case Codepoint.CODES.get('6'):
       case Codepoint.CODES.get('7'): {
+        // Single non-zero digit is a backreference; not supported
+        if (
+          !t.more() ||
+          t.peek() < Codepoint.CODES.get('0') ||
+          t.peek() > Codepoint.CODES.get('7')
+        ) {
+          break bigswitch
+        }
+      }
+      // eslint-disable-next-line no-fallthrough
+      case Codepoint.CODES.get('0'): {
+        // Consume up to three octal digits; already have one.
         let r = c - Codepoint.CODES.get('0')
         for (let i = 1; i < 3; i++) {
           if (
@@ -446,12 +458,7 @@ class Parser {
           ) {
             break
           }
-
-          let digit = t.peek() - Codepoint.CODES.get('0')
-          if (r * 8 + digit > Unicode.MAX_LATIN1) {
-            break
-          }
-          r = r * 8 + digit
+          r = r * 8 + t.peek() - Codepoint.CODES.get('0')
           t.skip(1)
         }
         return r

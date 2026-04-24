@@ -469,10 +469,15 @@ describe('Flag interactions and rewinding', () => {
 })
 
 describe('Octal Escape Parsing Fixes', () => {
-  test('single-digit octal escapes are valid', () => {
-    const re = Parser.parse('\\1', RE2Flags.PERL_X)
-    expect(re.op).toBe(Regexp.Op.LITERAL)
-    expect(re.runes[0]).toBe(1)
+  test('single non-zero digit octal escapes throw error (backreferences unsupported)', () => {
+    // In RE2, \1 through \7 must be followed by at least one more octal digit.
+    // If they are dangling, they throw an error to prevent backreference confusion.
+    expect(() => Parser.parse('\\1', RE2Flags.PERL_X)).toThrow(
+      'error parsing regexp: invalid escape sequence: `\\1`'
+    )
+    expect(() => Parser.parse('\\7', RE2Flags.PERL_X)).toThrow(
+      'error parsing regexp: invalid escape sequence: `\\7`'
+    )
   })
 
   test('multi-digit octal escapes within bounds', () => {
@@ -480,24 +485,23 @@ describe('Octal Escape Parsing Fixes', () => {
     let re = Parser.parse('\\40', RE2Flags.PERL_X)
     expect(re.runes[0]).toBe(32)
 
-    // \377 is the max allowed octal (255)
+    // \377 is 255
     re = Parser.parse('\\377', RE2Flags.PERL_X)
     expect(re.runes[0]).toBe(255)
   })
 
-  test('octal escapes cap at 255 (Boundary Check)', () => {
-    // \400: \40 is 32, the trailing '0' is a literal.
-    // The parser should stop at \40 because 40*8 + 0 = 320 (> 255).
+  test('octal escapes can exceed 255 (Go Parity)', () => {
+    // \400 evaluates to 4*64 + 0*8 + 0*1 = 256 in Go.
+    // It does not artificially stop at \40.
     const re = Parser.parse('\\400', RE2Flags.PERL_X)
 
-    // Result should be a concatenation of \40 (space) and literal '0'
     expect(re.op).toBe(Regexp.Op.LITERAL)
-    expect(re.runes).toEqual([32, 48]) // 32 is ' ', 48 is '0'
+    expect(re.runes).toEqual([256]) // 256 is U+0100 (Ā)
   })
 
   test('non-octal digits terminate the escape sequence', () => {
     // \60 is '0' (48). '8' is not an octal digit.
-    // Result should be '08'
+    // Result should be '0' (from \60) followed by the literal '8'
     const re = Parser.parse('\\608', RE2Flags.PERL_X)
 
     expect(re.op).toBe(Regexp.Op.LITERAL)
@@ -505,10 +509,11 @@ describe('Octal Escape Parsing Fixes', () => {
   })
 
   test('complex concatenation with octals', () => {
-    // \1\2\3 should be codepoints 1, 2, 3
-    const re = Parser.parse('\\1\\2\\3', RE2Flags.PERL_X)
+    // \11 is 9, \12 is 10, \13 is 11
+    const re = Parser.parse('\\11\\12\\13', RE2Flags.PERL_X)
+
     expect(re.op).toBe(Regexp.Op.LITERAL)
-    expect(re.runes).toEqual([1, 2, 3])
+    expect(re.runes).toEqual([9, 10, 11])
   })
 })
 
