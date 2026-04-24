@@ -85,10 +85,7 @@ class Utf16MatcherInput extends MatcherInputBase {
    * @returns {number[]}
    */
   asBytes() {
-    return this.charSequence
-      .toString()
-      .split('')
-      .map((s) => s.codePointAt(0))
+    return Utils.stringToUtf8ByteArray(this.charSequence.toString())
   }
 
   /**

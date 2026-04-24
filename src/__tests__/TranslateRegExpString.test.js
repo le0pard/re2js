@@ -3,70 +3,65 @@ import { expect, describe, test } from '@jest/globals'
 
 describe('.translate', () => {
   test.concurrent.each([
+    // Original Cases
     [null, null],
     [83, 83],
     [true, true],
     ['[a-z]+', '[a-z]+'],
     ['^[a-c]*', '^[a-c]*'],
     ['abc', 'abc'],
-    ['a\\cM\\u34\\u1234\\u10abcdz', 'a\\x0Du34\\x{1234}\\x{10ab}cdz'],
-    ['a\\cM\\u34\\u1234\\u{10abcd}z', 'a\\x0Du34\\x{1234}\\x{10abcd}z'],
     ['', '(?:)'],
     ['foo/bar', 'foo\\/bar'],
     ['foo\\/bar', 'foo\\/bar'],
-    ['(?<foo>bar)', '(?P<foo>bar)']
+    ['(?<foo>bar)', '(?P<foo>bar)'],
+    ['é\\b', 'é\\b'],
+    ['😊.*', '😊.*'],
+    ['[α-ε]?', '[α-ε]?'],
+
+    // Complex combination (Checks \cM, \u degrading, strict \u 4-digit, and bracketed \u)
+    ['a\\cM\\u34\\u1234\\u10abcdz', 'a\\x0Du34\\x{1234}\\x{10ab}cdz'],
+    ['a\\cM\\u34\\u1234\\u{10abcd}z', 'a\\x0Du34\\x{1234}\\x{10abcd}z'],
+    ['\\cM\\u1234\\n\\c1\\u1', '\\x0D\\x{1234}\\nc1u1'],
+
+    // Control Escapes (\c) - Uppercase
+    ['\\cA', '\\x01'],
+    ['\\cM', '\\x0D'],
+    ['\\cZ', '\\x1A'],
+
+    // Control Escapes (\c) - Lowercase (ES Standard)
+    ['\\ca', '\\x01'],
+    ['\\cm', '\\x0D'],
+    ['\\cz', '\\x1A'],
+
+    // Control Escapes (\c) - Invalid Degradation (Fall back to literal 'c')
+    ['\\c', 'c'],
+    ['\\c1', 'c1'],
+    ['\\c_', 'c_'],
+
+    // Unicode Escapes (\u) - Strict 4-Digit Hex
+    ['\\u0034', '\\x{0034}'],
+    ['\\uABCD', '\\x{ABCD}'],
+    ['\\uabcd', '\\x{abcd}'],
+    ['a\\u0034b', 'a\\x{0034}b'],
+
+    // Unicode Escapes (\u) - Bracketed ES6 Syntax
+    ['\\u{10abcd}', '\\x{10abcd}'],
+    ['\\u{1234}', '\\x{1234}'],
+    ['\\u{}', '\\x{}'],
+
+    // Unicode Escapes (\u) - Invalid Degradation (Fall back to literal 'u')
+    ['\\u', 'u'],
+    ['\\u1', 'u1'],
+    ['\\u12', 'u12'],
+    ['\\u123', 'u123'],
+    ['\\u123G', 'u123G'],
+    ['\\uXXXX', 'uXXXX'],
+
+    // Bypasses lookaround assertions without treating them as named captures
+    ['(?<)', '(?<)'],
+    ['(?<=a)b', '(?<=a)b'], // Positive lookbehind
+    ['(?<!a)b', '(?<!a)b']  // Negative lookbehind
   ])('#translate(%p) === %p', (input, expected) => {
     expect(TranslateRegExpString.translate(input)).toEqual(expected)
-  })
-})
-
-describe('edge cases', () => {
-  test('strictly supports both uppercase and lowercase \\c control escapes', () => {
-    // Both \ca and \cA should evaluate to \x01 (Start of Heading)
-    expect(TranslateRegExpString.translate('\\ca')).toBe('\\x01')
-    expect(TranslateRegExpString.translate('\\cA')).toBe('\\x01')
-
-    // \cz and \cZ should evaluate to \x1A (Substitute)
-    expect(TranslateRegExpString.translate('\\cz')).toBe('\\x1A')
-    expect(TranslateRegExpString.translate('\\cZ')).toBe('\\x1A')
-  })
-
-  test('gracefully degrades incomplete or invalid \\c escapes', () => {
-    // Native JS evaluates invalid \c escapes as the literal character 'c'.
-    expect(TranslateRegExpString.translate('\\c')).toBe('c')
-    expect(TranslateRegExpString.translate('\\c1')).toBe('c1')
-  })
-
-  test('gracefully handles incomplete or invalid \\u escapes', () => {
-    // Missing hex sequence (JS parses as literal 'u')
-    expect(TranslateRegExpString.translate('\\u')).toBe('u')
-    // Invalid hex characters (JS parses as literal 'u' followed by 'XYZ')
-    expect(TranslateRegExpString.translate('\\uXYZ')).toBe('uXYZ')
-    // Empty braces
-    expect(TranslateRegExpString.translate('\\u{}')).toBe('\\x{}')
-  })
-
-  test('safely bypasses lookaround assertions without treating them as named captures', () => {
-    // Should NOT be translated to (?P< if there's no valid group name
-    expect(TranslateRegExpString.translate('(?<)')).toBe('(?<)')
-    expect(TranslateRegExpString.translate('(?<=a)b')).toBe('(?<=a)b') // Positive lookbehind
-    expect(TranslateRegExpString.translate('(?<!a)b')).toBe('(?<!a)b') // Negative lookbehind
-  })
-
-  test('strictly requires 4 hex digits for non-bracketed \\u escapes', () => {
-    // Standard JS evaluates invalid \u escapes as the literal character 'u'
-    expect(TranslateRegExpString.translate('\\u1')).toBe('u1')
-    expect(TranslateRegExpString.translate('\\u12')).toBe('u12')
-    expect(TranslateRegExpString.translate('\\u123')).toBe('u123')
-
-    // Should NOT be translated because it contains an invalid hex character
-    expect(TranslateRegExpString.translate('\\u123Z')).toBe('u123Z')
-
-    // EXACTLY 4 digits SHOULD be translated safely into RE2 \x{...} format
-    expect(TranslateRegExpString.translate('\\u1234')).toBe('\\x{1234}')
-
-    // 4 digits followed by more chars SHOULD translate the first 4
-    expect(TranslateRegExpString.translate('\\u12345')).toBe('\\x{1234}5')
-    expect(TranslateRegExpString.translate('\\u1234Z')).toBe('\\x{1234}Z')
   })
 })
