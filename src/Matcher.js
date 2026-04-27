@@ -77,7 +77,7 @@ class Matcher {
   /**
    *
    * @param {RE2JS_Pattern} pattern
-   * @param {import('./MatcherInput').MatcherInputBase|Uint8Array|number[]|string} input
+   * @param {Uint8Array|number[]|string} input
    */
   constructor(pattern, input) {
     if (pattern === null) {
