@@ -4,15 +4,22 @@ import { Utils } from './Utils'
  * Transform JS regex string to RE2 regex string
  */
 class TranslateRegExpString {
-  static isUpperCaseAlpha(ch) {
-    return 'A' <= ch && ch <= 'Z'
-  }
-
   static isHexadecimal(ch) {
     return ('0' <= ch && ch <= '9') || ('A' <= ch && ch <= 'F') || ('a' <= ch && ch <= 'f')
   }
 
   static translate(data) {
+    let prefixFlags = ''
+
+    if (data instanceof RegExp) {
+      if (data.ignoreCase) prefixFlags += 'i'
+      if (data.multiline) prefixFlags += 'm'
+      if (data.dotAll) prefixFlags += 's'
+
+      // execution flags ('g', 'y') are safely ignored here.
+      data = data.source
+    }
+
     if (typeof data !== 'string') {
       return data
     }
@@ -26,7 +33,9 @@ class TranslateRegExpString {
       changed = true
     }
 
+    let inCharClass = false
     let i = 0
+
     while (i < size) {
       let ch = data[i]
 
@@ -102,7 +111,19 @@ class TranslateRegExpString {
         i += 1
         changed = true
         continue
-      } else if (ch === '(' && i + 2 < size && data[i + 1] === '?' && data[i + 2] === '<') {
+      } else if (ch === '[') {
+        // Track entry into a character class (protects syntax inside)
+        inCharClass = true
+      } else if (ch === ']') {
+        // Track exit of a character class
+        inCharClass = false
+      } else if (
+        !inCharClass &&
+        ch === '(' &&
+        i + 2 < size &&
+        data[i + 1] === '?' &&
+        data[i + 2] === '<'
+      ) {
         if (i + 3 < size && !'=!>)'.includes(data[i + 3])) {
           result += '(?P<'
           i += 3
@@ -117,7 +138,14 @@ class TranslateRegExpString {
       i += symSize
     }
 
-    return changed ? result : data
+    const finalResult = changed ? result : data
+
+    // Append any extracted inline flags
+    if (prefixFlags.length > 0) {
+      return `(?${prefixFlags})${finalResult}`
+    }
+
+    return finalResult
   }
 }
 

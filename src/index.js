@@ -90,7 +90,7 @@ class RE2JS {
    * RE2JS-compatible syntax, and handling Unicode sequences properly. It ensures that the
    * resulting regex is safe and properly formatted before compilation.
    *
-   * @param {string} expr - The regular expression string to be translated.
+   * @param {string|RegExp} expr - The regular expression string to be translated.
    * @returns {string} - The transformed regular expression string, ready for compilation.
    */
   static translateRegExp(expr) {

@@ -577,6 +577,10 @@ const unicodeRegexp = RE2JS.translateRegExp('\\u{1F600}') // '\\x{1F600}'
 
 RE2JS.matches(unicodeRegexp, '😀') // true
 RE2JS.matches(unicodeRegexp, '😃') // false
+
+// also support native Regex
+RE2JS.translateRegExp(/foo/ims) // '(?ims)foo'
+RE2JS.translateRegExp(/bar/giy) // '(?i)bar'
 ```
 
 ## Performance and Architecture
