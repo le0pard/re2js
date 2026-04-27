@@ -562,8 +562,7 @@ console.log(RE2JS.compile('(a+b?)').programSize()); // Outputs: 8
 
 ### Translating Regular Expressions
 
-The `translateRegExp()` method preprocesses a given regular expression string to ensure compatibility with RE2JS.
-It applies necessary transformations, such as escaping special characters, adjusting Unicode sequences, and converting named capture groups
+The `translateRegExp()` method preprocesses a given regular expression string or native RegExp object to ensure compatibility with RE2JS. It applies necessary transformations, such as escaping special characters, adjusting Unicode sequences, converting named capture groups, and mapping native execution flags
 
 ```js
 import { RE2JS } from 're2js'
@@ -579,7 +578,11 @@ RE2JS.matches(unicodeRegexp, '😀') // true
 RE2JS.matches(unicodeRegexp, '😃') // false
 
 // also support native Regex
-RE2JS.translateRegExp(/foo/ims) // '(?ims)foo'
+const translatedNative = RE2JS.translateRegExp(/foo/ims) // '(?ims)foo'
+
+const re = RE2JS.compile(translatedNative)
+re.test('FOO') // true
+
 RE2JS.translateRegExp(/bar/giy) // '(?i)bar'
 ```
 
