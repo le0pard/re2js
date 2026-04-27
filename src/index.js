@@ -149,7 +149,7 @@ class RE2JS {
    * Matches a string against a regular expression.
    *
    * @param {string} regex the regular expression
-   * @param {string|number[]} input the input
+   * @param {string|number[]|Uint8Array} input the input
    * @returns {boolean} true if the regular expression matches the entire input
    * @throws RE2JSSyntaxException if the regular expression is malformed
    */
@@ -217,7 +217,7 @@ class RE2JS {
   /**
    * Matches a string against a regular expression.
    *
-   * @param {string|number[]} input the input
+   * @param {string|number[]|Uint8Array} input the input
    * @returns {boolean} true if the regular expression matches the entire input
    */
   matches(input) {
@@ -227,7 +227,7 @@ class RE2JS {
   /**
    * Creates a new {@code Matcher} matching the pattern against the input.
    *
-   * @param {string|number[]} input the input string
+   * @param {string|number[]|Uint8Array} input the input string
    * @returns {Matcher}
    */
   matcher(input) {
@@ -244,7 +244,7 @@ class RE2JS {
    * a boolean and does not extract capture groups, it bypasses the `Matcher` overhead
    * and guarantees execution on the high-speed DFA engine whenever possible.
    *
-   * @param {string|number[]} input - The input string or UTF-8 byte array to test against.
+   * @param {string|number[]|Uint8Array} input - The input string or UTF-8 byte array to test against.
    * @returns {boolean} `true` if the pattern is found anywhere in the input, `false` otherwise.
    */
   test(input) {
@@ -263,7 +263,7 @@ class RE2JS {
    * faster because it does not request capture group data. By requesting 0 capture groups,
    * it securely routes execution through the DFA fast-path.
    *
-   * @param {string|number[]} input - The input string or UTF-8 byte array to test against.
+   * @param {string|number[]|Uint8Array} input - The input string or UTF-8 byte array to test against.
    * @returns {boolean} `true` if the exact input string fully matches the pattern, `false` otherwise.
    */
   testExact(input) {

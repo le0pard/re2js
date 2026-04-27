@@ -89,7 +89,7 @@ class RE2Set {
 
   /**
    * Matches the input against the compiled set of regular expressions.
-   * @param {string | number[] | Uint8Array} input - The input string or UTF-8 byte array to match against.
+   * @param {string|number[]|Uint8Array} input - The input string or UTF-8 byte array to match against.
    * @returns {number[]} An array of indices representing the patterns that successfully matched the input.
    */
   match(input) {

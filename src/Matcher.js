@@ -27,6 +27,11 @@ import { RE2JSGroupException } from './exceptions'
  *
  * @author rsc@google.com (Russ Cox)
  */
+
+/**
+ * @typedef {import('./index').RE2JS} RE2JS_Pattern
+ */
+
 class Matcher {
   /**
    * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
@@ -71,14 +76,17 @@ class Matcher {
   }
   /**
    *
-   * @param {RE2JS} pattern
-   * @param {Utf8MatcherInput|Utf16MatcherInput|number[]|string} input
+   * @param {RE2JS_Pattern} pattern
+   * @param {import('./MatcherInput').MatcherInputBase|Uint8Array|number[]|string} input
    */
   constructor(pattern, input) {
     if (pattern === null) {
       throw new Error('pattern is null')
     }
-    // The pattern being matched.
+    /**
+     * The pattern being matched.
+     * @type {RE2JS_Pattern}
+     */
     this.patternInput = pattern
     const re2 = this.patternInput.re2()
     // The number of submatches (groups) in the pattern.
@@ -103,7 +111,7 @@ class Matcher {
 
   /**
    * Returns the {@code RE2JS} associated with this {@code Matcher}.
-   * @returns {RE2JS}
+   * @returns {RE2JS_Pattern}
    */
   pattern() {
     return this.patternInput
@@ -133,7 +141,7 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
-   * @param {Utf8MatcherInput|Utf16MatcherInput} input
+   * @param {import('./MatcherInput').MatcherInputBase} input
    * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
@@ -200,7 +208,7 @@ class Matcher {
   /**
    * Returns the named group of the most recent match, or {@code null} if the group was not matched.
    * @param {string|number} [group=0]
-   * @returns {?string}
+   * @returns {string|null}
    */
   group(group = 0) {
     if (typeof group === 'string') {
@@ -307,7 +315,7 @@ class Matcher {
    * Matches the input against the pattern (unanchored), starting at a specified position. If there
    * is a match, {@code find} sets the match state to describe it.
    *
-   * @param {number} [start=null] the input position where the search begins
+   * @param {number|null} [start=null] the input position where the search begins
    * @returns {boolean} if it finds a match
    * @throws IndexOutOfBoundsException if start is not a valid input position
    */
