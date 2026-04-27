@@ -71,10 +71,30 @@ class TranslateRegExpString {
               if (i + 2 < size) {
                 let nextCh = data[i + 2]
                 if (nextCh === '{') {
-                  result += '\\x'
-                  i += 2
-                  changed = true
-                  continue
+                  // Must have a closing brace and at least one valid hex digit inside
+                  let j = i + 3
+                  let hasHex = false
+                  let closed = false
+
+                  while (j < size) {
+                    const hexChar = data[j]
+                    if (hexChar === '}') {
+                      closed = true
+                      break
+                    }
+                    if (!TranslateRegExpString.isHexadecimal(hexChar)) {
+                      break
+                    }
+                    hasHex = true
+                    j++
+                  }
+
+                  if (closed && hasHex) {
+                    result += '\\x'
+                    i += 2
+                    changed = true
+                    continue
+                  }
                 } else if (i + 5 < size) {
                   let isHex4 = true
                   for (let j = 0; j < 4; j++) {
@@ -91,6 +111,8 @@ class TranslateRegExpString {
                   }
                 }
               }
+
+              // Graceful degradation for invalid/unclosed \u sequences
               result += 'u'
               i += 2
               changed = true

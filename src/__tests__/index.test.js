@@ -89,9 +89,11 @@ describe('.translateRegExp', () => {
     ['a\\u0034b', 'a\\x{0034}b'],
 
     // Unicode Escapes (\u) - Bracketed ES6 Syntax
+    ['\\u{', 'u{'], // Unclosed unicode bracket
+    ['\\u{}', 'u{}'], // Empty unicode bracket
+    ['\\u{12G}', 'u{12G}'], // Non-hexadecimal characters inside bracket
     ['\\u{10abcd}', '\\x{10abcd}'],
     ['\\u{1234}', '\\x{1234}'],
-    ['\\u{}', '\\x{}'],
 
     // Unicode Escapes (\u) - Invalid Degradation (Fall back to literal 'u')
     ['\\u', 'u'],
