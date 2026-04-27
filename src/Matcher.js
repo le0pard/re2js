@@ -28,10 +28,6 @@ import { RE2JSGroupException } from './exceptions'
  * @author rsc@google.com (Russ Cox)
  */
 
-/**
- * @typedef {import('./index').RE2JS} RE2JS_Pattern
- */
-
 class Matcher {
   /**
    * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
@@ -76,7 +72,7 @@ class Matcher {
   }
   /**
    *
-   * @param {RE2JS_Pattern} pattern
+   * @param {RE2JS} pattern
    * @param {string|number[]|Uint8Array} input
    */
   constructor(pattern, input) {
@@ -85,7 +81,7 @@ class Matcher {
     }
     /**
      * The pattern being matched.
-     * @type {RE2JS_Pattern}
+     * @type {RE2JS}
      */
     this.patternInput = pattern
     const re2 = this.patternInput.re2()
@@ -111,7 +107,7 @@ class Matcher {
 
   /**
    * Returns the {@code RE2JS} associated with this {@code Matcher}.
-   * @returns {RE2JS_Pattern}
+   * @returns {RE2JS}
    */
   pattern() {
     return this.patternInput
@@ -141,7 +137,7 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
-   * @param {import('./MatcherInput').MatcherInputBase} input
+   * @param {MatcherInputBase} input
    * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
