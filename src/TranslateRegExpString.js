@@ -96,12 +96,101 @@ class TranslateRegExpString {
               changed = true
               continue
             }
+            case 'x': {
+              let isValidHex = false
+
+              if (i + 2 < size && data[i + 2] === '{') {
+                // Must have a closing brace and at least one valid hex digit inside
+                let j = i + 3
+                let hasHex = false
+                let closed = false
+
+                while (j < size) {
+                  const hexChar = data[j]
+                  if (hexChar === '}') {
+                    closed = true
+                    break
+                  }
+                  if (!TranslateRegExpString.isHexadecimal(hexChar)) {
+                    break
+                  }
+                  hasHex = true
+                  j++
+                }
+
+                if (closed && hasHex) {
+                  isValidHex = true
+                }
+              } else if (
+                i + 3 < size &&
+                TranslateRegExpString.isHexadecimal(data[i + 2]) &&
+                TranslateRegExpString.isHexadecimal(data[i + 3])
+              ) {
+                isValidHex = true
+              }
+
+              if (isValidHex) {
+                result += '\\x'
+                i += 2
+              } else {
+                result += 'x'
+                i += 2
+                changed = true
+              }
+              continue
+            }
+            // Whitelist of valid RE2/JS alphanumeric escapes
+            case 'n':
+            case 'r':
+            case 't':
+            case 'a':
+            case 'f':
+            case 'v':
+            case 'd':
+            case 'D':
+            case 's':
+            case 'S':
+            case 'w':
+            case 'W':
+            case 'b':
+            case 'B':
+            case 'p':
+            case 'P':
+            case 'A':
+            case 'z':
+            case 'Q':
+            case 'E':
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7': {
+              result += '\\' + ch
+              i += 2
+              continue
+            }
             default: {
-              result += '\\'
               let cp = data.codePointAt(i + 1)
-              let symSize = Utils.charCount(cp)
-              result += data.substring(i + 1, i + 1 + symSize)
-              i += symSize + 1
+              let isAlphaNum =
+                (cp >= 48 && cp <= 57) || (cp >= 65 && cp <= 90) || (cp >= 97 && cp <= 122)
+
+              if (isAlphaNum) {
+                // Invalid JS alphanumeric escape sequence (e.g. \8, \9, \e, \K)
+                // Gracefully degrade to the literal character to prevent RE2 syntax crashes
+                let symSize = Utils.charCount(cp)
+                result += data.substring(i + 1, i + 1 + symSize)
+                i += symSize + 1
+                changed = true
+              } else {
+                // Escaped symbol (e.g. \., \*, \])
+                result += '\\'
+                let symSize = Utils.charCount(cp)
+                result += data.substring(i + 1, i + 1 + symSize)
+                i += symSize + 1
+              }
               continue
             }
           }

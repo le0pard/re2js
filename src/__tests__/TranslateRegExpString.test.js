@@ -26,6 +26,26 @@ describe('.translate', () => {
     ['abc](?<foo>bar)', 'abc](?P<foo>bar)'], // Unopened closing bracket safely resets tracking flag
     ['(?<)', '(?<)'], // Too short to be a named capture
 
+    ['\\x1G', 'x1G'], // Invalid hex length (non-hex character 'G')
+    ['\\x', 'x'], // Dangling 'x' without any trailing characters
+    ['\\x{', 'x{'], // Unclosed hex bracket
+
+    // Out of bounds octal fallback
+    ['\\8\\9', '89'], // '8' and '9' are not valid octal digits, JS degrades them to literals
+
+    // Unassigned letters fallback
+    ['\\e\\K\\h', 'eKh'], // e, K, and h are not valid regex escapes in RE2, JS degrades them to literals
+
+    // Safely Preserved Valid RE2 Escapes (Whitelist check)
+    ['\\d\\D\\s\\S\\w\\W', '\\d\\D\\s\\S\\w\\W'], // Standard character classes
+    ['\\n\\r\\t\\a\\f\\v', '\\n\\r\\t\\a\\f\\v'], // Standard control escapes
+    ['\\b\\B\\A\\z', '\\b\\B\\A\\z'], // Boundary assertions
+    ['\\Q...\\E', '\\Q...\\E'], // Quote meta blocks
+    ['\\0\\7', '\\0\\7'], // Valid octals
+
+    // Escaped symbols are perfectly preserved
+    ['\\.\\*\\[\\]\\\\', '\\.\\*\\[\\]\\\\'],
+
     // Complex combination (Checks \cM, \u degrading, strict \u 4-digit, and bracketed \u)
     ['a\\cM\\u34\\u1234\\u10abcdz', 'a\\x0Du34\\x{1234}\\x{10ab}cdz'],
     ['a\\cM\\u34\\u1234\\u{10abcd}z', 'a\\x0Du34\\x{1234}\\x{10abcd}z'],
