@@ -8,8 +8,7 @@ const EXTERNAL = [] // external modules
 const GLOBALS = {} // https://rollupjs.org/guide/en/#outputglobals
 const OUTPUT_DIR = 'build'
 
-const makeConfig = () => {
-  const banner = `/*!
+const banner = `/*!
  * ${pkg.name}
  * ${pkg.description}
  *
@@ -20,45 +19,44 @@ const makeConfig = () => {
  * @license ${pkg.license}
  */`
 
-  return {
-    input: 'src/index.js',
-    external: EXTERNAL,
-    output: [
-      {
-        banner,
-        name: LIBRARY_NAME,
-        file: `${OUTPUT_DIR}/index.umd.js`, // UMD
-        format: 'umd',
-        exports: 'auto',
-        globals: GLOBALS,
-        sourcemap: true
-      },
-      {
-        banner,
-        file: `${OUTPUT_DIR}/index.cjs.cjs`, // CommonJS
-        format: 'cjs',
-        exports: 'auto',
-        globals: GLOBALS,
-        sourcemap: true
-      },
-      {
-        banner,
-        file: `${OUTPUT_DIR}/index.esm.js`, // ESM
-        format: 'es',
-        exports: 'auto',
-        globals: GLOBALS,
-        sourcemap: true
-      }
-    ],
-    plugins: [
-      resolve(), // teach Rollup how to find external modules
-      commonjs(), // so Rollup can convert external modules to an ES module
-      babel({
-        babelHelpers: 'bundled',
-        exclude: ['node_modules/**']
-      })
-    ]
-  }
-}
+const makeConfig = () => ({
+  input: 'src/index.js',
+  external: EXTERNAL,
+  output: [
+    {
+      banner,
+      name: LIBRARY_NAME,
+      file: `${OUTPUT_DIR}/index.umd.js`, // UMD
+      format: 'umd',
+      exports: 'auto',
+      globals: GLOBALS,
+      sourcemap: true
+    },
+    {
+      banner,
+      file: `${OUTPUT_DIR}/index.cjs.cjs`, // CommonJS
+      format: 'cjs',
+      exports: 'auto',
+      globals: GLOBALS,
+      sourcemap: true
+    },
+    {
+      banner,
+      file: `${OUTPUT_DIR}/index.esm.js`, // ESM
+      format: 'es',
+      exports: 'auto',
+      globals: GLOBALS,
+      sourcemap: true
+    }
+  ],
+  plugins: [
+    resolve(), // teach Rollup how to find external modules
+    commonjs(), // so Rollup can convert external modules to an ES module
+    babel({
+      babelHelpers: 'bundled',
+      exclude: ['node_modules/**']
+    })
+  ]
+})
 
 export default () => makeConfig()
