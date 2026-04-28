@@ -18,17 +18,16 @@
 
   const execRE2JS = (regexInput, stringInput, flagsInput = 0) => {
     try {
-      const start = performance.now()
       const p = RE2JS.compile(regexInput, flagsInput)
       const m = p.matcher(stringInput)
       const found = m.find()
       const matches = m.matches()
       const contains = p.test(stringInput)
-      const end = performance.now()
 
       results = {
         success: true,
-        time: end - start,
+        pattern: p.pattern(),
+        flags: p.flags(),
         programSize: p.programSize(),
         matches: matches,
         contains: contains,
@@ -212,8 +211,20 @@
         </thead>
         <tbody>
           <tr>
-            <td class="key-cell">Time</td>
-            <td class="val-cell">{round(results.time, 5)} ms</td>
+            <td class="key-cell">Pattern <small>(pattern)</small></td>
+            <td class="val-cell">
+              {#if results.pattern}
+                <div>{results.pattern}</div>
+              {:else}
+                <span class="status-tag status-tag__no">no pattern</span>
+              {/if}
+            </td>
+          </tr>
+          <tr>
+            <td class="key-cell">Flags <small>(flags)</small></td>
+            <td class="val-cell">
+              <div>{results.flags}</div>
+            </td>
           </tr>
           <tr>
             <td class="key-cell">Fully match regex pattern <small>(matches/testExact)</small></td>
