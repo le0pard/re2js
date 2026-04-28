@@ -26,8 +26,6 @@
 
       results = {
         success: true,
-        pattern: p.pattern(),
-        flags: p.flags(),
         programSize: p.programSize(),
         matches: matches,
         contains: contains,
@@ -210,22 +208,6 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="key-cell">Pattern <small>(pattern)</small></td>
-            <td class="val-cell">
-              {#if results.pattern}
-                <div>{results.pattern}</div>
-              {:else}
-                <span class="status-tag status-tag__no">no pattern</span>
-              {/if}
-            </td>
-          </tr>
-          <tr>
-            <td class="key-cell">Flags <small>(flags)</small></td>
-            <td class="val-cell">
-              <div>{results.flags}</div>
-            </td>
-          </tr>
           <tr>
             <td class="key-cell">Fully match regex pattern <small>(matches/testExact)</small></td>
             <td class="val-cell">
