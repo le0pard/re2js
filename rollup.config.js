@@ -19,34 +19,32 @@ const banner = `/*!
  * @license ${pkg.license}
  */`
 
+const sharedConfig = {
+  banner,
+  exports: 'auto',
+  globals: GLOBALS,
+  sourcemap: true
+}
+
 const makeConfig = () => ({
   input: 'src/index.js',
   external: EXTERNAL,
   output: [
     {
-      banner,
+      ...sharedConfig,
       name: LIBRARY_NAME,
       file: `${OUTPUT_DIR}/index.umd.js`, // UMD
-      format: 'umd',
-      exports: 'auto',
-      globals: GLOBALS,
-      sourcemap: true
+      format: 'umd'
     },
     {
-      banner,
+      ...sharedConfig,
       file: `${OUTPUT_DIR}/index.cjs.cjs`, // CommonJS
-      format: 'cjs',
-      exports: 'auto',
-      globals: GLOBALS,
-      sourcemap: true
+      format: 'cjs'
     },
     {
-      banner,
+      ...sharedConfig,
       file: `${OUTPUT_DIR}/index.esm.js`, // ESM
-      format: 'es',
-      exports: 'auto',
-      globals: GLOBALS,
-      sourcemap: true
+      format: 'es'
     }
   ],
   plugins: [
