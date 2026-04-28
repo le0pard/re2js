@@ -22,7 +22,6 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.17.1",
     "globals": "^17.5.0",
-    "lodash": "4.18.1",
     "postcss": "^8.5.12",
     "postcss-import": "^16.1.1",
     "postcss-load-config": "^6.0.1",

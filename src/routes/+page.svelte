@@ -1,8 +1,6 @@
 <script>
   import { onMount } from 'svelte'
   import { RE2JS } from 're2js'
-  import debounce from 'lodash/debounce'
-  import round from 'lodash/round'
 
   let regex = $state('(?<name>[a-zA-Z0-9._%+-]+)@(?<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})')
   let string = $state('max.power@example.com')
@@ -42,6 +40,16 @@
         success: false,
         error: err.message.toString()
       }
+    }
+  }
+
+  const debounce = (callback, wait) => {
+    let timeoutId = null
+    return (...args) => {
+      window.clearTimeout(timeoutId)
+      timeoutId = window.setTimeout(() => {
+        callback.apply(null, args)
+      }, wait)
     }
   }
 
