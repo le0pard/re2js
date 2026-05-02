@@ -12,10 +12,7 @@
   ],
   "author": "Oleksii Vasyliev",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/le0pard/re2js.git"
-  },
+  "repository": "github:le0pard/re2js",
   "bugs": {
     "url": "https://github.com/le0pard/re2js/issues"
   },
