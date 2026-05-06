@@ -1,11 +1,33 @@
 import { Codepoint } from './Codepoint'
 import { Unicode } from './Unicode'
 /**
- * Various constants and helper utilities.
+ * Size of the precomputed single-byte lookup table.
+ * Covers standard ASCII and Latin-1 characters for fast-path execution.
  */
+const FAST_PATH_TABLE_SIZE = 256
+/**
+ * Precomputed lookup table for Word Boundary (\b, \B) assertions.
+ * * By precomputing the boolean results for standard ASCII word ranges
+ * ('a'-'z', 'A'-'Z', '0'-'9', '_'), we completely eliminate 4 logical
+ * branches from the NFA's hot execution loop. This prevents costly
+ * CPU branch mispredictions when scanning large strings.
+ */
+const WORD_RUNE_TABLE = new Uint8Array(FAST_PATH_TABLE_SIZE)
+for (let i = 0; i < FAST_PATH_TABLE_SIZE; i++) {
+  WORD_RUNE_TABLE[i] =
+    (97 <= i && i <= 122) || // 'a' - 'z'
+    (65 <= i && i <= 90) || // 'A' - 'Z'
+    (48 <= i && i <= 57) || // '0' - '9'
+    i === 95 // '_'
+      ? 1
+      : 0
+}
+
 let cachedNativeEncoder = null
 let cachedNativeDecoder = null
-
+/**
+ * Various constants and helper utilities.
+ */
 class Utils {
   static METACHARACTERS = '\\.+*?()|[]{}^$'
 
@@ -124,12 +146,7 @@ class Utils {
   // during the evaluation of the \b and \B zero-width assertions.
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
   static isWordRune(r) {
-    return (
-      (97 <= r && r <= 122) || // 'a' - 'z'
-      (65 <= r && r <= 90) || // 'A' - 'Z'
-      (48 <= r && r <= 57) || // '0' - '9'
-      r === 95 // '_'
-    )
+    return r < FAST_PATH_TABLE_SIZE ? WORD_RUNE_TABLE[r] === 1 : false
   }
 
   // emptyOpContext returns the zero-width assertions satisfied at the position

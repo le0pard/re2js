@@ -264,8 +264,9 @@ class MachineUTF16Input extends MachineInputBase {
   context(pos) {
     pos += this.start
 
-    const r1 = pos > this.start && pos <= this.end ? this.charSequence.codePointAt(pos - 1) : -1
-    const r2 = pos < this.end ? this.charSequence.codePointAt(pos) : -1
+    // We only care about ASCII word runes and newlines for context boundaries
+    const r1 = pos > this.start && pos <= this.end ? this.charSequence.charCodeAt(pos - 1) : -1
+    const r2 = pos < this.end ? this.charSequence.charCodeAt(pos) : -1
 
     return Utils.emptyOpContext(r1, r2)
   }
