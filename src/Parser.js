@@ -71,7 +71,7 @@ class StringIterator {
   }
 
   lookingAt(s) {
-    return this.rest().startsWith(s)
+    return this.str.startsWith(s, this.position)
   }
 
   // Returns the rest of the pattern as a Java UTF-16 string.

@@ -174,6 +174,37 @@ describe('Utils', () => {
     })
   })
 
+  describe('.stringToRunes', () => {
+    const cases = [
+      ['', []], // Empty string
+      ['abc', [97, 98, 99]], // Standard ASCII
+      ['áéí', [225, 233, 237]], // Latin-1 Supplement (BMP)
+      ['日本語', [26085, 26412, 35486]], // CJK Ideographs (BMP)
+      ['🚀👽', [128640, 128125]], // Emojis (Supplementary / Surrogate Pairs)
+      ['a🚀b', [97, 128640, 98]], // Mixed ASCII and Surrogate Pairs
+      ['𐍈', [0x10348]], // Gothic letter Hwair (Supplementary)
+      [123, [49, 50, 51]] // Implicit string coercion of numbers
+    ]
+
+    test.concurrent.each(cases)('input %p returns %p', (input, expected) => {
+      expect(Utils.stringToRunes(input)).toEqual(expected)
+    })
+  })
+
+  describe('.runeToString', () => {
+    const cases = [
+      [97, 'a'],
+      [225, 'á'],
+      [26085, '日'],
+      [128640, '🚀'],
+      [0x10348, '𐍈']
+    ]
+
+    test.concurrent.each(cases)('rune %p returns %p', (input, expected) => {
+      expect(Utils.runeToString(input)).toEqual(expected)
+    })
+  })
+
   describe('.toArray', () => {
     test('correctly converts TypedArrays to standard Arrays', () => {
       const uint8 = new Uint8Array([1, 2, 3, 255])

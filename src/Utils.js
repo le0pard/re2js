@@ -101,7 +101,17 @@ class Utils {
 
   // Returns the array of runes in the specified Java UTF-16 string.
   static stringToRunes(str) {
-    return Array.from(String(str)).map((s) => s.codePointAt(0))
+    const string = String(str)
+    const runes = []
+
+    for (let i = 0; i < string.length; ) {
+      const cp = string.codePointAt(i)
+      runes.push(cp)
+      // Surrogate pairs (Emojis, etc.) are > 0xFFFF
+      i += cp > Unicode.MAX_BMP ? 2 : 1
+    }
+
+    return runes
   }
 
   // Returns the Java UTF-16 string containing the single rune |r|.
@@ -114,10 +124,10 @@ class Utils {
   // These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
   static isWordRune(r) {
     return (
-      (Codepoint.CODES.get('a') <= r && r <= Codepoint.CODES.get('z')) ||
-      (Codepoint.CODES.get('A') <= r && r <= Codepoint.CODES.get('Z')) ||
-      (Codepoint.CODES.get('0') <= r && r <= Codepoint.CODES.get('9')) ||
-      r === Codepoint.CODES.get('_')
+      (97 <= r && r <= 122) || // 'a' - 'z'
+      (65 <= r && r <= 90) || // 'A' - 'Z'
+      (48 <= r && r <= 57) || // '0' - '9'
+      r === 95 // '_'
     )
   }
 
@@ -130,16 +140,20 @@ class Utils {
   // TODO(adonovan): move to Machine.
   static emptyOpContext(r1, r2) {
     let op = 0
+
     if (r1 < 0) {
       op |= this.EMPTY_BEGIN_TEXT | this.EMPTY_BEGIN_LINE
     }
-    if (r1 === Codepoint.CODES.get('\n')) {
+    // Hardcode 10 for '\n'
+    if (r1 === 10) {
       op |= this.EMPTY_BEGIN_LINE
     }
     if (r2 < 0) {
       op |= this.EMPTY_END_TEXT | this.EMPTY_END_LINE
     }
-    if (r2 === Codepoint.CODES.get('\n')) {
+
+    // Hardcode 10 for '\n'
+    if (r2 === 10) {
       op |= this.EMPTY_END_LINE
     }
     if (this.isWordRune(r1) !== this.isWordRune(r2)) {
