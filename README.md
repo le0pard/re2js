@@ -613,7 +613,7 @@ Should you require maximum absolute performance on the server side when using RE
 
 Because RE2JS's Lazy DFA, Prefilter, and OnePass engines operate efficiently within V8's Just-In-Time (JIT) compiler, they can outperform native C++ bindings (`re2-node`) for many operations by avoiding the cross-boundary serialization costs between JavaScript and C++.
 
-Here is a benchmark running 100,000 items through both engines using their respective `.test()` fast-paths (averages of multiple runs):
+Here is a benchmark running 30,000 items through both engines using their respective `.test()` fast-paths (averages of multiple runs):
 
 | Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                      |
 |:--------------------------|:---------------------------|:----------------|:---------------|:----------------------------|
