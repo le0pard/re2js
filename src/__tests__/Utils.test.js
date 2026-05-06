@@ -173,4 +173,28 @@ describe('Utils', () => {
       expect(Utils.isByteArray(() => {})).toBe(false)
     })
   })
+
+  describe('.toArray', () => {
+    test('correctly converts TypedArrays to standard Arrays', () => {
+      const uint8 = new Uint8Array([1, 2, 3, 255])
+      const int32 = new Int32Array([-10, 0, 10, 1000])
+
+      const arr1 = Utils.toArray(uint8)
+      expect(Array.isArray(arr1)).toBe(true) // Must be a standard Array
+      expect(arr1).toEqual([1, 2, 3, 255])
+
+      const arr2 = Utils.toArray(int32)
+      expect(Array.isArray(arr2)).toBe(true)
+      expect(arr2).toEqual([-10, 0, 10, 1000])
+    })
+
+    test('handles empty TypedArrays safely', () => {
+      const empty = new Uint8Array(0)
+
+      const arr = Utils.toArray(empty)
+      expect(Array.isArray(arr)).toBe(true)
+      expect(arr.length).toBe(0)
+      expect(arr).toEqual([])
+    })
+  })
 })
