@@ -3,6 +3,7 @@
   "version": "2.3.1",
   "description": "RE2JS is the JavaScript port of RE2, a regular expression engine that provides linear time matching",
   "type": "module",
+  "sideEffects": false,
   "keywords": [
     "re2js",
     "re2",
