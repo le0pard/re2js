@@ -99,12 +99,13 @@ class Utils {
     return out
   }
 
-  // Returns the array of runes in the specified Java UTF-16 string.
+  // Returns the array of runes in the specified JS UTF-16 string.
   static stringToRunes(str) {
     const string = String(str)
     const runes = []
+    let i = 0
 
-    for (let i = 0; i < string.length; ) {
+    while (i < string.length) {
       const cp = string.codePointAt(i)
       runes.push(cp)
       // Surrogate pairs (Emojis, etc.) are > 0xFFFF
@@ -114,7 +115,7 @@ class Utils {
     return runes
   }
 
-  // Returns the Java UTF-16 string containing the single rune |r|.
+  // Returns the JS UTF-16 string containing the single rune |r|.
   static runeToString(r) {
     return String.fromCodePoint(r)
   }
@@ -142,24 +143,24 @@ class Utils {
     let op = 0
 
     if (r1 < 0) {
-      op |= this.EMPTY_BEGIN_TEXT | this.EMPTY_BEGIN_LINE
+      op |= Utils.EMPTY_BEGIN_TEXT | Utils.EMPTY_BEGIN_LINE
     }
     // Hardcode 10 for '\n'
     if (r1 === 10) {
-      op |= this.EMPTY_BEGIN_LINE
+      op |= Utils.EMPTY_BEGIN_LINE
     }
     if (r2 < 0) {
-      op |= this.EMPTY_END_TEXT | this.EMPTY_END_LINE
+      op |= Utils.EMPTY_END_TEXT | Utils.EMPTY_END_LINE
     }
 
     // Hardcode 10 for '\n'
     if (r2 === 10) {
-      op |= this.EMPTY_END_LINE
+      op |= Utils.EMPTY_END_LINE
     }
-    if (this.isWordRune(r1) !== this.isWordRune(r2)) {
-      op |= this.EMPTY_WORD_BOUNDARY
+    if (Utils.isWordRune(r1) !== Utils.isWordRune(r2)) {
+      op |= Utils.EMPTY_WORD_BOUNDARY
     } else {
-      op |= this.EMPTY_NO_WORD_BOUNDARY
+      op |= Utils.EMPTY_NO_WORD_BOUNDARY
     }
     return op
   }

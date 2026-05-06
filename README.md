@@ -613,25 +613,25 @@ Should you require maximum absolute performance on the server side when using RE
 
 Because RE2JS's Lazy DFA, Prefilter, and OnePass engines operate efficiently within V8's Just-In-Time (JIT) compiler, they can outperform native C++ bindings (`re2-node`) for many operations by avoiding the cross-boundary serialization costs between JavaScript and C++.
 
-Here is a benchmark running 30,000 items through both engines using their respective `.test()` fast-paths (averages of multiple runs):
+Here is a benchmark running 100,000 items through both engines using their respective `.test()` fast-paths (averages of multiple runs):
 
-| Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                       |
-|:--------------------------|:---------------------------|:----------------|:---------------|:-----------------------------|
-| **Simple Literal**        | `/damage/`                 | **~5.82 ms**    | ~14.08 ms      | `re2js` is **~2.42x faster** |
-| **Greedy Wildcard**       | `/enters.*battlefield/`    | **~8.44 ms**    | ~13.32 ms      | `re2js` is **~1.58x faster** |
-| **Lazy Wildcard**         | `/enters.*?battlefield/`   | **~8.43 ms**    | ~13.33 ms      | `re2js` is **~1.58x faster** |
-| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | **~7.71 ms**    | ~16.08 ms      | `re2js` is **~2.09x faster** |
-| **Massive Alternation**   | `/White\|Blue\|Black.../`  | **~11.62 ms**   | ~14.99 ms      | `re2js` is **~1.29x faster** |
-| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | **~12.20 ms**   | ~13.77 ms      | `re2js` is **~1.13x faster** |
-| **ReDoS Attempt**         | `/(a+)+!/`                 | **~5.68 ms**    | ~16.25 ms      | `re2js` is **~2.86x faster** |
-| **Case Insensitive**      | `/(?i)swamp/`              | ~18.71 ms       | **~16.22 ms**  | `re2-node` is ~1.15x faster  |
-| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | ~57.24 ms       | **~15.66 ms**  | `re2-node` is ~3.66x faster  |
+| Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                      |
+|:--------------------------|:---------------------------|:----------------|:---------------|:----------------------------|
+| **ReDoS Attempt**         | `/(a+)+!/`                 | **24.57 ms**    | 44.14 ms       | `re2js` is **1.80x** faster |
+| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | **30.02 ms**    | 43.99 ms       | `re2js` is **1.47x** faster |
+| **Simple Literal**        | `/damage/`                 | **24.89 ms**    | 34.08 ms       | `re2js` is **1.37x** faster |
+| **Greedy Wildcard**       | `/enters.*battlefield/`    | **32.35 ms**    | 35.56 ms       | `re2js` is **1.10x** faster |
+| **Lazy Wildcard**         | `/enters.*?battlefield/`   | **32.66 ms**    | 35.46 ms       | `re2js` is **1.09x** faster |
+| **Massive Alternation**   | `/White\|Blue\|Black.../`  | 40.75 ms        | **40.16 ms**   | `re2-node` is 1.01x faster  |
+| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | 42.87 ms        | **37.11 ms**   | `re2-node` is 1.16x faster  |
+| **Case Insensitive**      | `/(?i)swamp/`              | 64.01 ms        | **43.93 ms**   | `re2-node` is 1.46x faster  |
+| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 103.26 ms       | **42.44 ms**   | `re2-node` is 2.43x faster  |
 
 **Takeaways:**
-* **The Literal & Prefilter Advantage (JS wins):** For simple text searches like literals and wildcards, RE2JS's Literal Fast-Path and Prefilter Engine leverage highly optimized native JavaScript `indexOf` string scanning. By bypassing the regex state machines completely, pure JavaScript now outperforms native C++ bindings by **~1.5x to 2.4x**.
-* **State-Heavy Tasks (JS wins):** For complex state machines, massive alternations, and catastrophic backtracking (ReDoS) attempts, RE2JS operates entirely within V8's highly optimized JIT. Avoiding the JS-to-C++ N-API bridge overhead allows pure JavaScript to beat native bindings by **~1.1x to 2.8x**.
-* **Case Insensitivity (C++ wins):** Case-folded literal matching currently skips the prefilter and requires full DFA state-machine evaluation, giving C++ a slight ~1.15x edge due to raw memory scanning speeds.
-* **The Fallback Engines (C++ wins):** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA fallback is slower than the C++ NFA. **For maximum performance in RE2JS, avoid `\b` when doing bulk boolean `.test()` matching.**
+* **Pure JS Strengths:** For complex state tracking (nested groups, wildcards) and literal string scanning, `re2js` actually beats the native C++ bindings. V8's Turbofan JIT compiler is able to heavily optimize the Pure JS DFA loop, bypassing the C++ boundary entirely.
+* **C++ Strengths:** For character class evaluations (Case Insensitivity, Bounded Repetitions), `re2-node` has a slight edge thanks to highly optimized, hardware-level memory tables.
+* **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA is significantly slower than the C++ NFA.
+* **Optimization Tip:** For maximum absolute performance in RE2JS, avoid `\b` or capture groups when doing bulk boolean `.test()` matching to ensure execution stays on the DFA fast-path.
 
 ### RE2JS vs JavaScript's native RegExp
 
