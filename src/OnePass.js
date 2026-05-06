@@ -406,7 +406,7 @@ export class OnePass {
             matchcap[0] = 0
             matchcap[1] = pos
           }
-          return ncap === 0 ? [] : Array.from(matchcap)
+          return ncap === 0 ? [] : Utils.toArray(matchcap)
         }
         case Inst.RUNE:
           if (!inst.matchRune(rune)) return null
@@ -459,6 +459,7 @@ export class OnePass {
     }
 
     if (!matched) return null
-    return ncap === 0 ? [] : Array.from(matchcap)
+
+    return ncap === 0 ? [] : Utils.toArray(matchcap)
   }
 }

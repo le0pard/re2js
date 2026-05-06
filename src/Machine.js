@@ -126,7 +126,7 @@ class Machine {
       return Utils.emptyInts()
     }
     // Use subarray() to create a zero-allocation view before converting
-    return Array.from(this.matchcap.subarray(0, this.ncap))
+    return Utils.toArray(this.matchcap.subarray(0, this.ncap))
   }
 
   // alloc() allocates a new thread with the given instruction.

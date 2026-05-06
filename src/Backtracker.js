@@ -306,7 +306,7 @@ export class Backtracker {
     }
 
     // Must slice so we don't accidentally leak trailing arrays from previously recycled typed arrays
-    const result = ncap === 0 ? [] : Array.from(b.matchcap.subarray(0, ncap))
+    const result = ncap === 0 ? [] : Utils.toArray(b.matchcap.subarray(0, ncap))
     bitStatePool.push(b)
     return result
   }

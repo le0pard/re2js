@@ -152,15 +152,36 @@ class MachineUTF8Input extends MachineInputBase {
       return fromIndex <= this.end ? fromIndex : -1
     }
 
+    const firstByte = target[0]
     let limit = this.end - targetLength
-    for (let i = fromIndex; i <= limit; i++) {
-      for (let j = 0; j < targetLength; j++) {
+    // Feature detection: Native TypedArray indexOf (ES2015)
+    const hasNativeIndexOf = typeof source.indexOf === 'function'
+
+    let i = fromIndex
+    while (i <= limit) {
+      // Fast-forward to the first matching byte using C++ bindings if available
+      if (hasNativeIndexOf) {
+        i = source.indexOf(firstByte, i)
+        if (i === -1 || i > limit) return -1
+      } else {
+        // Fallback: Manual loop
+        while (i <= limit && source[i] !== firstByte) i++
+        if (i > limit) return -1
+      }
+
+      // First byte matches, verify the rest of the target sequence
+      let match = true
+      for (let j = 1; j < targetLength; j++) {
         if (source[i + j] !== target[j]) {
+          match = false
           break
-        } else if (j === targetLength - 1) {
-          return i
         }
       }
+
+      if (match) {
+        return i
+      }
+      i++
     }
 
     return -1

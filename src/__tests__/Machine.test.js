@@ -32,3 +32,25 @@ describe('Machine Thread Pooling', () => {
     expect(machine.pool.length).toBe(128)
   })
 })
+
+test('Machine submatches() returns isolated memory', () => {
+  const re = RE2.compile('(a)')
+
+  // findAllIndex reuses the exact same Machine and matchcap array internally
+  const results = re.findAllIndex('a a', -1)
+
+  expect(results).not.toBeNull()
+  expect(results.length).toBe(2)
+
+  const firstMatch = results[0]
+  const secondMatch = results[1]
+
+  // If submatches() incorrectly uses a view (like .subarray), they will have identical values.
+  expect(firstMatch).not.toEqual(secondMatch)
+
+  // Double-check memory references: mutating one should NOT mutate the other
+  const originalVal = secondMatch[0]
+  firstMatch[0] = 999
+
+  expect(secondMatch[0]).toBe(originalVal)
+})

@@ -3,6 +3,9 @@ import { Unicode } from './Unicode'
 /**
  * Various constants and helper utilities.
  */
+let cachedNativeEncoder = null
+let cachedNativeDecoder = null
+
 class Utils {
   static METACHARACTERS = '\\.+*?()|[]{}^$'
 
@@ -170,9 +173,24 @@ class Utils {
     return codePoint > Unicode.MAX_BMP ? 2 : 1
   }
 
+  /**
+   * High-speed conversion from TypedArrays to standard JS Arrays.
+   * Bypasses the expensive Symbol.iterator overhead of Array.from()
+   */
+  static toArray(typedArray) {
+    const len = typedArray.length
+    const res = new Array(len)
+    for (let i = 0; i < len; i++) {
+      res[i] = typedArray[i]
+    }
+    return res
+  }
+
   static stringToUtf8ByteArray(str) {
     if (globalThis.TextEncoder) {
-      return Array.from(new TextEncoder().encode(str))
+      if (!cachedNativeEncoder) cachedNativeEncoder = new TextEncoder()
+
+      return Utils.toArray(cachedNativeEncoder.encode(str))
     } else {
       // fallback, if no TextEncoder
       let out = [],
@@ -210,7 +228,10 @@ class Utils {
 
   static utf8ByteArrayToString(bytes) {
     if (globalThis.TextDecoder) {
-      return new TextDecoder('utf-8').decode(new Uint8Array(bytes))
+      if (!cachedNativeDecoder) cachedNativeDecoder = new TextDecoder('utf-8')
+
+      const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)
+      return cachedNativeDecoder.decode(view)
     } else {
       // fallback, if no TextDecoder
       let out = [],

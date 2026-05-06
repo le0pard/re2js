@@ -14,3 +14,28 @@ describe('MachineUTF16Input Boundary Checks', () => {
     expect(input.index(mockRE2, 0)).toBe(-1)
   })
 })
+
+test('MachineUTF8Input.indexOf fallback works without native .indexOf', () => {
+  // UTF-8 representation of "hello world"
+  const buffer = new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
+  // UTF-8 representation of "world"
+  const target = new Uint8Array([119, 111, 114, 108, 100])
+
+  // Mask the native indexOf to force the manual fallback
+  const originalIndexOf = buffer.indexOf
+  buffer.indexOf = null
+
+  try {
+    const input = MachineInput.fromUTF8(buffer)
+    const index = input.indexOf(buffer, target, 0)
+
+    expect(index).toBe(6)
+
+    // Test not found condition
+    const notFoundTarget = new Uint8Array([122, 122]) // "zz"
+    expect(input.indexOf(buffer, notFoundTarget, 0)).toBe(-1)
+  } finally {
+    // Restore the native function so we don't pollute the Jest environment
+    buffer.indexOf = originalIndexOf
+  }
+})
