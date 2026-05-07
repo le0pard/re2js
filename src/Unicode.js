@@ -50,7 +50,7 @@ class Unicode {
   // is tests whether rune is in the specified table of ranges.
   static is(ranges, r) {
     // Fast path for Latin-1 characters using linear search.
-    if (r <= this.MAX_LATIN1) {
+    if (r <= Unicode.MAX_LATIN1) {
       for (let i = 0; i < ranges.length; i++) {
         const rhi = ranges.getHi(i)
         if (r > rhi) {
@@ -69,24 +69,24 @@ class Unicode {
     }
 
     // Fallback to binary search for runes outside Latin-1
-    return ranges.length > 0 && r >= ranges.getLo(0) && this.is32(ranges, r)
+    return ranges.length > 0 && r >= ranges.getLo(0) && Unicode.is32(ranges, r)
   }
 
   // isUpper reports whether the rune is an upper case letter.
   static isUpper(r) {
-    if (r <= this.MAX_LATIN1) {
+    if (r <= Unicode.MAX_LATIN1) {
       const s = String.fromCodePoint(r)
       return s.toUpperCase() === s && s.toLowerCase() !== s
     }
-    return this.is(UnicodeTables.Upper, r)
+    return Unicode.is(UnicodeTables.Upper, r)
   }
 
   // isPrint reports whether the rune is printable (Unicode L/M/N/P/S or ' ').
   static isPrint(r) {
-    if (r <= this.MAX_LATIN1) {
-      return (r >= 0x20 && r < this.MAX_ASCII) || (r >= 0xa1 && r !== 0xad)
+    if (r <= Unicode.MAX_LATIN1) {
+      return (r >= 0x20 && r < Unicode.MAX_ASCII) || (r >= 0xa1 && r !== 0xad)
     }
-    return this.is(UnicodeTables.Print, r)
+    return Unicode.is(UnicodeTables.Print, r)
   }
 
   // simpleFold iterates over Unicode code points equivalent under
@@ -141,12 +141,13 @@ class Unicode {
 
     // Fast path for the common case where both runes are ASCII characters.
     // Coerces both runes to lowercase if applicable.
-    if (r1 <= this.MAX_ASCII && r2 <= this.MAX_ASCII) {
-      if (Codepoint.CODES.get('A') <= r1 && r1 <= Codepoint.CODES.get('Z')) {
+    if (r1 <= Unicode.MAX_ASCII && r2 <= Unicode.MAX_ASCII) {
+      // 65 is 'A', 90 is 'Z'
+      if (65 <= r1 && r1 <= 90) {
         r1 |= 0x20
       }
-
-      if (Codepoint.CODES.get('A') <= r2 && r2 <= Codepoint.CODES.get('Z')) {
+      // 65 is 'A', 90 is 'Z'
+      if (65 <= r2 && r2 <= 90) {
         r2 |= 0x20
       }
 
@@ -155,7 +156,7 @@ class Unicode {
 
     // Fall back to full Unicode case folding otherwise.
     // Invariant: r1 must be non-negative
-    for (let r = this.simpleFold(r1); r !== r1; r = this.simpleFold(r)) {
+    for (let r = Unicode.simpleFold(r1); r !== r1; r = Unicode.simpleFold(r)) {
       if (r === r2) {
         return true
       }

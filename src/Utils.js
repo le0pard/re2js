@@ -76,7 +76,7 @@ class Utils {
   static escapeRune(rune) {
     let out = ''
     if (Unicode.isPrint(rune)) {
-      if (this.METACHARACTERS.indexOf(String.fromCodePoint(rune)) >= 0) {
+      if (Utils.METACHARACTERS.indexOf(String.fromCodePoint(rune)) >= 0) {
         out += '\\'
       }
       out += String.fromCodePoint(rune)
@@ -193,7 +193,7 @@ class Utils {
     return str
       .split('') // A char loop is correct because all metacharacters fit in one UTF-16 code.
       .map((s) => {
-        if (this.METACHARACTERS.indexOf(s) >= 0) {
+        if (Utils.METACHARACTERS.indexOf(s) >= 0) {
           return `\\${s}`
         }
         return s
