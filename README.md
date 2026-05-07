@@ -630,8 +630,8 @@ Here is a benchmark running 30,000 items through both engines using their respec
 **Takeaways:**
 * **Pure JS Strengths:** For complex state tracking (nested groups, wildcards) and literal string scanning, `re2js` actually beats the native C++ bindings. V8's Turbofan JIT compiler is able to heavily optimize the Pure JS DFA loop, bypassing the C++ boundary entirely.
 * **C++ Strengths:** For character class evaluations (Case Insensitivity, Bounded Repetitions, Alternations), `re2-node` has a slight edge thanks to highly optimized, hardware-level memory tables.
-* **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA is significantly slower than the C++ NFA.
-* **Optimization Tip:** For maximum absolute performance in RE2JS, avoid `\b` or capture groups when doing bulk boolean `.test()` matching to ensure execution stays on the DFA fast-path.
+* **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA is significantly slower than the C++ NFA. **For maximum performance in RE2JS, avoid `\b` when doing bulk boolean `.test()` matching.**
+
 
 ### RE2JS vs JavaScript's native RegExp
 
