@@ -47,7 +47,7 @@ jobs:
         run: yarn test
 
   test_bun:
-    name: "Test bun@${{ matrix.bun }}"
+    name: "Test bun"
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -74,7 +74,7 @@ jobs:
         run: bun test
 
   test_deno:
-    name: "Test deno@${{ matrix.deno }}"
+    name: "Test deno"
     runs-on: ubuntu-latest
     permissions:
       contents: read
