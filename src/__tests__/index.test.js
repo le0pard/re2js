@@ -1,9 +1,9 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2JS } from '../index'
-import { RE2Flags } from '../RE2Flags'
-import { MatcherInput } from '../MatcherInput'
-import { Utils } from '../Utils'
-import { RE2JSGroupException } from '../exceptions'
+import { RE2JS } from '../index.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { MatcherInput } from '../MatcherInput.js'
+import { Utils } from '../Utils.js'
+import { RE2JSGroupException } from '../exceptions.js'
 
 it('compile', () => {
   const p = RE2JS.compile('abc')

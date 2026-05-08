@@ -1,11 +1,11 @@
 import { expect, describe, it, jest } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { DFA } from '../DFA'
-import { Backtracker } from '../Backtracker'
-import { RE2Flags } from '../RE2Flags'
-import { MachineInput } from '../MachineInput'
-import { OnePass } from '../OnePass'
-import { Prefilter } from '../Prefilter'
+import { RE2 } from '../RE2.js'
+import { DFA } from '../DFA.js'
+import { Backtracker } from '../Backtracker.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { MachineInput } from '../MachineInput.js'
+import { OnePass } from '../OnePass.js'
+import { Prefilter } from '../Prefilter.js'
 
 describe('Literal Fast-Path Routing', () => {
   it('bails out early using literal fast path for strictly literal unanchored regexes', () => {

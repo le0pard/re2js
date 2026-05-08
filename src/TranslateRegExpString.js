@@ -1,4 +1,4 @@
-import { Utils } from './Utils'
+import { Utils } from './Utils.js'
 
 /**
  * Transform JS regex string to RE2 regex string

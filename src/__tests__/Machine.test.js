@@ -1,7 +1,7 @@
 import { expect, describe, it } from '@jest/globals'
-import { Machine } from '../Machine'
-import { RE2 } from '../RE2'
-import { Inst } from '../Inst'
+import { Machine } from '../Machine.js'
+import { RE2 } from '../RE2.js'
+import { Inst } from '../Inst.js'
 
 describe('Machine Thread Pooling', () => {
   it('allocates threads in chunks of 128 to improve V8 GC locality', () => {

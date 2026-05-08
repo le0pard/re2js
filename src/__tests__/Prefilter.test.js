@@ -1,10 +1,10 @@
 import { expect, describe, it } from '@jest/globals'
-import { Parser } from '../Parser'
-import { Simplify } from '../Simplify'
-import { PrefilterTree, Prefilter } from '../Prefilter'
-import { RE2Flags } from '../RE2Flags'
-import { RE2JS } from '../index'
-import { MachineInput } from '../MachineInput'
+import { Parser } from '../Parser.js'
+import { Simplify } from '../Simplify.js'
+import { PrefilterTree, Prefilter } from '../Prefilter.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { RE2JS } from '../index.js'
+import { MachineInput } from '../MachineInput.js'
 
 // Helper to stringify the Prefilter tree for easy snapshot testing
 const dumpPrefilter = (pf) => {

@@ -1,7 +1,7 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { Parser } from '../Parser'
-import { Compiler } from '../Compiler'
+import { RE2Flags } from '../RE2Flags.js'
+import { Parser } from '../Parser.js'
+import { Compiler } from '../Compiler.js'
 
 describe('.compileRegexp', () => {
   const cases = [

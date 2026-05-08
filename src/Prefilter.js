@@ -1,6 +1,6 @@
-import { Regexp } from './Regexp'
-import { Utils } from './Utils'
-import { RE2Flags } from './RE2Flags'
+import { Regexp } from './Regexp.js'
+import { Utils } from './Utils.js'
+import { RE2Flags } from './RE2Flags.js'
 
 // High-speed, single-pass Aho-Corasick string matcher optimized for V8.
 // Builds a trie with failure links to search for multiple prefixes simultaneously.

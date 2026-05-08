@@ -1,6 +1,6 @@
-import { Inst } from './Inst'
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
+import { Inst } from './Inst.js'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
 
 // FNV-1a 32-bit hash for an array of integers.
 // Extremely fast, allocates no memory, and produces good distribution.

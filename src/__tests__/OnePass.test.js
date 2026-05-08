@@ -1,6 +1,6 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { Utils } from '../Utils'
+import { RE2 } from '../RE2.js'
+import { Utils } from '../Utils.js'
 
 describe('OnePass Compiler', () => {
   it('rejects unanchored patterns', () => {

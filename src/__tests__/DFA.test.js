@@ -1,9 +1,9 @@
 import { expect, describe, it } from '@jest/globals'
-import { DFA } from '../DFA'
-import { Compiler } from '../Compiler'
-import { Parser } from '../Parser'
-import { RE2Flags } from '../RE2Flags'
-import { MachineInput } from '../MachineInput'
+import { DFA } from '../DFA.js'
+import { Compiler } from '../Compiler.js'
+import { Parser } from '../Parser.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { MachineInput } from '../MachineInput.js'
 
 const createDFA = (pattern, flags = RE2Flags.PERL) => {
   const re = Parser.parse(pattern, flags)

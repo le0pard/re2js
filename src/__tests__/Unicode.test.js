@@ -1,7 +1,7 @@
 import { expect, describe, it } from '@jest/globals'
-import { Unicode } from '../Unicode'
-import { UnicodeTables } from '../UnicodeTables'
-import { codePoint } from '../__utils__/chars'
+import { Unicode } from '../Unicode.js'
+import { UnicodeTables } from '../UnicodeTables.js'
+import { codePoint } from '../__utils__/chars.js'
 
 describe('#isUpper', () => {
   it.each([

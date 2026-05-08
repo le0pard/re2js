@@ -1,6 +1,6 @@
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
-import { Utils } from './Utils'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
+import { Utils } from './Utils.js'
 /**
  * A "builder"-style helper class for manipulating character classes represented as an array of
  * pairs of runes [lo, hi], each denoting an inclusive interval.

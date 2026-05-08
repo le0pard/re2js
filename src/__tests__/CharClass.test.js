@@ -1,11 +1,11 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { PERL_GROUPS } from '../CharGroup'
-import { CharClass } from '../CharClass'
-import { Unicode } from '../Unicode'
-import { UnicodeRangeTable } from '../UnicodeRangeTable'
-import { Utils } from '../Utils'
-import { codePoint } from '../__utils__/chars'
+import { RE2Flags } from '../RE2Flags.js'
+import { PERL_GROUPS } from '../CharGroup.js'
+import { CharClass } from '../CharClass.js'
+import { Unicode } from '../Unicode.js'
+import { UnicodeRangeTable } from '../UnicodeRangeTable.js'
+import { Utils } from '../Utils.js'
+import { codePoint } from '../__utils__/chars.js'
 
 describe('.cleanClass', () => {
   const cases = [

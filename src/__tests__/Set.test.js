@@ -1,5 +1,5 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2JS, RE2Set } from '../index'
+import { RE2JS, RE2Set } from '../index.js'
 
 describe('RE2Set Multi-Pattern Matching', () => {
   it('matches multiple literal patterns simultaneously (Unanchored)', () => {

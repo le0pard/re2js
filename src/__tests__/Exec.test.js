@@ -4,10 +4,10 @@ import zlib from 'node:zlib'
 import readline from 'node:readline'
 
 import { expect, it } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { RE2Flags } from '../RE2Flags'
-import { Utils } from '../Utils'
-import { utf16IndicesToUtf8 } from '../__utils__/unicode'
+import { RE2 } from '../RE2.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { Utils } from '../Utils.js'
+import { utf16IndicesToUtf8 } from '../__utils__/unicode.js'
 
 const FIXTURES_DIRNAME = path.join(process.cwd(), 'src', '__fixtures__')
 

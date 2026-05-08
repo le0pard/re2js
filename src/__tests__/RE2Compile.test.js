@@ -1,6 +1,6 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { RE2Flags } from '../RE2Flags'
+import { RE2 } from '../RE2.js'
+import { RE2Flags } from '../RE2Flags.js'
 
 describe('.compile', () => {
   const cases = [

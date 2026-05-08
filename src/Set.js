@@ -1,13 +1,13 @@
-import { Compiler } from './Compiler'
-import { Parser } from './Parser'
-import { Simplify } from './Simplify'
-import { DFA } from './DFA'
-import { Machine } from './Machine'
-import { MachineInput } from './MachineInput'
-import { RE2Flags } from './RE2Flags'
-import { PublicFlags } from './PublicFlags'
-import { Utils } from './Utils'
-import { RE2JSCompileException } from './exceptions'
+import { Compiler } from './Compiler.js'
+import { Parser } from './Parser.js'
+import { Simplify } from './Simplify.js'
+import { DFA } from './DFA.js'
+import { Machine } from './Machine.js'
+import { MachineInput } from './MachineInput.js'
+import { RE2Flags } from './RE2Flags.js'
+import { PublicFlags } from './PublicFlags.js'
+import { Utils } from './Utils.js'
+import { RE2JSCompileException } from './exceptions.js'
 
 class RE2Set {
   /** @type {number} */

@@ -1,5 +1,5 @@
 import { expect, describe, it } from '@jest/globals'
-import { TranslateRegExpString } from '../TranslateRegExpString'
+import { TranslateRegExpString } from '../TranslateRegExpString.js'
 
 describe('.translate', () => {
   it.each([

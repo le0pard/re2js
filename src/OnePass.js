@@ -1,9 +1,9 @@
-import { Inst } from './Inst'
-import { Unicode } from './Unicode'
-import { RE2Flags } from './RE2Flags'
-import { Utils } from './Utils'
-import { MachineInputBase } from './MachineInput'
-import { RE2JSInternalException } from './exceptions'
+import { Inst } from './Inst.js'
+import { Unicode } from './Unicode.js'
+import { RE2Flags } from './RE2Flags.js'
+import { Utils } from './Utils.js'
+import { MachineInputBase } from './MachineInput.js'
+import { RE2JSInternalException } from './exceptions.js'
 
 class QueueOnePass {
   constructor(size) {

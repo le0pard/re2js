@@ -1,5 +1,5 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2JS } from '../index'
+import { RE2JS } from '../index.js'
 
 describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Catastrophic Backtracking Immunity (ReDoS)', () => {

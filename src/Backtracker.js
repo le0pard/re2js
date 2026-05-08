@@ -1,8 +1,8 @@
-import { Inst } from './Inst'
-import { MachineInputBase } from './MachineInput'
-import { Utils } from './Utils'
-import { RE2Flags } from './RE2Flags'
-import { RE2JSInternalException } from './exceptions'
+import { Inst } from './Inst.js'
+import { MachineInputBase } from './MachineInput.js'
+import { Utils } from './Utils.js'
+import { RE2Flags } from './RE2Flags.js'
+import { RE2JSInternalException } from './exceptions.js'
 
 const VISITED_BITS = 32
 const MAX_BACKTRACK_PROG = 500

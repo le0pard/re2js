@@ -1,8 +1,8 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { Parser } from '../Parser'
-import { Regexp } from '../Regexp'
-import { Simplify } from '../Simplify'
+import { RE2Flags } from '../RE2Flags.js'
+import { Parser } from '../Parser.js'
+import { Regexp } from '../Regexp.js'
+import { Simplify } from '../Simplify.js'
 
 describe('.simplify', () => {
   const cases = [

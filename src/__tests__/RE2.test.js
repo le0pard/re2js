@@ -1,7 +1,7 @@
 import { expect, describe, it } from '@jest/globals'
-import { MatcherInput } from '../MatcherInput'
-import { RE2Flags } from '../RE2Flags'
-import { RE2 } from '../RE2'
+import { MatcherInput } from '../MatcherInput.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { RE2 } from '../RE2.js'
 
 describe('RE2', () => {
   it('full match', () => {

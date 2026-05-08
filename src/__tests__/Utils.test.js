@@ -1,6 +1,6 @@
 import { expect, describe, it, afterEach } from '@jest/globals'
-import { Utils } from '../Utils'
-import { Codepoint } from '../Codepoint'
+import { Utils } from '../Utils.js'
+import { Codepoint } from '../Codepoint.js'
 
 describe('Utils', () => {
   describe('.escapeRune', () => {

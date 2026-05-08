@@ -1,5 +1,5 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2 } from '../RE2'
+import { RE2 } from '../RE2.js'
 
 describe('.replaceAllFunc', () => {
   const cases = [

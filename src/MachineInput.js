@@ -1,5 +1,5 @@
-import { Utils } from './Utils'
-import { Unicode } from './Unicode'
+import { Utils } from './Utils.js'
+import { Unicode } from './Unicode.js'
 
 /**
  * MachineInput abstracts different representations of the input text supplied to the Machine. It

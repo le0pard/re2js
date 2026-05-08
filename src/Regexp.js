@@ -1,8 +1,8 @@
-import { Codepoint } from './Codepoint'
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
-import { Utils } from './Utils'
-import { createEnum } from './helpers'
+import { Codepoint } from './Codepoint.js'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
+import { Utils } from './Utils.js'
+import { createEnum } from './helpers.js'
 
 /**
  * Regular expression abstract syntax tree. Produced by parser, used by compiler. NB, this

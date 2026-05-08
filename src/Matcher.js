@@ -1,9 +1,9 @@
-import { Codepoint } from './Codepoint'
-import { RE2Flags } from './RE2Flags'
-import { MachineInput } from './MachineInput'
-import { MatcherInput, MatcherInputBase } from './MatcherInput'
-import { Utils } from './Utils'
-import { RE2JSGroupException } from './exceptions'
+import { Codepoint } from './Codepoint.js'
+import { RE2Flags } from './RE2Flags.js'
+import { MachineInput } from './MachineInput.js'
+import { MatcherInput, MatcherInputBase } from './MatcherInput.js'
+import { Utils } from './Utils.js'
+import { RE2JSGroupException } from './exceptions.js'
 
 /**
  * A stateful iterator that interprets a regex {@code RE2JS} on a specific input.

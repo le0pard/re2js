@@ -1,5 +1,5 @@
-import { Codepoint } from './Codepoint'
-import { UnicodeTables } from './UnicodeTables'
+import { Codepoint } from './Codepoint.js'
+import { UnicodeTables } from './UnicodeTables.js'
 /**
  * Utilities for dealing with Unicode better than JS does.
  */

@@ -1,4 +1,4 @@
-import { Utils } from '../Utils'
+import { Utils } from '../Utils.js'
 
 export const utf16IndicesToUtf8 = (idx16, text) => {
   let idx8 = new Array(idx16.length)

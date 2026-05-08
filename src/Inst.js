@@ -1,6 +1,6 @@
-import { RE2Flags } from './RE2Flags'
-import { Utils } from './Utils'
-import { Unicode } from './Unicode'
+import { RE2Flags } from './RE2Flags.js'
+import { Utils } from './Utils.js'
+import { Unicode } from './Unicode.js'
 /**
  * A single instruction in the regular expression virtual machine.
  *

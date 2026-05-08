@@ -1,10 +1,10 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { RE2JSSyntaxException } from '../exceptions'
-import { Parser } from '../Parser'
-import { Regexp } from '../Regexp'
-import { Unicode } from '../Unicode'
-import { dumpRegexp, mkCharClass } from '../__utils__/parser'
+import { RE2Flags } from '../RE2Flags.js'
+import { RE2JSSyntaxException } from '../exceptions.js'
+import { Parser } from '../Parser.js'
+import { Regexp } from '../Regexp.js'
+import { Unicode } from '../Unicode.js'
+import { dumpRegexp, mkCharClass } from '../__utils__/parser.js'
 
 describe('.parse', () => {
   const cases = [

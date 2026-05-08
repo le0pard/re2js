@@ -1,10 +1,10 @@
 import { expect, describe, it } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { MatcherInput } from '../MatcherInput'
-import { Matcher } from '../Matcher'
-import { RE2JS } from '../index'
-import { Utils } from '../Utils'
-import { RE2JSGroupException } from '../exceptions'
+import { RE2 } from '../RE2.js'
+import { MatcherInput } from '../MatcherInput.js'
+import { Matcher } from '../Matcher.js'
+import { RE2JS } from '../index.js'
+import { Utils } from '../Utils.js'
+import { RE2JSGroupException } from '../exceptions.js'
 
 const helperTestMatchEndUTF16 = (string, num, end) => {
   const pattern = `[${string}]`
