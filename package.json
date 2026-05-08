@@ -41,8 +41,7 @@
     "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning $(yarn bin jest) -c jest.config.js",
     "test:watch": "node --experimental-vm-modules --disable-warning=ExperimentalWarning $(yarn bin jest) -c jest.config.js --watch",
     "format": "pnpify run prettier --write src tools *.config.js",
-    "test:bun": "jest -c jest.config.js",
-    "test:deno": "jest -c jest.config.js"
+    "test:deno": "jest -c jest.deno.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

@@ -74,7 +74,7 @@ jobs:
         run: bun run lint
 
       - name: Run tests
-        run: bun run test:bun
+        run: bun test
 
   test_deno:
     name: "Test deno@${{ matrix.deno }}"
