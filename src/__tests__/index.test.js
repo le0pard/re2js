@@ -1,9 +1,9 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2JS } from '../index'
-import { RE2Flags } from '../RE2Flags'
-import { MatcherInput } from '../MatcherInput'
-import { Utils } from '../Utils'
-import { RE2JSGroupException } from '../exceptions'
+import { expect, describe, it } from '@jest/globals'
+import { RE2JS } from '../index.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { MatcherInput } from '../MatcherInput.js'
+import { Utils } from '../Utils.js'
+import { RE2JSGroupException } from '../exceptions.js'
 
 it('compile', () => {
   const p = RE2JS.compile('abc')
@@ -18,7 +18,7 @@ it('compile exception with duplicate groups', () => {
 })
 
 describe('.translateRegExp', () => {
-  test.concurrent.each([
+  it.each([
     // Original Cases
     [null, null],
     [83, 83],
@@ -160,7 +160,7 @@ describe('matches no flags', () => {
     [`\\Q${source}\\E`, source, 'blah']
   ]
 
-  test.concurrent.each(cases)('regexp %p match %p and not match %p', (regexp, match, nonMatch) => {
+  it.each(cases)('regexp %p match %p and not match %p', (regexp, match, nonMatch) => {
     expect(RE2JS.matches(regexp, match)).toBe(true)
     expect(RE2JS.matches(regexp, nonMatch)).toBe(false)
     expect(RE2JS.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBe(true)
@@ -182,7 +182,7 @@ describe('matches with flags', () => {
     ['^ab.*c$', RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE, 'AB\nc', 'z']
   ]
 
-  test.concurrent.each(cases)(
+  it.each(cases)(
     'regexp %p with flags %p match %p and not match %p',
     (regexp, flags, match, nonMatch) => {
       const p = RE2JS.compile(regexp, flags)
@@ -208,19 +208,16 @@ describe('.test (Unanchored DFA Match)', () => {
     ['[0-9]+ mana', 'Add 1 mana of any color', true]
   ]
 
-  test.concurrent.each(cases)(
-    'pattern %p with input %p will return %p',
-    (pattern, input, expected) => {
-      const re = RE2JS.compile(pattern)
+  it.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
+    const re = RE2JS.compile(pattern)
 
-      // Test UTF-16 String input
-      expect(re.test(input)).toEqual(expected)
+    // Test UTF-16 String input
+    expect(re.test(input)).toEqual(expected)
 
-      // Test UTF-8 Byte Array input
-      const utf8Input = Utils.stringToUtf8ByteArray(input)
-      expect(re.test(utf8Input)).toEqual(expected)
-    }
-  )
+    // Test UTF-8 Byte Array input
+    const utf8Input = Utils.stringToUtf8ByteArray(input)
+    expect(re.test(utf8Input)).toEqual(expected)
+  })
 })
 
 describe('.testExact (Anchored DFA Match)', () => {
@@ -236,19 +233,16 @@ describe('.testExact (Anchored DFA Match)', () => {
     ['[0-9A-Fa-f]+', '1A4F-xyz', false]
   ]
 
-  test.concurrent.each(cases)(
-    'pattern %p with input %p will return %p',
-    (pattern, input, expected) => {
-      const re = RE2JS.compile(pattern)
+  it.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
+    const re = RE2JS.compile(pattern)
 
-      // Test UTF-16 String input
-      expect(re.testExact(input)).toEqual(expected)
+    // Test UTF-16 String input
+    expect(re.testExact(input)).toEqual(expected)
 
-      // Test UTF-8 Byte Array input
-      const utf8Input = Utils.stringToUtf8ByteArray(input)
-      expect(re.testExact(utf8Input)).toEqual(expected)
-    }
-  )
+    // Test UTF-8 Byte Array input
+    const utf8Input = Utils.stringToUtf8ByteArray(input)
+    expect(re.testExact(utf8Input)).toEqual(expected)
+  })
 })
 
 describe('find', () => {
@@ -264,7 +258,7 @@ describe('find', () => {
     ['^ab.*c$', RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE, 'xyz\nAB\nc\ndef', 'z']
   ]
 
-  test.concurrent.each(cases)(
+  it.each(cases)(
     'regexp %p with flags %p find %p and not find %p',
     (regexp, flags, match, nonMatch) => {
       expect(RE2JS.compile(regexp, flags).matcher(match).find()).toBe(true)
@@ -284,7 +278,7 @@ describe('split', () => {
     [':', ':a::b', ['', 'a', '', 'b']]
   ]
 
-  test.concurrent.each(cases)('regexp %p split text %p to %p', (regexp, text, expected) => {
+  it.each(cases)('regexp %p split text %p to %p', (regexp, text, expected) => {
     expect(RE2JS.compile(regexp).split(text, 0)).toEqual(expected)
   })
 })
@@ -311,12 +305,9 @@ describe('split with limit', () => {
     ['x*', 'f', 2, ['f', '']]
   ]
 
-  test.concurrent.each(cases)(
-    'regexp %p split text %p (limit %p) to %p',
-    (regexp, text, limit, expected) => {
-      expect(RE2JS.compile(regexp).split(text, limit)).toEqual(expected)
-    }
-  )
+  it.each(cases)('regexp %p split text %p (limit %p) to %p', (regexp, text, limit, expected) => {
+    expect(RE2JS.compile(regexp).split(text, limit)).toEqual(expected)
+  })
 })
 
 describe('program size', () => {
@@ -333,14 +324,14 @@ describe('program size', () => {
     ['(a+b?)(a+b?)', 14]
   ]
 
-  test.concurrent.each(cases)('pattern %p program size %p', (pattern, count) => {
+  it.each(cases)('pattern %p program size %p', (pattern, count) => {
     const p = RE2JS.compile(pattern)
     const programSize = p.programSize()
 
     expect(programSize).toEqual(count)
   })
 
-  test('taken into account LOOKBEHINDS flag', () => {
+  it('taken into account LOOKBEHINDS flag', () => {
     const p = RE2JS.compile('(?<=(a|aa)+)b', RE2JS.LOOKBEHINDS)
     expect(p.programSize()).toEqual(14)
   })
@@ -355,7 +346,7 @@ describe('group count', () => {
     ['(.*)(\\(a\\)b)(.*)a', 3]
   ]
 
-  test.concurrent.each(cases)('pattern %p have groups %p', (pattern, count) => {
+  it.each(cases)('pattern %p have groups %p', (pattern, count) => {
     const p = RE2JS.compile(pattern)
     const m1 = p.matcher('x')
     const m2 = p.matcher(Utils.stringToUtf8ByteArray('x'))
@@ -376,7 +367,7 @@ describe('named groups', () => {
     ['(?P<foo>.*)(?P<bar>.*)', { foo: 1, bar: 2 }]
   ]
 
-  test.concurrent.each(cases)('pattern %p named groups %p', (pattern, expected) => {
+  it.each(cases)('pattern %p named groups %p', (pattern, expected) => {
     expect(RE2JS.compile(pattern).namedGroups()).toEqual(expected)
   })
 
@@ -532,7 +523,7 @@ describe('replaceAll and replaceFirst', () => {
     ['[a-c]+', 'abcbcdcdedef', 'x', 'xdcdedef']
   ]
 
-  test.concurrent.each(replaceAllCases)(
+  it.each(replaceAllCases)(
     'replaceAll: pattern %p with input %p and replacement %p will return %p',
     (pattern, input, replacement, expected) => {
       const re = RE2JS.compile(pattern)
@@ -542,7 +533,7 @@ describe('replaceAll and replaceFirst', () => {
     }
   )
 
-  test.concurrent.each(replaceFirstCases)(
+  it.each(replaceFirstCases)(
     'replaceFirst: pattern %p with input %p and replacement %p will return %p',
     (pattern, input, replacement, expected) => {
       const re = RE2JS.compile(pattern)
@@ -601,7 +592,7 @@ describe('replaceAll and replaceFirst', () => {
       ]
     ]
 
-    test.concurrent.each(jsGroupCases)(
+    it.each(jsGroupCases)(
       'groups cases: pattern %p with input %p and replacement %p will return %p',
       (pattern, input, replacement, expected) => {
         const re = RE2JS.compile(pattern)
@@ -642,7 +633,7 @@ describe('replaceAll and replaceFirst', () => {
       ]
     ]
 
-    test.concurrent.each(javaGroupCases)(
+    it.each(javaGroupCases)(
       'groups cases: pattern %p with input %p and replacement %p will return %p',
       (pattern, input, replacement, expected) => {
         const re = RE2JS.compile(pattern)
@@ -669,7 +660,7 @@ describe('replaceAll and replaceFirst', () => {
   })
 })
 
-test('does not re-evaluate characters inside named groups in JS mode', () => {
+it('does not re-evaluate characters inside named groups in JS mode', () => {
   const re = RE2JS.compile('(world)')
   const m = re.matcher('hello world')
 
@@ -678,14 +669,14 @@ test('does not re-evaluate characters inside named groups in JS mode', () => {
   expect(m.replaceAll('$<na$1>')).toBe('hello $<na$1>')
 })
 
-test('does not re-evaluate characters inside malformed named groups in JS mode', () => {
+it('does not re-evaluate characters inside malformed named groups in JS mode', () => {
   const re = RE2JS.compile('(world)')
   const m = re.matcher('hello world')
 
   expect(m.replaceAll('$<na$1 ')).toBe('hello $<na$1 ')
 })
 
-test('unmatched named groups append empty string', () => {
+it('unmatched named groups append empty string', () => {
   // Regex containing two named groups.
   // Matching 'foo' will leave the 'bar' group unmatched.
   const re = RE2JS.compile('(?P<foo>foo)|(?P<bar>bar)')
@@ -702,7 +693,7 @@ test('unmatched named groups append empty string', () => {
   }
 })
 
-test("supports $` (prefix) and $' (suffix) in JS replacement mode", () => {
+it("supports $` (prefix) and $' (suffix) in JS replacement mode", () => {
   const re = RE2JS.compile('world')
 
   // Test for both UTF-16 strings and UTF-8 Byte Array targets
@@ -720,7 +711,7 @@ test("supports $` (prefix) and $' (suffix) in JS replacement mode", () => {
   }
 })
 
-test("safely evaluates $` and $' on zero-width boundary matches", () => {
+it("safely evaluates $` and $' on zero-width boundary matches", () => {
   // Edge case: matching the exact beginning of the string (0 width)
   const re = RE2JS.compile('^')
 
@@ -797,7 +788,7 @@ it('evaluates boundary conditions properly when fast-forwarding (NFA Fallback)',
   expect(re2.matcher(longString).find()).toBe(true)
 })
 
-test('testExact should strictly match the end of the string in OnePass', () => {
+it('testExact should strictly match the end of the string in OnePass', () => {
   // The '^' assertion guarantees compilation into the OnePass DFA engine.
   // testExact() forces the ANCHOR_BOTH flag under the hood.
   const re = RE2JS.compile('^foo')
@@ -807,14 +798,14 @@ test('testExact should strictly match the end of the string in OnePass', () => {
   expect(re.testExact('foobar')).toBe(false)
 })
 
-test('matches() should fail if the string is not fully consumed', () => {
+it('matches() should fail if the string is not fully consumed', () => {
   // .matches() also forces ANCHOR_BOTH
   const re = RE2JS.compile('^hello')
   expect(re.matches('hello')).toBe(true)
   expect(re.matches('hello world')).toBe(false)
 })
 
-test('does not corrupt UTF-16 surrogate pairs when stepping past zero-width matches', () => {
+it('does not corrupt UTF-16 surrogate pairs when stepping past zero-width matches', () => {
   // A regex that guarantees a match at the start and end of the string
   const re = RE2JS.compile('^|$')
   const matcher = re.matcher('😊') // Surrogate pair length 2
@@ -827,7 +818,7 @@ test('does not corrupt UTF-16 surrogate pairs when stepping past zero-width matc
   expect(matcher.start()).toBe(2)
 })
 
-test('does not catastrophically corrupt UTF-8 byte sequences', () => {
+it('does not catastrophically corrupt UTF-8 byte sequences', () => {
   const re = RE2JS.compile('^|$')
   // '日' is 3 bytes in UTF-8
   const utf8Input = Utils.stringToUtf8ByteArray('日')
@@ -841,7 +832,7 @@ test('does not catastrophically corrupt UTF-8 byte sequences', () => {
   expect(matcher.start()).toBe(3)
 })
 
-test('safely evaluates Node Buffers and Uint8Arrays without crashing', () => {
+it('safely evaluates Node Buffers and Uint8Arrays without crashing', () => {
   const re = RE2JS.compile('hello')
 
   // Uint8Array representing the UTF-8 bytes for "hello world"
@@ -861,13 +852,13 @@ test('safely evaluates Node Buffers and Uint8Arrays without crashing', () => {
   expect(m.group(0)).toBe('hello')
 })
 
-test('case-insensitive regex correctly matches supplementary characters', () => {
+it('case-insensitive regex correctly matches supplementary characters', () => {
   const re = RE2JS.compile('(?i)\\x{10400}')
 
   expect(re.test(String.fromCodePoint(0x10428))).toBe(true)
 })
 
-test('respects bounded regions for zero-width end assertions ($)', () => {
+it('respects bounded regions for zero-width end assertions ($)', () => {
   // Regex looks for "c" at the absolute end of the string ($)
   const re = RE2JS.compile('c$')
 
@@ -884,7 +875,7 @@ test('respects bounded regions for zero-width end assertions ($)', () => {
   expect(result8[0]).toBe(true)
 })
 
-test('does not swallow ASCII characters following an invalid UTF-8 sequence', () => {
+it('does not swallow ASCII characters following an invalid UTF-8 sequence', () => {
   // [0xE0, 0x41, 0x42] -> 0xE0 is an incomplete 3-byte sequence header.
   // It is immediately followed by 'A' (0x41) and 'B' (0x42).
   // The UTF-8 decoder must realize 0xE0 is invalid (because 0x41 is not a continuation byte),
@@ -897,7 +888,7 @@ test('does not swallow ASCII characters following an invalid UTF-8 sequence', ()
   expect(re.test(utf8Input)).toBe(true)
 })
 
-test('does not exceed V8 maximum call stack size on massive NFA state chains', () => {
+it('does not exceed V8 maximum call stack size on massive NFA state chains', () => {
   // Generate an extremely deep AST of ALTs and NOPs (10,000 deep).
   // We bypass the parser's 1000 repetition limit by chaining them:
   // "(?:a?){1000}(?:a?){1000}..." 10 times.

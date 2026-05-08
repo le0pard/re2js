@@ -1,5 +1,5 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2 } from '../RE2'
+import { expect, describe, it } from '@jest/globals'
+import { RE2 } from '../RE2.js'
 
 describe('.numberOfCapturingGroups', () => {
   const cases = [
@@ -16,7 +16,7 @@ describe('.numberOfCapturingGroups', () => {
     ['(?P<baz>f{0,10})(?P<bag>b{0,10})', 2]
   ]
 
-  test.concurrent.each(cases)('input %p get result %p', (input, expected) => {
+  it.each(cases)('input %p get result %p', (input, expected) => {
     expect(RE2.compile(input).numberOfCapturingGroups()).toEqual(expected)
   })
 })

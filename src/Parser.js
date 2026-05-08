@@ -1,13 +1,13 @@
-import { Codepoint } from './Codepoint'
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
-import { UnicodeTables } from './UnicodeTables'
-import { UnicodeRangeTable } from './UnicodeRangeTable'
-import { PERL_GROUPS, POSIX_GROUPS } from './CharGroup'
-import { Utils } from './Utils'
-import { CharClass } from './CharClass'
-import { RE2JSSyntaxException } from './exceptions'
-import { Regexp } from './Regexp'
+import { Codepoint } from './Codepoint.js'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
+import { UnicodeTables } from './UnicodeTables.js'
+import { UnicodeRangeTable } from './UnicodeRangeTable.js'
+import { PERL_GROUPS, POSIX_GROUPS } from './CharGroup.js'
+import { Utils } from './Utils.js'
+import { CharClass } from './CharClass.js'
+import { RE2JSSyntaxException } from './exceptions.js'
+import { Regexp } from './Regexp.js'
 
 // StringIterator: a stream of runes with an opaque cursor, permitting
 // rewinding.  The units of the cursor are not specified beyond the

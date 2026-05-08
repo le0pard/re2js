@@ -1,5 +1,5 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2 } from '../RE2'
+import { expect, describe, it } from '@jest/globals'
+import { RE2 } from '../RE2.js'
 
 describe('replaceAll and replaceFirst', () => {
   const cases = [
@@ -129,7 +129,7 @@ describe('replaceAll and replaceFirst', () => {
     ['[a-c]*', 'abcbcdcdedef', 'x', 'xdcdedef', true]
   ]
 
-  test.concurrent.each(cases)(
+  it.each(cases)(
     'pattern %p with input %p and replacement %p will return %p (only first: %p)',
     (pattern, input, replacement, expected, replaceFirst) => {
       const re = RE2.compile(pattern)

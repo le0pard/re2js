@@ -1,11 +1,12 @@
-import { RE2JS, RE2JSInternalException } from '../index'
-import { Inst } from '../Inst'
-import { Compiler } from '../Compiler'
-import { Parser } from '../Parser'
-import { MachineInput } from '../MachineInput'
-import { RE2Flags } from '../RE2Flags'
-import { RE2 } from '../RE2'
-import { Backtracker } from '../Backtracker'
+import { expect, describe, it } from '@jest/globals'
+import { RE2JS, RE2JSInternalException } from '../index.js'
+import { Inst } from '../Inst.js'
+import { Compiler } from '../Compiler.js'
+import { Parser } from '../Parser.js'
+import { MachineInput } from '../MachineInput.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { RE2 } from '../RE2.js'
+import { Backtracker } from '../Backtracker.js'
 
 describe('Backtracker Execution Engine', () => {
   it('should limit backtrack max size via maxBitStateLen constraints', () => {
@@ -99,7 +100,7 @@ describe('Backtracker Internal Exception Handling', () => {
 })
 
 describe('Backtracker Advanced Coverage', () => {
-  test('gracefully throws on unsupported Lookbehind instructions', () => {
+  it('gracefully throws on unsupported Lookbehind instructions', () => {
     // A lookbehind pattern
     const pattern = '(?<=a)b'
     const re = Parser.parse(pattern, RE2Flags.PERL | RE2Flags.LOOKBEHIND)

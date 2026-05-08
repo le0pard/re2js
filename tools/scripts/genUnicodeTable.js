@@ -5,6 +5,7 @@ import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 import { CodepointRange } from './codepointRange.js'
 
+const ASCII_SIZE = 128
 const MAX_BMP = 0xffff
 const MAX_CODE_POINT = 0x10ffff
 
@@ -71,8 +72,13 @@ const generateCaseFoldOrbits = () => {
       orbits.delete(i)
     } else if (orb.size === 2) {
       const [first, second] = Array.from(orb)
-      if (toLowerCase(first) === second && toUpperCase(second) === first) orbits.delete(i)
-      if (toUpperCase(first) === second && toLowerCase(second) === first) orbits.delete(i)
+      // Only optimize out the case folding if BOTH characters are basic ASCII (< 128).
+      // This forces all non-ASCII case folding pairs to be bundled into the static CASE_ORBIT table,
+      // guaranteeing 100% parity across Node, Deno, Bun, and Browsers regardless of their ICU data.
+      if (first < ASCII_SIZE && second < ASCII_SIZE) {
+        if (toLowerCase(first) === second && toUpperCase(second) === first) orbits.delete(i)
+        if (toUpperCase(first) === second && toLowerCase(second) === first) orbits.delete(i)
+      }
     }
   }
 

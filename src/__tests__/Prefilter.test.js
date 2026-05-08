@@ -1,10 +1,10 @@
-import { expect, describe, test, it } from '@jest/globals'
-import { Parser } from '../Parser'
-import { Simplify } from '../Simplify'
-import { PrefilterTree, Prefilter } from '../Prefilter'
-import { RE2Flags } from '../RE2Flags'
-import { RE2JS } from '../index'
-import { MachineInput } from '../MachineInput'
+import { expect, describe, it } from '@jest/globals'
+import { Parser } from '../Parser.js'
+import { Simplify } from '../Simplify.js'
+import { PrefilterTree, Prefilter } from '../Prefilter.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { RE2JS } from '../index.js'
+import { MachineInput } from '../MachineInput.js'
 
 // Helper to stringify the Prefilter tree for easy snapshot testing
 const dumpPrefilter = (pf) => {
@@ -69,7 +69,7 @@ describe('PrefilterTree.build AST Extraction', () => {
     ['a|b|c', 'NONE']
   ]
 
-  test.concurrent.each(cases)('pattern %p builds prefilter %p', (pattern, expected) => {
+  it.each(cases)('pattern %p builds prefilter %p', (pattern, expected) => {
     expect(getPrefilterDump(pattern)).toEqual(expected)
   })
 })
@@ -167,7 +167,7 @@ describe('Advanced Prefilter Evaluation', () => {
 })
 
 describe('Prefilter Aho-Corasick Automaton', () => {
-  test('safely handles Object.prototype pollution', () => {
+  it('safely handles Object.prototype pollution', () => {
     // Maliciously pollute the global Object prototype
     Object.prototype.pollutedProperty = 'hacked' // eslint-disable-line no-extend-native
 
@@ -187,7 +187,7 @@ describe('Prefilter Aho-Corasick Automaton', () => {
     delete Object.prototype.pollutedProperty
   })
 
-  test('searches UTF-8 and UTF-16 simultaneously via AhoCorasick', () => {
+  it('searches UTF-8 and UTF-16 simultaneously via AhoCorasick', () => {
     const re = Simplify.simplify(Parser.parse('foo|bar|baz', RE2Flags.PERL))
     const pf = PrefilterTree.build(re)
 

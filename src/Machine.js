@@ -1,9 +1,9 @@
-import { Codepoint } from './Codepoint'
-import { RE2Flags } from './RE2Flags'
-import { MachineInputBase } from './MachineInput'
-import { RE2JSInternalException } from './exceptions'
-import { Utils } from './Utils'
-import { Inst } from './Inst'
+import { Codepoint } from './Codepoint.js'
+import { RE2Flags } from './RE2Flags.js'
+import { MachineInputBase } from './MachineInput.js'
+import { RE2JSInternalException } from './exceptions.js'
+import { Utils } from './Utils.js'
+import { Inst } from './Inst.js'
 
 // A logical thread in the NFA.
 class Thread {

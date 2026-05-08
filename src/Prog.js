@@ -1,5 +1,5 @@
-import { RE2Flags } from './RE2Flags'
-import { Inst } from './Inst'
+import { RE2Flags } from './RE2Flags.js'
+import { Inst } from './Inst.js'
 
 /**
  * A list of instruction pointers waiting to be patched.

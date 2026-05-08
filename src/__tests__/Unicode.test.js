@@ -1,10 +1,10 @@
-import { expect, describe, test } from '@jest/globals'
-import { Unicode } from '../Unicode'
-import { UnicodeTables } from '../UnicodeTables'
-import { codePoint } from '../__utils__/chars'
+import { expect, describe, it } from '@jest/globals'
+import { Unicode } from '../Unicode.js'
+import { UnicodeTables } from '../UnicodeTables.js'
+import { codePoint } from '../__utils__/chars.js'
 
 describe('#isUpper', () => {
-  test.concurrent.each([
+  it.each([
     [115, false], // 's'
     [83, true], // 'S'
     [503, true], // 'Ƿ'
@@ -17,7 +17,7 @@ describe('#isUpper', () => {
 })
 
 describe('#isPrint', () => {
-  test.concurrent.each([
+  it.each([
     [32, true], // ' '
     [115, true], // 's'
     [83, true], // 'S'
@@ -38,7 +38,7 @@ describe('#isPrint', () => {
 })
 
 describe('#simpleFold', () => {
-  test.concurrent.each([
+  it.each([
     // 'A' <-> 'a'
     [65, 97],
     [97, 65],
@@ -84,12 +84,9 @@ const genEqualsIgnoreCases = () => {
 }
 
 describe('#equalsIgnoreCase', () => {
-  test.concurrent.each(genEqualsIgnoreCases())(
-    '#equalsIgnoreCase(%i, %i) === %p',
-    (r1, r2, expected) => {
-      expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
-    }
-  )
+  it.each(genEqualsIgnoreCases())('#equalsIgnoreCase(%i, %i) === %p', (r1, r2, expected) => {
+    expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)
+  })
 })
 
 describe('Unicode equalsIgnoreCase EOF', () => {

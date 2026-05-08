@@ -1,8 +1,8 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { Parser } from '../Parser'
-import { Regexp } from '../Regexp'
-import { Simplify } from '../Simplify'
+import { expect, describe, it } from '@jest/globals'
+import { RE2Flags } from '../RE2Flags.js'
+import { Parser } from '../Parser.js'
+import { Regexp } from '../Regexp.js'
+import { Simplify } from '../Simplify.js'
 
 describe('.simplify', () => {
   const cases = [
@@ -132,18 +132,18 @@ describe('.simplify', () => {
     ['(a|b|c){0}', '(?:)'] // 0 Repetitions resolve to EMPTY
   ]
 
-  test.concurrent.each(cases)('regex %p simplify to %p', (input, expected) => {
+  it.each(cases)('regex %p simplify to %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.MATCH_NL | (RE2Flags.PERL & ~RE2Flags.ONE_LINE))
     expect(Simplify.simplify(re).toString()).toEqual(expected)
   })
 })
 
 describe('edge cases', () => {
-  test('returns null when passed a null Regexp', () => {
+  it('returns null when passed a null Regexp', () => {
     expect(Simplify.simplify(null)).toBeNull()
   })
 
-  test('simplify1 gracefully handles returning the original AST node if flags match', () => {
+  it('simplify1 gracefully handles returning the original AST node if flags match', () => {
     const re = new Regexp(Regexp.Op.STAR)
     const sub = new Regexp(Regexp.Op.LITERAL)
     re.subs = [sub]

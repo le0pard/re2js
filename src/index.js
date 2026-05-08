@@ -1,12 +1,12 @@
-import { RE2Flags } from './RE2Flags'
-import { PublicFlags } from './PublicFlags'
-import { MatcherInput } from './MatcherInput'
-import { MachineInput } from './MachineInput'
-import { Matcher } from './Matcher'
-import { RE2 } from './RE2'
-import { RE2Set } from './Set'
-import { Utils } from './Utils'
-import { TranslateRegExpString } from './TranslateRegExpString'
+import { RE2Flags } from './RE2Flags.js'
+import { PublicFlags } from './PublicFlags.js'
+import { MatcherInput } from './MatcherInput.js'
+import { MachineInput } from './MachineInput.js'
+import { Matcher } from './Matcher.js'
+import { RE2 } from './RE2.js'
+import { RE2Set } from './Set.js'
+import { Utils } from './Utils.js'
+import { TranslateRegExpString } from './TranslateRegExpString.js'
 import {
   RE2JSException,
   RE2JSSyntaxException,
@@ -14,7 +14,7 @@ import {
   RE2JSGroupException,
   RE2JSFlagsException,
   RE2JSInternalException
-} from './exceptions'
+} from './exceptions.js'
 
 /**
  * A compiled representation of an RE2 regular expression

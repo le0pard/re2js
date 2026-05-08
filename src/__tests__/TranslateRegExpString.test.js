@@ -1,8 +1,8 @@
-import { expect, describe, test } from '@jest/globals'
-import { TranslateRegExpString } from '../TranslateRegExpString'
+import { expect, describe, it } from '@jest/globals'
+import { TranslateRegExpString } from '../TranslateRegExpString.js'
 
 describe('.translate', () => {
-  test.concurrent.each([
+  it.each([
     // Original Cases
     [null, null],
     [83, 83],

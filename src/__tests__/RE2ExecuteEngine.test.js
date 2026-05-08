@@ -1,14 +1,14 @@
-import { expect, describe, test, jest } from '@jest/globals'
-import { RE2 } from '../RE2'
-import { DFA } from '../DFA'
-import { Backtracker } from '../Backtracker'
-import { RE2Flags } from '../RE2Flags'
-import { MachineInput } from '../MachineInput'
-import { OnePass } from '../OnePass'
-import { Prefilter } from '../Prefilter'
+import { expect, describe, it, jest } from '@jest/globals'
+import { RE2 } from '../RE2.js'
+import { DFA } from '../DFA.js'
+import { Backtracker } from '../Backtracker.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { MachineInput } from '../MachineInput.js'
+import { OnePass } from '../OnePass.js'
+import { Prefilter } from '../Prefilter.js'
 
 describe('Literal Fast-Path Routing', () => {
-  test('bails out early using literal fast path for strictly literal unanchored regexes', () => {
+  it('bails out early using literal fast path for strictly literal unanchored regexes', () => {
     const prefilterSpy = jest.spyOn(Prefilter.prototype, 'eval')
     const onePassSpy = jest.spyOn(OnePass, 'execute')
     const dfaSpy = jest.spyOn(DFA.prototype, 'match')
@@ -26,7 +26,7 @@ describe('Literal Fast-Path Routing', () => {
     expect(nfaSpy).not.toHaveBeenCalled()
   })
 
-  test('literal fast path correctly calculates capture boundaries', () => {
+  it('literal fast path correctly calculates capture boundaries', () => {
     const re = RE2.compile('world')
     const result = re.findSubmatch('hello world!')
 
@@ -34,7 +34,7 @@ describe('Literal Fast-Path Routing', () => {
     expect(result[0]).toBe('world')
   })
 
-  test('literal fast path skips when captures are requested on non-zero subexp literal', () => {
+  it('literal fast path skips when captures are requested on non-zero subexp literal', () => {
     const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
 
     // This is structurally a literal ("world"), but it has a capture group!
@@ -51,7 +51,7 @@ describe('Literal Fast-Path Routing', () => {
     expect(backtrackerSpy).toHaveBeenCalledTimes(1)
   })
 
-  test('literal fast path perfectly handles ANCHOR_BOTH (testExact)', () => {
+  it('literal fast path perfectly handles ANCHOR_BOTH (testExact)', () => {
     const dfaSpy = jest.spyOn(DFA.prototype, 'match')
 
     const re = RE2.compile('hello')

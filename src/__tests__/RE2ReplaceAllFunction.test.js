@@ -1,5 +1,5 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2 } from '../RE2'
+import { expect, describe, it } from '@jest/globals'
+import { RE2 } from '../RE2.js'
 
 describe('.replaceAllFunc', () => {
   const cases = [
@@ -8,12 +8,9 @@ describe('.replaceAllFunc', () => {
     ['[a-c]*', 'defabcdef', 'xydxyexyfxabcydxyexyfxy']
   ]
 
-  test.concurrent.each(cases)(
-    'pattern %p with input %p will return %p',
-    (pattern, input, expected) => {
-      const replaceFunc = (s) => `x${s}y`
-      const re = RE2.compile(pattern)
-      expect(re.replaceAllFunc(input, replaceFunc, input.length)).toEqual(expected)
-    }
-  )
+  it.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
+    const replaceFunc = (s) => `x${s}y`
+    const re = RE2.compile(pattern)
+    expect(re.replaceAllFunc(input, replaceFunc, input.length)).toEqual(expected)
+  })
 })

@@ -1,4 +1,4 @@
-import { Utils } from '../Utils'
+import { Utils } from '../Utils.js'
 
 class Test {
   constructor(pat, text, n, ...x) {

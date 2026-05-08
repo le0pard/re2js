@@ -1,11 +1,11 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { PERL_GROUPS } from '../CharGroup'
-import { CharClass } from '../CharClass'
-import { Unicode } from '../Unicode'
-import { UnicodeRangeTable } from '../UnicodeRangeTable'
-import { Utils } from '../Utils'
-import { codePoint } from '../__utils__/chars'
+import { expect, describe, it } from '@jest/globals'
+import { RE2Flags } from '../RE2Flags.js'
+import { PERL_GROUPS } from '../CharGroup.js'
+import { CharClass } from '../CharClass.js'
+import { Unicode } from '../Unicode.js'
+import { UnicodeRangeTable } from '../UnicodeRangeTable.js'
+import { Utils } from '../Utils.js'
+import { codePoint } from '../__utils__/chars.js'
 
 describe('.cleanClass', () => {
   const cases = [
@@ -64,7 +64,7 @@ describe('.cleanClass', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('input %p, returns %p', (input, expected) => {
+  it.each(cases)('input %p, returns %p', (input, expected) => {
     expect(new CharClass(input).cleanClass().toArray()).toEqual(expected)
   })
 })
@@ -86,7 +86,7 @@ describe('.appendLiteral', () => {
     [['a', 'f'], ' ', RE2Flags.FOLD_CASE, ['a', 'f', ' ', ' ']]
   ]
 
-  test.concurrent.each(cases)(
+  it.each(cases)(
     'input %p, literal %p, flags %p, returns %p',
     (input, literal, flags, expected) => {
       expect(
@@ -119,7 +119,7 @@ describe('.appendFoldedRange', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('lo %p, hi %p, returns %p', (lo, hi, expected) => {
+  it.each(cases)('lo %p, hi %p, returns %p', (lo, hi, expected) => {
     expect(new CharClass([]).appendFoldedRange(lo, hi).toArray()).toEqual(expected)
   })
 })
@@ -131,13 +131,13 @@ describe('.appendClass', () => {
     [['c', 't'].map(codePoint), ['a', 'f'].map(codePoint), ['a', 't'].map(codePoint)]
   ]
 
-  test.concurrent.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
+  it.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
     expect(new CharClass(input).appendClass(append).toArray()).toEqual(expected)
   })
 })
 
 describe('.appendNegatedClass', () => {
-  test('return expected runes', () => {
+  it('return expected runes', () => {
     expect(
       new CharClass(['d', 'e'].map(codePoint))
         .appendNegatedClass(['b', 'f'].map(codePoint))
@@ -165,7 +165,7 @@ describe('.appendFoldedClass', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
+  it.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
     expect(new CharClass(input).appendFoldedClass(append).toArray()).toEqual(expected)
   })
 })
@@ -190,7 +190,7 @@ describe('.negateClass', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('input %p, returns %p', (input, expected) => {
+  it.each(cases)('input %p, returns %p', (input, expected) => {
     expect(new CharClass(input).negateClass().toArray()).toEqual(expected)
   })
 })
@@ -216,13 +216,13 @@ describe('.appendTable', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('input %p, table %p, returns %p', (input, table, expected) => {
+  it.each(cases)('input %p, table %p, returns %p', (input, table, expected) => {
     expect(new CharClass(input).appendTable(table).toArray()).toEqual(expected)
   })
 })
 
 describe('.appendNegatedTable', () => {
-  test('return expected runes', () => {
+  it('return expected runes', () => {
     expect(
       new CharClass([])
         .appendNegatedTable(
@@ -239,13 +239,13 @@ describe('.appendGroup', () => {
     [[], PERL_GROUPS.get('\\D'), [0, codePoint('/'), codePoint(':'), Unicode.MAX_RUNE]]
   ]
 
-  test.concurrent.each(cases)('input %p, group %p, returns %p', (input, group, expected) => {
+  it.each(cases)('input %p, group %p, returns %p', (input, group, expected) => {
     expect(new CharClass(input).appendGroup(group, false).toArray()).toEqual(expected)
   })
 })
 
 describe('.toString', () => {
-  test('return correct string', () => {
+  it('return correct string', () => {
     expect(new CharClass([10, 10, 12, 20]).toString()).toEqual('[0xa 0xc-0x14]')
     expect(new CharClass([10, 20, 30, 40]).toString()).toEqual('[0xa-0x14 0x1e-0x28]')
   })

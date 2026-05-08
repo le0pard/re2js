@@ -1,5 +1,5 @@
-import { Utils } from './Utils'
-import { createEnum } from './helpers'
+import { Utils } from './Utils.js'
+import { createEnum } from './helpers.js'
 
 /**
  * Abstract the representations of input text supplied to Matcher.

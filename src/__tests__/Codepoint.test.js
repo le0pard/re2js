@@ -1,5 +1,5 @@
 import { expect, describe, it } from '@jest/globals'
-import { Codepoint } from '../Codepoint'
+import { Codepoint } from '../Codepoint.js'
 
 describe('Codepoint', () => {
   describe('ASCII fast-path memoization', () => {
@@ -28,7 +28,7 @@ describe('Codepoint', () => {
       expect(Codepoint.toLowerCase(0x03a9)).toBe(0x03c9)
     })
 
-    test('safely transforms supplementary characters without false length bailouts', () => {
+    it('safely transforms supplementary characters without false length bailouts', () => {
       // Deseret Capital Letter Long I (U+10400)
       const upper = 0x10400
       // Deseret Small Letter Long I (U+10428)

@@ -1,5 +1,5 @@
-import { Inst } from '../Inst'
-import { RE2Flags } from '../RE2Flags'
+import { Inst } from '../Inst.js'
+import { RE2Flags } from '../RE2Flags.js'
 
 describe('Inst', () => {
   it('formats lookbehind instructions correctly', () => {

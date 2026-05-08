@@ -55,7 +55,7 @@ jobs:
       fail-fast: true
       matrix:
         bun:
-          - 'latest'
+          - '1.x'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -69,9 +69,6 @@ jobs:
 
       - name: Install Javascript dependencies
         run: bun install
-
-      - name: Run linters
-        run: bun run lint
 
       - name: Run tests
         run: bun test
@@ -97,15 +94,12 @@ jobs:
         with:
           deno-version: ${{ matrix.deno }}
 
-      - name: Apply Deno Jest/Babel Fixes
-        run: |
-          jq '.devDependencies["babel-plugin-transform-import-meta"] = "^2.2.0"' package.json > package.tmp.json
-          mv package.tmp.json package.json
-          sed -i 's/transform: {},//' jest.config.js
-          sed -i "s/plugins: \[\]/plugins: \['babel-plugin-transform-import-meta'\]/" babel.config.js
-
       - name: Install Javascript dependencies
         run: deno install --node-modules-dir=auto
+
+      - name: Apply Deno Jest fixes
+        run: |
+          sed -i 's/transform: {},//' jest.config.js
 
       - name: Run tests
         run: deno task test:deno

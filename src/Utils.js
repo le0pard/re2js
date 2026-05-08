@@ -1,5 +1,5 @@
-import { Codepoint } from './Codepoint'
-import { Unicode } from './Unicode'
+import { Codepoint } from './Codepoint.js'
+import { Unicode } from './Unicode.js'
 /**
  * Size of the precomputed single-byte lookup table.
  * Covers standard ASCII and Latin-1 characters for fast-path execution.

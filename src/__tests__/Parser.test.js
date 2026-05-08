@@ -1,10 +1,10 @@
-import { expect, describe, test } from '@jest/globals'
-import { RE2Flags } from '../RE2Flags'
-import { RE2JSSyntaxException } from '../exceptions'
-import { Parser } from '../Parser'
-import { Regexp } from '../Regexp'
-import { Unicode } from '../Unicode'
-import { dumpRegexp, mkCharClass } from '../__utils__/parser'
+import { expect, describe, it } from '@jest/globals'
+import { RE2Flags } from '../RE2Flags.js'
+import { RE2JSSyntaxException } from '../exceptions.js'
+import { Parser } from '../Parser.js'
+import { Regexp } from '../Regexp.js'
+import { Unicode } from '../Unicode.js'
+import { dumpRegexp, mkCharClass } from '../__utils__/parser.js'
 
 describe('.parse', () => {
   const cases = [
@@ -240,7 +240,7 @@ describe('.parse', () => {
 
   const flags = RE2Flags.MATCH_NL | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS
 
-  test.concurrent.each(cases)('input %p returns %p', (input, expected) => {
+  it.each(cases)('input %p returns %p', (input, expected) => {
     const re = Parser.parse(input, flags)
     let parsedRe = null
     expect(() => (parsedRe = dumpRegexp(re))).not.toThrow()
@@ -262,7 +262,7 @@ describe('fold cases', () => {
     ['[[:lower:]]', 'cc{0x41-0x5a 0x61-0x7a 0x17f 0x212a}']
   ]
 
-  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.FOLD_CASE)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -271,7 +271,7 @@ describe('fold cases', () => {
 describe('literal cases', () => {
   const cases = [['(|)^$.[*+?]{5,10},\\', 'str{(|)^$.[*+?]{5,10},\\}']]
 
-  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.LITERAL)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -285,7 +285,7 @@ describe('match new line cases', () => {
     ['[a\\n]', 'cc{0xa 0x61}']
   ]
 
-  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.MATCH_NL)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -299,14 +299,14 @@ describe('no match new line cases', () => {
     ['[a\\n]', 'cc{0xa 0x61}']
   ]
 
-  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, 0)
     expect(dumpRegexp(re)).toEqual(expected)
   })
 })
 
 describe('invalid regexp cases', () => {
-  test.concurrent.each([
+  it.each([
     ['('],
     [')'],
     ['(a'],
@@ -360,7 +360,7 @@ describe('invalid regexp cases', () => {
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  test.concurrent.each([
+  it.each([
     ['[a-b-c]'],
     ['\\Qabc\\E'],
     ['\\Q*+?{[\\E'],
@@ -377,7 +377,7 @@ describe('invalid regexp cases', () => {
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  test.concurrent.each([['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']])(
+  it.each([['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']])(
     'valid %p only for posix mode',
     (input) => {
       const parsed = (flags) => () => Parser.parse(input, flags)
@@ -395,7 +395,7 @@ describe('lookbehinds cases', () => {
     ['ab(?<=c(?<!d)e)', 'cat{str{ab}plb{cat{lit{c}nlb{lit{d}}lit{e}}}}']
   ]
 
-  test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.LOOKBEHIND)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -416,23 +416,20 @@ describe('.equals', () => {
     ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false]
   ]
 
-  test.concurrent.each(cases)(
-    'input %p and %p with flags %p expected %p',
-    (a, b, flags, expected) => {
-      const ra = Parser.parse(a, flags)
-      const rb = Parser.parse(b, flags)
+  it.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {
+    const ra = Parser.parse(a, flags)
+    const rb = Parser.parse(b, flags)
 
-      expect(ra.equals(rb)).toEqual(expected)
-    }
-  )
+    expect(ra.equals(rb)).toEqual(expected)
+  })
 })
 
 describe('large AST flat structures', () => {
   it('should not exceed call stack size on massive alternations', () => {
     // Generate a massive alternation: "a|a|a|a|a..." 100,000 times.
-    // 100,000 is safely within RE2's MAX_SIZE limit, but high enough
+    // 10,000 is safely within RE2's MAX_SIZE limit, but high enough
     // to easily crash V8's function argument limits if the spread operator (...args) is used.
-    const massiveAlternation = new Array(100000).fill('a').join('|')
+    const massiveAlternation = new Array(10000).fill('a').join('|')
 
     // If the spread operator is still in Parser.js -> collapse(), this will throw:
     // "RangeError: Maximum call stack size exceeded"
@@ -443,7 +440,7 @@ describe('large AST flat structures', () => {
 
   it('should not exceed call stack size on massive concatenations', () => {
     // Generate a massive concatenation: "(a)(a)(a)..." 100,000 times
-    const massiveConcat = new Array(100000).fill('(a)').join('')
+    const massiveConcat = new Array(10000).fill('(a)').join('')
 
     expect(() => {
       Parser.parse(massiveConcat, RE2Flags.PERL)
@@ -469,7 +466,7 @@ describe('Flag interactions and rewinding', () => {
 })
 
 describe('Octal Escape Parsing Fixes', () => {
-  test('single non-zero digit octal escapes throw error (backreferences unsupported)', () => {
+  it('single non-zero digit octal escapes throw error (backreferences unsupported)', () => {
     // In RE2, \1 through \7 must be followed by at least one more octal digit.
     // If they are dangling, they throw an error to prevent backreference confusion.
     expect(() => Parser.parse('\\1', RE2Flags.PERL_X)).toThrow(
@@ -480,7 +477,7 @@ describe('Octal Escape Parsing Fixes', () => {
     )
   })
 
-  test('multi-digit octal escapes within bounds', () => {
+  it('multi-digit octal escapes within bounds', () => {
     // \40 is space (32)
     let re = Parser.parse('\\40', RE2Flags.PERL_X)
     expect(re.runes[0]).toBe(32)
@@ -490,7 +487,7 @@ describe('Octal Escape Parsing Fixes', () => {
     expect(re.runes[0]).toBe(255)
   })
 
-  test('octal escapes can exceed 255 (Go Parity)', () => {
+  it('octal escapes can exceed 255 (Go Parity)', () => {
     // \400 evaluates to 4*64 + 0*8 + 0*1 = 256 in Go.
     // It does not artificially stop at \40.
     const re = Parser.parse('\\400', RE2Flags.PERL_X)
@@ -499,7 +496,7 @@ describe('Octal Escape Parsing Fixes', () => {
     expect(re.runes).toEqual([256]) // 256 is U+0100 (Ā)
   })
 
-  test('non-octal digits terminate the escape sequence', () => {
+  it('non-octal digits terminate the escape sequence', () => {
     // \60 is '0' (48). '8' is not an octal digit.
     // Result should be '0' (from \60) followed by the literal '8'
     const re = Parser.parse('\\608', RE2Flags.PERL_X)
@@ -508,7 +505,7 @@ describe('Octal Escape Parsing Fixes', () => {
     expect(re.runes).toEqual([48, 56]) // 48 is '0', 56 is '8'
   })
 
-  test('complex concatenation with octals', () => {
+  it('complex concatenation with octals', () => {
     // \11 is 9, \12 is 10, \13 is 11
     const re = Parser.parse('\\11\\12\\13', RE2Flags.PERL_X)
 

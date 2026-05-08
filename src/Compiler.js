@@ -1,11 +1,11 @@
-import { Codepoint } from './Codepoint'
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
-import { Utils } from './Utils'
-import { Regexp } from './Regexp'
-import { Inst } from './Inst'
-import { Prog, PatchList } from './Prog'
-import { RE2JSCompileException } from './exceptions'
+import { Codepoint } from './Codepoint.js'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
+import { Utils } from './Utils.js'
+import { Regexp } from './Regexp.js'
+import { Inst } from './Inst.js'
+import { Prog, PatchList } from './Prog.js'
+import { RE2JSCompileException } from './exceptions.js'
 
 /**
  * A fragment of a compiled regular expression program.
