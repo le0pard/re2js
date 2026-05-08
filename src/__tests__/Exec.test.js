@@ -2,7 +2,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
 import readline from 'node:readline'
-import url from 'node:url'
 
 import { expect, it } from '@jest/globals'
 import { RE2 } from '../RE2'
@@ -10,10 +9,7 @@ import { RE2Flags } from '../RE2Flags'
 import { Utils } from '../Utils'
 import { utf16IndicesToUtf8 } from '../__utils__/unicode'
 
-const FIXTURES_DIRNAME = path.join(
-  path.dirname(url.fileURLToPath(import.meta.url)),
-  '../__fixtures__'
-)
+const FIXTURES_DIRNAME = path.join(process.cwd(), 'src', '__fixtures__')
 
 const isSingleBytes = (s) => {
   for (let i = 0; i < s.length; i++) {
