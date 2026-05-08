@@ -97,14 +97,15 @@ jobs:
         with:
           deno-version: ${{ matrix.deno }}
 
-      - name: Install Javascript dependencies
-        run: deno install
-
       - name: Apply Deno Jest/Babel Fixes
         run: |
-          npm install --no-save babel-plugin-transform-import-meta
+          jq '.devDependencies["babel-plugin-transform-import-meta"] = "^2.2.0"' package.json > package.tmp.json
+          mv package.tmp.json package.json
           sed -i 's/transform: {},//' jest.config.js
           sed -i "s/plugins: \[\]/plugins: \['babel-plugin-transform-import-meta'\]/" babel.config.js
+
+      - name: Install Javascript dependencies
+        run: deno install --node-modules-dir=auto
 
       - name: Run linters
         run: deno task lint
