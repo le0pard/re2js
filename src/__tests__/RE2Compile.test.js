@@ -44,7 +44,7 @@ describe('.compile', () => {
     ['(?<!a)b', 'invalid named capture: `(?<!a)b`']
   ]
 
-  it.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
+  it.each(cases)('input %p compile raise error %p', (input, expected) => {
     const compile = () => {
       try {
         RE2.compile(input)
@@ -80,7 +80,7 @@ describe('.compile (Linear-Time Lookbehinds Enabled)', () => {
     ['(?<!a)*', null]
   ]
 
-  it.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
+  it.each(cases)('input %p compile raise error %p', (input, expected) => {
     const compile = () => {
       try {
         // Compile directly using internal flags to force lookbehinds ON

@@ -16,7 +16,7 @@ describe('.numberOfCapturingGroups', () => {
     ['(?P<baz>f{0,10})(?P<bag>b{0,10})', 2]
   ]
 
-  it.concurrent.each(cases)('input %p get result %p', (input, expected) => {
+  it.each(cases)('input %p get result %p', (input, expected) => {
     expect(RE2.compile(input).numberOfCapturingGroups()).toEqual(expected)
   })
 })

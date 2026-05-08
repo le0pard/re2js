@@ -31,7 +31,7 @@ describe('Utils', () => {
       [0x2028, '\\x{2028}'] // Line separator (Zl category, non-printable)
     ]
 
-    it.concurrent.each(cases)('rune %p escapes to %p', (rune, expected) => {
+    it.each(cases)('rune %p escapes to %p', (rune, expected) => {
       expect(Utils.escapeRune(rune)).toEqual(expected)
     })
   })
@@ -186,7 +186,7 @@ describe('Utils', () => {
       [123, [49, 50, 51]] // Implicit string coercion of numbers
     ]
 
-    it.concurrent.each(cases)('input %p returns %p', (input, expected) => {
+    it.each(cases)('input %p returns %p', (input, expected) => {
       expect(Utils.stringToRunes(input)).toEqual(expected)
     })
   })
@@ -200,7 +200,7 @@ describe('Utils', () => {
       [0x10348, '𐍈']
     ]
 
-    it.concurrent.each(cases)('rune %p returns %p', (input, expected) => {
+    it.each(cases)('rune %p returns %p', (input, expected) => {
       expect(Utils.runeToString(input)).toEqual(expected)
     })
   })

@@ -129,7 +129,7 @@ describe('replaceAll and replaceFirst', () => {
     ['[a-c]*', 'abcbcdcdedef', 'x', 'xdcdedef', true]
   ]
 
-  it.concurrent.each(cases)(
+  it.each(cases)(
     'pattern %p with input %p and replacement %p will return %p (only first: %p)',
     (pattern, input, replacement, expected, replaceFirst) => {
       const re = RE2.compile(pattern)

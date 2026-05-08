@@ -69,7 +69,7 @@ describe('PrefilterTree.build AST Extraction', () => {
     ['a|b|c', 'NONE']
   ]
 
-  it.concurrent.each(cases)('pattern %p builds prefilter %p', (pattern, expected) => {
+  it.each(cases)('pattern %p builds prefilter %p', (pattern, expected) => {
     expect(getPrefilterDump(pattern)).toEqual(expected)
   })
 })

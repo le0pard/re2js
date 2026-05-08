@@ -132,7 +132,7 @@ describe('.simplify', () => {
     ['(a|b|c){0}', '(?:)'] // 0 Repetitions resolve to EMPTY
   ]
 
-  it.concurrent.each(cases)('regex %p simplify to %p', (input, expected) => {
+  it.each(cases)('regex %p simplify to %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.MATCH_NL | (RE2Flags.PERL & ~RE2Flags.ONE_LINE))
     expect(Simplify.simplify(re).toString()).toEqual(expected)
   })

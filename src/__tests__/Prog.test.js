@@ -157,7 +157,7 @@ describe('.compileRegexp', () => {
     ]
   ]
 
-  it.concurrent.each(cases)('input %p compileRegexp to %p', (input, expected) => {
+  it.each(cases)('input %p compileRegexp to %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.PERL)
     const p = Compiler.compileRegexp(re)
     expect(p.toString()).toEqual(expected)

@@ -31,7 +31,7 @@ describe('DFA', () => {
       ['a.*b', 'axyzb', true]
     ]
 
-    it.concurrent.each(cases)('pattern %p with input %p returns %p', (pattern, text, expected) => {
+    it.each(cases)('pattern %p with input %p returns %p', (pattern, text, expected) => {
       const dfa = createDFA(pattern)
       expect(runDFA(dfa, text)).toEqual(expected)
     })
@@ -46,7 +46,7 @@ describe('DFA', () => {
       ['abc', 'xyzabc', RE2Flags.UNANCHORED, true]
     ]
 
-    it.concurrent.each(cases)(
+    it.each(cases)(
       'pattern %p with input %p (anchor %p) returns %p',
       (pattern, text, anchor, expected) => {
         const dfa = createDFA(pattern)
@@ -62,7 +62,7 @@ describe('DFA', () => {
       ['a+', 'AaA', true]
     ]
 
-    it.concurrent.each(cases)('pattern %p with input %p returns %p', (pattern, text, expected) => {
+    it.each(cases)('pattern %p with input %p returns %p', (pattern, text, expected) => {
       const dfa = createDFA(pattern, RE2Flags.PERL | RE2Flags.FOLD_CASE)
       expect(runDFA(dfa, text)).toEqual(expected)
     })

@@ -2,7 +2,7 @@ import { expect, describe, it } from '@jest/globals'
 import { TranslateRegExpString } from '../TranslateRegExpString'
 
 describe('.translate', () => {
-  it.concurrent.each([
+  it.each([
     // Original Cases
     [null, null],
     [83, 83],

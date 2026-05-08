@@ -18,7 +18,7 @@ const cases = [
   ]
 ]
 
-it.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
+it.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
   const quoted = Utils.quoteMeta(pattern)
   expect(Utils.quoteMeta(pattern)).toEqual(output)
   expect(RE2JS.quote(pattern)).toEqual(output)
@@ -31,7 +31,7 @@ it.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, outpu
   }
 })
 
-it.concurrent.each(cases)(
+it.each(cases)(
   'literal prefix: pattern %p quoted to %p and literal %p (isLiteral: %p)',
   (pattern, output, literal, isLiteral) => {
     const re = RE2.compile(pattern)

@@ -18,7 +18,7 @@ it('compile exception with duplicate groups', () => {
 })
 
 describe('.translateRegExp', () => {
-  it.concurrent.each([
+  it.each([
     // Original Cases
     [null, null],
     [83, 83],
@@ -160,7 +160,7 @@ describe('matches no flags', () => {
     [`\\Q${source}\\E`, source, 'blah']
   ]
 
-  it.concurrent.each(cases)('regexp %p match %p and not match %p', (regexp, match, nonMatch) => {
+  it.each(cases)('regexp %p match %p and not match %p', (regexp, match, nonMatch) => {
     expect(RE2JS.matches(regexp, match)).toBe(true)
     expect(RE2JS.matches(regexp, nonMatch)).toBe(false)
     expect(RE2JS.matches(regexp, Utils.stringToUtf8ByteArray(match))).toBe(true)
@@ -182,7 +182,7 @@ describe('matches with flags', () => {
     ['^ab.*c$', RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE, 'AB\nc', 'z']
   ]
 
-  it.concurrent.each(cases)(
+  it.each(cases)(
     'regexp %p with flags %p match %p and not match %p',
     (regexp, flags, match, nonMatch) => {
       const p = RE2JS.compile(regexp, flags)
@@ -208,19 +208,16 @@ describe('.test (Unanchored DFA Match)', () => {
     ['[0-9]+ mana', 'Add 1 mana of any color', true]
   ]
 
-  it.concurrent.each(cases)(
-    'pattern %p with input %p will return %p',
-    (pattern, input, expected) => {
-      const re = RE2JS.compile(pattern)
+  it.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
+    const re = RE2JS.compile(pattern)
 
-      // Test UTF-16 String input
-      expect(re.test(input)).toEqual(expected)
+    // Test UTF-16 String input
+    expect(re.test(input)).toEqual(expected)
 
-      // Test UTF-8 Byte Array input
-      const utf8Input = Utils.stringToUtf8ByteArray(input)
-      expect(re.test(utf8Input)).toEqual(expected)
-    }
-  )
+    // Test UTF-8 Byte Array input
+    const utf8Input = Utils.stringToUtf8ByteArray(input)
+    expect(re.test(utf8Input)).toEqual(expected)
+  })
 })
 
 describe('.testExact (Anchored DFA Match)', () => {
@@ -236,19 +233,16 @@ describe('.testExact (Anchored DFA Match)', () => {
     ['[0-9A-Fa-f]+', '1A4F-xyz', false]
   ]
 
-  it.concurrent.each(cases)(
-    'pattern %p with input %p will return %p',
-    (pattern, input, expected) => {
-      const re = RE2JS.compile(pattern)
+  it.each(cases)('pattern %p with input %p will return %p', (pattern, input, expected) => {
+    const re = RE2JS.compile(pattern)
 
-      // Test UTF-16 String input
-      expect(re.testExact(input)).toEqual(expected)
+    // Test UTF-16 String input
+    expect(re.testExact(input)).toEqual(expected)
 
-      // Test UTF-8 Byte Array input
-      const utf8Input = Utils.stringToUtf8ByteArray(input)
-      expect(re.testExact(utf8Input)).toEqual(expected)
-    }
-  )
+    // Test UTF-8 Byte Array input
+    const utf8Input = Utils.stringToUtf8ByteArray(input)
+    expect(re.testExact(utf8Input)).toEqual(expected)
+  })
 })
 
 describe('find', () => {
@@ -264,7 +258,7 @@ describe('find', () => {
     ['^ab.*c$', RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE, 'xyz\nAB\nc\ndef', 'z']
   ]
 
-  it.concurrent.each(cases)(
+  it.each(cases)(
     'regexp %p with flags %p find %p and not find %p',
     (regexp, flags, match, nonMatch) => {
       expect(RE2JS.compile(regexp, flags).matcher(match).find()).toBe(true)
@@ -284,7 +278,7 @@ describe('split', () => {
     [':', ':a::b', ['', 'a', '', 'b']]
   ]
 
-  it.concurrent.each(cases)('regexp %p split text %p to %p', (regexp, text, expected) => {
+  it.each(cases)('regexp %p split text %p to %p', (regexp, text, expected) => {
     expect(RE2JS.compile(regexp).split(text, 0)).toEqual(expected)
   })
 })
@@ -311,12 +305,9 @@ describe('split with limit', () => {
     ['x*', 'f', 2, ['f', '']]
   ]
 
-  it.concurrent.each(cases)(
-    'regexp %p split text %p (limit %p) to %p',
-    (regexp, text, limit, expected) => {
-      expect(RE2JS.compile(regexp).split(text, limit)).toEqual(expected)
-    }
-  )
+  it.each(cases)('regexp %p split text %p (limit %p) to %p', (regexp, text, limit, expected) => {
+    expect(RE2JS.compile(regexp).split(text, limit)).toEqual(expected)
+  })
 })
 
 describe('program size', () => {
@@ -333,7 +324,7 @@ describe('program size', () => {
     ['(a+b?)(a+b?)', 14]
   ]
 
-  it.concurrent.each(cases)('pattern %p program size %p', (pattern, count) => {
+  it.each(cases)('pattern %p program size %p', (pattern, count) => {
     const p = RE2JS.compile(pattern)
     const programSize = p.programSize()
 
@@ -355,7 +346,7 @@ describe('group count', () => {
     ['(.*)(\\(a\\)b)(.*)a', 3]
   ]
 
-  it.concurrent.each(cases)('pattern %p have groups %p', (pattern, count) => {
+  it.each(cases)('pattern %p have groups %p', (pattern, count) => {
     const p = RE2JS.compile(pattern)
     const m1 = p.matcher('x')
     const m2 = p.matcher(Utils.stringToUtf8ByteArray('x'))
@@ -376,7 +367,7 @@ describe('named groups', () => {
     ['(?P<foo>.*)(?P<bar>.*)', { foo: 1, bar: 2 }]
   ]
 
-  it.concurrent.each(cases)('pattern %p named groups %p', (pattern, expected) => {
+  it.each(cases)('pattern %p named groups %p', (pattern, expected) => {
     expect(RE2JS.compile(pattern).namedGroups()).toEqual(expected)
   })
 
@@ -532,7 +523,7 @@ describe('replaceAll and replaceFirst', () => {
     ['[a-c]+', 'abcbcdcdedef', 'x', 'xdcdedef']
   ]
 
-  it.concurrent.each(replaceAllCases)(
+  it.each(replaceAllCases)(
     'replaceAll: pattern %p with input %p and replacement %p will return %p',
     (pattern, input, replacement, expected) => {
       const re = RE2JS.compile(pattern)
@@ -542,7 +533,7 @@ describe('replaceAll and replaceFirst', () => {
     }
   )
 
-  it.concurrent.each(replaceFirstCases)(
+  it.each(replaceFirstCases)(
     'replaceFirst: pattern %p with input %p and replacement %p will return %p',
     (pattern, input, replacement, expected) => {
       const re = RE2JS.compile(pattern)
@@ -601,7 +592,7 @@ describe('replaceAll and replaceFirst', () => {
       ]
     ]
 
-    it.concurrent.each(jsGroupCases)(
+    it.each(jsGroupCases)(
       'groups cases: pattern %p with input %p and replacement %p will return %p',
       (pattern, input, replacement, expected) => {
         const re = RE2JS.compile(pattern)
@@ -642,7 +633,7 @@ describe('replaceAll and replaceFirst', () => {
       ]
     ]
 
-    it.concurrent.each(javaGroupCases)(
+    it.each(javaGroupCases)(
       'groups cases: pattern %p with input %p and replacement %p will return %p',
       (pattern, input, replacement, expected) => {
         const re = RE2JS.compile(pattern)

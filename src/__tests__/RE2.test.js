@@ -38,7 +38,7 @@ describe('RE2', () => {
     return [MatcherInput.utf8(s), MatcherInput.utf16(s)]
   }
 
-  it.concurrent.each(findEndCases())('find end for %p', (input) => {
+  it.each(findEndCases())('find end for %p', (input) => {
     const r = RE2.initTest('abc.*def')
 
     expect(r.matchWithGroup(input, 0, 15, RE2Flags.UNANCHORED, 0)).toEqual([true, []])
@@ -54,7 +54,7 @@ describe('RE2', () => {
     return [MatcherInput.utf8(s), MatcherInput.utf16(s)]
   }
 
-  it.concurrent.each(findGroupCases())('find group for %p', (input) => {
+  it.each(findGroupCases())('find group for %p', (input) => {
     const r = RE2.initTest('(?P<test>abc).*def')
 
     expect(r.matchWithGroup(input, 0, 15, RE2Flags.UNANCHORED, 1)).toEqual([true, [3, 12]])

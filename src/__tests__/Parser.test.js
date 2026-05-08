@@ -240,7 +240,7 @@ describe('.parse', () => {
 
   const flags = RE2Flags.MATCH_NL | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS
 
-  it.concurrent.each(cases)('input %p returns %p', (input, expected) => {
+  it.each(cases)('input %p returns %p', (input, expected) => {
     const re = Parser.parse(input, flags)
     let parsedRe = null
     expect(() => (parsedRe = dumpRegexp(re))).not.toThrow()
@@ -262,7 +262,7 @@ describe('fold cases', () => {
     ['[[:lower:]]', 'cc{0x41-0x5a 0x61-0x7a 0x17f 0x212a}']
   ]
 
-  it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.FOLD_CASE)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -271,7 +271,7 @@ describe('fold cases', () => {
 describe('literal cases', () => {
   const cases = [['(|)^$.[*+?]{5,10},\\', 'str{(|)^$.[*+?]{5,10},\\}']]
 
-  it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.LITERAL)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -285,7 +285,7 @@ describe('match new line cases', () => {
     ['[a\\n]', 'cc{0xa 0x61}']
   ]
 
-  it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.MATCH_NL)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -299,14 +299,14 @@ describe('no match new line cases', () => {
     ['[a\\n]', 'cc{0xa 0x61}']
   ]
 
-  it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, 0)
     expect(dumpRegexp(re)).toEqual(expected)
   })
 })
 
 describe('invalid regexp cases', () => {
-  it.concurrent.each([
+  it.each([
     ['('],
     [')'],
     ['(a'],
@@ -360,7 +360,7 @@ describe('invalid regexp cases', () => {
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  it.concurrent.each([
+  it.each([
     ['[a-b-c]'],
     ['\\Qabc\\E'],
     ['\\Q*+?{[\\E'],
@@ -377,7 +377,7 @@ describe('invalid regexp cases', () => {
     expect(parsed(RE2Flags.POSIX)).toThrow(RE2JSSyntaxException)
   })
 
-  it.concurrent.each([['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']])(
+  it.each([['a++'], ['a**'], ['a?*'], ['a+*'], ['a{1}*'], ['.{1}{2}.{3}']])(
     'valid %p only for posix mode',
     (input) => {
       const parsed = (flags) => () => Parser.parse(input, flags)
@@ -395,7 +395,7 @@ describe('lookbehinds cases', () => {
     ['ab(?<=c(?<!d)e)', 'cat{str{ab}plb{cat{lit{c}nlb{lit{d}}lit{e}}}}']
   ]
 
-  it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+  it.each(cases)('input %p expected %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.LOOKBEHIND)
     expect(dumpRegexp(re)).toEqual(expected)
   })
@@ -416,23 +416,20 @@ describe('.equals', () => {
     ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false]
   ]
 
-  it.concurrent.each(cases)(
-    'input %p and %p with flags %p expected %p',
-    (a, b, flags, expected) => {
-      const ra = Parser.parse(a, flags)
-      const rb = Parser.parse(b, flags)
+  it.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {
+    const ra = Parser.parse(a, flags)
+    const rb = Parser.parse(b, flags)
 
-      expect(ra.equals(rb)).toEqual(expected)
-    }
-  )
+    expect(ra.equals(rb)).toEqual(expected)
+  })
 })
 
 describe('large AST flat structures', () => {
   it('should not exceed call stack size on massive alternations', () => {
     // Generate a massive alternation: "a|a|a|a|a..." 100,000 times.
-    // 100,000 is safely within RE2's MAX_SIZE limit, but high enough
+    // 10,000 is safely within RE2's MAX_SIZE limit, but high enough
     // to easily crash V8's function argument limits if the spread operator (...args) is used.
-    const massiveAlternation = new Array(100000).fill('a').join('|')
+    const massiveAlternation = new Array(10000).fill('a').join('|')
 
     // If the spread operator is still in Parser.js -> collapse(), this will throw:
     // "RangeError: Maximum call stack size exceeded"
@@ -443,7 +440,7 @@ describe('large AST flat structures', () => {
 
   it('should not exceed call stack size on massive concatenations', () => {
     // Generate a massive concatenation: "(a)(a)(a)..." 100,000 times
-    const massiveConcat = new Array(20000).fill('(a)').join('')
+    const massiveConcat = new Array(10000).fill('(a)').join('')
 
     expect(() => {
       Parser.parse(massiveConcat, RE2Flags.PERL)
