@@ -1,5 +1,5 @@
-import { MatcherInputBase, MatcherInput } from '../MatcherInput'
 import { expect, describe, test } from '@jest/globals'
+import { MatcherInputBase, MatcherInput } from '../MatcherInput'
 
 describe('MatcherInputBase', () => {
   test('throws Not Implemented error when base class methods are accessed directly', () => {

@@ -1,6 +1,6 @@
+import { expect, describe, test } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { Utils } from '../Utils'
-import { expect, describe, test } from '@jest/globals'
 
 describe('OnePass Compiler', () => {
   test('rejects unanchored patterns', () => {

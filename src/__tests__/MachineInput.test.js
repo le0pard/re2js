@@ -1,5 +1,5 @@
-import { MachineInput } from '../MachineInput'
 import { expect, describe, test } from '@jest/globals'
+import { MachineInput } from '../MachineInput'
 
 describe('MachineUTF16Input Boundary Checks', () => {
   test('does not report literal prefix matches that exceed the bounded substring', () => {

@@ -1,5 +1,5 @@
-import { RE2JS, RE2Set } from '../index'
 import { expect, describe, test } from '@jest/globals'
+import { RE2JS, RE2Set } from '../index'
 
 // more info - https://systemf.epfl.ch/blog/re2-lookbehinds/
 describe('Lookbehinds (Linear Time EPFL Algorithm)', () => {

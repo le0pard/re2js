@@ -1,6 +1,6 @@
+import { expect, describe, test } from '@jest/globals'
 import { Unicode } from '../Unicode'
 import { UnicodeRangeTable } from '../UnicodeRangeTable'
-import { expect, describe, test } from '@jest/globals'
 
 describe('Unicode.is Range Lookups', () => {
   const mockTable = new UnicodeRangeTable(

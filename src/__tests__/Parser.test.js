@@ -1,10 +1,10 @@
+import { expect, describe, test } from '@jest/globals'
 import { RE2Flags } from '../RE2Flags'
 import { RE2JSSyntaxException } from '../exceptions'
 import { Parser } from '../Parser'
 import { Regexp } from '../Regexp'
 import { Unicode } from '../Unicode'
 import { dumpRegexp, mkCharClass } from '../__utils__/parser'
-import { expect, describe, test } from '@jest/globals'
 
 describe('.parse', () => {
   const cases = [

@@ -1,5 +1,5 @@
-import { Codepoint } from '../Codepoint'
 import { expect, describe, it } from '@jest/globals'
+import { Codepoint } from '../Codepoint'
 
 describe('Codepoint', () => {
   describe('ASCII fast-path memoization', () => {

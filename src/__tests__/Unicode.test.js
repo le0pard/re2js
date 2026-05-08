@@ -1,7 +1,7 @@
+import { expect, describe, test } from '@jest/globals'
 import { Unicode } from '../Unicode'
 import { UnicodeTables } from '../UnicodeTables'
 import { codePoint } from '../__utils__/chars'
-import { expect, describe, test } from '@jest/globals'
 
 describe('#isUpper', () => {
   test.concurrent.each([

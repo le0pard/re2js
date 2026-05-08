@@ -1,3 +1,4 @@
+import { expect, describe, test, jest } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { DFA } from '../DFA'
 import { Backtracker } from '../Backtracker'
@@ -5,7 +6,6 @@ import { RE2Flags } from '../RE2Flags'
 import { MachineInput } from '../MachineInput'
 import { OnePass } from '../OnePass'
 import { Prefilter } from '../Prefilter'
-import { expect, describe, test, jest } from '@jest/globals'
 
 describe('Literal Fast-Path Routing', () => {
   test('bails out early using literal fast path for strictly literal unanchored regexes', () => {

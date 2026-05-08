@@ -1,5 +1,5 @@
-import { RE2JS, RE2Set } from '../index'
 import { expect, describe, test } from '@jest/globals'
+import { RE2JS, RE2Set } from '../index'
 
 describe('RE2Set Multi-Pattern Matching', () => {
   test('matches multiple literal patterns simultaneously (Unanchored)', () => {

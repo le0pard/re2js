@@ -1,3 +1,4 @@
+import { expect, describe, test } from '@jest/globals'
 import { RE2Flags } from '../RE2Flags'
 import { PERL_GROUPS } from '../CharGroup'
 import { CharClass } from '../CharClass'
@@ -5,7 +6,6 @@ import { Unicode } from '../Unicode'
 import { UnicodeRangeTable } from '../UnicodeRangeTable'
 import { Utils } from '../Utils'
 import { codePoint } from '../__utils__/chars'
-import { expect, describe, test } from '@jest/globals'
 
 describe('.cleanClass', () => {
   const cases = [

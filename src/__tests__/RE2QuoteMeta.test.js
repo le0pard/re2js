@@ -1,7 +1,7 @@
+import { expect, test } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { RE2JS } from '../index'
 import { Utils } from '../Utils'
-import { expect, test } from '@jest/globals'
 
 const cases = [
   ['', '', '', true],
