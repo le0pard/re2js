@@ -71,8 +71,13 @@ const generateCaseFoldOrbits = () => {
       orbits.delete(i)
     } else if (orb.size === 2) {
       const [first, second] = Array.from(orb)
-      if (toLowerCase(first) === second && toUpperCase(second) === first) orbits.delete(i)
-      if (toUpperCase(first) === second && toLowerCase(second) === first) orbits.delete(i)
+      // Only optimize out the case folding if BOTH characters are basic ASCII (< 128).
+      // This forces all non-ASCII case folding pairs to be bundled into the static CASE_ORBIT table,
+      // guaranteeing 100% parity across Node, Deno, Bun, and Browsers regardless of their ICU data.
+      if (first < 128 && second < 128) {
+        if (toLowerCase(first) === second && toUpperCase(second) === first) orbits.delete(i)
+        if (toUpperCase(first) === second && toLowerCase(second) === first) orbits.delete(i)
+      }
     }
   }
 
