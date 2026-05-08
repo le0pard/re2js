@@ -55,7 +55,7 @@ describe('Utils', () => {
       globalThis.TextDecoder = OriginalTextDecoder
     })
 
-    test.each(textCases)('Native implementation correctly processes %p', (text) => {
+    it.each(textCases)('Native implementation correctly processes %p', (text) => {
       // Ensure native globals are available
       expect(globalThis.TextEncoder).toBeDefined()
       expect(globalThis.TextDecoder).toBeDefined()
@@ -68,7 +68,7 @@ describe('Utils', () => {
       expect(decodedText).toEqual(text)
     })
 
-    test.each(textCases)('Fallback polyfill implementation correctly processes %p', (text) => {
+    it.each(textCases)('Fallback polyfill implementation correctly processes %p', (text) => {
       // Temporarily delete native implementations to force the fallback logic
       delete globalThis.TextEncoder
       delete globalThis.TextDecoder

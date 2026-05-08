@@ -4,7 +4,7 @@ import zlib from 'node:zlib'
 import readline from 'node:readline'
 import url from 'node:url'
 
-import { expect } from '@jest/globals'
+import { expect, it } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { RE2Flags } from '../RE2Flags'
 import { Utils } from '../Utils'
