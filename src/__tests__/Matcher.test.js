@@ -343,9 +343,7 @@ describe('invalid find', () => {
 })
 
 it('throws on null input reset', () => {
-  expect(() => new Matcher(RE2JS.compile('pattern'), null)).toThrow(
-    'Cannot read properties of null'
-  )
+  expect(() => new Matcher(RE2JS.compile('pattern'), null)).toThrow(TypeError)
 })
 
 it('throws on null input ctor', () => {

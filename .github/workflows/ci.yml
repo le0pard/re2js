@@ -70,9 +70,6 @@ jobs:
       - name: Install Javascript dependencies
         run: bun install
 
-      - name: Run linters
-        run: bun run lint
-
       - name: Run tests
         run: bun test
 

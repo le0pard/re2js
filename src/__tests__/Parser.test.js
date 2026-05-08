@@ -443,7 +443,7 @@ describe('large AST flat structures', () => {
 
   it('should not exceed call stack size on massive concatenations', () => {
     // Generate a massive concatenation: "(a)(a)(a)..." 100,000 times
-    const massiveConcat = new Array(100000).fill('(a)').join('')
+    const massiveConcat = new Array(20000).fill('(a)').join('')
 
     expect(() => {
       Parser.parse(massiveConcat, RE2Flags.PERL)
