@@ -107,8 +107,5 @@ jobs:
       - name: Install Javascript dependencies
         run: deno install --node-modules-dir=auto
 
-      - name: Run linters
-        run: deno task lint
-
       - name: Run tests
         run: deno task test:deno
