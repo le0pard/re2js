@@ -94,12 +94,12 @@ jobs:
         with:
           deno-version: ${{ matrix.deno }}
 
+      - name: Install Javascript dependencies
+        run: deno install --node-modules-dir=auto
+
       - name: Apply Deno Jest fixes
         run: |
           sed -i 's/transform: {},//' jest.config.js
 
-      - name: Install Javascript dependencies
-        run: deno install --node-modules-dir=auto
-
       - name: Run tests
-        run: deno test --allow-read --allow-env
+        run: deno task test:deno
