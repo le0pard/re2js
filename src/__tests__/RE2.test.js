@@ -1,10 +1,10 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { MatcherInput } from '../MatcherInput'
 import { RE2Flags } from '../RE2Flags'
 import { RE2 } from '../RE2'
 
 describe('RE2', () => {
-  test('full match', () => {
+  it('full match', () => {
     expect(RE2.initTest('ab+c').matchWithGroup('abbbbbc', 0, 7, RE2Flags.ANCHOR_BOTH, 0)).toEqual([
       true,
       []
@@ -38,7 +38,7 @@ describe('RE2', () => {
     return [MatcherInput.utf8(s), MatcherInput.utf16(s)]
   }
 
-  test.concurrent.each(findEndCases())('find end for %p', (input) => {
+  it.concurrent.each(findEndCases())('find end for %p', (input) => {
     const r = RE2.initTest('abc.*def')
 
     expect(r.matchWithGroup(input, 0, 15, RE2Flags.UNANCHORED, 0)).toEqual([true, []])
@@ -54,7 +54,7 @@ describe('RE2', () => {
     return [MatcherInput.utf8(s), MatcherInput.utf16(s)]
   }
 
-  test.concurrent.each(findGroupCases())('find group for %p', (input) => {
+  it.concurrent.each(findGroupCases())('find group for %p', (input) => {
     const r = RE2.initTest('(?P<test>abc).*def')
 
     expect(r.matchWithGroup(input, 0, 15, RE2Flags.UNANCHORED, 1)).toEqual([true, [3, 12]])

@@ -1,10 +1,10 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { Machine } from '../Machine'
 import { RE2 } from '../RE2'
 import { Inst } from '../Inst'
 
 describe('Machine Thread Pooling', () => {
-  test('allocates threads in chunks of 128 to improve V8 GC locality', () => {
+  it('allocates threads in chunks of 128 to improve V8 GC locality', () => {
     const re = RE2.compile('a')
     const machine = Machine.fromRE2(re)
 
@@ -33,7 +33,7 @@ describe('Machine Thread Pooling', () => {
   })
 })
 
-test('Machine submatches() returns isolated memory', () => {
+it('Machine submatches() returns isolated memory', () => {
   const re = RE2.compile('(a)')
 
   // findAllIndex reuses the exact same Machine and matchcap array internally

@@ -1,3 +1,4 @@
+import { expect, describe, it } from '@jest/globals'
 import { RE2JS, RE2JSInternalException } from '../index'
 import { Inst } from '../Inst'
 import { Compiler } from '../Compiler'
@@ -99,7 +100,7 @@ describe('Backtracker Internal Exception Handling', () => {
 })
 
 describe('Backtracker Advanced Coverage', () => {
-  test('gracefully throws on unsupported Lookbehind instructions', () => {
+  it('gracefully throws on unsupported Lookbehind instructions', () => {
     // A lookbehind pattern
     const pattern = '(?<=a)b'
     const re = Parser.parse(pattern, RE2Flags.PERL | RE2Flags.LOOKBEHIND)

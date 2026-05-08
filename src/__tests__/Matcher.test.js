@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { MatcherInput } from '../MatcherInput'
 import { Matcher } from '../Matcher'
@@ -33,7 +33,7 @@ describe('.lookingAt', () => {
     ['abc', 'babcdf', false]
   ]
 
-  test.concurrent.each(cases)('regexp %p for text %p will return %p', (regexp, text, expected) => {
+  it.concurrent.each(cases)('regexp %p for text %p will return %p', (regexp, text, expected) => {
     expect(RE2JS.compile(regexp).matcher(text).lookingAt()).toEqual(expected)
     expect(RE2JS.compile(regexp).matcher(Utils.stringToUtf8ByteArray(text)).lookingAt()).toEqual(
       expected
@@ -51,7 +51,7 @@ describe('.macthes', () => {
     ['ab+c', 'abbbc', 'abbcabc']
   ]
 
-  test.concurrent.each(cases)(
+  it.concurrent.each(cases)(
     'regexp %p match text %p and not match text %p',
     (regexp, match, nonMatch) => {
       const nativeRe = new RegExp(regexp)
@@ -98,16 +98,13 @@ describe('.replaceAll', () => {
       ['aab', 'a*?', '<$&>', '<>a<>a<>b<>'] // $& refers to full match
     ]
 
-    test.concurrent.each(cases)(
-      'orig %p regex %p repl %p actual %p',
-      (orig, regex, repl, actual) => {
-        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-          // Defaults to JS Mode (false)
-          expect(RE2JS.compile(regex).matcher(input).replaceAll(repl)).toEqual(actual)
-          expect(RE2JS.compile(regex).matcher(input).replaceAll(repl, false)).toEqual(actual)
-        }
+    it.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
+      for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+        // Defaults to JS Mode (false)
+        expect(RE2JS.compile(regex).matcher(input).replaceAll(repl)).toEqual(actual)
+        expect(RE2JS.compile(regex).matcher(input).replaceAll(repl, false)).toEqual(actual)
       }
-    )
+    })
   })
 
   describe('java mode (javaMode = true)', () => {
@@ -139,14 +136,11 @@ describe('.replaceAll', () => {
       ['aab', 'a*?', '<$0>', '<>a<>a<>b<>']
     ]
 
-    test.concurrent.each(cases)(
-      'orig %p regex %p repl %p actual %p',
-      (orig, regex, repl, actual) => {
-        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-          expect(RE2JS.compile(regex).matcher(input).replaceAll(repl, true)).toEqual(actual)
-        }
+    it.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
+      for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+        expect(RE2JS.compile(regex).matcher(input).replaceAll(repl, true)).toEqual(actual)
       }
-    )
+    })
   })
 })
 
@@ -178,15 +172,12 @@ describe('.replaceFirst', () => {
       ['aab', 'a*?', '<$&>', '<>aab']
     ]
 
-    test.concurrent.each(cases)(
-      'orig %p regex %p repl %p actual %p',
-      (orig, regex, repl, actual) => {
-        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-          expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl)).toEqual(actual)
-          expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl, false)).toEqual(actual)
-        }
+    it.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
+      for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+        expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl)).toEqual(actual)
+        expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl, false)).toEqual(actual)
       }
-    )
+    })
   })
 
   describe('java mode (javaMode = true)', () => {
@@ -216,14 +207,11 @@ describe('.replaceFirst', () => {
       ['aab', 'a*?', '<$0>', '<>aab']
     ]
 
-    test.concurrent.each(cases)(
-      'orig %p regex %p repl %p actual %p',
-      (orig, regex, repl, actual) => {
-        for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
-          expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl, true)).toEqual(actual)
-        }
+    it.concurrent.each(cases)('orig %p regex %p repl %p actual %p', (orig, regex, repl, actual) => {
+      for (let input of [MatcherInput.utf16(orig), MatcherInput.utf8(orig)]) {
+        expect(RE2JS.compile(regex).matcher(input).replaceFirst(repl, true)).toEqual(actual)
       }
-    )
+    })
   })
 })
 
@@ -261,7 +249,7 @@ describe('.groupCount', () => {
     ['(a)(b)(c)', 3]
   ]
 
-  test.concurrent.each(cases)('regexp %p have %p groups', (regexp, count) => {
+  it.concurrent.each(cases)('regexp %p have %p groups', (regexp, count) => {
     const re = RE2JS.compile(regexp)
 
     expect(re.groupCount()).toEqual(count)
@@ -284,7 +272,7 @@ describe('.group', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('text %p regexp %p output %p', (text, regexp, output) => {
+  it.concurrent.each(cases)('text %p regexp %p output %p', (text, regexp, output) => {
     const p = RE2JS.compile(regexp)
 
     for (let input of [MatcherInput.utf16(text), MatcherInput.utf8(text)]) {
@@ -308,7 +296,7 @@ describe('.find', () => {
     ['abcdefgh', '.*[aeiou]', 4, 'e']
   ]
 
-  test.concurrent.each(casesMatch)(
+  it.concurrent.each(casesMatch)(
     'match: text %p regexp %p start %p output %p',
     (text, regexp, start, output) => {
       const p = RE2JS.compile(regexp)
@@ -327,7 +315,7 @@ describe('.find', () => {
     ['abcdefgh', '.*[aeiou]', 7]
   ]
 
-  test.concurrent.each(casesNoMatch)(
+  it.concurrent.each(casesNoMatch)(
     'no match: text %p regexp %p start %p',
     (text, regexp, start) => {
       const p = RE2JS.compile(regexp)
@@ -576,7 +564,7 @@ describe('.quoteReplacement', () => {
       ['\\$1\\', '\\$$1\\'] // Mixed sequential
     ]
 
-    test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
       // Should default to JS mode if omitted
       expect(Matcher.quoteReplacement(input)).toEqual(expected)
       expect(Matcher.quoteReplacement(input, false)).toEqual(expected)
@@ -598,7 +586,7 @@ describe('.quoteReplacement', () => {
       ['\\$1\\', '\\\\\\$1\\\\'] // Mixed sequential
     ]
 
-    test.concurrent.each(cases)('input %p expected %p', (input, expected) => {
+    it.concurrent.each(cases)('input %p expected %p', (input, expected) => {
       expect(Matcher.quoteReplacement(input, true)).toEqual(expected)
     })
   })

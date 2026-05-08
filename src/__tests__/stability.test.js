@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { RE2JS } from '../index'
 
 describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
@@ -19,33 +19,33 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       expect(elapsed).toBeLessThan(50)
     }
 
-    test('Defeats classic nested repetition ReDoS: (a+)+b', () => {
+    it('Defeats classic nested repetition ReDoS: (a+)+b', () => {
       assertLinearTime('^(a+)+b$', `${'a'.repeat(60)}!`, false)
     })
 
-    test('Defeats overlapping alternation ReDoS: (a|a?)+', () => {
+    it('Defeats overlapping alternation ReDoS: (a|a?)+', () => {
       assertLinearTime('^(a|a?)+$', `${'a'.repeat(60)}!`, false)
     })
 
-    test('Defeats OWASP Email Validation ReDoS', () => {
+    it('Defeats OWASP Email Validation ReDoS', () => {
       const emailRegex = '^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$'
       const maliciousEmail = `${'a'.repeat(60)}@${'a'.repeat(60)}.`
       assertLinearTime(emailRegex, maliciousEmail, false)
     })
 
-    test('Defeats OWASP Whitespace / Content Exhaustion ReDoS', () => {
+    it('Defeats OWASP Whitespace / Content Exhaustion ReDoS', () => {
       const whitespaceRegex = '^.*[ \\t]+.*$'
       const maliciousWhitespace = ` ${'\\t '.repeat(40)} `
       assertLinearTime(whitespaceRegex, maliciousWhitespace, true)
     })
 
-    test('Defeats Path/URL Parsing ReDoS', () => {
+    it('Defeats Path/URL Parsing ReDoS', () => {
       const pathRegex = '^(/[^/]+)+$'
       const maliciousPath = `${'/a'.repeat(60)}/`
       assertLinearTime(pathRegex, maliciousPath, false)
     })
 
-    test('Defeats classic nested repetition ReDoS inside Lookbehinds (Failing Match): (?<=(a+)+)b', () => {
+    it('Defeats classic nested repetition ReDoS inside Lookbehinds (Failing Match): (?<=(a+)+)b', () => {
       // Lookbehinds evaluate right-to-left in standard engines, but a complex nested
       // quantifier will still trigger exponential explosion. RE2JS evaluates this in linear time.
       const regexStr = '(?<=(a+)+)b'
@@ -53,19 +53,19 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       assertLinearTime(regexStr, maliciousInput, false, RE2JS.LOOKBEHINDS)
     })
 
-    test('Defeats overlapping alternation ReDoS inside Lookbehinds (Failing Match): (?<=(a|aa)+)b', () => {
+    it('Defeats overlapping alternation ReDoS inside Lookbehinds (Failing Match): (?<=(a|aa)+)b', () => {
       const regexStr = '(?<=(a|aa)+)b'
       const maliciousInput = `${'a'.repeat(60)}!b`
       assertLinearTime(regexStr, maliciousInput, false, RE2JS.LOOKBEHINDS)
     })
 
-    test('Defeats classic nested repetition ReDoS inside Lookbehinds (Successful Match): (?<=(a+)+)b', () => {
+    it('Defeats classic nested repetition ReDoS inside Lookbehinds (Successful Match): (?<=(a+)+)b', () => {
       const regexStr = '(?<=(a+)+)b'
       const maliciousInput = `${'a'.repeat(60)}b` // The prefix perfectly matches
       assertLinearTime(regexStr, maliciousInput, true, RE2JS.LOOKBEHINDS)
     })
 
-    test('Defeats overlapping alternation ReDoS inside Lookbehinds (Successful Match): (?<=(a|aa)+)b', () => {
+    it('Defeats overlapping alternation ReDoS inside Lookbehinds (Successful Match): (?<=(a|aa)+)b', () => {
       const regexStr = '(?<=(a|aa)+)b'
       const maliciousInput = `${'a'.repeat(60)}b` // The prefix perfectly matches
       assertLinearTime(regexStr, maliciousInput, true, RE2JS.LOOKBEHINDS)
@@ -73,7 +73,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   })
 
   describe('Infinite Loop & Memory Explosion Protections', () => {
-    test('Safely matches massive strings without exceeding Call Stack Size', () => {
+    it('Safely matches massive strings without exceeding Call Stack Size', () => {
       const re = RE2JS.compile('a*b')
       // 1 million characters
       const hugeString = `${'a'.repeat(1000000)}b`
@@ -83,7 +83,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       expect(re.matches(hugeString)).toBe(true)
     })
 
-    test('Gracefully handles empty strings without crashing', () => {
+    it('Gracefully handles empty strings without crashing', () => {
       const re1 = RE2JS.compile('.*')
       expect(re1.matches('')).toBe(true)
 
@@ -91,7 +91,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       expect(re2.matches('')).toBe(false)
     })
 
-    test('Prevents infinite loops on 0-width progressions (replaceAll)', () => {
+    it('Prevents infinite loops on 0-width progressions (replaceAll)', () => {
       // If the engine doesn't advance the cursor on a 0-width match, this hangs forever.
       const re = RE2JS.compile('a?')
       const result = re.matcher('bbb').replaceAll('x')
@@ -100,7 +100,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       expect(result).toBe('xbxbxbx')
     })
 
-    test('Properly scales multi-byte surrogate pairs (Emojis) in execution', () => {
+    it('Properly scales multi-byte surrogate pairs (Emojis) in execution', () => {
       // Emojis are surrogate pairs (2 separate characters in JS UTF-16 length)
       const re = RE2JS.compile('^.$')
 
@@ -113,7 +113,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       expect(reEmoji.matches('😊🚀👽')).toBe(true)
     })
 
-    test('DFA State Explosion limits are enforced (OOM Protection)', () => {
+    it('DFA State Explosion limits are enforced (OOM Protection)', () => {
       const re = RE2JS.compile('.*a.*b.*c')
 
       // Artificially restrict the DFA state cache limit

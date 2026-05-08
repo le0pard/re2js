@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { RE2 } from '../RE2'
 
 describe('.replaceAllFunc', () => {
@@ -8,7 +8,7 @@ describe('.replaceAllFunc', () => {
     ['[a-c]*', 'defabcdef', 'xydxyexyfxabcydxyexyfxy']
   ]
 
-  test.concurrent.each(cases)(
+  it.concurrent.each(cases)(
     'pattern %p with input %p will return %p',
     (pattern, input, expected) => {
       const replaceFunc = (s) => `x${s}y`

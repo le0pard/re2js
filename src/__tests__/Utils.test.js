@@ -1,4 +1,4 @@
-import { expect, describe, test, afterEach } from '@jest/globals'
+import { expect, describe, it, afterEach } from '@jest/globals'
 import { Utils } from '../Utils'
 import { Codepoint } from '../Codepoint'
 
@@ -31,7 +31,7 @@ describe('Utils', () => {
       [0x2028, '\\x{2028}'] // Line separator (Zl category, non-printable)
     ]
 
-    test.concurrent.each(cases)('rune %p escapes to %p', (rune, expected) => {
+    it.concurrent.each(cases)('rune %p escapes to %p', (rune, expected) => {
       expect(Utils.escapeRune(rune)).toEqual(expected)
     })
   })
@@ -86,7 +86,7 @@ describe('Utils', () => {
       expect(decodedText).toEqual(text)
     })
 
-    test('Fallback decoding safely handles surrogate pairs specifically', () => {
+    it('Fallback decoding safely handles surrogate pairs specifically', () => {
       delete globalThis.TextEncoder
       delete globalThis.TextDecoder
 
@@ -105,7 +105,7 @@ describe('Utils', () => {
       expect(decodedStr).toEqual(str)
     })
 
-    test('correctly converts strings to and from UTF-8 byte arrays using fallback', () => {
+    it('correctly converts strings to and from UTF-8 byte arrays using fallback', () => {
       delete globalThis.TextEncoder
       delete globalThis.TextDecoder
 
@@ -127,7 +127,7 @@ describe('Utils', () => {
   })
 
   describe('.unhex', () => {
-    test('correctly decodes hexadecimal characters', () => {
+    it('correctly decodes hexadecimal characters', () => {
       expect(Utils.unhex(Codepoint.CODES.get('0'))).toBe(0)
       expect(Utils.unhex(Codepoint.CODES.get('9'))).toBe(9)
       expect(Utils.unhex('a'.codePointAt(0))).toBe(10)
@@ -139,31 +139,31 @@ describe('Utils', () => {
   })
 
   describe('.isByteArray', () => {
-    test('should return true for standard Arrays', () => {
+    it('should return true for standard Arrays', () => {
       expect(Utils.isByteArray([])).toBe(true)
       expect(Utils.isByteArray([1, 2, 3])).toBe(true)
       expect(Utils.isByteArray(['a', 'b', 'c'])).toBe(true)
     })
 
-    test('should return true for Uint8Array instances', () => {
+    it('should return true for Uint8Array instances', () => {
       expect(Utils.isByteArray(new Uint8Array())).toBe(true)
       expect(Utils.isByteArray(new Uint8Array([1, 2, 3]))).toBe(true)
       expect(Utils.isByteArray(new Uint8Array(new ArrayBuffer(8)))).toBe(true)
     })
 
-    test('should return false for other Typed Arrays', () => {
+    it('should return false for other Typed Arrays', () => {
       expect(Utils.isByteArray(new Int8Array([1, 2, 3]))).toBe(false)
       expect(Utils.isByteArray(new Uint16Array([1, 2, 3]))).toBe(false)
       expect(Utils.isByteArray(new Float32Array([1.5, 2.5]))).toBe(false)
     })
 
-    test('should return false for ArrayBuffers and DataViews', () => {
+    it('should return false for ArrayBuffers and DataViews', () => {
       const buffer = new ArrayBuffer(8)
       expect(Utils.isByteArray(buffer)).toBe(false)
       expect(Utils.isByteArray(new DataView(buffer))).toBe(false)
     })
 
-    test('should return false for primitives and objects', () => {
+    it('should return false for primitives and objects', () => {
       expect(Utils.isByteArray(null)).toBe(false)
       expect(Utils.isByteArray(123)).toBe(false)
       expect(Utils.isByteArray('string')).toBe(false)
@@ -186,7 +186,7 @@ describe('Utils', () => {
       [123, [49, 50, 51]] // Implicit string coercion of numbers
     ]
 
-    test.concurrent.each(cases)('input %p returns %p', (input, expected) => {
+    it.concurrent.each(cases)('input %p returns %p', (input, expected) => {
       expect(Utils.stringToRunes(input)).toEqual(expected)
     })
   })
@@ -200,13 +200,13 @@ describe('Utils', () => {
       [0x10348, '𐍈']
     ]
 
-    test.concurrent.each(cases)('rune %p returns %p', (input, expected) => {
+    it.concurrent.each(cases)('rune %p returns %p', (input, expected) => {
       expect(Utils.runeToString(input)).toEqual(expected)
     })
   })
 
   describe('.toArray', () => {
-    test('correctly converts TypedArrays to standard Arrays', () => {
+    it('correctly converts TypedArrays to standard Arrays', () => {
       const uint8 = new Uint8Array([1, 2, 3, 255])
       const int32 = new Int32Array([-10, 0, 10, 1000])
 
@@ -219,7 +219,7 @@ describe('Utils', () => {
       expect(arr2).toEqual([-10, 0, 10, 1000])
     })
 
-    test('handles empty TypedArrays safely', () => {
+    it('handles empty TypedArrays safely', () => {
       const empty = new Uint8Array(0)
 
       const arr = Utils.toArray(empty)

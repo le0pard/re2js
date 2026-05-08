@@ -1,6 +1,6 @@
+import { describe, it } from '@jest/globals'
 import { RE2JS } from '../index'
 import RE2Node from 're2'
-import { describe, test } from '@jest/globals'
 
 // 1. Generate 30,000 dummy Magic: The Gathering cards with more complex text
 const cards = []
@@ -88,7 +88,7 @@ Result           : ${winner} is ${speedup.toFixed(2)}x faster
 }
 
 describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {
-  test('Run benchmarks', () => {
+  it('Run benchmarks', () => {
     // eslint-disable-next-line no-console
     console.log(`Running benchmarks against ${cards.length.toLocaleString()} items...\n`)
 

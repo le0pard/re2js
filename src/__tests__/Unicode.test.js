@@ -1,10 +1,10 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { Unicode } from '../Unicode'
 import { UnicodeTables } from '../UnicodeTables'
 import { codePoint } from '../__utils__/chars'
 
 describe('#isUpper', () => {
-  test.concurrent.each([
+  it.concurrent.each([
     [115, false], // 's'
     [83, true], // 'S'
     [503, true], // 'Ƿ'
@@ -17,7 +17,7 @@ describe('#isUpper', () => {
 })
 
 describe('#isPrint', () => {
-  test.concurrent.each([
+  it.concurrent.each([
     [32, true], // ' '
     [115, true], // 's'
     [83, true], // 'S'
@@ -38,7 +38,7 @@ describe('#isPrint', () => {
 })
 
 describe('#simpleFold', () => {
-  test.concurrent.each([
+  it.concurrent.each([
     // 'A' <-> 'a'
     [65, 97],
     [97, 65],
@@ -84,7 +84,7 @@ const genEqualsIgnoreCases = () => {
 }
 
 describe('#equalsIgnoreCase', () => {
-  test.concurrent.each(genEqualsIgnoreCases())(
+  it.concurrent.each(genEqualsIgnoreCases())(
     '#equalsIgnoreCase(%i, %i) === %p',
     (r1, r2, expected) => {
       expect(Unicode.equalsIgnoreCase(r1, r2)).toEqual(expected)

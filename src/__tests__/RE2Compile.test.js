@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { RE2Flags } from '../RE2Flags'
 
@@ -44,7 +44,7 @@ describe('.compile', () => {
     ['(?<!a)b', 'invalid named capture: `(?<!a)b`']
   ]
 
-  test.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
+  it.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
     const compile = () => {
       try {
         RE2.compile(input)
@@ -80,7 +80,7 @@ describe('.compile (Linear-Time Lookbehinds Enabled)', () => {
     ['(?<!a)*', null]
   ]
 
-  test.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
+  it.concurrent.each(cases)('input %p compile raise error %p', (input, expected) => {
     const compile = () => {
       try {
         // Compile directly using internal flags to force lookbehinds ON

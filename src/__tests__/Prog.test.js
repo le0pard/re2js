@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { RE2Flags } from '../RE2Flags'
 import { Parser } from '../Parser'
 import { Compiler } from '../Compiler'
@@ -157,7 +157,7 @@ describe('.compileRegexp', () => {
     ]
   ]
 
-  test.concurrent.each(cases)('input %p compileRegexp to %p', (input, expected) => {
+  it.concurrent.each(cases)('input %p compileRegexp to %p', (input, expected) => {
     const re = Parser.parse(input, RE2Flags.PERL)
     const p = Compiler.compileRegexp(re)
     expect(p.toString()).toEqual(expected)

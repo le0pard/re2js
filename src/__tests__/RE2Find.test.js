@@ -1,4 +1,4 @@
-import { expect, test } from '@jest/globals'
+import { expect, it } from '@jest/globals'
 import { FIND_TESTS } from '../__fixtures__/find'
 import { utf16IndicesToUtf8 } from '../__utils__/unicode'
 import { RE2 } from '../RE2'
@@ -55,7 +55,7 @@ const testSubmatchIndices = ({
 
 // tests
 
-test.concurrent.each(FIND_TESTS)('findUTF8 %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findUTF8 %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8(testPattern.textUTF8)
 
@@ -66,7 +66,7 @@ test.concurrent.each(FIND_TESTS)('findUTF8 %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('find %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('find %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.find(testPattern.text)
 
@@ -77,7 +77,7 @@ test.concurrent.each(FIND_TESTS)('find %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findUTF8Index %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findUTF8Index %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8Index(testPattern.textUTF8)
 
@@ -90,7 +90,7 @@ test.concurrent.each(FIND_TESTS)('findUTF8Index %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findIndex %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findIndex(testPattern.text)
 
@@ -105,7 +105,7 @@ test.concurrent.each(FIND_TESTS)('findIndex %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAllUTF8 %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllUTF8 %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8(testPattern.textUTF8, -1)
 
@@ -120,7 +120,7 @@ test.concurrent.each(FIND_TESTS)('findAllUTF8 %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAll %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAll %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAll(testPattern.text, -1)
 
@@ -144,7 +144,7 @@ it('compilePOSIX + findAll example', () => {
   ])
 })
 
-test.concurrent.each(FIND_TESTS)('findAllUTF8Index %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllUTF8Index %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8Index(testPattern.textUTF8, -1)
 
@@ -162,7 +162,7 @@ test.concurrent.each(FIND_TESTS)('findAllUTF8Index %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAllIndex %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllIndex(testPattern.text, -1)
 
@@ -180,7 +180,7 @@ test.concurrent.each(FIND_TESTS)('findAllIndex %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findUTF8Submatch %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findUTF8Submatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8Submatch(testPattern.textUTF8)
 
@@ -191,7 +191,7 @@ test.concurrent.each(FIND_TESTS)('findUTF8Submatch %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findSubmatch %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findSubmatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findSubmatch(testPattern.text)
 
@@ -202,7 +202,7 @@ test.concurrent.each(FIND_TESTS)('findSubmatch %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findUTF8SubmatchIndex %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findUTF8SubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8SubmatchIndex(testPattern.textUTF8)
 
@@ -213,7 +213,7 @@ test.concurrent.each(FIND_TESTS)('findUTF8SubmatchIndex %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findSubmatchIndex %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findSubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findSubmatchIndex(testPattern.text)
 
@@ -224,7 +224,7 @@ test.concurrent.each(FIND_TESTS)('findSubmatchIndex %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAllUTF8Submatch %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllUTF8Submatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8Submatch(testPattern.textUTF8, -1)
 
@@ -237,7 +237,7 @@ test.concurrent.each(FIND_TESTS)('findAllUTF8Submatch %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAllSubmatch %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllSubmatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllSubmatch(testPattern.text, -1)
 
@@ -250,7 +250,7 @@ test.concurrent.each(FIND_TESTS)('findAllSubmatch %s', (testPattern) => {
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAllUTF8SubmatchIndex %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllUTF8SubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8SubmatchIndex(testPattern.textUTF8, -1)
 
@@ -263,7 +263,7 @@ test.concurrent.each(FIND_TESTS)('findAllUTF8SubmatchIndex %s', (testPattern) =>
   }
 })
 
-test.concurrent.each(FIND_TESTS)('findAllSubmatchIndex %s', (testPattern) => {
+it.concurrent.each(FIND_TESTS)('findAllSubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllSubmatchIndex(testPattern.text, -1)
 

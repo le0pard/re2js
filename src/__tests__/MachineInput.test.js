@@ -1,8 +1,8 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { MachineInput } from '../MachineInput'
 
 describe('MachineUTF16Input Boundary Checks', () => {
-  test('does not report literal prefix matches that exceed the bounded substring', () => {
+  it('does not report literal prefix matches that exceed the bounded substring', () => {
     // We are searching the string "abcdef", but bounded to end at index 3 ("abc")
     const input = MachineInput.fromUTF16('abcdef', 0, 3)
 
@@ -15,7 +15,7 @@ describe('MachineUTF16Input Boundary Checks', () => {
   })
 })
 
-test('MachineUTF8Input.indexOf fallback works without native .indexOf', () => {
+it('MachineUTF8Input.indexOf fallback works without native .indexOf', () => {
   // UTF-8 representation of "hello world"
   const buffer = new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
   // UTF-8 representation of "world"

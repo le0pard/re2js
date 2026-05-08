@@ -1,4 +1,4 @@
-import { expect, test } from '@jest/globals'
+import { expect, it } from '@jest/globals'
 import { RE2 } from '../RE2'
 import { RE2JS } from '../index'
 import { Utils } from '../Utils'
@@ -18,7 +18,7 @@ const cases = [
   ]
 ]
 
-test.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
+it.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, output) => {
   const quoted = Utils.quoteMeta(pattern)
   expect(Utils.quoteMeta(pattern)).toEqual(output)
   expect(RE2JS.quote(pattern)).toEqual(output)
@@ -31,7 +31,7 @@ test.concurrent.each(cases)('quote meta: pattern %p quoted to %p', (pattern, out
   }
 })
 
-test.concurrent.each(cases)(
+it.concurrent.each(cases)(
   'literal prefix: pattern %p quoted to %p and literal %p (isLiteral: %p)',
   (pattern, output, literal, isLiteral) => {
     const re = RE2.compile(pattern)

@@ -1,4 +1,4 @@
-import { expect, describe, test } from '@jest/globals'
+import { expect, describe, it } from '@jest/globals'
 import { DFA } from '../DFA'
 import { Compiler } from '../Compiler'
 import { Parser } from '../Parser'
@@ -31,13 +31,10 @@ describe('DFA', () => {
       ['a.*b', 'axyzb', true]
     ]
 
-    test.concurrent.each(cases)(
-      'pattern %p with input %p returns %p',
-      (pattern, text, expected) => {
-        const dfa = createDFA(pattern)
-        expect(runDFA(dfa, text)).toEqual(expected)
-      }
-    )
+    it.concurrent.each(cases)('pattern %p with input %p returns %p', (pattern, text, expected) => {
+      const dfa = createDFA(pattern)
+      expect(runDFA(dfa, text)).toEqual(expected)
+    })
   })
 
   describe('Anchored Matching', () => {
@@ -49,7 +46,7 @@ describe('DFA', () => {
       ['abc', 'xyzabc', RE2Flags.UNANCHORED, true]
     ]
 
-    test.concurrent.each(cases)(
+    it.concurrent.each(cases)(
       'pattern %p with input %p (anchor %p) returns %p',
       (pattern, text, anchor, expected) => {
         const dfa = createDFA(pattern)
@@ -65,25 +62,22 @@ describe('DFA', () => {
       ['a+', 'AaA', true]
     ]
 
-    test.concurrent.each(cases)(
-      'pattern %p with input %p returns %p',
-      (pattern, text, expected) => {
-        const dfa = createDFA(pattern, RE2Flags.PERL | RE2Flags.FOLD_CASE)
-        expect(runDFA(dfa, text)).toEqual(expected)
-      }
-    )
+    it.concurrent.each(cases)('pattern %p with input %p returns %p', (pattern, text, expected) => {
+      const dfa = createDFA(pattern, RE2Flags.PERL | RE2Flags.FOLD_CASE)
+      expect(runDFA(dfa, text)).toEqual(expected)
+    })
   })
 })
 
 describe('Bailout / Unsupported Features', () => {
-  test('Bails out on lookaround or complex empty width assertions', () => {
+  it('Bails out on lookaround or complex empty width assertions', () => {
     const dfa = createDFA('\\bword\\b')
     expect(runDFA(dfa, 'word')).toBeNull()
   })
 })
 
 describe('Memory Limit (ReDoS Protection)', () => {
-  test('granular eviction allows completion for simple patterns despite low limits', () => {
+  it('granular eviction allows completion for simple patterns despite low limits', () => {
     const dfa = createDFA('(a+)+b')
     // An NFA state combination for a simple query like (a+)+b is highly optimized
     // and will recycle very few unique DFA states. Setting the limit to 1 guarantees
@@ -93,7 +87,7 @@ describe('Memory Limit (ReDoS Protection)', () => {
     expect(runDFA(dfa, 'aaaaaab')).toBe(true)
   })
 
-  test('flushes cache and falls back, permanently disabling after thrashing', () => {
+  it('flushes cache and falls back, permanently disabling after thrashing', () => {
     // A pattern and string that creates a continuously growing NFA state set,
     // guaranteeing a unique DFA state for every character.
     const dfa = createDFA('a.*b.*c.*d.*e.*f')
@@ -113,7 +107,7 @@ describe('Memory Limit (ReDoS Protection)', () => {
 })
 
 describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
-  test('uses nextLatin1 array for ASCII and Latin-1 characters (<= 255)', () => {
+  it('uses nextLatin1 array for ASCII and Latin-1 characters (<= 255)', () => {
     // 'a' is code 97, 'é' is code 233 (both fit in the 256-length Latin-1 flat array)
     const dfa = createDFA('aé')
     runDFA(dfa, 'aé')
@@ -134,7 +128,7 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     expect(stateAfterA.transKeys.length).toBe(0)
   })
 
-  test('uses parallel transKeys and transVals arrays for Runes > 255', () => {
+  it('uses parallel transKeys and transVals arrays for Runes > 255', () => {
     // '€' is code 8364, which heavily exceeds the 255 limit
     const dfa = createDFA('€')
     runDFA(dfa, '€')
@@ -151,7 +145,7 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     expect(startState.transVals[0]).not.toBeNull() // Target state is saved
   })
 
-  test('eviction properly clears Latin-1 flat arrays and resets dense array lengths to 0', () => {
+  it('eviction properly clears Latin-1 flat arrays and resets dense array lengths to 0', () => {
     const dfa = createDFA('a.*b.*c.*d.*e.*f')
 
     // Run normally to parse successfully, generating and caching states
@@ -192,7 +186,7 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     expect(survivorCount).toBeGreaterThan(0)
   })
 
-  test('survives extreme limit thrashing without 100% cache wipes', () => {
+  it('survives extreme limit thrashing without 100% cache wipes', () => {
     const dfa = createDFA('a+b')
     dfa.stateLimit = 1
 
@@ -209,7 +203,7 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     expect(survivorCount).toBe(2)
   })
 
-  test('uses nextLatin1Anchored array when anchor is strictly enforced', () => {
+  it('uses nextLatin1Anchored array when anchor is strictly enforced', () => {
     const dfa = createDFA('a')
 
     // Process input to populate cache
@@ -226,7 +220,7 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     expect(startState.nextLatin1[97]).toBeNull()
   })
 
-  test('dense arrays do not accumulate duplicates for the same transition', () => {
+  it('dense arrays do not accumulate duplicates for the same transition', () => {
     // Append 'x' to prevent the DFA from early-exiting on the first Euro sign
     const dfa = createDFA('€+x')
 
