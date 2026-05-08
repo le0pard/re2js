@@ -75,3 +75,33 @@ jobs:
 
       - name: Run tests
         run: bun run test
+
+  test_deno:
+    name: "Test deno@${{ matrix.deno }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        deno:
+          - 'v2.x'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ matrix.deno }}
+
+      - name: Install Javascript dependencies
+        run: deno install
+
+      - name: Run linters
+        run: deno task lint
+
+      - name: Run tests
+        run: deno task test

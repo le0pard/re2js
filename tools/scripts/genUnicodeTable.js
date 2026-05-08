@@ -1,9 +1,9 @@
-import { CodepointRange } from './codepointRange.js'
 import unicode from '@unicode/unicode-17.0.0'
 import CommonCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/C/code-points.js'
 import SimpleCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/S/code-points.js'
 import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
+import { CodepointRange } from './codepointRange.js'
 
 const MAX_BMP = 0xffff
 const MAX_CODE_POINT = 0x10ffff
