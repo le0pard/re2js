@@ -102,4 +102,4 @@ jobs:
         run: deno install --node-modules-dir=auto
 
       - name: Run tests
-        run: deno test --allow-read --allow-env
+        run: deno test --allow-read --allow-env --sloppy-imports
