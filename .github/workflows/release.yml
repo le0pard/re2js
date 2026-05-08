@@ -1,0 +1,70 @@
+name: Release
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  test:
+    name: "Test"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@v6
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      - name: Run linters
+        run: yarn lint
+
+      - name: Run tests
+        run: yarn test
+
+  publish:
+    name: "Publish"
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment:
+      name: production
+    env:
+      NODE_ENV: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@v6
+        with:
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      - name: Build all files
+        run: yarn build
+
+      - name: Setup yarn publish settings
+        run: |
+          yarn config set npmRegistryServer "https://registry.npmjs.org"
+          yarn config set npmPublishAccess "public"
+
+      - name: Publish packages 🚀
+        run: yarn npm publish

@@ -1,10 +1,8 @@
-name: Test/Build/Publish
+name: Test
 on:
   push:
     branches:
       - main
-    tags:
-      - '*'
     paths-ignore:
       - '**/*.md'
       - LICENSE
@@ -14,11 +12,19 @@ on:
   pull_request:
 
 jobs:
-  test:
-    name: "Test"
+  test_node:
+    name: "Test node@${{ matrix.node }}"
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: true
+      matrix:
+        node:
+          - '20'
+          - '22'
+          - '24'
+          - '26'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -29,7 +35,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           cache: 'yarn'
-          node-version-file: '.tool-versions'
+          node-version: ${{ matrix.node }}
 
       - name: Install Javascript dependencies
         run: yarn install --immutable
@@ -40,41 +46,32 @@ jobs:
       - name: Run tests
         run: yarn test
 
-  publish:
-    name: "Publish"
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/')
+  test_bun:
+    name: "Test bun@${{ matrix.bun }}"
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
-    environment:
-      name: production
-    env:
-      NODE_ENV: production
+    strategy:
+      fail-fast: true
+      matrix:
+        bun:
+          - 'latest'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           persist-credentials: false
 
-      - name: Install Node.JS
-        uses: actions/setup-node@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          cache: 'yarn'
-          registry-url: 'https://registry.npmjs.org'
-          node-version-file: '.tool-versions'
+          bun-version: ${{ matrix.bun }}
 
       - name: Install Javascript dependencies
-        run: yarn install --immutable
+        run: bun install
 
-      - name: Build all files
-        run: yarn build
+      - name: Run linters
+        run: bun run lint
 
-      - name: Setup yarn publish settings
-        run: |
-          yarn config set npmRegistryServer "https://registry.npmjs.org"
-          yarn config set npmPublishAccess "public"
-
-      - name: Publish packages 🚀
-        run: yarn npm publish
+      - name: Run tests
+        run: bun run test
