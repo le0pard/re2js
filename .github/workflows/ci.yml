@@ -102,7 +102,7 @@ jobs:
 
       - name: Apply Deno Jest/Babel Fixes
         run: |
-          deno run -A npm:npm install --no-save babel-plugin-transform-import-meta
+          npm install --no-save babel-plugin-transform-import-meta
           sed -i 's/transform: {},//' jest.config.js
           sed -i "s/plugins: \[\]/plugins: \['babel-plugin-transform-import-meta'\]/" babel.config.js
 
