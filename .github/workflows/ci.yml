@@ -94,12 +94,9 @@ jobs:
         with:
           deno-version: ${{ matrix.deno }}
 
-      - name: Apply Deno Jest/Babel Fixes
+      - name: Apply Deno Jest fixes
         run: |
-          jq '.devDependencies["babel-plugin-transform-import-meta"] = "^2.3.3"' package.json > package.tmp.json
-          mv package.tmp.json package.json
           sed -i 's/transform: {},//' jest.config.js
-          sed -i "s/plugins: \[\]/plugins: \['babel-plugin-transform-import-meta'\]/" babel.config.js
 
       - name: Install Javascript dependencies
         run: deno install --node-modules-dir=auto
