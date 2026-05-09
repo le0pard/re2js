@@ -21,7 +21,7 @@ export default defineConfig({
         test: {
           name: 'browser',
           include: ['src/__tests__/**/*.test.js'],
-          exclude: [...configDefaults.exclude, '**/Exec.test.js'],
+          exclude: [...configDefaults.exclude, '**/Exec.test.js'], // Exec contain node.js specific tests
           browser: {
             enabled: true,
             provider: playwright(),
