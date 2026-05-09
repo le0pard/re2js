@@ -101,7 +101,7 @@ jobs:
         run: deno run -A npm:vitest run
 
   test_browsers:
-    name: "Test Browsers"
+    name: "Test browsers"
     runs-on: ubuntu-latest
     permissions:
       contents: read
