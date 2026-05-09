@@ -13,11 +13,7 @@ export default defineConfig({
       enabled: false,
       provider: playwright(),
       headless: true,
-      instances: [
-        { browser: 'chromium' },
-        { browser: 'firefox' },
-        { browser: 'webkit' }
-      ]
+      instances: [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }]
     },
     projects: [
       {
@@ -31,7 +27,7 @@ export default defineConfig({
         test: {
           name: 'browsers',
           include: ['src/__tests__/**/*.test.js'],
-          exclude: [...configDefaults.exclude, '**/Exec.test.js'],
+          exclude: [...configDefaults.exclude, '**/Exec.test.js']
         }
       }
     ]

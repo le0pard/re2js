@@ -85,7 +85,9 @@ describe('Prefilter Evaluation (UTF-16 & UTF-8)', () => {
 
     // UTF-8
     expect(pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('bar foo baz')), 0)).toBe(true)
-    expect(pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('bar fox baz')), 0)).toBe(false)
+    expect(pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('bar fox baz')), 0)).toBe(
+      false
+    )
   })
 
   it('correctly evaluates AND filters', () => {
@@ -149,8 +151,12 @@ describe('Advanced Prefilter Evaluation', () => {
     expect(pf.eval(MachineInput.fromUTF16('To the 🚀 and then back!'), 0)).toBe(false)
 
     // UTF-8
-    expect(pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('To the 🚀 and then 🌕!')), 0)).toBe(true)
-    expect(pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('To the 🚀 and then back!')), 0)).toBe(false)
+    expect(
+      pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('To the 🚀 and then 🌕!')), 0)
+    ).toBe(true)
+    expect(
+      pf.eval(MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('To the 🚀 and then back!')), 0)
+    ).toBe(false)
   })
 
   it('respects end boundaries on bounded input buffers', () => {
@@ -204,7 +210,9 @@ describe('Prefilter Aho-Corasick Automaton', () => {
     expect(pf.eval(utf16InputFail, 0)).toBe(false)
 
     // Test UTF-8 evaluation
-    const utf8InputMatch = MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('I have a baz in here'))
+    const utf8InputMatch = MachineInput.fromUTF8(
+      Utils.stringToUtf8ByteArray('I have a baz in here')
+    )
     const utf8InputFail = MachineInput.fromUTF8(Utils.stringToUtf8ByteArray('I have a qux in here'))
 
     expect(pf.eval(utf8InputMatch, 0)).toBe(true)
