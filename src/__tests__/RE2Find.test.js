@@ -1,4 +1,4 @@
-import { expect, it } from '@jest/globals'
+import { expect, it } from 'vitest'
 import { FIND_TESTS } from '../__fixtures__/find.js'
 import { utf16IndicesToUtf8 } from '../__utils__/unicode.js'
 import { RE2 } from '../RE2.js'

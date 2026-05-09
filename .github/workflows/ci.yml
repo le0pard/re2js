@@ -97,9 +97,5 @@ jobs:
       - name: Install Javascript dependencies
         run: deno install --node-modules-dir=auto
 
-      - name: Apply Deno Jest fixes
-        run: |
-          sed -i 's/transform: {},//' jest.config.js
-
       - name: Run tests
-        run: deno task test:deno
+        run: deno run -A npm:vitest run

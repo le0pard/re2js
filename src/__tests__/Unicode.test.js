@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { Unicode } from '../Unicode.js'
 import { UnicodeTables } from '../UnicodeTables.js'
 import { codePoint } from '../__utils__/chars.js'

@@ -1,4 +1,4 @@
-import { expect, describe, it, jest } from '@jest/globals'
+import { expect, describe, it, vi } from 'vitest'
 import { RE2 } from '../RE2.js'
 import { DFA } from '../DFA.js'
 import { Backtracker } from '../Backtracker.js'
@@ -9,10 +9,10 @@ import { Prefilter } from '../Prefilter.js'
 
 describe('Literal Fast-Path Routing', () => {
   it('bails out early using literal fast path for strictly literal unanchored regexes', () => {
-    const prefilterSpy = jest.spyOn(Prefilter.prototype, 'eval')
-    const onePassSpy = jest.spyOn(OnePass, 'execute')
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
-    const nfaSpy = jest.spyOn(RE2.prototype, 'doExecuteNFA')
+    const prefilterSpy = vi.spyOn(Prefilter.prototype, 'eval')
+    const onePassSpy = vi.spyOn(OnePass, 'execute')
+    const dfaSpy = vi.spyOn(DFA.prototype, 'match')
+    const nfaSpy = vi.spyOn(RE2.prototype, 'doExecuteNFA')
 
     const re = RE2.compile('hello')
     const result = re.match('say hello world')
@@ -35,7 +35,7 @@ describe('Literal Fast-Path Routing', () => {
   })
 
   it('literal fast path skips when captures are requested on non-zero subexp literal', () => {
-    const backtrackerSpy = jest.spyOn(Backtracker, 'execute')
+    const backtrackerSpy = vi.spyOn(Backtracker, 'execute')
 
     // This is structurally a literal ("world"), but it has a capture group!
     // The literal fast path MUST safely route this to the backtracker so group boundaries are populated.
@@ -52,7 +52,7 @@ describe('Literal Fast-Path Routing', () => {
   })
 
   it('literal fast path perfectly handles ANCHOR_BOTH (testExact)', () => {
-    const dfaSpy = jest.spyOn(DFA.prototype, 'match')
+    const dfaSpy = vi.spyOn(DFA.prototype, 'match')
 
     const re = RE2.compile('hello')
     // Valid match

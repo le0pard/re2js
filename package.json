@@ -37,34 +37,34 @@
   "scripts": {
     "build": "rollup -c && tsc",
     "dev": "rollup -c -w",
-    "lint": "pnpify run prettier --check src tools *.config.js && eslint src/**/*.js tools/**/*.js babel.config.js jest.config.js",
-    "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning $(yarn bin jest) -c jest.config.js",
-    "test:watch": "node --experimental-vm-modules --disable-warning=ExperimentalWarning $(yarn bin jest) -c jest.config.js --watch",
-    "format": "pnpify run prettier --write src tools *.config.js",
-    "test:deno": "jest -c jest.config.js"
+    "lint": "pnpify run prettier --check src tools *.config.js && eslint src/**/*.js tools/**/*.js babel.config.js vitest.config.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "format": "pnpify run prettier --write src tools *.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.29.5",
     "@eslint/js": "^9.39.4",
-    "@jest/globals": "^30.3.0",
     "@rollup/plugin-babel": "^7.0.0",
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@unicode/unicode-17.0.0": "^1.6.16",
+    "@vitest/coverage-v8": "^4.1.5",
     "@yarnpkg/pnpify": "^4.1.6",
     "eslint": "9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-node": "^0.3.10",
     "eslint-plugin-import": "^2.32.0",
     "globals": "^17.6.0",
-    "jest": "^30.3.0",
     "lodash": "^4.18.1",
     "prettier": "^3.8.3",
     "rollup": "^4.60.3",
     "typescript": "^6.0.3",
-    "unicode-property-value-aliases": "^3.9.0"
+    "unicode-property-value-aliases": "^3.9.0",
+    "vitest": "^4.1.5"
   },
   "packageManager": "yarn@4.14.1"
 }

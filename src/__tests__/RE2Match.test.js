@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { RE2 } from '../RE2.js'
 import { FIND_TESTS } from '../__fixtures__/find.js'
 
