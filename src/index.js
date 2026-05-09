@@ -410,7 +410,7 @@ const re = (stringsOrFlags, ...values) => {
 
   const flags = stringsOrFlags
 
-  return function (strings, ...tagValues) {
+  return (strings, ...tagValues) => {
     const pattern = String.raw(strings, ...tagValues)
     return RE2JS.compile(pattern, flags)
   }
