@@ -99,3 +99,29 @@ jobs:
 
       - name: Run tests
         run: deno run -A npm:vitest run
+
+  test_browsers:
+    name: "Test Browsers"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@v6
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Install Playwright Browsers
+        run: yarn playwright install --with-deps chromium firefox webkit
+
+      - name: Run tests in Browser
+        run: yarn test:browsers

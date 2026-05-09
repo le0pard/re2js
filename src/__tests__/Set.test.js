@@ -1,5 +1,6 @@
 import { expect, describe, it } from 'vitest'
 import { RE2JS, RE2Set } from '../index.js'
+import { Utils } from '../Utils.js'
 
 describe('RE2Set Multi-Pattern Matching', () => {
   it('matches multiple literal patterns simultaneously (Unanchored)', () => {
@@ -116,7 +117,7 @@ describe('RE2Set Multi-Pattern Matching', () => {
     set.add('foo') // 0
     set.compile()
 
-    const utf8Input = Array.from(Buffer.from('hello foo world'))
+    const utf8Input = Array.from(Utils.stringToUtf8ByteArray('hello foo world'))
     expect(set.match(utf8Input)).toEqual([0])
   })
 })
