@@ -66,7 +66,25 @@ console.log(p.pattern()); // Outputs: 'abc'
 console.log(p.flags()); // Outputs: 5
 ```
 
-Supported flags:
+#### Tagged Template Literals (No Double-Escaping)
+
+To avoid the tedious "double-backslash" escaping problem common with the `RE2JS.compile("\\d+")` syntax, the library provides a handy `re` tagged template literal. This allows you to write patterns exactly as they appear in standard JavaScript regex literals:
+
+```js
+import { re, RE2JS } from 're2js';
+
+// Instead of RE2JS.compile('\\b\\w+\\b')
+const p1 = re`\b\w+\b`;
+console.log(p1.pattern()); // Outputs: '\b\w+\b'
+
+// You can also pass flags by calling `re` as a function first:
+const p2 = re(RE2JS.CASE_INSENSITIVE | RE2JS.MULTILINE)`^foo\d+`;
+console.log(p2.test('FOO42')); // true
+```
+
+#### Supported flags:
+
+The `compile()` function and the `re()` template tag support the following flags:
 
 ```js
 /**

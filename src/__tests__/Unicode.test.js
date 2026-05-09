@@ -116,7 +116,7 @@ describe('UnicodeTables VLQ Decompression', () => {
     expect(zpTable.getStride(0)).toBe(1)
   })
 
-  it('should decompress the CASE_ORBIT map correctly', () => {
+  it('should decompress the CASE_ORBIT map correctly (ZigZag Decoding)', () => {
     const orbit = UnicodeTables.CASE_ORBIT
 
     // Standard ASCII letters are NOT in the table (they fallback to JS toLowerCase)
@@ -133,6 +133,13 @@ describe('UnicodeTables VLQ Decompression', () => {
     // 'k' (107) -> 'K' (8490) (Kelvin symbol)
     expect(orbit.has(107)).toBe(true)
     expect(orbit.get(107)).toBe(8490)
+
+    // Test a supplementary/exotic character jump (if your ICU tests support it)
+    // For example, Deseret Capital Letter Long I (U+10400) -> Small (U+10428)
+    if (orbit.has(0x10400)) {
+      expect(orbit.get(0x10400)).toBe(0x10428)
+      expect(orbit.get(0x10428)).toBe(0x10400)
+    }
   })
 
   it('should decompress the Nd (Decimal Digits) table correctly with strides', () => {

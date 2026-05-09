@@ -402,7 +402,22 @@ class RE2JS {
   }
 }
 
+const re = (stringsOrFlags, ...values) => {
+  if (Array.isArray(stringsOrFlags) && stringsOrFlags.raw) {
+    const pattern = String.raw(stringsOrFlags, ...values)
+    return RE2JS.compile(pattern)
+  }
+
+  const flags = stringsOrFlags
+
+  return function (strings, ...tagValues) {
+    const pattern = String.raw(strings, ...tagValues)
+    return RE2JS.compile(pattern, flags)
+  }
+}
+
 export {
+  re,
   RE2JS,
   RE2Set,
   Matcher,

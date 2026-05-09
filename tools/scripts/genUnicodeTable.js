@@ -231,7 +231,9 @@ let code = [
   '  let currentKey = 0;',
   '  for (let i = 0; i < res.length; i += 2) {',
   '    currentKey += res[i];',
-  '    map.set(currentKey, res[i + 1]);',
+  '    const zz = res[i + 1];',
+  '    const delta = (zz >>> 1) ^ -(zz & 1);', // Decode ZigZag back to positive/negative delta
+  '    map.set(currentKey, currentKey + delta);',
   '  }',
   '  return map;',
   '};',
@@ -261,14 +263,17 @@ let scrLines = []
 let foldCatLines = []
 let foldScrLines = []
 
+// ZigZag Helper
+const encodeZigZag = (n) => (n << 1) ^ (n >> 31)
+
 // COMPRESS CASE_ORBIT MAP (Eagerly Loaded)
 const caseOrbitEntries = Array.from(sortedOrbits.entries()).sort((a, b) => a[0] - b[0])
+
 let orbitEnc = ''
 let curr = 0
-
 for (const [k, v] of caseOrbitEntries) {
   orbitEnc += encodeVLQ(k - curr)
-  orbitEnc += encodeVLQ(v) // Value is absolute
+  orbitEnc += encodeVLQ(encodeZigZag(v - k)) // Encode the relative distance
   curr = k
 }
 
