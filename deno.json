@@ -1,5 +1,5 @@
 {
   "imports": {
-    "@jest/globals": "npm:vitest@^2.0.0"
+    "@jest/globals": "npm:vitest@^4.0.0"
   }
 }
