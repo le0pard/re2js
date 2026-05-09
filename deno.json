@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@jest/globals": "npm:vitest@^2.0.0"
+  }
+}
