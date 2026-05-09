@@ -1,3 +1,4 @@
+import { expect, describe, it } from 'vitest'
 import { Inst } from '../Inst.js'
 import { RE2Flags } from '../RE2Flags.js'
 

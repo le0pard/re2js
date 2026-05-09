@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { RE2Flags } from '../RE2Flags.js'
 import { PERL_GROUPS } from '../CharGroup.js'
 import { CharClass } from '../CharClass.js'

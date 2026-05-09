@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { MachineInput } from '../MachineInput.js'
 
 describe('MachineUTF16Input Boundary Checks', () => {
@@ -35,7 +35,7 @@ it('MachineUTF8Input.indexOf fallback works without native .indexOf', () => {
     const notFoundTarget = new Uint8Array([122, 122]) // "zz"
     expect(input.indexOf(buffer, notFoundTarget, 0)).toBe(-1)
   } finally {
-    // Restore the native function so we don't pollute the Jest environment
+    // Restore the native function so we don't pollute the Vitest environment
     buffer.indexOf = originalIndexOf
   }
 })

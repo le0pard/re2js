@@ -1,4 +1,4 @@
-import { expect, describe, it, afterEach } from '@jest/globals'
+import { expect, describe, it, afterEach } from 'vitest'
 import { Utils } from '../Utils.js'
 import { Codepoint } from '../Codepoint.js'
 

@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { RE2JS, RE2Set } from '../index.js'
 
 // more info - https://systemf.epfl.ch/blog/re2-lookbehinds/

@@ -3,7 +3,7 @@ import path from 'node:path'
 import zlib from 'node:zlib'
 import readline from 'node:readline'
 
-import { expect, it } from '@jest/globals'
+import { expect, it } from 'vitest'
 import { RE2 } from '../RE2.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { Utils } from '../Utils.js'

@@ -12,8 +12,7 @@ export default defineConfig([
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node,
-        ...globals.jest
+        ...globals.node
       },
 
       ecmaVersion: 'latest',

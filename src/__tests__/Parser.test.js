@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { RE2Flags } from '../RE2Flags.js'
 import { RE2JSSyntaxException } from '../exceptions.js'
 import { Parser } from '../Parser.js'

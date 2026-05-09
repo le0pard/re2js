@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { DFA } from '../DFA.js'
 import { Compiler } from '../Compiler.js'
 import { Parser } from '../Parser.js'

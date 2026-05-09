@@ -1,4 +1,4 @@
-import { expect, describe, it } from '@jest/globals'
+import { expect, describe, it } from 'vitest'
 import { Parser } from '../Parser.js'
 import { Simplify } from '../Simplify.js'
 import { PrefilterTree, Prefilter } from '../Prefilter.js'

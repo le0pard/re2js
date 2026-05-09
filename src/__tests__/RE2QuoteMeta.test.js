@@ -1,4 +1,4 @@
-import { expect, it } from '@jest/globals'
+import { expect, it } from 'vitest'
 import { RE2 } from '../RE2.js'
 import { RE2JS } from '../index.js'
 import { Utils } from '../Utils.js'
