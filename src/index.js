@@ -402,6 +402,7 @@ class RE2JS {
   }
 }
 
+/* Small helper for Tagged Template Literals (No Double-Escaping) */
 const re = (stringsOrFlags, ...values) => {
   if (Array.isArray(stringsOrFlags) && stringsOrFlags.raw) {
     const pattern = String.raw(stringsOrFlags, ...values)
