@@ -98,7 +98,7 @@ jobs:
         run: deno install --node-modules-dir=auto
 
       - name: Run tests
-        run: deno run -A npm:vitest run
+        run: deno task test
 
   test_browsers:
     name: "Test browsers"
