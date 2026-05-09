@@ -53,10 +53,13 @@ describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {
   for (const [name, pattern] of patterns) {
     describe(`Benchmark: ${name}`, () => {
       const re2js = RE2JS.compile(pattern)
-      const re2node = new RE2Node(pattern)
+      let re2node = null
+
+      // Only instantiate if the C++ library was found
+      if (RE2Node) re2node = new RE2Node(pattern)
 
       // Parity Check: Ensure they both find the exact same number of matches
-      test('Parity Check', () => {
+      test.skipIf(!RE2Node)('Parity Check', () => {
         let re2jsMatches = 0
         let re2nodeMatches = 0
         for (let i = 0; i < cards.length; i++) {
@@ -74,7 +77,7 @@ describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {
       })
 
       // Vitest Benchmark for RE2-Node (C++)
-      bench('re2-node', () => {
+      bench.skipIf(!RE2Node)('re2-node', () => {
         for (let i = 0; i < cards.length; i++) {
           re2node.test(cards[i])
         }

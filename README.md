@@ -635,15 +635,15 @@ Here is a benchmark running 30,000 items through both engines using their respec
 
 | Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                      |
 |:--------------------------|:---------------------------|:----------------|:---------------|:----------------------------|
-| **ReDoS Attempt**         | `/(a+)+!/`                 | **2.37 ms**     | 15.51 ms       | `re2js` is **6.56x** faster |
-| **Simple Literal**        | `/damage/`                 | **2.62 ms**     | 11.90 ms       | `re2js` is **4.54x** faster |
-| **Massive Alternation**   | `/White\|Blue\|Black.../`  | **11.42 ms**    | 15.50 ms       | `re2js` is **1.36x** faster |
-| **Lazy Wildcard**         | `/enters.*?battlefield/`   | **9.76 ms**     | 13.02 ms       | `re2js` is **1.33x** faster |
-| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | **11.76 ms**    | 15.41 ms       | `re2js` is **1.31x** faster |
-| **Greedy Wildcard**       | `/enters.*battlefield/`    | 14.07 ms        | **13.73 ms**   | `re2-node` is 1.02x faster  |
-| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | 28.38 ms        | **14.32 ms**   | `re2-node` is 1.98x faster  |
-| **Case Insensitive**      | `/(?i)swamp/`              | 57.27 ms        | **15.88 ms**   | `re2-node` is 3.61x faster  |
-| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 110.11 ms       | **14.82 ms**   | `re2-node` is 7.43x faster  |
+| **ReDoS Attempt**         | `/(a+)+!/`                 | **2.16 ms**     | 15.94 ms       | `re2js` is **7.38x** faster |
+| **Simple Literal**        | `/damage/`                 | **2.58 ms**     | 12.39 ms       | `re2js` is **4.80x** faster |
+| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | **11.20 ms**    | 15.76 ms       | `re2js` is **1.41x** faster |
+| **Lazy Wildcard**         | `/enters.*?battlefield/`   | **9.78 ms**     | 12.99 ms       | `re2js` is **1.33x** faster |
+| **Greedy Wildcard**       | `/enters.*battlefield/`    | **9.90 ms**     | 12.99 ms       | `re2js` is **1.31x** faster |
+| **Massive Alternation**   | `/White\|Blue\|Black.../`  | **11.31 ms**    | 14.81 ms       | `re2js` is **1.31x** faster |
+| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | 28.20 ms        | **13.60 ms**   | `re2-node` is 2.07x faster  |
+| **Case Insensitive**      | `/(?i)swamp/`              | 56.41 ms        | **16.13 ms**   | `re2-node` is 3.50x faster  |
+| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 107.12 ms       | **15.41 ms**   | `re2-node` is 6.95x faster  |
 
 **Takeaways:**
 * **Pure JS Strengths:** For complex state tracking (nested groups, wildcards) and literal string scanning, `re2js` actually beats the native C++ bindings. V8's Turbofan JIT compiler is able to heavily optimize the Pure JS DFA loop, bypassing the C++ boundary entirely.
