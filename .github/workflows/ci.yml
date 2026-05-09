@@ -102,4 +102,4 @@ jobs:
           sed -i 's/transform: {},//' jest.config.js
 
       - name: Run tests
-        run: deno run -A npm:vitest run
+        run: deno task test:deno
