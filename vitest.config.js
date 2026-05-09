@@ -9,12 +9,6 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['json', 'lcov', 'text', 'clover', 'html']
     },
-    browser: {
-      enabled: false,
-      provider: playwright(),
-      headless: true,
-      instances: [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }]
-    },
     projects: [
       {
         test: {
@@ -25,9 +19,15 @@ export default defineConfig({
       },
       {
         test: {
-          name: 'browsers',
+          name: 'browser',
           include: ['src/__tests__/**/*.test.js'],
-          exclude: [...configDefaults.exclude, '**/Exec.test.js']
+          exclude: [...configDefaults.exclude, '**/Exec.test.js'],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            headless: true,
+            instances: [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }]
+          },
         }
       }
     ]

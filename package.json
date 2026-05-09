@@ -40,7 +40,7 @@
     "lint": "pnpify run prettier --check src tools *.config.js && eslint src/**/*.js tools/**/*.js babel.config.js vitest.config.js",
     "test": "vitest run --project=node",
     "test:watch": "vitest --project=node",
-    "test:browsers": "vitest run --project=browsers",
+    "test:browser": "vitest run --browser.enabled --project=browser",
     "coverage": "vitest run --project=node --coverage",
     "format": "pnpify run prettier --write src tools *.config.js"
   },
