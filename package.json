@@ -38,11 +38,12 @@
     "build": "rollup -c && tsc",
     "dev": "rollup -c -w",
     "lint": "pnpify run prettier --check src tools *.config.js && eslint src/**/*.js tools/**/*.js babel.config.js vitest.config.js",
+    "format": "pnpify run prettier --write src tools *.config.js",
     "test": "vitest run --project=node",
     "test:watch": "vitest --project=node",
     "test:browser": "vitest run --browser.enabled --project=browser",
     "coverage": "vitest run --project=node --coverage",
-    "format": "pnpify run prettier --write src tools *.config.js"
+    "bench": "vitest bench --run --project=node"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
