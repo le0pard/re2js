@@ -246,6 +246,7 @@ const input = 'Dates: 2024-05 and 2025-11.'
 for (const match of re2.matchAll(input)) {
   console.log(match[0]); // "2024-05", then "2025-11"
   console.log(match.index); // 7, then 19
+  console.log(match.groups); // { year: '2024', month: '05' } then { year: '2025', month: '11' }
   console.log(match.groups.year); // "2024", then "2025"
 }
 
