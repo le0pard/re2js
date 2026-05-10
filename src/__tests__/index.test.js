@@ -429,6 +429,106 @@ it('quote', () => {
   expect(RE2JS.matches(regexp, Utils.stringToUtf8ByteArray(nonMatch))).toBe(false)
 })
 
+describe('.matchAll', () => {
+  it('iterates over all matches and returns native-shaped arrays', () => {
+    const re2 = RE2JS.compile('(?P<year>\\d{4})-(?P<month>\\d{2})')
+    const input = 'Dates: 2024-05 and 2025-11.'
+
+    const matches = [...re2.matchAll(input)]
+
+    expect(matches.length).toBe(2)
+
+    // First match
+    expect(matches[0][0]).toBe('2024-05')
+    expect(matches[0][1]).toBe('2024')
+    expect(matches[0][2]).toBe('05')
+    expect(matches[0].index).toBe(7)
+    expect(matches[0].input).toBe(input)
+    expect(matches[0].groups).toEqual({ year: '2024', month: '05' })
+
+    // Second match
+    expect(matches[1][0]).toBe('2025-11')
+    expect(matches[1][1]).toBe('2025')
+    expect(matches[1][2]).toBe('11')
+    expect(matches[1].index).toBe(19)
+    expect(matches[1].input).toBe(input)
+    expect(matches[1].groups).toEqual({ year: '2025', month: '11' })
+  })
+
+  it('safely maps unmatched capture groups to undefined (JS Parity)', () => {
+    // Group 2 (b) is optional
+    const re2 = RE2JS.compile('(a)(b)?(c)')
+    const input = 'ac abc'
+
+    const matches = [...re2.matchAll(input)]
+    expect(matches.length).toBe(2)
+
+    // "ac" -> Group 2 is missing
+    expect(matches[0][0]).toBe('ac')
+    expect(matches[0][1]).toBe('a')
+    expect(matches[0][2]).toBeUndefined() // Should be undefined, NOT null!
+    expect(matches[0][3]).toBe('c')
+
+    // "abc" -> Group 2 is present
+    expect(matches[1][0]).toBe('abc')
+    expect(matches[1][1]).toBe('a')
+    expect(matches[1][2]).toBe('b')
+    expect(matches[1][3]).toBe('c')
+  })
+
+  it('safely maps unmatched named capture groups to undefined (JS Parity)', () => {
+    const re2 = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)')
+    const input = 'John Doe, Jane Mary Smith'
+
+    const matches = [...re2.matchAll(input)]
+    expect(matches.length).toBe(2)
+
+    // "John Doe" (No middle name)
+    expect(matches[0].groups.first).toBe('John')
+    expect(matches[0].groups.middle).toBeUndefined() // Should be undefined, NOT null!
+    expect(matches[0].groups.last).toBe('Doe')
+
+    // "Jane Mary Smith"
+    expect(matches[1].groups.first).toBe('Jane')
+    expect(matches[1].groups.middle).toBe('Mary')
+    expect(matches[1].groups.last).toBe('Smith')
+  })
+
+  it('returns an empty iterator when no matches are found', () => {
+    const re2 = RE2JS.compile('x')
+    const matches = [...re2.matchAll('abc')]
+
+    expect(matches.length).toBe(0)
+  })
+
+  it('does not leak state across multiple loops (Stateless Guarantee)', () => {
+    const re2 = RE2JS.compile('\\d+')
+    const input = '123 456'
+
+    // Loop 1
+    const matches1 = [...re2.matchAll(input)]
+    expect(matches1.length).toBe(2)
+
+    // Loop 2 (should perfectly restart, unlike native RegExp with /g where lastIndex persists)
+    const matches2 = [...re2.matchAll(input)]
+    expect(matches2.length).toBe(2)
+  })
+
+  it('supports UTF-8 byte array inputs smoothly', () => {
+    const re2 = RE2JS.compile('\\w+')
+    const utf8Input = Utils.stringToUtf8ByteArray('hello world')
+
+    const matches = [...re2.matchAll(utf8Input)]
+
+    expect(matches.length).toBe(2)
+    expect(matches[0][0]).toBe('hello')
+    expect(matches[1][0]).toBe('world')
+
+    // The .input property should gracefully decode back to a string for JS parity
+    expect(matches[0].input).toBe('hello world')
+  })
+})
+
 describe('replaceAll and replaceFirst', () => {
   const replaceAllCases = [
     // Test empty input and/or replacement,

@@ -345,6 +345,49 @@ class RE2JS {
   }
 
   /**
+   * Returns an iterator of all results matching a string against the regular expression,
+   * including capturing groups.
+   *
+   * @param {string|number[]|Uint8Array} input the input string or byte array
+   * @returns {IterableIterator<Array>}
+   */
+  *matchAll(input) {
+    const m = this.matcher(input)
+    const inputStr = typeof input === 'string' ? input : m.matcherInput.asCharSequence()
+
+    while (m.find()) {
+      // Build the match array starting with the full match
+      const result = [m.group(0)]
+
+      // Append all capture groups using void 0 instead of undefined
+      for (let i = 1; i <= m.groupCount(); i++) {
+        const groupVal = m.group(i)
+        result.push(groupVal === null ? void 0 : groupVal)
+      }
+
+      // Attach native RegExp match properties
+      result.index = m.start(0)
+      result.input = inputStr
+
+      // Attach named capture groups if they exist
+      const namedGroups = this.namedGroups()
+      if (Object.keys(namedGroups).length > 0) {
+        const parsedGroups = m.getNamedGroups()
+        for (const key in parsedGroups) {
+          if (parsedGroups[key] === null) {
+            parsedGroups[key] = void 0
+          }
+        }
+        result.groups = parsedGroups
+      } else {
+        result.groups = void 0
+      }
+
+      yield result
+    }
+  }
+
+  /**
    *
    * @returns {string}
    */

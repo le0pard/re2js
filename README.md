@@ -228,6 +228,32 @@ matchString.group() // 'e'
 matchString.find(7) // false
 ```
 
+### Iterating Over Matches (`matchAll`)
+
+For a more modern, JavaScript-native developer experience, RE2JS provides a `.matchAll()` method. This returns an ES6 `IterableIterator`, allowing you to safely and cleanly iterate over matches using `for...of` loops or the array spread operator `[...]`.
+
+Unlike native `RegExp` objects with the `/g` flag, RE2JS is completely stateless. This means you don't have to worry about `.lastIndex` bugs—you can iterate over the same regex instance as many times as you want safely.
+
+The yielded match arrays perfectly mirror the shape of native JavaScript regex matches. They include `.index`, `.input`, and `.groups` properties, and properly map unmatched capture groups to `undefined`.
+
+```js
+import { RE2JS } from 're2js'
+
+const re2 = RE2JS.compile('(?P<year>\\d{4})-(?P<month>\\d{2})')
+const input = 'Dates: 2024-05 and 2025-11.'
+
+// Native ES6 Iteration
+for (const match of re2.matchAll(input)) {
+  console.log(match[0]); // "2024-05", then "2025-11"
+  console.log(match.index); // 7, then 19
+  console.log(match.groups.year); // "2024", then "2025"
+}
+
+// Or easily collect all matches into an array
+const allMatches = [...re2.matchAll(input)];
+console.log(allMatches.length); // 2
+```
+
 ### Multi-Pattern Matching (RE2Set)
 
 RE2JS includes a highly optimized `RE2Set` API that allows you to match multiple regular expressions against a single string simultaneously. Instead of running 100 different regexes in a loop ($O(100n)$ time), `RE2Set` compiles them into a single state machine and finds all matches in a single pass ($O(n)$ linear time).
