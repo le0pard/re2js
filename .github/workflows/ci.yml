@@ -103,6 +103,8 @@ jobs:
   test_browsers:
     name: "Test browsers"
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.59.1
     permissions:
       contents: read
     steps:
@@ -117,17 +119,8 @@ jobs:
           cache: 'yarn'
           node-version-file: '.tool-versions'
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-browsers-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
       - name: Install dependencies
         run: yarn install --immutable
-
-      - name: Install Playwright browsers
-        run: yarn playwright install --with-deps
 
       - name: Run tests in browsers
         run: yarn test:browser
