@@ -353,7 +353,6 @@ class RE2JS {
    */
   *matchAll(input) {
     const m = this.matcher(input)
-    const inputStr = typeof input === 'string' ? input : m.matcherInput.asCharSequence()
 
     while (m.find()) {
       // Build the match array starting with the full match
@@ -367,7 +366,7 @@ class RE2JS {
 
       // Attach native RegExp match properties
       result.index = m.start(0)
-      result.input = inputStr
+      result.input = input // Retains original String or Uint8Array so index aligns perfectly
 
       // Attach named capture groups if they exist
       const namedGroups = this.namedGroups()

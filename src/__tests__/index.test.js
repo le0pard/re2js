@@ -514,7 +514,7 @@ describe('.matchAll', () => {
     expect(matches2.length).toBe(2)
   })
 
-  it('supports UTF-8 byte array inputs smoothly', () => {
+  it('supports UTF-8 byte array inputs', () => {
     const re2 = RE2JS.compile('\\w+')
     const utf8Input = Utils.stringToUtf8ByteArray('hello world')
 
@@ -524,8 +524,35 @@ describe('.matchAll', () => {
     expect(matches[0][0]).toBe('hello')
     expect(matches[1][0]).toBe('world')
 
-    // The .input property should gracefully decode back to a string for JS parity
-    expect(matches[0].input).toBe('hello world')
+    expect(matches[0].input).toBe(utf8Input)
+  })
+
+  it('returns accurate byte offsets and avoids desync for Uint8Array multibyte inputs', () => {
+    // 'a' is what we are looking for.
+    const re2 = RE2JS.compile('a')
+
+    // '😊' is 4 bytes in UTF-8 (F0 9F 98 8A). 'a' is 1 byte (61).
+    // In a UTF-16 string, 'a' sits at index 2.
+    // In a UTF-8 byte array, 'a' sits at index 4.
+    const utf8Input = new Uint8Array(Utils.stringToUtf8ByteArray('😊a'))
+
+    const matches = [...re2.matchAll(utf8Input)]
+
+    expect(matches.length).toBe(1)
+
+    const match = matches[0]
+    expect(match[0]).toBe('a')
+
+    // The index must be the byte offset (4), not the string offset (2)!
+    expect(match.index).toBe(4)
+
+    // result.input must remain the raw byte array so developers
+    // can safely slice it using the returned byte index.
+    expect(match.input).toBe(utf8Input)
+
+    // Prove that slicing the returned input with the returned index perfectly yields the match
+    const slicedBytes = match.input.slice(match.index, match.index + 1)
+    expect(Utils.utf8ByteArrayToString(slicedBytes)).toBe('a')
   })
 })
 
