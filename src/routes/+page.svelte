@@ -21,6 +21,15 @@
       const found = m.find()
       const matches = m.matches()
       const contains = p.test(stringInput)
+      const allMatches = [...p.matchAll(stringInput)]
+
+      const serializableMatches = allMatches.map(match => ({
+        match: match[0],
+        groups: match.groups,
+        index: match.index,
+        input: match.input,
+        captures: match.slice(1)
+      }))
 
       results = {
         success: true,
@@ -33,7 +42,8 @@
         groupsArray: found
           ? Array.from(Array(p.groupCount() + 1)).map((_, index) => m.group(index))
           : null,
-        groupsHash: found ? m.getNamedGroups() : null
+        groupsHash: found ? m.getNamedGroups() : null,
+        allMatches: found ? serializableMatches : null
       }
     } catch (err) {
       results = {
@@ -247,6 +257,16 @@
             </td>
           </tr>
           <tr>
+            <td class="key-cell">Program Size <small>(programSize)</small></td>
+            <td class="val-cell">
+              {#if results.programSize}
+                <div>{results.programSize}</div>
+              {:else}
+                <span class="status-tag status-tag__no">no match</span>
+              {/if}
+            </td>
+          </tr>
+          <tr>
             <td class="key-cell">Group Count <small>(groupCount)</small></td>
             <td class="val-cell">{results.groupCount}</td>
           </tr>
@@ -277,10 +297,10 @@
             </td>
           </tr>
           <tr>
-            <td class="key-cell">Program Size <small>(programSize)</small></td>
+            <td class="key-cell">Matches info <small>(matchAll)</small></td>
             <td class="val-cell">
-              {#if results.programSize}
-                <div>{results.programSize}</div>
+              {#if results.allMatches}
+                <div class="long-text">{JSON.stringify(results.allMatches)}</div>
               {:else}
                 <span class="status-tag status-tag__no">no match</span>
               {/if}
