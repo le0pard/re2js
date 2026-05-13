@@ -93,3 +93,37 @@ describe('OnePass Execution', () => {
     expect(match[0]).toBe('axyzd')
   })
 })
+
+
+describe('Special Cases', () => {
+  it('golang.org/issue/11905 - properly collapses ambiguous AST paths in OnePass', () => {
+    // This specific regex caused a regression in the original Go codebase.
+    // It tests whether the OnePass compiler correctly rewrites common overlapping
+    // constructs (A:BD) to ensure 1-unambiguous DFA evaluation.
+    const re = RE2.compile('^a(/b+(#c+)*)*$')
+
+    // Ensure that it successfully compiled into the high-speed OnePass engine
+    // rather than bailing out to the NFA fallback.
+    expect(re.onepass).not.toBeNull()
+
+    // Ensure it correctly executes
+    expect(re.match('a/b#c')).toBe(true)
+    expect(re.match('a/b#c/b#c#c')).toBe(true)
+    expect(re.match('a/b#c/x')).toBe(false)
+  })
+
+  it('safely rejects unanchored ambiguous OnePass attempts', () => {
+    const re = RE2.compile('^a(?:b+|(bc))d$')
+    // Ambiguous overlap between b+ and bc. The DFA cannot know which path
+    // to confidently take without backtracking, so it must bail out.
+    expect(re.onepass).toBeNull()
+  })
+
+  it('safely accepts extremely long repetitions in OnePass', () => {
+    const longTarget = 'o'.repeat(512)
+    const re = RE2.compile(`^l${longTarget}ng$`)
+
+    expect(re.onepass).not.toBeNull()
+    expect(re.match(`l${longTarget}ng`)).toBe(true)
+  })
+})
