@@ -45,28 +45,28 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       assertLinearTime(pathRegex, maliciousPath, false)
     })
 
-    it('Defeats classic nested repetition ReDoS inside Lookbehinds (Failing Match): (?<=(a+)+)b', () => {
+    it('Defeats classic nested repetition ReDoS inside Lookbehinds (Failing Match): (?<=(?:a+)+)b', () => {
       // Lookbehinds evaluate right-to-left in standard engines, but a complex nested
       // quantifier will still trigger exponential explosion. RE2JS evaluates this in linear time.
-      const regexStr = '(?<=(a+)+)b'
+      const regexStr = '(?<=(?:a+)+)b'
       const maliciousInput = `${'a'.repeat(60)}!b` // The '!' causes the prefix match to fail
       assertLinearTime(regexStr, maliciousInput, false, RE2JS.LOOKBEHINDS)
     })
 
-    it('Defeats overlapping alternation ReDoS inside Lookbehinds (Failing Match): (?<=(a|aa)+)b', () => {
-      const regexStr = '(?<=(a|aa)+)b'
+    it('Defeats overlapping alternation ReDoS inside Lookbehinds (Failing Match): (?<=(?:a|aa)+)b', () => {
+      const regexStr = '(?<=(?:a|aa)+)b'
       const maliciousInput = `${'a'.repeat(60)}!b`
       assertLinearTime(regexStr, maliciousInput, false, RE2JS.LOOKBEHINDS)
     })
 
-    it('Defeats classic nested repetition ReDoS inside Lookbehinds (Successful Match): (?<=(a+)+)b', () => {
-      const regexStr = '(?<=(a+)+)b'
+    it('Defeats classic nested repetition ReDoS inside Lookbehinds (Successful Match): (?<=(?:a+)+)b', () => {
+      const regexStr = '(?<=(?:a+)+)b'
       const maliciousInput = `${'a'.repeat(60)}b` // The prefix perfectly matches
       assertLinearTime(regexStr, maliciousInput, true, RE2JS.LOOKBEHINDS)
     })
 
-    it('Defeats overlapping alternation ReDoS inside Lookbehinds (Successful Match): (?<=(a|aa)+)b', () => {
-      const regexStr = '(?<=(a|aa)+)b'
+    it('Defeats overlapping alternation ReDoS inside Lookbehinds (Successful Match): (?<=(?:a|aa)+)b', () => {
+      const regexStr = '(?<=(?:a|aa)+)b'
       const maliciousInput = `${'a'.repeat(60)}b` // The prefix perfectly matches
       assertLinearTime(regexStr, maliciousInput, true, RE2JS.LOOKBEHINDS)
     })

@@ -150,9 +150,9 @@ class Inst {
       case Inst.NOP:
         return `nop -> ${this.out}`
       case Inst.LB_WRITE:
-        return `lbwrite ${this.lb} -> ${this.out}`
+        return `lbwrite ${this.arg} -> ${this.out}`
       case Inst.LB_CHECK:
-        return `lbcheck ${this.lb} -> ${this.out}, ${this.arg}`
+        return `lbcheck ${this.arg} -> ${this.out}`
       case Inst.RUNE:
         if (this.runes === null) {
           return 'rune <null>'

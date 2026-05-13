@@ -401,6 +401,16 @@ describe('lookbehinds cases', () => {
   })
 })
 
+describe('invalid lookbehind AST cases', () => {
+  it.each([['(?<=(a))b'], ['(?<!(a))b'], ['(?<=(?P<name>a))b'], ['(?<=a(?:b(c)))']])(
+    'invalid capture %p raises error during AST parse',
+    (input) => {
+      const flags = RE2Flags.PERL_X | RE2Flags.LOOKBEHIND
+      expect(() => Parser.parse(input, flags)).toThrow('invalid capture in lookbehind')
+    }
+  )
+})
+
 describe('.equals', () => {
   const cases = [
     ['abc', 'abc', RE2Flags.POSIX, true],

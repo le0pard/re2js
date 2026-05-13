@@ -733,7 +733,7 @@ negative.test('foobar'); // false
 
 1. **Performance Overhead:** If a regex contains a lookbehind, the engine is forced to safely bypass the ultra-fast Lazy DFA and OnePass engines. It evaluates the lookbehinds using parallel automata running on the NFA (Pike VM). While execution remains mathematically safe and linear $O(n)$, the NFA engine is generally slower than the DFA fast-paths. Use lookbehinds only when necessary.
 2. **Prefix Acceleration is Disabled:** To ensure the parallel tracking automata initialize correctly, high-speed string prefix skipping (e.g., using `indexOf` to jump to a starting literal) is disabled when lookbehinds are present.
-3. **Captureless Guarantee:** To prevent state-explosion vulnerabilities, lookbehinds are strictly evaluated as *captureless*. If you include a capturing group inside a lookbehind (e.g., `(?<=(foo))bar`), the engine will match successfully, but `group(1)` will safely return `null`.
+3. **Captureless Guarantee:** To prevent state-explosion vulnerabilities and maintain strict safety invariants, lookbehinds are strictly evaluated as *captureless*. If you attempt to include a capturing group inside a lookbehind (e.g., `(?<=(foo))bar`), the engine will proactively throw a `SyntaxError` at compile time. Use non-capturing groups `(?:...)` instead.
 
 
 ## Development

@@ -5,15 +5,14 @@ import { RE2Flags } from '../RE2Flags.js'
 describe('Inst', () => {
   it('formats lookbehind instructions correctly', () => {
     const writeInst = new Inst(Inst.LB_WRITE)
-    writeInst.lb = 1
+    writeInst.arg = 1
     writeInst.out = 10
     expect(writeInst.toString()).toBe('lbwrite 1 -> 10')
 
     const checkInst = new Inst(Inst.LB_CHECK)
-    checkInst.lb = -2 // Negative lookbehind
+    checkInst.arg = -2 // Negative lookbehind
     checkInst.out = 15
-    checkInst.arg = 20
-    expect(checkInst.toString()).toBe('lbcheck -2 -> 15, 20')
+    expect(checkInst.toString()).toBe('lbcheck -2 -> 15')
   })
 })
 

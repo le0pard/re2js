@@ -223,7 +223,7 @@ class Compiler {
 
   lookBehind(a, lb) {
     const id = this.newInst(Inst.LB_WRITE)
-    this.prog.getInst(id.i).lb = lb
+    this.prog.getInst(id.i).arg = lb
 
     // Create the prefix wildcard `.*` for the lookbehind automaton
     const any = this.rune(Compiler.ANY_RUNE(), 0)
@@ -233,7 +233,7 @@ class Compiler {
     this.prog.patch(lbAutomaton.out, id.i)
 
     const checkId = this.newInst(Inst.LB_CHECK)
-    this.prog.getInst(checkId.i).lb = lb
+    this.prog.getInst(checkId.i).arg = lb
 
     // Save the starting point of this lookbehind automaton
     this.prog.lbStarts.push(lbAutomaton.i)

@@ -113,6 +113,7 @@ class Parser {
   static ERR_UNEXPECTED_PAREN = 'unexpected )'
   static ERR_NESTING_DEPTH = 'expression nests too deeply'
   static ERR_LARGE = 'expression too large'
+  static ERR_INVALID_CAPTURE_IN_LOOKBEHIND = 'invalid capture in lookbehind'
 
   // maxHeight is the maximum height of a regexp parse tree.
   // It is somewhat arbitrarily chosen, but the idea is to be large enough
@@ -544,6 +545,21 @@ class Parser {
       x.push(y[i])
     }
     return x
+  }
+
+  // recursively check for captures
+  static hasCapture(re) {
+    if (re === null) return false
+
+    if (re.op === Regexp.Op.CAPTURE) return true
+
+    if (re.subs) {
+      for (let sub of re.subs) {
+        if (Parser.hasCapture(sub)) return true
+      }
+    }
+
+    return false
   }
 
   constructor(wholeRegexp, flags = 0) {
@@ -1288,7 +1304,7 @@ class Parser {
           case 1:
             // Impossible but handle.
             re.op = Regexp.Op.EMPTY_MATCH
-            re.subs = null
+            re.subs = Regexp.emptySubs()
             break
           case 2: {
             const old = re
@@ -1748,6 +1764,10 @@ class Parser {
 
     // Handle lookbehinds
     if (re2.lb !== 0) {
+      if (Parser.hasCapture(re1)) {
+        throw new RE2JSSyntaxException(Parser.ERR_INVALID_CAPTURE_IN_LOOKBEHIND, this.wholeRegexp)
+      }
+
       if (re2.lb > 0) {
         re2.op = Regexp.Op.PLB
       } else {

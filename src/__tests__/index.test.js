@@ -366,8 +366,8 @@ describe('program size', () => {
   })
 
   it('taken into account LOOKBEHINDS flag', () => {
-    const p = RE2JS.compile('(?<=(a|aa)+)b', RE2JS.LOOKBEHINDS)
-    expect(p.programSize()).toEqual(14)
+    const p = RE2JS.compile('(?<=(?:a|aa)+)b', RE2JS.LOOKBEHINDS)
+    expect(p.programSize()).toEqual(12)
   })
 })
 

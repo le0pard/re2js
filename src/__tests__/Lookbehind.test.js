@@ -31,11 +31,18 @@ describe('Lookbehinds (Linear Time EPFL Algorithm)', () => {
     expect(() => RE2JS.compile('(?<=foo)bar')).toThrow()
   })
 
-  it('Does not capture groups inside lookbehinds (captureless algorithm)', () => {
-    const re = RE2JS.compile('(?<=(foo))bar', RE2JS.LOOKBEHINDS)
-    const match = re.matcher('foobar')
-    expect(match.find()).toBe(true)
-    expect(match.group(1)).toBeNull() // Group 1 should be safely ignored
+  it('Throws an error for captures inside lookbehinds (captureless algorithm)', () => {
+    expect(() => RE2JS.compile('(?<=(foo))bar', RE2JS.LOOKBEHINDS)).toThrow(
+      'invalid capture in lookbehind'
+    )
+  })
+
+  it('Does not crash on factored out alternations with empty branches', () => {
+    // The parser factors out empty matches which can trigger edge-cases in AST traversal.
+    // This test ensures hasCapture gracefully handles it without throwing "null is not iterable"
+    const re = RE2JS.compile('(?<=a|)b', RE2JS.LOOKBEHINDS)
+    expect(re.test('ab')).toBe(true)
+    expect(re.test('xb')).toBe(true) // Empty prefix branch matches 0-width
   })
 
   it('C++ Fork Ported Tests - Positive Lookbehinds', () => {
@@ -64,6 +71,32 @@ describe('Lookbehinds (Linear Time EPFL Algorithm)', () => {
 
     // FullMatch translates to testExact
     expect(RE2JS.compile('good(?<!d)bye', RE2JS.LOOKBEHINDS).testExact('goodbye')).toBe(false)
+  })
+})
+
+describe('Captureless Guarantee (Syntax Validation)', () => {
+  it('Throws an error for standard captures inside lookbehinds', () => {
+    expect(() => RE2JS.compile('(?<=(foo))bar', RE2JS.LOOKBEHINDS)).toThrow(
+      'invalid capture in lookbehind'
+    )
+  })
+
+  it('Throws an error for named captures inside lookbehinds', () => {
+    expect(() => RE2JS.compile('(?<=(?P<name>foo))bar', RE2JS.LOOKBEHINDS)).toThrow(
+      'invalid capture in lookbehind'
+    )
+  })
+
+  it('Throws an error for deeply nested captures inside lookbehinds', () => {
+    expect(() => RE2JS.compile('(?<=a(?:b(?:c(d))))', RE2JS.LOOKBEHINDS)).toThrow(
+      'invalid capture in lookbehind'
+    )
+  })
+
+  it('Successfully compiles non-capturing groups inside lookbehinds', () => {
+    // Should not throw
+    const re = RE2JS.compile('(?<=(?:foo))bar', RE2JS.LOOKBEHINDS)
+    expect(re.test('foobar')).toBe(true)
   })
 })
 

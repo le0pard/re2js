@@ -462,17 +462,17 @@ class Machine {
             continue
           }
         case Inst.LB_WRITE:
-          this.lbTable[Math.abs(inst.lb)] = pos
+          this.lbTable[Math.abs(inst.arg)] = pos
           pc = inst.out
           continue
         case Inst.LB_CHECK:
-          if (inst.lb > 0) {
+          if (inst.arg > 0) {
             // Positive Lookbehind
-            if (this.lbTable[inst.lb] === pos) {
+            if (this.lbTable[inst.arg] === pos) {
               pc = inst.out // Flattened tail recursion
               continue
             }
-          } else if (this.lbTable[-inst.lb] !== pos) {
+          } else if (this.lbTable[-inst.arg] !== pos) {
             // Negative Lookbehind
             pc = inst.out // Flattened tail recursion
             continue
