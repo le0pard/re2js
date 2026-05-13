@@ -513,7 +513,7 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
 Note that the replacement string can include references to capturing groups from the pattern
 
 Parameters:
-- `replacement (String)`: The string that replaces the substrings found. Capture groups and special characters in the replacement string have special behavior. For example:
+- `replacement (String | Function)`: The string that replaces the substrings found, or a function invoked to create the new substring. When passing a string, capture groups and special characters have special behavior. For example:
   - `$&` refers to the entire matched substring
   - `$1, $2, ...` refer to the corresponding capture groups in the pattern
   - `$$` inserts a literal `$`
@@ -556,7 +556,42 @@ RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
   .replaceFirst('$10$20') // 'jb0nopqrstuvwxyz123'
 ```
 
-Function support second argument `javaMode`, which work in the same way, as for `replaceAll` function
+Function support second argument `javaMode`, which work in the same way, as for `replaceAll` function.
+
+#### Using a Replacer Function
+
+For a more modern JavaScript developer experience, RE2JS supports passing a **replacer function** to `replaceAll()` and `replaceFirst()`, perfectly mirroring native `String.prototype.replace(regex, replacer)` behavior while taking advantage of the high-speed linear-time engine.
+
+The replacer function is invoked for each match, and its return value is used as the replacement string. The function receives the following arguments:
+
+1. `match`: The matched substring.
+2. `p1, p2, ...`: The string found by a capture group (if any). Unmatched optional groups evaluate to `undefined`.
+3. `offset`: The offset of the matched substring within the whole string.
+4. `string`: The original input string (or byte array).
+5. `groups`: A dictionary object of named capture groups (if any exist in the pattern).
+
+```js
+import { RE2JS } from 're2js'
+
+// Example 1: Dynamic replacements
+const re1 = RE2JS.compile('\\d+');
+const m1 = re1.matcher('Numbers: 1, 2, 3');
+
+m1.replaceAll((match) => String(Number(match) * 10));
+// 'Numbers: 10, 20, 30'
+
+
+// Example 2: Using named capture groups and function signature
+const re2 = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)');
+const m2 = re2.matcher('Hello World');
+
+m2.replaceFirst((match, p1, p2, p3, offset, string, groups) => {
+  // 'middle' didn't match, so p2 and groups.middle will be undefined
+  return `${groups.last}, ${groups.first}`;
+});
+// 'World, Hello'
+
+```
 
 ### Safe Replacements
 

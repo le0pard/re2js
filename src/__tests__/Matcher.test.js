@@ -212,6 +212,123 @@ describe('.replaceFirst', () => {
   })
 })
 
+describe('Replacer function support', () => {
+  it('calls the replacer function with the correct JS argument signature', () => {
+    const re2 = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)')
+
+    // We will use a mock to track the exact arguments passed to the function
+    let captureArgs = null
+    const replacer = (...args) => {
+      captureArgs = args
+      const groups = args[args.length - 1]
+      return `${groups.last}, ${groups.first}`
+    }
+
+    const m = re2.matcher('Hello World') // middle name will be undefined
+    const result = m.replaceFirst(replacer)
+
+    expect(result).toBe('World, Hello')
+
+    // Arguments: (match, p1, p2, p3, offset, string, groups)
+    expect(captureArgs[0]).toBe('Hello World') // match
+    expect(captureArgs[1]).toBe('Hello') // p1 (first)
+    expect(captureArgs[2]).toBeUndefined() // p2 (middle - didn't match)
+    expect(captureArgs[3]).toBe('World') // p3 (last)
+    expect(captureArgs[4]).toBe(0) // offset
+    expect(captureArgs[5]).toBe('Hello World') // original string
+
+    // Named groups dictionary
+    expect(captureArgs[6]).toEqual({
+      first: 'Hello',
+      middle: void 0,
+      last: 'World'
+    })
+  })
+
+  it('handles replaceAll correctly with dynamic outputs', () => {
+    const re2 = RE2JS.compile('\\d+')
+    const m = re2.matcher('Numbers: 1, 2, 3')
+
+    const result = m.replaceAll((match) => String(Number(match) * 10))
+    expect(result).toBe('Numbers: 10, 20, 30')
+  })
+
+  it('safely handles non-string returns by coercing to string', () => {
+    const re2 = RE2JS.compile('true')
+    const m = re2.matcher('is it true?')
+
+    const result = m.replaceFirst(() => false) // Returns a boolean, not a string
+    expect(result).toBe('is it false?')
+  })
+
+  it('receives the exact byte/character offset and original string reference', () => {
+    const re2 = RE2JS.compile('bar')
+    const m = re2.matcher('foo bar baz')
+
+    let capturedArgs = null
+    const result = m.replaceFirst((...args) => {
+      capturedArgs = args
+      return 'qux'
+    })
+
+    expect(result).toBe('foo qux baz')
+
+    // JS Signature for a regex with NO capture groups: (match, offset, originalString)
+    expect(capturedArgs).toHaveLength(3)
+    expect(capturedArgs[0]).toBe('bar') // match
+    expect(capturedArgs[1]).toBe(4) // offset
+    expect(capturedArgs[2]).toBe('foo bar baz') // original string
+  })
+
+  it('handles zero-width matches correctly without infinite looping', () => {
+    // A completely empty regex matches the gaps between characters (zero-width)
+    const re2 = RE2JS.compile('')
+    const m = re2.matcher('123')
+
+    // Native JS: "123".replace(/(?:)/g, 'x') === "x1x2x3x"
+    const result = m.replaceAll(() => 'x')
+    expect(result).toBe('x1x2x3x')
+  })
+
+  it('safely evaluates UTF-8 Multi-byte arrays without breaking parameter signatures', () => {
+    const re2 = RE2JS.compile('world')
+
+    // Uint8Array of "hello world"
+    const utf8Input = new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
+    const m = re2.matcher(utf8Input)
+
+    let capturedInput = null
+    const result = m.replaceAll((match, offset, originalArray) => {
+      capturedInput = originalArray
+      return 'planet'
+    })
+
+    // Matches native regex string manipulation behavior
+    expect(result).toBe('hello planet')
+
+    // Crucially, the 'originalString' parameter MUST be the raw Uint8Array reference
+    // so developers can access the raw bytes inside their callback if they need to.
+    expect(capturedInput).toBe(utf8Input)
+  })
+
+  it('prevents V8 call stack overflow attacks on massive capture groups', () => {
+    // Compile a simple regex to bypass the 5+ second AST compilation penalty
+    const re2 = RE2JS.compile('(a)')
+    const m = re2.matcher('a')
+
+    // Simulate a massive AST mathematically
+    m.patternGroupCount = 70000
+
+    // Replacing via string is perfectly safe and won't crash
+    expect(() => m.replaceFirst('safe')).not.toThrow()
+
+    // Replacing via Function triggers our safeguard to avoid crashing Node.js
+    expect(() => m.replaceFirst(() => 'hacked')).toThrow(
+      new RE2JSGroupException('Too many capture groups to safely invoke replacer function')
+    )
+  })
+})
+
 describe('invalid replacement', () => {
   it('falls back to literal string in default JS mode instead of throwing', () => {
     const p = RE2JS.compile('abc')

@@ -30,6 +30,13 @@ import { RE2JSGroupException } from './exceptions.js'
 
 class Matcher {
   /**
+   * V8 and WebKit have historical hard limits on the number of arguments
+   * that can be passed to a function. We cap replacer arguments to prevent
+   * Call Stack Overflow (DoS) vulnerabilities on massive ASTs.
+   */
+  static MAX_REPLACER_ARGS = 65535
+
+  /**
    * Quotes '\' and '$' in {@code s}, so that the returned string could be used in
    * {@link #appendReplacement} as a literal replacement of {@code s}.
    *
@@ -664,7 +671,7 @@ class Matcher {
    * Returns the input with all matches replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
    *
-   * @param {string} replacement - the replacement string
+   * @param {string|Function} replacement - the replacement string or a replacer function
    * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string} the input string with the matches replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and javaMode is true
@@ -677,7 +684,7 @@ class Matcher {
    * Returns the input with the first match replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
    *
-   * @param {string} replacement - the replacement string
+   * @param {string|Function} replacement - the replacement string or a replacer function
    * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string} the input string with the first match replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and javaMode is true
@@ -688,7 +695,7 @@ class Matcher {
 
   /**
    * Helper: replaceAll/replaceFirst hybrid.
-   * @param {string} replacement - the replacement string
+   * @param {string|Function} replacement - the replacement string or a replacer function
    * @param {boolean} [all=true] - replace all matches
    * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string}
@@ -698,8 +705,30 @@ class Matcher {
     let res = ''
 
     this.reset()
+
+    const isFunc = typeof replacement === 'function'
+
+    // Cache named groups check to avoid GC thrashing on every match
+    const hasNamedGroups = Object.keys(this.namedGroups).length > 0
+
+    let originalInput = null
+
+    if (isFunc) {
+      // Prevent V8 Call Stack Overflow (DoS vector) on massive capture group counts
+      if (this.groupCount() >= Matcher.MAX_REPLACER_ARGS) {
+        throw new RE2JSGroupException('Too many capture groups to safely invoke replacer function')
+      }
+      // Resolve the original input reference exactly once outside the hot loop
+      originalInput = this.matcherInput.isUTF8Encoding()
+        ? this.matcherInput.asBytes()
+        : this.matcherInput.asCharSequence()
+    }
+
     while (this.find()) {
-      res += this.appendReplacement(replacement, javaMode)
+      res += isFunc
+        ? this.appendReplacementFunc(replacement, hasNamedGroups, originalInput)
+        : this.appendReplacement(replacement, javaMode)
+
       if (!all) {
         break
       }
@@ -707,6 +736,71 @@ class Matcher {
 
     res += this.appendTail()
     return res
+  }
+
+  /**
+   * Evaluates a replacer function for the current match and appends the result,
+   * along with any un-matched preceding text, advancing the append position.
+   * @param {Function} replacer - the replacer function
+   * @param {boolean} hasNamedGroups - cached flag if pattern has named groups
+   * @param {string|Uint8Array|number[]} originalInput - the cached original input reference
+   * @returns {string} the evaluated string to append
+   * @private
+   */
+  appendReplacementFunc(replacer, hasNamedGroups, originalInput) {
+    let res = ''
+    const s = this.start()
+    const e = this.end()
+
+    if (this.appendPos < s) {
+      res += this.substring(this.appendPos, s)
+    }
+    this.appendPos = e
+
+    const args = this.buildReplacerArgs(s, hasNamedGroups, originalInput)
+
+    res += String(replacer(...args))
+    return res
+  }
+
+  /**
+   * Builds the argument array for the replacer function matching the standard
+   * JS String.prototype.replace(regex, replacer) signature.
+   * @param {number} matchStart - the start index of the match
+   * @param {boolean} hasNamedGroups - cached flag if pattern has named groups
+   * @param {string|Uint8Array|number[]} originalInput - the cached original input reference
+   * @returns {Array} array of arguments
+   * @private
+   */
+  buildReplacerArgs(matchStart, hasNamedGroups, originalInput) {
+    const args = [this.group(0)] // match
+
+    const numGroups = this.groupCount()
+    // Fast-path capture group extraction
+    for (let i = 1; i <= numGroups; i++) {
+      const start = this.start(i)
+      if (start < 0) {
+        args.push(void 0)
+      } else {
+        args.push(this.substring(start, this.end(i)))
+      }
+    }
+
+    args.push(matchStart) // offset
+    args.push(originalInput) // original string (cached)
+
+    // Append named groups object if pattern contains them
+    if (hasNamedGroups) {
+      const parsedGroups = this.getNamedGroups()
+      for (const key in parsedGroups) {
+        if (parsedGroups[key] === null) {
+          parsedGroups[key] = void 0
+        }
+      }
+      args.push(parsedGroups)
+    }
+
+    return args
   }
 }
 

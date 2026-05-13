@@ -94,9 +94,8 @@ describe('OnePass Execution', () => {
   })
 })
 
-
-describe('Special Cases', () => {
-  it('golang.org/issue/11905 - properly collapses ambiguous AST paths in OnePass', () => {
+describe('Special cases', () => {
+  it('properly collapses ambiguous AST paths in OnePass', () => {
     // This specific regex caused a regression in the original Go codebase.
     // It tests whether the OnePass compiler correctly rewrites common overlapping
     // constructs (A:BD) to ensure 1-unambiguous DFA evaluation.
