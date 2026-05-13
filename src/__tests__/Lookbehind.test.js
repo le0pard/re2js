@@ -101,6 +101,17 @@ describe('Captureless Guarantee (Syntax Validation)', () => {
 })
 
 describe('Advanced Integrations', () => {
+  it('Successfully matches lookbehinds when search is started mid-string via find(pos)', () => {
+    const re = RE2JS.compile('(?<=foo)bar', RE2JS.LOOKBEHINDS)
+    const m = re.matcher('foobar')
+
+    // Start search explicitly at index 3 ("bar")
+    // If the engine fails to scan from 0 internally, the lookbehind state won't be populated
+    // and this will incorrectly return false.
+    expect(m.find(3)).toBe(true)
+    expect(m.group(0)).toBe('bar')
+  })
+
   it('RE2Set matches multiple lookbehinds simultaneously', () => {
     // Proves that Multi-Pattern Sets can compile and evaluate
     // lookbehinds simultaneously in a single linear O(N) pass.

@@ -178,33 +178,41 @@ class Machine {
     this.matched = false
     this.matchcap.fill(-1)
 
+    // Lookbehinds must scan from the beginning of the string to build their state table,
+    // even if the main pattern search is requested to start mid-string.
+    let currentPos = this.prog.numLb > 0 ? 0 : pos
+    let matchStartPos = pos
+
     let runq = this.q0
     let nextq = this.q1
-    let r = input.step(pos)
+    let r = input.step(currentPos)
     let rune = r >> 3
     let width = r & 7
     let rune1 = -1
     let width1 = 0
 
     if (r !== MachineInputBase.EOF()) {
-      r = input.step(pos + width)
+      r = input.step(currentPos + width)
       rune1 = r >> 3
       width1 = r & 7
     }
 
     let flag
-    if (pos === 0) {
+    if (currentPos === 0) {
       flag = Utils.emptyOpContext(-1, rune)
     } else {
-      flag = input.context(pos)
+      flag = input.context(currentPos)
     }
 
     while (true) {
       if (runq.isEmpty()) {
-        if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) {
+        if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && currentPos !== 0) {
           break
         }
-        if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+        if (
+          (anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) &&
+          currentPos !== 0
+        ) {
           break
         }
         if (this.matched) {
@@ -219,33 +227,41 @@ class Machine {
           rune1 !== this.re2.prefixRune &&
           input.canCheckPrefix()
         ) {
-          const advance = input.index(this.re2, pos)
+          const advance = input.index(this.re2, currentPos)
           if (advance < 0) {
             break
           }
-          pos += advance
-          r = input.step(pos)
+          currentPos += advance
+          r = input.step(currentPos)
           rune = r >> 3
           width = r & 7
-          r = input.step(pos + width)
+          r = input.step(currentPos + width)
           rune1 = r >> 3
           width1 = r & 7
         }
       }
-      if (!this.matched && (pos === 0 || anchor === RE2Flags.UNANCHORED)) {
-        if (this.ncap > 0) {
-          this.matchcap[0] = pos
-        }
-        // Spawn Lookbehind threads BEFORE the main pattern
+
+      // Optimize lookbehind spawning. Because lookbehinds are prefixed with `.*` by the compiler,
+      // they only need to be spawned exactly once at the beginning of the string (currentPos === 0).
+      if (currentPos === 0 && this.prog.numLb > 0) {
         for (let i = 0; i < this.prog.lbStarts.length; i++) {
-          this.add(runq, this.prog.lbStarts[i], pos, this.matchcap, flag, null)
+          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, flag, null)
         }
-        this.add(runq, this.prog.start, pos, this.matchcap, flag, null)
       }
 
-      const nextPos = pos + width
+      if (!this.matched && (currentPos === 0 || anchor === RE2Flags.UNANCHORED)) {
+        // ONLY spawn the main pattern if we have reached the requested search start boundary
+        if (currentPos >= matchStartPos) {
+          if (this.ncap > 0) {
+            this.matchcap[0] = currentPos
+          }
+          this.add(runq, this.prog.start, currentPos, this.matchcap, flag, null)
+        }
+      }
+
+      const nextPos = currentPos + width
       flag = input.context(nextPos)
-      this.step(runq, nextq, pos, nextPos, rune, flag, anchor, pos === input.endPos())
+      this.step(runq, nextq, currentPos, nextPos, rune, flag, anchor, currentPos === input.endPos())
 
       if (width === 0) {
         break
@@ -254,11 +270,11 @@ class Machine {
         break
       }
 
-      pos += width
+      currentPos += width
       rune = rune1
       width = width1
       if (rune !== -1) {
-        r = input.step(pos + width)
+        r = input.step(currentPos + width)
         rune1 = r >> 3
         width1 = r & 7
       }
@@ -277,39 +293,54 @@ class Machine {
       return []
     }
 
+    // Lookbehinds must scan from the beginning of the string to build their state table,
+    // even if the main pattern search is requested to start mid-string.
+    let currentPos = this.prog.numLb > 0 ? 0 : pos
+    let matchStartPos = pos
+
     let runq = this.q0
     let nextq = this.q1
-    let r = input.step(pos)
+    let r = input.step(currentPos)
     let rune = r >> 3
     let width = r & 7
     let rune1 = -1
     let width1 = 0
 
     if (r !== MachineInputBase.EOF()) {
-      r = input.step(pos + width)
+      r = input.step(currentPos + width)
       rune1 = r >> 3
       width1 = r & 7
     }
 
-    let flag = pos === 0 ? Utils.emptyOpContext(-1, rune) : input.context(pos)
+    let flag = currentPos === 0 ? Utils.emptyOpContext(-1, rune) : input.context(currentPos)
     const matches = new Set()
 
     while (true) {
       if (runq.isEmpty()) {
-        if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && pos !== 0) break
-        if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
+        if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && currentPos !== 0) break
+        if (
+          (anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) &&
+          currentPos !== 0
+        ) {
           break
         }
       }
-      if (pos === 0 || anchor === RE2Flags.UNANCHORED) {
-        // Spawn Lookbehind threads BEFORE the main pattern
+
+      // Optimize lookbehind spawning to exactly once at BOF
+      if (currentPos === 0 && this.prog.numLb > 0) {
         for (let i = 0; i < this.prog.lbStarts.length; i++) {
-          this.add(runq, this.prog.lbStarts[i], pos, this.matchcap, flag, null)
+          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, flag, null)
         }
-        this.add(runq, this.prog.start, pos, this.matchcap, flag, null)
       }
 
-      const nextPos = pos + width
+      if (currentPos === 0 || anchor === RE2Flags.UNANCHORED) {
+        // ONLY spawn the main pattern if we have reached the requested search start boundary
+        if (currentPos >= matchStartPos) {
+          this.add(runq, this.prog.start, currentPos, this.matchcap, flag, null)
+        }
+      }
+
+      const nextPos = currentPos + width
       flag = input.context(nextPos)
 
       for (let j = 0; j < runq.size; j++) {
@@ -320,7 +351,7 @@ class Machine {
         let add = false
         switch (i.op) {
           case Inst.MATCH:
-            if (anchor === RE2Flags.ANCHOR_BOTH && pos !== input.endPos()) break
+            if (anchor === RE2Flags.ANCHOR_BOTH && currentPos !== input.endPos()) break
             matches.add(i.arg) // Record the matched Set ID
             break
           case Inst.RUNE:
@@ -350,11 +381,11 @@ class Machine {
 
       if (width === 0) break
 
-      pos += width
+      currentPos += width
       rune = rune1
       width = width1
       if (rune !== -1) {
-        r = input.step(pos + width)
+        r = input.step(currentPos + width)
         rune1 = r >> 3
         width1 = r & 7
       }
