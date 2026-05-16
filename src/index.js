@@ -1,6 +1,6 @@
 import { RE2Flags } from './RE2Flags.js'
 import { PublicFlags } from './PublicFlags.js'
-import { MatcherInput } from './MatcherInput.js'
+import { MatcherInput, MatcherInputBase } from './MatcherInput.js'
 import { MachineInput } from './MachineInput.js'
 import { Matcher } from './Matcher.js'
 import { RE2 } from './RE2.js'
@@ -464,6 +464,8 @@ export {
   RE2JS,
   RE2Set,
   Matcher,
+  MatcherInput,
+  MatcherInputBase,
   RE2JSException,
   RE2JSSyntaxException,
   RE2JSCompileException,

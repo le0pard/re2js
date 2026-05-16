@@ -79,7 +79,7 @@ class Matcher {
   }
   /**
    *
-   * @param {RE2JS} pattern
+   * @param {import('./index.js').RE2JS} pattern
    * @param {string|number[]|Uint8Array|MatcherInputBase} input
    */
   constructor(pattern, input) {
@@ -88,7 +88,7 @@ class Matcher {
     }
     /**
      * The pattern being matched.
-     * @type {RE2JS}
+     * @type {import('./index.js').RE2JS}
      */
     this.patternInput = pattern
     const re2 = this.patternInput.re2()
@@ -114,7 +114,7 @@ class Matcher {
 
   /**
    * Returns the {@code RE2JS} associated with this {@code Matcher}.
-   * @returns {RE2JS}
+   * @returns {import('./index.js').RE2JS}
    */
   pattern() {
     return this.patternInput

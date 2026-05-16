@@ -12,7 +12,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noEmitOnError": true,
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "stripInternal": true,
     "outDir": "tmp/types",
     "rootDir": "src"
