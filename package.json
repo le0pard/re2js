@@ -23,19 +23,27 @@
     "README.md",
     "LICENSE"
   ],
-  "main": "build/index.cjs.cjs",
-  "module": "build/index.esm.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "build/index.cjs",
+  "module": "build/index.js",
   "unpkg": "build/index.umd.js",
   "exports": {
     ".": {
-      "types": "./build/index.d.ts",
-      "import": "./build/index.esm.js",
-      "require": "./build/index.cjs.cjs"
+      "import": {
+        "types": "./build/index.d.ts",
+        "default": "./build/index.js"
+      },
+      "require": {
+        "types": "./build/index.d.cts",
+        "default": "./build/index.cjs"
+      }
     }
   },
-  "types": "build/index.esm.d.ts",
+  "types": "build/index.d.ts",
   "scripts": {
-    "build": "rolldown -c && tsc && dts-bundle-generator -o build/index.d.ts tmp/types/index.d.ts",
+    "build": "rolldown -c && tsc && dts-bundle-generator -o build/index.d.ts tmp/types/index.d.ts && cp build/index.d.ts build/index.d.cts",
     "dev": "rolldown -c -w",
     "lint": "pnpify run prettier --check src tools *.config.js && eslint src/**/*.js tools/**/*.js rolldown.config.js vitest.config.js",
     "format": "pnpify run prettier --write src tools *.config.js",

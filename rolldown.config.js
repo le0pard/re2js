@@ -37,12 +37,12 @@ export default defineConfig({
     },
     {
       ...sharedConfig,
-      file: `${OUTPUT_DIR}/index.cjs.cjs`, // CommonJS
+      file: `${OUTPUT_DIR}/index.cjs`, // CommonJS
       format: 'cjs'
     },
     {
       ...sharedConfig,
-      file: `${OUTPUT_DIR}/index.esm.js`, // ESM
+      file: `${OUTPUT_DIR}/index.js`, // ESM
       format: 'es'
     }
   ]
