@@ -22,7 +22,7 @@ const sharedConfig = {
   banner,
   exports: 'auto',
   globals: GLOBALS,
-  sourcemap: true
+  sourcemap: false
 }
 
 export default defineConfig({
