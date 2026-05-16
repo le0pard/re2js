@@ -43,8 +43,9 @@
   },
   "types": "build/index.d.ts",
   "scripts": {
-    "build": "rolldown -c && tsc && dts-bundle-generator -o build/index.d.ts tmp/types/index.d.ts && cp build/index.d.ts build/index.d.cts",
+    "build": "rolldown -c && yarn build:types",
     "dev": "rolldown -c -w",
+    "build:types": "tsc && dts-bundle-generator -o build/index.d.ts tmp/types/index.d.ts && cp build/index.d.ts build/index.d.cts && rm -rf tmp/types",
     "lint": "pnpify run prettier --check src tools *.config.js && eslint src/**/*.js tools/**/*.js rolldown.config.js vitest.config.js",
     "format": "pnpify run prettier --write src tools *.config.js",
     "test": "vitest run --project=node",
