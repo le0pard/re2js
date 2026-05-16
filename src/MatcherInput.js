@@ -11,6 +11,21 @@ class MatcherInputBase {
     throw Error('not implemented')
   }
 
+  /** @returns {string} */
+  asCharSequence() {
+    throw Error('not implemented')
+  }
+
+  /** @returns {Uint8Array|number[]} */
+  asBytes() {
+    throw Error('not implemented')
+  }
+
+  /** @returns {number} */
+  length() {
+    throw Error('not implemented')
+  }
+
   /**
    *
    * @returns {boolean}
@@ -29,6 +44,7 @@ class MatcherInputBase {
 }
 
 class Utf8MatcherInput extends MatcherInputBase {
+  /** @param {Uint8Array|number[]|null} bytes */
   constructor(bytes = null) {
     super()
     this.bytes = bytes
@@ -47,7 +63,7 @@ class Utf8MatcherInput extends MatcherInputBase {
 
   /**
    *
-   * @returns {number[]}
+   * @returns {Uint8Array|number[]|null}
    */
   asBytes() {
     return this.bytes
@@ -63,6 +79,7 @@ class Utf8MatcherInput extends MatcherInputBase {
 }
 
 class Utf16MatcherInput extends MatcherInputBase {
+  /** @param {string|null} charSequence */
   constructor(charSequence = null) {
     super()
     this.charSequence = charSequence

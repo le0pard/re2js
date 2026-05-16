@@ -64,6 +64,7 @@ typings/
 .DS_Store
 
 /build/
+/tmp/
 
 # Yarn 2
 .yarn/*

@@ -42,6 +42,8 @@ class Inst {
     // length==1 => exact match
     // otherwise a list of [lo,hi] pairs.  hi is *inclusive*.
     this.runes = []
+    /** @type {Uint32Array | number[] | null} */
+    this.next = null
   }
 
   // MatchRune returns true if the instruction matches (and consumes) r.

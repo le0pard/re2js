@@ -186,7 +186,7 @@ class Utils {
    * Returns a string that quotes all regular expression metacharacters inside the argument text;
    * the returned string is a regular expression matching the literal text. For example,
    * {@code quoteMeta("[foo]").equals("\\[foo\\]")}.
-   * @param {string} s
+   * @param {string} str
    * @returns {string}
    */
   static quoteMeta(str) {

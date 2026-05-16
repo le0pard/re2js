@@ -79,7 +79,7 @@ class Compiler {
 
   newInst(op) {
     this.prog.addInst(op)
-    return new Frag(this.prog.numInst() - 1, 0, true)
+    return new Frag(this.prog.numInst() - 1, new PatchList(), true)
   }
 
   // Returns a no-op fragment.  Sometimes unavoidable.

@@ -9,9 +9,9 @@ import { RE2JSGroupException } from '../exceptions.js'
 const helperTestMatchEndUTF16 = (string, num, end) => {
   const pattern = `[${string}]`
   const RE2Modified = class extends RE2 {
-    matchWithGroup(input, start, e, anchor, group, ngroup) {
+    matchWithGroup(input, start, e, anchor, ngroup) {
       expect(end).toEqual(e)
-      return super.matchWithGroup(input, start, e, anchor, group, ngroup)
+      return super.matchWithGroup(input, start, e, anchor, ngroup)
     }
   }
   const re = RE2Modified.initTest(pattern)

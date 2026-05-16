@@ -1,6 +1,5 @@
-import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import { babel } from '@rollup/plugin-babel'
+/* eslint-disable import/no-default-export */
+import { defineConfig } from 'rolldown'
 import pkg from './package.json' with { type: 'json' }
 
 const LIBRARY_NAME = 'RE2JS' // Library name
@@ -26,7 +25,7 @@ const sharedConfig = {
   sourcemap: true
 }
 
-const makeConfig = () => ({
+export default defineConfig({
   input: 'src/index.js',
   external: EXTERNAL,
   output: [
@@ -46,15 +45,5 @@ const makeConfig = () => ({
       file: `${OUTPUT_DIR}/index.esm.js`, // ESM
       format: 'es'
     }
-  ],
-  plugins: [
-    resolve(), // teach Rollup how to find external modules
-    commonjs(), // so Rollup can convert external modules to an ES module
-    babel({
-      babelHelpers: 'bundled',
-      exclude: ['node_modules/**']
-    })
   ]
 })
-
-export default () => makeConfig()

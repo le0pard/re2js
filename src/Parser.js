@@ -353,7 +353,7 @@ class Parser {
     if (n.length > 8) {
       return -2
     }
-    return parseFloat(n, 10)
+    return parseInt(n, 10)
   }
 
   // can this be represented as a character class?

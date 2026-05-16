@@ -1,4 +1,8 @@
 class UnicodeRangeTable {
+  /**
+   * @param {Uint32Array | number[]} data
+   * @param {boolean} isStride1
+   */
   constructor(data, isStride1 = false) {
     this.data = data // A Uint32Array
     this.isStride1 = isStride1

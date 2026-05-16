@@ -227,7 +227,7 @@ class RE2JS {
   /**
    * Creates a new {@code Matcher} matching the pattern against the input.
    *
-   * @param {string|number[]|Uint8Array} input the input string
+   * @param {string|number[]|Uint8Array|MatcherInputBase} input the input string
    * @returns {Matcher}
    */
   matcher(input) {

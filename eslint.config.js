@@ -4,7 +4,7 @@ import globals from 'globals'
 import js from '@eslint/js'
 
 export default defineConfig([
-  globalIgnores(['**/rollup.config.js', '**/eslint.config.js', '.pnp.**', '**/.yarn/**']),
+  globalIgnores(['**/eslint.config.js', '.pnp.**', '**/.yarn/**']),
   js.configs.recommended,
   importPlugin.flatConfigs.recommended,
   {
