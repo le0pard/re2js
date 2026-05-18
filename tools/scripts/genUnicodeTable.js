@@ -10,6 +10,24 @@ const MAX_BMP = 0xffff
 const MAX_CODE_POINT = 0x10ffff
 
 const SKIP_CATEGORIES = ['cntrl', 'Combining_Mark', 'digit', 'punct']
+const RE2_EXTRA_PROPS = [
+  'ASCII_Hex_Digit',
+  'Alphabetic',
+  'Dash',
+  'Emoji',
+  'Emoji_Component',
+  'Emoji_Modifier',
+  'Emoji_Modifier_Base',
+  'Emoji_Presentation',
+  'Extended_Pictographic',
+  'Hex_Digit',
+  'Lowercase',
+  'Math',
+  'Quotation_Mark',
+  'Terminal_Punctuation',
+  'Uppercase',
+  'White_Space'
+]
 
 const aliasesToNames = unicodePropertyValueAliases.get('General_Category')
 
@@ -132,6 +150,23 @@ const getCodePoints = async (type, name) => {
     `@unicode/unicode-17.0.0/${type}/${name}/code-points.js`
   )
   return codePoints.sort((a, b) => a - b)
+}
+
+const getExtraCodePoints = async (name) => {
+  // Some are strictly Binary Properties, others are Derived Core Properties
+  const paths = [
+    `@unicode/unicode-17.0.0/Binary_Property/${name}/code-points.js`,
+    `@unicode/unicode-17.0.0/Derived_Core_Property/${name}/code-points.js`
+  ]
+  for (const path of paths) {
+    try {
+      const { default: codePoints } = await import(path)
+      return codePoints.sort((a, b) => a - b)
+    } catch {
+      // check next
+    }
+  }
+  return null
 }
 
 const genRanges = async (codePoints) => {
@@ -300,9 +335,14 @@ code.push('    return this._Print;')
 code.push('  }')
 code.push('')
 
+// We track added categories to prevent dup keys
+const addedCategories = new Set()
+
 // Compress General Categories (Lazily Loaded)
 for (const [alias, name] of aliasesToNames.entries()) {
   if (SKIP_CATEGORIES.includes(alias)) continue
+
+  addedCategories.add(alias)
 
   const codePoints = await getCodePoints('General_Category', name)
   const ranges = await genRanges(codePoints)
@@ -316,6 +356,28 @@ for (const [alias, name] of aliasesToNames.entries()) {
     const fEnc = encodeRanges(foldRes)
     foldCatLines.push(
       `    '${alias}': () => new UnicodeRangeTable(decodeRanges('${fEnc.encoded}', ${fEnc.stride1})),`
+    )
+  }
+}
+
+for (const name of RE2_EXTRA_PROPS) {
+  if (addedCategories.has(name)) continue
+  addedCategories.add(name)
+
+  const codePoints = await getExtraCodePoints(name)
+  if (!codePoints) continue
+
+  const ranges = await genRanges(codePoints)
+  const enc = encodeRanges(ranges)
+  catLines.push(
+    `    '${name}': () => new UnicodeRangeTable(decodeRanges('${enc.encoded}', ${enc.stride1})),`
+  )
+
+  const foldRes = addFoldExceptions(codePoints)
+  if (foldRes !== null) {
+    const fEnc = encodeRanges(foldRes)
+    foldCatLines.push(
+      `    '${name}': () => new UnicodeRangeTable(decodeRanges('${fEnc.encoded}', ${fEnc.stride1})),`
     )
   }
 }

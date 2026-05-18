@@ -1272,3 +1272,31 @@ describe('Core Unicode Properties (Ascii, Assigned, Lc)', () => {
     expect(p.matches(unassignedChar)).toBe(false)
   })
 })
+
+describe('Unicode Binary Properties', () => {
+  it('correctly matches \\p{Emoji}', () => {
+    const re2 = RE2JS.compile('^\\p{Emoji}+$')
+    expect(re2.matches('😀🚀🎉')).toBe(true)
+    expect(re2.matches('abc')).toBe(false)
+  })
+
+  it('correctly matches negated \\P{Emoji}', () => {
+    const re2 = RE2JS.compile('^\\P{Emoji}+$')
+    expect(re2.matches('abc')).toBe(true)
+    expect(re2.matches('😀')).toBe(false)
+  })
+
+  it('correctly matches \\p{White_Space}', () => {
+    const re2 = RE2JS.compile('^\\p{White_Space}+$')
+    // Matches standard spaces, tabs, and newlines
+    expect(re2.matches(' \t\n\r')).toBe(true)
+    expect(re2.matches('a')).toBe(false)
+  })
+
+  it('correctly folds case for Binary Properties if applicable', () => {
+    // ASCII_Hex_Digit is a true binary property
+    const re2 = RE2JS.compile('^\\p{ASCII_Hex_Digit}+$', RE2JS.CASE_INSENSITIVE)
+    expect(re2.matches('abcdef')).toBe(true)
+    expect(re2.matches('ABCDEF')).toBe(true)
+  })
+})
