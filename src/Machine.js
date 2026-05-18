@@ -87,6 +87,19 @@ class Machine {
     return Machine.fromRE2(machine.re2)
   }
 
+  constructor() {
+    this.prog = null
+    this.re2 = null
+    this.q0 = null
+    this.q1 = null
+    this.pool = []
+    this.poolSize = 0
+    this.matched = false
+    this.matchcap = null
+    this.ncap = 0
+    this.lbTable = null
+  }
+
   // init() reinitializes an existing Machine for re-use on a new input.
   init(ncap) {
     this.ncap = ncap
