@@ -184,6 +184,8 @@ class RE2JS {
     this.patternInput = pattern
     // The flags at construction time.
     this.flagsInput = flags
+    /** @type {import('./RE2.js').RE2} */
+    this.re2Input = null
   }
 
   /**
@@ -444,14 +446,33 @@ class RE2JS {
   }
 }
 
-/* Small helper for Tagged Template Literals (No Double-Escaping) */
+/**
+ * Creates an RE2JS regex directly from a template literal.
+ * @overload
+ * @param {TemplateStringsArray} stringsOrFlags - The raw string segments of the template literal.
+ * @param {...any} values - The interpolated values.
+ * @returns {RE2JS}
+ */
+/**
+ * Creates a template literal tag function with specific RE2JS flags.
+ * @overload
+ * @param {number} stringsOrFlags - The RE2JS flags to apply (e.g., RE2JS.CASE_INSENSITIVE).
+ * @returns {(strings: TemplateStringsArray, ...tagValues: any[]) => RE2JS}
+ */
+/**
+ * Implementation signature
+ * @param {TemplateStringsArray | number} stringsOrFlags
+ * @param {...any} values
+ * @returns {RE2JS | ((strings: TemplateStringsArray, ...tagValues: any[]) => RE2JS)}
+ */
+// @ts-ignore: TypeScript cannot infer intersection types for overloaded functions in JS
 const re = (stringsOrFlags, ...values) => {
-  if (Array.isArray(stringsOrFlags) && stringsOrFlags.raw) {
+  if (Array.isArray(stringsOrFlags) && 'raw' in stringsOrFlags) {
     const pattern = String.raw(stringsOrFlags, ...values)
     return RE2JS.compile(pattern)
   }
 
-  const flags = stringsOrFlags
+  const flags = typeof stringsOrFlags === 'number' ? stringsOrFlags : 0
 
   return (strings, ...tagValues) => {
     const pattern = String.raw(strings, ...tagValues)

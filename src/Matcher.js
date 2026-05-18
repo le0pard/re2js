@@ -671,7 +671,7 @@ class Matcher {
    * Returns the input with all matches replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
    *
-   * @param {string|Function} replacement - the replacement string or a replacer function
+   * @param {string|((...args: any[]) => string)} replacement - the replacement string or a replacer function
    * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string} the input string with the matches replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and javaMode is true
@@ -684,7 +684,7 @@ class Matcher {
    * Returns the input with the first match replaced by {@code replacement}, interpreted as for
    * {@code appendReplacement}.
    *
-   * @param {string|Function} replacement - the replacement string or a replacer function
+   * @param {string|((...args: any[]) => string)} replacement - the replacement string or a replacer function
    * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string} the input string with the first match replaced
    * @throws IndexOutOfBoundsException if replacement refers to an invalid group and javaMode is true
@@ -695,7 +695,7 @@ class Matcher {
 
   /**
    * Helper: replaceAll/replaceFirst hybrid.
-   * @param {string|Function} replacement - the replacement string or a replacer function
+   * @param {string|((...args: any[]) => string)} replacement - the replacement string or a replacer function
    * @param {boolean} [all=true] - replace all matches
    * @param {boolean} [javaMode=false] - activate java mode (different behaviour for capture groups and special characters)
    * @returns {string}

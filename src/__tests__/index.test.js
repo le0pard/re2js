@@ -37,7 +37,9 @@ describe('re tagged template literal', () => {
       'bar\nFOO\nbaz',
       true
     ],
-    [() => re(RE2JS.DOTALL)`a.b`, 'a.b', RE2JS.DOTALL, 'a\nb', true]
+    [() => re(RE2JS.DOTALL)`a.b`, 'a.b', RE2JS.DOTALL, 'a\nb', true],
+    [() => re()`^foo`, '^foo', 0, 'foo', true],
+    [() => re(void 0)`^foo`, '^foo', 0, 'foo', true]
   ]
 
   it.each(cases)(

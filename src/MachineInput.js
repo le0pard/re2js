@@ -10,6 +10,10 @@ class MachineInputBase {
     return -1 << 3
   }
 
+  constructor() {
+    this.end = 0
+  }
+
   // can we look ahead without losing info?
   canCheckPrefix() {
     return true
