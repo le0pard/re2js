@@ -131,3 +131,32 @@ it('RE2Set correctly evaluates Uint8Array inputs', () => {
   const utf8Input = new Uint8Array([104, 101, 108, 108, 111, 32, 102, 111, 111])
   expect(set.match(utf8Input)).toEqual([0])
 })
+
+describe('RE2Set Memory Limits', () => {
+  it('uses default maxMem of 8MB when not specified', () => {
+    const set = new RE2Set()
+    set.add('foo')
+    set.compile()
+
+    // 8MB (8,388,608 bytes) / 838 bytes per state = 10010
+    expect(set.dfa.stateLimit).toBe(10010)
+  })
+
+  it('respects custom maxMem parameter', () => {
+    const customMem = 8380 // Exactly enough for 10 states
+    const set = new RE2Set(RE2Set.UNANCHORED, 0, customMem)
+    set.add('foo')
+    set.compile()
+
+    expect(set.dfa.stateLimit).toBe(10)
+  })
+
+  it('enforces a minimum state limit of 1 for very small maxMem', () => {
+    const customMem = 100 // Less than the 838 bytes needed for a single state
+    const set = new RE2Set(RE2Set.UNANCHORED, 0, customMem)
+    set.add('foo')
+    set.compile()
+
+    expect(set.dfa.stateLimit).toBe(1)
+  })
+})

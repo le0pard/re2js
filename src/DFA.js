@@ -42,13 +42,16 @@ class DFAState {
 
 class DFA {
   static MAX_CACHE_CLEARS = 5
+  // Approximate bytes per state to map onto an 8MB default
+  static STATE_MEMORY_ESTIMATE = 838
 
-  constructor(prog) {
+  // maxMem - the maximum memory in bytes to use for the DFA (default 8MB)
+  constructor(prog, maxMem = 8388608) {
     this.prog = prog
     this.stateCache = new Map() // hash(number) -> DFAState[]
     this.stateCount = 0 // Tracks total states for memory limits
     this.startState = null
-    this.stateLimit = 10000 // Prevent memory explosion (ReDoS protection)
+    this.stateLimit = Math.max(1, Math.floor(maxMem / DFA.STATE_MEMORY_ESTIMATE)) // Prevent memory explosion (ReDoS protection)
     this.cacheClears = 0 // Track thrashing
     this.failed = false // mark if DFA cannot work with provided prog
     this.clock = 0 // Global clock for LRU eviction

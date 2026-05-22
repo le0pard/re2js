@@ -5,10 +5,10 @@ import { Parser } from '../Parser.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { MachineInput } from '../MachineInput.js'
 
-const createDFA = (pattern, flags = RE2Flags.PERL) => {
+const createDFA = (pattern, flags = RE2Flags.PERL, maxMem = void 0) => {
   const re = Parser.parse(pattern, flags)
   const prog = Compiler.compileRegexp(re)
-  return new DFA(prog)
+  return new DFA(prog, maxMem)
 }
 
 const runDFA = (dfa, text, anchor = RE2Flags.UNANCHORED) => {
@@ -238,5 +238,23 @@ describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
     const nextState = startState.transVals[0]
     expect(nextState.transKeys.length).toBe(1)
     expect(nextState.transKeys[0]).toBe(8364)
+  })
+})
+
+describe('DFA Memory Limits', () => {
+  it('calculates stateLimit proportionally to maxMem', () => {
+    // 8380 bytes / 838 bytes per state = 10 states
+    const dfa1 = createDFA('a', RE2Flags.PERL, 8380)
+    expect(dfa1.stateLimit).toBe(10)
+  })
+
+  it('defaults to ~8MB (10010 states) if maxMem is not provided', () => {
+    const dfa2 = createDFA('a')
+    expect(dfa2.stateLimit).toBe(10010)
+  })
+
+  it('safely guarantees at least 1 state for restrictively low memory', () => {
+    const dfa3 = createDFA('a', RE2Flags.PERL, 10)
+    expect(dfa3.stateLimit).toBe(1)
   })
 })
