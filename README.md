@@ -264,7 +264,7 @@ This is incredibly powerful for profanity filters, routing engines, or log parse
 ```js
 import { RE2Set } from 're2js'
 
-// Create a new set. You can optionally pass an anchor and public RE2JS flags.
+// Create a new set. You can optionally pass an anchor, public RE2JS flags, and a max memory limit for the DFA.
 // Default anchor: RE2Set.UNANCHORED
 const set = new RE2Set()
 
@@ -286,17 +286,22 @@ console.log(set.match('All systems operational.'))
 // Outputs: []
 ```
 
-#### Anchoring a Set
+#### Anchoring a Set and Memory Limits
 
 You can strictly anchor the entire set by passing an anchor constant to the constructor (`RE2Set.UNANCHORED`, `RE2Set.ANCHOR_START`, or `RE2Set.ANCHOR_BOTH`).
 
-Additionally, you can pass standard public `RE2JS` flags (like `CASE_INSENSITIVE` or `LOOKBEHINDS`) as the second argument to apply them to all patterns in the set.
+You can pass standard public `RE2JS` flags (like `CASE_INSENSITIVE` or `LOOKBEHINDS`) as the second argument to apply them to all patterns in the set.
+
+Additionally, the third argument allows you to specify a `maxMem` limit (in bytes) to prevent the underlying DFA from exploding and consuming too much memory on highly ambiguous patterns.
+The default is 8 * 1024 * 1024 (8MB).
 
 ```js
 import { RE2Set, RE2JS } from 're2js'
 
-// Anchor the set to match the entire string, and make it case-insensitive
-const set = new RE2Set(RE2Set.ANCHOR_BOTH, RE2JS.CASE_INSENSITIVE)
+// Anchor the set to match the entire string, make it case-insensitive,
+// and limit the DFA memory usage to ~4MB (default is 8MB).
+const maxMem = 4 * 1024 * 1024;
+const set = new RE2Set(RE2Set.ANCHOR_BOTH, RE2JS.CASE_INSENSITIVE, maxMem)
 
 set.add('foo') // ID: 0
 set.add('bar') // ID: 1

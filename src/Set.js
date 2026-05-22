@@ -21,10 +21,12 @@ class RE2Set {
    * Constructs a new RE2Set with the specified anchor mode and flags.
    * @param {number} [anchor=RE2Set.UNANCHORED] - The anchoring mode (e.g., RE2Set.UNANCHORED).
    * @param {number} [flags=0] - The public flags to apply to all patterns in the set.
+   * @param {number} [maxMem=8388608] - The maximum memory in bytes to use for the DFA (default 8MB).
    */
-  constructor(anchor = RE2Set.UNANCHORED, flags = 0) {
+  constructor(anchor = RE2Set.UNANCHORED, flags = 0, maxMem = 8388608) {
     this.anchor = anchor
     this.jsFlags = flags
+    this.maxMem = maxMem
 
     let re2Flags = RE2Flags.PERL
     if ((flags & PublicFlags.DISABLE_UNICODE_GROUPS) !== 0) {
@@ -77,7 +79,7 @@ class RE2Set {
   compile() {
     if (this.prog) return
     this.prog = Compiler.compileSet(this.regexps)
-    this.dfa = new DFA(this.prog)
+    this.dfa = new DFA(this.prog, this.maxMem)
     this.dummyRe2 = {
       prog: this.prog,
       cond: this.prog.startCond(),
