@@ -41,16 +41,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/css-color-parser@npm:^4.1.1":
-  version: 4.1.1
-  resolution: "@csstools/css-color-parser@npm:4.1.1"
+"@csstools/css-color-parser@npm:^4.1.7":
+  version: 4.1.7
+  resolution: "@csstools/css-color-parser@npm:4.1.7"
   dependencies:
     "@csstools/color-helpers": "npm:^6.0.2"
     "@csstools/css-calc": "npm:^3.2.1"
   peerDependencies:
     "@csstools/css-parser-algorithms": ^4.0.0
     "@csstools/css-tokenizer": ^4.0.0
-  checksum: 10/05bcfb0b05070387dbaf3b498091998fc23b4442c04e5469ce7b1af600113032c43946b07d4c6ae04f2e4c2c4d49ecfca8b2a42fe9d53d7cec4bf2642b2a33e8
+  checksum: 10/c7d351048bf1ce079afe3cd8e8a9092a498e9a229ace5eda7cf5b22badcaaf5ea5f34249307cab02316b534ee67abd4223ac9dd4ba0adf1ec50fd03993388d3b
   languageName: node
   linkType: hard
 
@@ -80,18 +80,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-alpha-function@npm:^2.0.5":
-  version: 2.0.5
-  resolution: "@csstools/postcss-alpha-function@npm:2.0.5"
+"@csstools/postcss-alpha-function@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "@csstools/postcss-alpha-function@npm:2.0.6"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/c3b7be456de8359161a048520f1b9f2f0bc330e77876af5adac2e8e4e895c0e83095695c665692eea95f56b95aebd4f592af1d007ab62de2cf3e6fa13b3b88bb
+  checksum: 10/43c97d9067763589a86e9fe1a225c498b0c05e1bcd9fe43688e7dac128ddd3983ae733aa7812e1c4257486e084eb5c5110bea35624aad4ef05d4f26c9f0419b7
   languageName: node
   linkType: hard
 
@@ -107,63 +107,63 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-color-function-display-p3-linear@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@csstools/postcss-color-function-display-p3-linear@npm:2.0.4"
+"@csstools/postcss-color-function-display-p3-linear@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@csstools/postcss-color-function-display-p3-linear@npm:2.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/87ea9cf6ee0710497d29c8c8865bdaed4d548b767e8c0a7484f11b18717324be571689ef59c35825493f46e93e884527b1dc176e39432f5cee5be2a058ba5f7f
+  checksum: 10/262ed966edc2cf8fe218412acbc36f4ca66d982759b74e69d7dea47ba8219da7a1bd45b12c6f950698cf51c554f89b602a11a9b2678e4b09a612712b68de68ee
   languageName: node
   linkType: hard
 
-"@csstools/postcss-color-function@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@csstools/postcss-color-function@npm:5.0.4"
+"@csstools/postcss-color-function@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@csstools/postcss-color-function@npm:5.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/ff26e815e376328196833eb1ef97b7280b84ae9404cd40144d376fe6cb5b7ef33b53afa066351b203f75a82e1ab3f0c6d2ffa1bbbb097b52ea7ab30eba377bbb
+  checksum: 10/085950022a1d82253c7ca842b58254e65073c2d306add91866a38a2575ace5dcbeb7f4365dd601ceb081f22cedb229baefcdeb3d4147291d84a5b24b4725067f
   languageName: node
   linkType: hard
 
-"@csstools/postcss-color-mix-function@npm:^4.0.4":
-  version: 4.0.4
-  resolution: "@csstools/postcss-color-mix-function@npm:4.0.4"
+"@csstools/postcss-color-mix-function@npm:^4.0.5":
+  version: 4.0.5
+  resolution: "@csstools/postcss-color-mix-function@npm:4.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/973246aa163cab2a03128462d021cf6c9aec876f69a3de6b8604d503c02ce8ad5a2b35ca69e1f0db91fd0e69ce333fe9aa2644c8db126d697492151e3f0d561d
+  checksum: 10/b9c2c61f41b4e7b9a107012f9e0cab32d2abe1b1b3e36062bb84218b4ffd6658046fe127203a8de61de20addf618a9065f8011ceafd82cd95caa0f7fd430caed
   languageName: node
   linkType: hard
 
-"@csstools/postcss-color-mix-variadic-function-arguments@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "@csstools/postcss-color-mix-variadic-function-arguments@npm:2.0.4"
+"@csstools/postcss-color-mix-variadic-function-arguments@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "@csstools/postcss-color-mix-variadic-function-arguments@npm:2.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/866f8dc791d7852f57371cf822e2d8374e372a6a40c936280f4dc5ea7f727022aacdc04f7c96f0edd794ed247303d928467c5a35946457a173405387400050fb
+  checksum: 10/c90dcd89a61862f269763d3de4b887a5e25f23da6c67b1464240195452a43a094676e10d9a2b156db7c5f958b8071ea143e63773a955c90b68a563287ed03771
   languageName: node
   linkType: hard
 
@@ -193,18 +193,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-contrast-color-function@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "@csstools/postcss-contrast-color-function@npm:3.0.4"
+"@csstools/postcss-contrast-color-function@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "@csstools/postcss-contrast-color-function@npm:3.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/89f4fa19b23984e1cdc5e951b5dd28bbb3f1499e6e21bf09fa5fc287d7a3b5fcedf356dbc4ea4093134bf655d57c8b8d0778a9e9b80569306cc7e30de721b060
+  checksum: 10/d4d946dd387fec7d376a186830c87d02066ea84c4e7306aee5660a913ce4e046ef34256d6c42c87376a9c668d6dc94a3817e244d199dc50f276a88bffb096f0f
   languageName: node
   linkType: hard
 
@@ -244,46 +244,46 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-gamut-mapping@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "@csstools/postcss-gamut-mapping@npm:3.0.4"
+"@csstools/postcss-gamut-mapping@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "@csstools/postcss-gamut-mapping@npm:3.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/d4aadc71f5b5df537b9cb519f841ef52299502f0cefa300b8d8ada849aab425df9928d604668827c856372c395c20552a2186138ab5e4984ac0e427952742533
+  checksum: 10/d90344812d46ab29d35e4a221601b37bab0f1379a77cdc3e50555be7d88f72aef3deea07e66c270b5d325d08ee3930d06dc93b493eb4cc41e1fc639a2b5032aa
   languageName: node
   linkType: hard
 
-"@csstools/postcss-gradients-interpolation-method@npm:^6.0.4":
-  version: 6.0.4
-  resolution: "@csstools/postcss-gradients-interpolation-method@npm:6.0.4"
+"@csstools/postcss-gradients-interpolation-method@npm:^6.0.5":
+  version: 6.0.5
+  resolution: "@csstools/postcss-gradients-interpolation-method@npm:6.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/6e0491b74a1bb485095a88a12e49f6963b40ce272b1eb465133aacc9a77aa6fe4e27cfb2c491b5a461c93e2bd05e7f9716a9f348d6bf3d7a14473e80297ecf63
+  checksum: 10/e05b1cb442e1d43e7725b3f9814127abfa88bdfe0c474d4c05d7d522aac3fd406cfd99a97d17755c3edd2d33a593eb0b6b2c4588a6965973083d00770202770b
   languageName: node
   linkType: hard
 
-"@csstools/postcss-hwb-function@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@csstools/postcss-hwb-function@npm:5.0.4"
+"@csstools/postcss-hwb-function@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@csstools/postcss-hwb-function@npm:5.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/82ca499c54b2a3f99f6d42f7bb37e65a0f7804af8dbf53c799521355b8ca1e3d6d5e6c55a1628269e80dfd9dcd6597cac02c0a6788b3e849272d6b56ff2238ac
+  checksum: 10/079b8d9553e73babded8bd28676635946b44147c11aea5b967b60284731a4b2381e7161d4d17f540f98943c419e4e66464214b022a6a062905f73516723f733a
   languageName: node
   linkType: hard
 
@@ -461,18 +461,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-oklab-function@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@csstools/postcss-oklab-function@npm:5.0.4"
+"@csstools/postcss-oklab-function@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@csstools/postcss-oklab-function@npm:5.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/9f04513bbfc42b4115f349e691ca637d608746a95883e83a711624293d5cac4de31d65ed24b979d4da6add766876043b79a7c26a6b25bb004297434304af08af
+  checksum: 10/edd833a0ba906170681165259a8def56ddebf103401aeb72d461c9fe31c4138d5dc122b6f077aa09e5c78b3cffad421ac4fe9ad43a3b884d6e1d94c410f27e0f
   languageName: node
   linkType: hard
 
@@ -521,18 +521,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@csstools/postcss-relative-color-syntax@npm:^4.0.4":
-  version: 4.0.4
-  resolution: "@csstools/postcss-relative-color-syntax@npm:4.0.4"
+"@csstools/postcss-relative-color-syntax@npm:^4.0.5":
+  version: 4.0.5
+  resolution: "@csstools/postcss-relative-color-syntax@npm:4.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/8fefff0159a5f6b1e309c7151abba36c1412185de34ad51858b158c979708416facbcc9c04f16e53bec783543ebe756cd216ad59dbe63a9c43014acb262811d9
+  checksum: 10/ce5fae0d0d74ae29962efa89be15892495cbaba12caa3063ce73fcc42b2a456f356a09220734a51bd05b13838268426286aa1cad0d690b4cecf548c204e6fe15
   languageName: node
   linkType: hard
 
@@ -1135,9 +1135,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^2.63.0":
-  version: 2.63.0
-  resolution: "@sveltejs/kit@npm:2.63.0"
+"@sveltejs/kit@npm:^2.65.2":
+  version: 2.65.2
+  resolution: "@sveltejs/kit@npm:2.65.2"
   dependencies:
     "@standard-schema/spec": "npm:^1.0.0"
     "@sveltejs/acorn-typescript": "npm:^1.0.9"
@@ -1164,7 +1164,7 @@ __metadata:
       optional: true
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10/a0cbba6b576a425113829918313a548dea1da5fd9860b567dff7a964e90c8743e5db6d38fb0985ea47a1900cbc48a5ba249ce9ab87ab843f44abcf1fcd17c443
+  checksum: 10/97817b2e9ecb895e53f4919e7c17b4807a49a77034be90ac9aa85ca899131f792cd4893c9c65b204860481606d7ef4aaa899edc7a5ac6a5984ab7883e8ff81b7
   languageName: node
   linkType: hard
 
@@ -3477,18 +3477,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-color-functional-notation@npm:^8.0.4":
-  version: 8.0.4
-  resolution: "postcss-color-functional-notation@npm:8.0.4"
+"postcss-color-functional-notation@npm:^8.0.5":
+  version: 8.0.5
+  resolution: "postcss-color-functional-notation@npm:8.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/15da885341f9ab7c62d46a11cde3caa051de1d21e983b20bdffa7215b5ed4dde0faf0b282dad01b80efa29743e303a158f81d788e6f21f20c4dacddfd8f33cb2
+  checksum: 10/29d278c620337053cc81a038e62d636396334b115ad518eb7122123009409f9bb65aa834c6fb4c9b03e0b41ae5cd03aaae839ae3612d2b404caebea1bb50fe35
   languageName: node
   linkType: hard
 
@@ -3648,18 +3648,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-lab-function@npm:^8.0.4":
-  version: 8.0.4
-  resolution: "postcss-lab-function@npm:8.0.4"
+"postcss-lab-function@npm:^8.0.5":
+  version: 8.0.5
+  resolution: "postcss-lab-function@npm:8.0.5"
   dependencies:
-    "@csstools/css-color-parser": "npm:^4.1.1"
+    "@csstools/css-color-parser": "npm:^4.1.7"
     "@csstools/css-parser-algorithms": "npm:^4.0.0"
     "@csstools/css-tokenizer": "npm:^4.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/utilities": "npm:^3.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/8c852acfd6394074cfef07106727620e8f54ae79c388c6d2ec7cdb8c18a31590ae9134320dfa4018ab337554bcb828ae813cae280a9b2b578d8ce186fe374872
+  checksum: 10/8c4327bce83215014f1b0ed14443711fe6aff866ce8b22875f533792a1899ddefc020b5ce6723b5e170e2147d108186aa1a24ccb48cd96e6bc177f65b405bd10
   languageName: node
   linkType: hard
 
@@ -3768,25 +3768,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-preset-env@npm:^11.3.0":
-  version: 11.3.0
-  resolution: "postcss-preset-env@npm:11.3.0"
+"postcss-preset-env@npm:^11.3.1":
+  version: 11.3.1
+  resolution: "postcss-preset-env@npm:11.3.1"
   dependencies:
-    "@csstools/postcss-alpha-function": "npm:^2.0.5"
+    "@csstools/postcss-alpha-function": "npm:^2.0.6"
     "@csstools/postcss-cascade-layers": "npm:^6.0.0"
-    "@csstools/postcss-color-function": "npm:^5.0.4"
-    "@csstools/postcss-color-function-display-p3-linear": "npm:^2.0.4"
-    "@csstools/postcss-color-mix-function": "npm:^4.0.4"
-    "@csstools/postcss-color-mix-variadic-function-arguments": "npm:^2.0.4"
+    "@csstools/postcss-color-function": "npm:^5.0.5"
+    "@csstools/postcss-color-function-display-p3-linear": "npm:^2.0.5"
+    "@csstools/postcss-color-mix-function": "npm:^4.0.5"
+    "@csstools/postcss-color-mix-variadic-function-arguments": "npm:^2.0.5"
     "@csstools/postcss-container-rule-prelude-list": "npm:^1.0.1"
     "@csstools/postcss-content-alt-text": "npm:^3.0.1"
-    "@csstools/postcss-contrast-color-function": "npm:^3.0.4"
+    "@csstools/postcss-contrast-color-function": "npm:^3.0.5"
     "@csstools/postcss-exponential-functions": "npm:^3.0.3"
     "@csstools/postcss-font-format-keywords": "npm:^5.0.0"
     "@csstools/postcss-font-width-property": "npm:^1.0.0"
-    "@csstools/postcss-gamut-mapping": "npm:^3.0.4"
-    "@csstools/postcss-gradients-interpolation-method": "npm:^6.0.4"
-    "@csstools/postcss-hwb-function": "npm:^5.0.4"
+    "@csstools/postcss-gamut-mapping": "npm:^3.0.5"
+    "@csstools/postcss-gradients-interpolation-method": "npm:^6.0.5"
+    "@csstools/postcss-hwb-function": "npm:^5.0.5"
     "@csstools/postcss-ic-unit": "npm:^5.0.1"
     "@csstools/postcss-image-function": "npm:^1.0.0"
     "@csstools/postcss-initial": "npm:^3.0.0"
@@ -3802,12 +3802,12 @@ __metadata:
     "@csstools/postcss-mixins": "npm:^1.0.0"
     "@csstools/postcss-nested-calc": "npm:^5.0.0"
     "@csstools/postcss-normalize-display-values": "npm:^5.0.1"
-    "@csstools/postcss-oklab-function": "npm:^5.0.4"
+    "@csstools/postcss-oklab-function": "npm:^5.0.5"
     "@csstools/postcss-position-area-property": "npm:^2.0.0"
     "@csstools/postcss-progressive-custom-properties": "npm:^5.1.0"
     "@csstools/postcss-property-rule-prelude-list": "npm:^2.0.0"
     "@csstools/postcss-random-function": "npm:^3.0.3"
-    "@csstools/postcss-relative-color-syntax": "npm:^4.0.4"
+    "@csstools/postcss-relative-color-syntax": "npm:^4.0.5"
     "@csstools/postcss-scope-pseudo-class": "npm:^5.0.0"
     "@csstools/postcss-sign-functions": "npm:^2.0.3"
     "@csstools/postcss-stepped-value-functions": "npm:^5.0.3"
@@ -3824,7 +3824,7 @@ __metadata:
     cssdb: "npm:^8.9.0"
     postcss-attribute-case-insensitive: "npm:^8.0.0"
     postcss-clamp: "npm:^4.1.0"
-    postcss-color-functional-notation: "npm:^8.0.4"
+    postcss-color-functional-notation: "npm:^8.0.5"
     postcss-color-hex-alpha: "npm:^11.0.0"
     postcss-color-rebeccapurple: "npm:^11.0.0"
     postcss-custom-media: "npm:^12.0.1"
@@ -3837,7 +3837,7 @@ __metadata:
     postcss-font-variant: "npm:^5.0.0"
     postcss-gap-properties: "npm:^7.0.0"
     postcss-image-set-function: "npm:^8.0.0"
-    postcss-lab-function: "npm:^8.0.4"
+    postcss-lab-function: "npm:^8.0.5"
     postcss-logical: "npm:^9.0.0"
     postcss-nesting: "npm:^14.0.0"
     postcss-opacity-percentage: "npm:^3.0.0"
@@ -3849,7 +3849,7 @@ __metadata:
     postcss-selector-not: "npm:^9.0.0"
   peerDependencies:
     postcss: ^8.4
-  checksum: 10/b21266245cacf820b7cc58dfe3f0392fee4eebe70fff5e040f4f702889699f75eea836fcd39faf7f65ed043879c661231e4a7d8cdd6f06e8e370e3d35a856543
+  checksum: 10/e92fe5b0ec5c8d4c892dc627218bad8039576ce677594f7e5c255d676b24532c4b13ddb0191ca24d9ed89bf21a08c861f14dd0101971aaf9a9a842858d623762
   languageName: node
   linkType: hard
 
@@ -3968,12 +3968,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.8.3":
-  version: 3.8.3
-  resolution: "prettier@npm:3.8.3"
+"prettier@npm:^3.8.4":
+  version: 3.8.4
+  resolution: "prettier@npm:3.8.4"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10/4b3b12cbb29e4c96bed936e5d070167552500c18d37676fb3e0caae6199c42860662608e4dc116230698f6e2bb0267ef2548158224c92d40f188d309d72fdd6f
+  checksum: 10/54684a3cc6689238692b29fab541c01934af7677be94c02293ba49981a1ac121c8bebe2a865f0c3b963e99d208f847c53aed354cc0ce8750e2d45791d64506c5
   languageName: node
   linkType: hard
 
@@ -4039,7 +4039,7 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@picocss/pico": "npm:^2.1.1"
     "@sveltejs/adapter-static": "npm:^3.0.10"
-    "@sveltejs/kit": "npm:^2.63.0"
+    "@sveltejs/kit": "npm:^2.65.2"
     "@sveltejs/vite-plugin-svelte": "npm:^7.1.2"
     "@types/cookie": "npm:^1.0.0"
     "@yarnpkg/pnpify": "npm:^4.1.6"
@@ -4050,11 +4050,11 @@ __metadata:
     postcss: "npm:^8.5.15"
     postcss-import: "npm:^16.1.1"
     postcss-load-config: "npm:^6.0.1"
-    postcss-preset-env: "npm:^11.3.0"
-    prettier: "npm:^3.8.3"
+    postcss-preset-env: "npm:^11.3.1"
+    prettier: "npm:^3.8.4"
     prettier-plugin-svelte: "npm:^3.5.2"
     re2js: "npm:^2.8.3"
-    svelte: "npm:^5.56.2"
+    svelte: "npm:^5.56.3"
     svelte-check: "npm:^4.6.0"
     svelte-preprocess: "npm:^6.0.5"
     typescript: "npm:^6.0.3"
@@ -4503,9 +4503,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte@npm:^5.56.2":
-  version: 5.56.2
-  resolution: "svelte@npm:5.56.2"
+"svelte@npm:^5.56.3":
+  version: 5.56.3
+  resolution: "svelte@npm:5.56.3"
   dependencies:
     "@jridgewell/remapping": "npm:^2.3.4"
     "@jridgewell/sourcemap-codec": "npm:^1.5.0"
@@ -4523,7 +4523,7 @@ __metadata:
     locate-character: "npm:^3.0.0"
     magic-string: "npm:^0.30.11"
     zimmerframe: "npm:^1.1.2"
-  checksum: 10/82f15aa0c62537ef87138e51332fda565432f7a75e52390052d34e954944b2127faa26b1e52fc9476697f4ee3f2d7e1b0076a092d10f0ca6f7b0d4d32a949076
+  checksum: 10/c411b28d653f857e46fcf99929c72332fdccd95a7bebf0ccd3277d661102fa616735175dd8d0ff26486c96a1fe5cebaa40a91ce165e576a6db8f201bc6822bb0
   languageName: node
   linkType: hard
 
