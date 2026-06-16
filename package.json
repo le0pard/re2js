@@ -56,10 +56,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@unicode/unicode-17.0.0": "^1.6.16",
-    "@vitest/browser": "^4.1.8",
-    "@vitest/browser-playwright": "^4.1.8",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@unicode/unicode-17.0.0": "^1.6.17",
+    "@vitest/browser": "^4.1.9",
+    "@vitest/browser-playwright": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.9",
     "@yarnpkg/pnpify": "^4.1.6",
     "dts-bundle-generator": "^9.5.1",
     "eslint": "9.39.4",
@@ -68,12 +68,12 @@
     "eslint-plugin-import": "^2.32.0",
     "globals": "^17.6.0",
     "lodash": "^4.18.1",
-    "playwright": "^1.60.0",
-    "prettier": "^3.8.3",
-    "rolldown": "^1.1.0",
+    "playwright": "^1.61.0",
+    "prettier": "^3.8.4",
+    "rolldown": "^1.1.1",
     "typescript": "^6.0.3",
     "unicode-property-value-aliases": "^3.9.0",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   },
   "packageManager": "yarn@4.14.1"
 }
