@@ -3358,7 +3358,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.8.5":
+"prettier@npm:^3.8.4":
   version: 3.8.5
   resolution: "prettier@npm:3.8.5"
   bin:
@@ -3423,7 +3423,7 @@ __metadata:
     globals: "npm:^17.7.0"
     lodash: "npm:^4.18.1"
     playwright: "npm:^1.61.1"
-    prettier: "npm:^3.8.5"
+    prettier: "npm:^3.8.4"
     rolldown: "npm:^1.1.3"
     typescript: "npm:^6.0.3"
     unicode-property-value-aliases: "npm:^3.9.0"
