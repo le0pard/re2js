@@ -4036,10 +4036,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"re2js@npm:^2.8.4":
-  version: 2.8.4
-  resolution: "re2js@npm:2.8.4"
-  checksum: 10/f7938174415a95775e5fac0077d2217378ace0d22438aacb58449fe82aa2fdb9f3ff064f6cf9e6e412962715ad735933b1c0b5e6148978587a610ab8fbc58c88
+"re2js@npm:^2.8.5":
+  version: 2.8.5
+  resolution: "re2js@npm:2.8.5"
+  checksum: 10/7428a14b36f495120eb8214a76e46365293484a2a6881bfc0c9c82b606f091d220fa5b0163352f81fea3dc4525eff1f5a27b81707d01a8a0f9790eea51a33c23
   languageName: node
   linkType: hard
 
@@ -4064,7 +4064,7 @@ __metadata:
     postcss-preset-env: "npm:^11.3.2"
     prettier: "npm:^3.9.1"
     prettier-plugin-svelte: "npm:^3.5.2"
-    re2js: "npm:^2.8.4"
+    re2js: "npm:^2.8.5"
     svelte: "npm:^5.56.4"
     svelte-check: "npm:^4.7.1"
     svelte-preprocess: "npm:^6.0.5"
