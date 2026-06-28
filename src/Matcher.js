@@ -144,7 +144,7 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
-   * @param {MatcherInputBase} input
+   * @param {string|number[]|Uint8Array|MatcherInputBase} input
    * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
