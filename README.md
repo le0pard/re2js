@@ -228,6 +228,37 @@ matchString.group() // 'e'
 matchString.find(7) // false
 ```
 
+### Executing a Search (`exec`)
+
+If you want a native, 1:1 drop-in replacement for JavaScript's `RegExp.prototype.exec()`, you can use the `.exec()` method.
+
+Instead of dealing with a stateful `Matcher` object, `exec()` performs a single search and returns a standard `RegExpExecArray`-shaped result, or `null` if no match is found. It includes the `.index`, `.input`, and `.groups` properties, and accurately maps unmatched optional capture groups to `undefined` (just like native JavaScript).
+
+```js
+import { RE2JS } from 're2js'
+
+const re = RE2JS.compile('(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)');
+const result = re.exec('John Doe');
+
+if (result !== null) {
+  console.log(result[0]); // "John Doe" (Full match)
+  console.log(result[1]); // "John" (Group 1)
+  console.log(result[2]); // undefined (Group 2 didn't match)
+  console.log(result[3]); // "Doe" (Group 3)
+
+  console.log(result.index); // 0
+  console.log(result.input); // "John Doe"
+
+  // Named groups dictionary
+  console.log(result.groups.first);  // "John"
+  console.log(result.groups.middle); // undefined
+  console.log(result.groups.last);   // "Doe"
+}
+
+```
+
+***Performance Note:** If you are running `exec()` inside a `while` loop to manually extract multiple matches globally, it is highly recommended to use `.matchAll()` instead, as it is cleaner, strictly stateless, and avoids infinite loop pitfalls.*
+
 ### Iterating Over Matches (`matchAll`)
 
 For a more modern, JavaScript-native developer experience, RE2JS provides a `.matchAll()` method. This returns an ES6 `IterableIterator`, allowing you to safely and cleanly iterate over matches using `for...of` loops or the array spread operator `[...]`.
