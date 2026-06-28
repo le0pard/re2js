@@ -23,7 +23,7 @@
       const contains = p.test(stringInput)
       const allMatches = [...p.matchAll(stringInput)]
 
-      const serializableMatches = allMatches.map(match => ({
+      const serializableMatches = allMatches.map((match) => ({
         match: match[0],
         groups: match.groups,
         index: match.index,

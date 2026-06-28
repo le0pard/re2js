@@ -19,10 +19,7 @@
 		"moduleResolution": "bundler",
 		"module": "esnext",
 		"noEmit": true,
-		"target": "esnext",
-		"types": [
-			"node"
-		]
+		"target": "esnext"
 	},
 	"include": [
 		"ambient.d.ts",
