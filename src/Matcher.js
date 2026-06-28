@@ -151,6 +151,15 @@ class Matcher {
     if (input === null) {
       throw new Error('input is null')
     }
+
+    if (!(input instanceof MatcherInputBase)) {
+      if (Utils.isByteArray(input)) {
+        input = MatcherInput.utf8(input)
+      } else {
+        input = MatcherInput.utf16(input)
+      }
+    }
+
     this.matcherInput = input
     this.reset()
     return this

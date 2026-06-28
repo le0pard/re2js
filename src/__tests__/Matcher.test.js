@@ -26,6 +26,53 @@ const helperTestMatchEndUTF16 = (string, num, end) => {
   expect(num).toEqual(found)
 }
 
+describe('.resetMatcherInput polymorphic inputs', () => {
+  it('safely handles raw strings', () => {
+    const re2 = RE2JS.compile('world')
+    const m = re2.matcher('hello')
+
+    // Initially fails
+    expect(m.find()).toBe(false)
+
+    // Swap to a raw string
+    m.resetMatcherInput('hello world')
+
+    expect(m.find()).toBe(true)
+    expect(m.group(0)).toBe('world')
+  })
+
+  it('safely handles UTF-8 byte arrays (Uint8Array)', () => {
+    const re2 = RE2JS.compile('world')
+    const m = re2.matcher('hello')
+
+    // Swap to a byte array representation of "hello world"
+    const utf8Input = new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
+    m.resetMatcherInput(utf8Input)
+
+    expect(m.find()).toBe(true)
+    // group(0) will be extracted as a string from the matched byte bounds
+    expect(m.group(0)).toBe('world')
+  })
+
+  it('safely handles already wrapped MatcherInput instances', () => {
+    const re2 = RE2JS.compile('world')
+    const m = re2.matcher('hello')
+
+    // Swap to an explicit UTF-16 MatcherInput
+    m.resetMatcherInput(MatcherInput.utf16('hello world'))
+
+    expect(m.find()).toBe(true)
+    expect(m.group(0)).toBe('world')
+  })
+
+  it('throws when input is null', () => {
+    const re2 = RE2JS.compile('world')
+    const m = re2.matcher('hello')
+
+    expect(() => m.resetMatcherInput(null)).toThrow('input is null')
+  })
+})
+
 describe('.lookingAt', () => {
   const cases = [
     ['abc', 'abcdef', true],
