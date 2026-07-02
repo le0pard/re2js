@@ -277,6 +277,42 @@ class RE2JS {
   }
 
   /**
+   * Executes a search for a match in a specified string.
+   * Returns a result array, or null if no match is found.
+   * The returned array perfectly mirrors standard JavaScript `RegExpExecArray`,
+   * including `.index`, `.input`, and `.groups` properties.
+   *
+   * @param {string|number[]|Uint8Array} input the input string or byte array
+   * @returns {Array|null} the match array with index, input, and groups properties, or null
+   */
+  exec(input) {
+    const m = this.matcher(input)
+    if (!m.find()) return null
+
+    const result = [m.group(0)]
+    for (let i = 1; i <= m.groupCount(); i++) {
+      const val = m.group(i)
+      result.push(val === null ? void 0 : val)
+    }
+
+    result.index = m.start(0)
+    result.input = input
+
+    const namedGroups = this.namedGroups()
+    if (Object.keys(namedGroups).length > 0) {
+      const parsedGroups = m.getNamedGroups()
+      for (const key in parsedGroups) {
+        if (parsedGroups[key] === null) parsedGroups[key] = void 0
+      }
+      result.groups = parsedGroups
+    } else {
+      result.groups = void 0
+    }
+
+    return result
+  }
+
+  /**
    * Splits input around instances of the regular expression. It returns an array giving the strings
    * that occur before, between, and after instances of the regular expression.
    *
@@ -351,7 +387,7 @@ class RE2JS {
    * including capturing groups.
    *
    * @param {string|number[]|Uint8Array} input the input string or byte array
-   * @returns {IterableIterator<Array>}
+   * @returns {IterableIterator<RegExpMatchArray>}
    */
   *matchAll(input) {
     const m = this.matcher(input)

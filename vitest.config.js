@@ -1,4 +1,4 @@
-/* eslint-disable import/no-unresolved, import/no-default-export */
+/* eslint-disable import/no-default-export */
 import { defineConfig, configDefaults } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 

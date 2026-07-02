@@ -303,6 +303,82 @@ describe('find', () => {
   )
 })
 
+describe('.exec()', () => {
+  // [pattern, input, expectedMatchArray, expectedIndex, expectedGroups]
+  const cases = [
+    // No match
+    ['foo', 'bar', null, null, null],
+    // Basic match with a capture group
+    ['b(a)r', 'foo bar baz', ['bar', 'a'], 4, void 0],
+    // Unmatched optional capture group maps to `undefined` (JS Parity)
+    ['a(b)?(c)', 'ac', ['ac', void 0, 'c'], 0, void 0],
+    // Named capture groups populate the `groups` dictionary
+    [
+      '(?P<year>\\d{4})-(?P<month>\\d{2})',
+      '2024-05',
+      ['2024-05', '2024', '05'],
+      0,
+      { year: '2024', month: '05' }
+    ],
+
+    // Unmatched named capture groups map to `undefined` in the dictionary (JS Parity)
+    [
+      '(?P<first>\\w+) (?:(?P<middle>\\w+) )?(?P<last>\\w+)',
+      'John Doe',
+      ['John Doe', 'John', void 0, 'Doe'],
+      0,
+      { first: 'John', middle: void 0, last: 'Doe' }
+    ],
+    // Zero-width match at the beginning of a string
+    ['^', 'abc', [''], 0, void 0],
+
+    // Zero-width boundary match in the middle of a string
+    ['\\b', ' abc', [''], 1, void 0],
+
+    // Empty string input matching an empty pattern
+    ['', '', [''], 0, void 0],
+
+    // Deeply nested capture groups
+    ['((a)(b))', 'ab', ['ab', 'ab', 'a', 'b'], 0, void 0],
+
+    // Empty match ("") vs Non-participating group (undefined)
+    // Group 1 (a*) matches 0 times, yielding "". Group 2 (c)? does not participate, yielding undefined.
+    ['(a*)b(c)?', 'b', ['b', '', void 0], 0, void 0]
+  ]
+
+  it.each(cases)(
+    'pattern %p with input %p returns expected exec result',
+    (pattern, inputStr, expectedArray, expectedIndex, expectedGroups) => {
+      const re2 = RE2JS.compile(pattern)
+      const resultStr = re2.exec(inputStr)
+
+      if (expectedArray === null) {
+        expect(resultStr).toBeNull()
+      } else {
+        expect(resultStr).not.toBeNull()
+        expect([...resultStr]).toEqual(expectedArray)
+        expect(resultStr.index).toBe(expectedIndex)
+        expect(resultStr.input).toBe(inputStr)
+        expect(resultStr.groups).toEqual(expectedGroups)
+      }
+
+      const utf8Input = Utils.stringToUtf8ByteArray(inputStr)
+      const resultUtf8 = re2.exec(utf8Input)
+
+      if (expectedArray === null) {
+        expect(resultUtf8).toBeNull()
+      } else {
+        expect(resultUtf8).not.toBeNull()
+        expect([...resultUtf8]).toEqual(expectedArray)
+        expect(resultUtf8.index).toBe(expectedIndex)
+        // The .input property MUST retain the exact original Uint8Array/Array reference
+        expect(resultUtf8.input).toBe(utf8Input)
+        expect(resultUtf8.groups).toEqual(expectedGroups)
+      }
+    }
+  )
+})
+
 describe('split', () => {
   const cases = [
     ['/', 'abcde', ['abcde']],

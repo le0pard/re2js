@@ -144,13 +144,22 @@ class Matcher {
 
   /**
    * Resets the {@code Matcher} and changes the input.
-   * @param {MatcherInputBase} input
+   * @param {string|number[]|Uint8Array|MatcherInputBase} input
    * @returns {Matcher} the {@code Matcher} itself, for chained method calls
    */
   resetMatcherInput(input) {
     if (input === null) {
       throw new Error('input is null')
     }
+
+    if (!(input instanceof MatcherInputBase)) {
+      if (Utils.isByteArray(input)) {
+        input = MatcherInput.utf8(input)
+      } else {
+        input = MatcherInput.utf16(input)
+      }
+    }
+
     this.matcherInput = input
     this.reset()
     return this
