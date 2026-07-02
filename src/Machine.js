@@ -431,9 +431,9 @@ class Machine {
           }
           if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
             t.cap[1] = pos
-            // Using subarray creates a fast view, avoiding a full array copy
-            // until the submatches are finalized at the very end.
-            this.matchcap.set(t.cap.subarray(0, this.ncap))
+            for (let c = 0; c < this.ncap; c++) {
+              this.matchcap[c] = t.cap[c]
+            }
           }
           if (!longest) {
             this.freeQueue(runq, j + 1)
