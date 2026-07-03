@@ -1,26 +1,31 @@
-import { Codepoint } from './Codepoint.js'
 import { RE2Flags } from './RE2Flags.js'
 import { MachineInputBase } from './MachineInput.js'
 import { RE2JSInternalException } from './exceptions.js'
 import { Utils } from './Utils.js'
 import { Inst } from './Inst.js'
 
-// A logical thread in the NFA.
-class Thread {
-  constructor() {
-    this.inst = null
-    this.cap = null // Initialized to Int32Array later
-  }
-}
+// The 'Thread' class wrapper has been entirely removed.
+// In a single-threaded runtime environment like V8, allocating separate class objects
+// for parallel paths causes significant Garbage Collection thrashing.
+// A logical path is now tracked purely by its integer index (slot) inside the Queue's parallel arrays.
 
 // A queue is a 'sparse array' holding pending threads of execution.  See:
-// research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
+// https://research.swtch.com/sparse
 class Queue {
   constructor(numInst) {
     this.sparse = new Int32Array(numInst) // may contain stale but in-bounds values.
     this.densePcs = new Int32Array(numInst) // may contain stale pc in slots >= size
-    this.denseThreads = new Array(numInst) // may contain stale Thread in slots >= size
+    this.denseCaps = null // Allocated on demand based on ncap
     this.size = 0
+    this.ncap = 0
+  }
+
+  init(ncap) {
+    this.ncap = ncap
+    const needed = this.densePcs.length * ncap
+    if (!this.denseCaps || this.denseCaps.length < needed) {
+      this.denseCaps = new Int32Array(needed)
+    }
   }
 
   contains(pc) {
@@ -35,16 +40,11 @@ class Queue {
   add(pc) {
     const j = this.size++
     this.sparse[pc] = j
-    this.denseThreads[j] = null
     this.densePcs[j] = pc
     return j
   }
 
   clear() {
-    // Prevent memory leaks by nulling out used object references
-    for (let i = 0; i < this.size; i++) {
-      this.denseThreads[i] = null
-    }
     // The sparse set logic safely ignores stale integers in Typed Arrays.
     this.size = 0
   }
@@ -61,21 +61,18 @@ class Queue {
     return out
   }
 }
+
 // A Machine matches an input string of Unicode characters against an
 // RE2 instance using a simple NFA.
 //
 // Called by RE2.doExecute.
 class Machine {
-  static THREADS_CHUNK_SIZE = 128
-
   static fromRE2(re2) {
     const m = new Machine()
     m.prog = re2.prog
     m.re2 = re2
     m.q0 = new Queue(m.prog.numInst())
     m.q1 = new Queue(m.prog.numInst())
-    m.pool = []
-    m.poolSize = 0
     m.matched = false
     // Use Int32Array instead of standard JS array
     m.matchcap = new Int32Array(m.prog.numCap < 2 ? 2 : m.prog.numCap)
@@ -92,8 +89,6 @@ class Machine {
     this.re2 = null
     this.q0 = null
     this.q1 = null
-    this.pool = []
-    this.poolSize = 0
     this.matched = false
     this.matchcap = null
     this.ncap = 0
@@ -104,10 +99,13 @@ class Machine {
   init(ncap) {
     this.ncap = ncap
     if (ncap > this.matchcap.length) {
-      this.initNewCap(ncap)
+      this.matchcap = new Int32Array(ncap).fill(-1)
     } else {
-      this.resetCap()
+      this.matchcap.fill(-1)
     }
+
+    this.q0.init(ncap)
+    this.q1.init(ncap)
 
     // Initialize the Lookbehind tracking table
     if (this.prog.numLb > 0) {
@@ -118,66 +116,12 @@ class Machine {
     }
   }
 
-  // Wipes existing typed array memory without reallocating
-  resetCap() {
-    for (let i = 0; i < this.poolSize; i++) {
-      const t = this.pool[i]
-      t.cap.fill(-1)
-    }
-  }
-
-  initNewCap(ncap) {
-    for (let i = 0; i < this.poolSize; i++) {
-      const t = this.pool[i]
-      t.cap = new Int32Array(ncap).fill(-1)
-    }
-    this.matchcap = new Int32Array(ncap).fill(-1)
-  }
-
   submatches() {
     if (this.ncap === 0) {
       return Utils.emptyInts()
     }
     // Use subarray() to create a zero-allocation view before converting
     return Utils.toArray(this.matchcap.subarray(0, this.ncap))
-  }
-
-  // alloc() allocates a new thread with the given instruction.
-  // It uses the free pool if possible.
-  alloc(inst) {
-    if (this.poolSize === 0) {
-      const capLen = this.matchcap.length
-
-      // Bulk allocate threads in a tight loop so the V8 engine
-      // places them adjacently in the young generation heap
-      for (let i = 0; i < Machine.THREADS_CHUNK_SIZE; i++) {
-        const t = new Thread()
-        t.cap = new Int32Array(capLen)
-        this.pool[this.poolSize++] = t
-      }
-    }
-
-    // Pop a thread from the top of the pool stack
-    this.poolSize--
-    const t = this.pool[this.poolSize]
-    t.inst = inst
-    return t
-  }
-
-  // Frees all threads on the thread queue, returning them to the free pool.
-  freeQueue(queue, from = 0) {
-    for (let i = from; i < queue.size; i++) {
-      const t = queue.denseThreads[i]
-      if (t !== null) {
-        this.pool[this.poolSize++] = t
-      }
-    }
-    queue.clear()
-  }
-
-  // freeThread() returns t to the free pool.
-  freeThread(t) {
-    this.pool[this.poolSize++] = t
   }
 
   match(input, pos, anchor) {
@@ -251,6 +195,7 @@ class Machine {
           r = input.step(currentPos + width)
           rune1 = r >> 3
           width1 = r & 7
+          flag = input.context(currentPos)
         }
       }
 
@@ -258,7 +203,7 @@ class Machine {
       // they only need to be spawned exactly once at the beginning of the string (currentPos === 0).
       if (currentPos === 0 && this.prog.numLb > 0) {
         for (let i = 0; i < this.prog.lbStarts.length; i++) {
-          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, flag, null)
+          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, 0, flag)
         }
       }
 
@@ -268,7 +213,7 @@ class Machine {
           if (this.ncap > 0) {
             this.matchcap[0] = currentPos
           }
-          this.add(runq, this.prog.start, currentPos, this.matchcap, flag, null)
+          this.add(runq, this.prog.start, currentPos, this.matchcap, 0, flag)
         }
       }
 
@@ -295,7 +240,7 @@ class Machine {
       runq = nextq
       nextq = tmpq
     }
-    this.freeQueue(nextq)
+    nextq.clear()
     return this.matched
   }
 
@@ -342,14 +287,14 @@ class Machine {
       // Optimize lookbehind spawning to exactly once at BOF
       if (currentPos === 0 && this.prog.numLb > 0) {
         for (let i = 0; i < this.prog.lbStarts.length; i++) {
-          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, flag, null)
+          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, 0, flag)
         }
       }
 
       if (currentPos === 0 || anchor === RE2Flags.UNANCHORED) {
         // ONLY spawn the main pattern if we have reached the requested search start boundary
         if (currentPos >= matchStartPos) {
-          this.add(runq, this.prog.start, currentPos, this.matchcap, flag, null)
+          this.add(runq, this.prog.start, currentPos, this.matchcap, 0, flag)
         }
       }
 
@@ -357,10 +302,10 @@ class Machine {
       flag = input.context(nextPos)
 
       for (let j = 0; j < runq.size; j++) {
-        let t = runq.denseThreads[j]
-        if (t === null) continue
+        const pc = runq.densePcs[j]
+        const i = this.prog.inst[pc]
+        const capOffset = j * this.ncap
 
-        const i = t.inst
         let add = false
         switch (i.op) {
           case Inst.MATCH:
@@ -377,17 +322,13 @@ class Machine {
             add = true
             break
           case Inst.RUNE_ANY_NOT_NL:
-            add = rune !== Codepoint.CODES.get('\n')
+            add = rune !== 10 // codepoint for '\n'
             break
           default:
-            throw new RE2JSInternalException('bad inst')
+            continue // Ignored by step, as handled by add()
         }
         if (add) {
-          t = this.add(nextq, i.out, nextPos, t.cap, flag, t)
-        }
-        if (t !== null) {
-          this.freeThread(t)
-          runq.denseThreads[j] = null
+          this.add(nextq, i.out, nextPos, runq.denseCaps, capOffset, flag)
         }
       }
       runq.clear()
@@ -406,23 +347,26 @@ class Machine {
       runq = nextq
       nextq = tmpq
     }
-    this.freeQueue(nextq)
+    nextq.clear()
     return Array.from(matches).sort((a, b) => a - b)
   }
 
   step(runq, nextq, pos, nextPos, c, nextCond, anchor, atEnd) {
     const longest = this.re2.longest
     for (let j = 0; j < runq.size; j++) {
-      let t = runq.denseThreads[j]
-      if (t === null) {
-        continue
-      }
-      if (longest && this.matched && this.ncap > 0 && this.matchcap[0] < t.cap[0]) {
-        this.freeThread(t)
+      const pc = runq.densePcs[j]
+      const capOffset = j * this.ncap
+
+      if (
+        longest &&
+        this.matched &&
+        this.ncap > 0 &&
+        this.matchcap[0] < runq.denseCaps[capOffset]
+      ) {
         continue
       }
 
-      const i = t.inst
+      const i = this.prog.inst[pc]
       let add = false
       switch (i.op) {
         case Inst.MATCH:
@@ -430,14 +374,16 @@ class Machine {
             break
           }
           if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
-            t.cap[1] = pos
+            runq.denseCaps[capOffset + 1] = pos
             for (let k = 0; k < this.ncap; k++) {
-              this.matchcap[k] = t.cap[k]
+              this.matchcap[k] = runq.denseCaps[capOffset + k]
             }
           }
           if (!longest) {
-            this.freeQueue(runq, j + 1)
+            // First-match mode: cut off all lower-priority threads.
+            runq.size = 0 // Clear the queue by resetting size, skipping remaining items
           }
+
           this.matched = true
           break
         case Inst.RUNE:
@@ -450,39 +396,35 @@ class Machine {
           add = true
           break
         case Inst.RUNE_ANY_NOT_NL:
-          add = c !== Codepoint.CODES.get('\n')
+          add = c !== 10 // codepoint for '\n'
           break
         default:
-          throw new RE2JSInternalException('bad inst')
+          continue // Ignored by step, as handled by add()
       }
       if (add) {
-        t = this.add(nextq, i.out, nextPos, t.cap, nextCond, t)
-      }
-      if (t !== null) {
-        this.freeThread(t)
-        runq.denseThreads[j] = null
+        this.add(nextq, i.out, nextPos, runq.denseCaps, capOffset, nextCond)
       }
     }
     runq.clear()
   }
 
-  add(q, pc, pos, cap, cond, t) {
+  add(q, pc, pos, capArray, capOffset, cond) {
     while (true) {
       if (pc === 0) {
-        return t
+        return
       }
       if (q.contains(pc)) {
-        return t
+        return
       }
 
       const d = q.add(pc)
       const inst = this.prog.inst[pc]
       switch (inst.op) {
         case Inst.FAIL:
-          return t
+          return
         case Inst.ALT:
         case Inst.ALT_MATCH:
-          t = this.add(q, inst.out, pos, cap, cond, t)
+          this.add(q, inst.out, pos, capArray, capOffset, cond)
           pc = inst.arg // Flattened tail recursion
           continue
         case Inst.EMPTY_WIDTH:
@@ -490,17 +432,17 @@ class Machine {
             pc = inst.out // Flattened tail recursion
             continue
           }
-          return t
+          return
         case Inst.NOP:
           pc = inst.out // Flattened tail recursion
           continue
         case Inst.CAPTURE:
           if (inst.arg < this.ncap) {
-            const opos = cap[inst.arg]
-            cap[inst.arg] = pos
-            this.add(q, inst.out, pos, cap, cond, null)
-            cap[inst.arg] = opos
-            return t
+            const opos = capArray[capOffset + inst.arg]
+            capArray[capOffset + inst.arg] = pos
+            this.add(q, inst.out, pos, capArray, capOffset, cond)
+            capArray[capOffset + inst.arg] = opos
+            return
           } else {
             pc = inst.out // Flattened tail recursion
             continue
@@ -521,28 +463,22 @@ class Machine {
             pc = inst.out // Flattened tail recursion
             continue
           }
-          return t
+          return
         case Inst.MATCH:
         case Inst.RUNE:
         case Inst.RUNE1:
         case Inst.RUNE_ANY:
         case Inst.RUNE_ANY_NOT_NL:
-          if (t === null) {
-            t = this.alloc(inst)
-          } else {
-            t.inst = inst
-          }
-          if (this.ncap > 0 && t.cap !== cap) {
+          if (this.ncap > 0) {
             // Direct assignment utilizing Typed Array performance
+            const destOffset = d * this.ncap
             for (let c = 0; c < this.ncap; c++) {
-              t.cap[c] = cap[c]
+              q.denseCaps[destOffset + c] = capArray[capOffset + c]
             }
           }
-          q.denseThreads[d] = t
-          t = null
-          return t
+          return
         default:
-          throw new Error('unhandled')
+          throw new RE2JSInternalException('unhandled')
       }
     }
   }
