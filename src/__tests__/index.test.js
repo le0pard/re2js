@@ -1378,3 +1378,45 @@ describe('Unicode Binary Properties', () => {
     expect(re2.matches('ABCDEF')).toBe(true)
   })
 })
+
+describe('NFA Fast-Forwarding and Context Preservation', () => {
+  it('correctly recalculates flag contexts when fast-forwarding past lookbehinds', () => {
+    // The prefix is "bar". The engine will use indexOf("bar") to jump.
+    // It MUST verify the lookbehind "foo " and the boundaries \b on BOTH sides.
+    const re2 = RE2JS.compile('(?<=foo )\\bbar\\b', RE2JS.LOOKBEHINDS)
+
+    // "bar" appears 3 times:
+    // 1. "bar" - missing "foo " lookbehind
+    // 2. "foo barx" - lookbehind matches, but \b fails on the right.
+    // 3. "foo bar" - lookbehind matches, \b matches both sides.
+    const input = 'bar foo barx foo bar'
+
+    const m = re2.matcher(input)
+    expect(m.find()).toBe(true)
+
+    // It should have safely skipped the first two invalid "bar"s
+    // and matched the 3rd one perfectly at index 17.
+    expect(m.start()).toBe(17)
+  })
+})
+
+describe('Machine Pooling and Reentrancy', () => {
+  it('safely allocates multiple Machine instances for recursive or nested matching', () => {
+    const re2 = RE2JS.compile('a(b+)c')
+    const input = 'abbc abbbc'
+
+    const m = re2.matcher(input)
+    let matches = 0
+
+    m.replaceAll(() => {
+      matches++
+      // Inside the replacer, we fire up another match using the SAME regex.
+      // This forces the RE2 engine to allocate a second Machine from the Treiber stack
+      // because the first Machine is currently frozen in the outer .replaceAll loop!
+      expect(re2.test('abbc')).toBe(true)
+      return 'x'
+    })
+
+    expect(matches).toBe(2)
+  })
+})

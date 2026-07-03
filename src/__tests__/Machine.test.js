@@ -98,3 +98,38 @@ it('Machine submatches() returns isolated memory', () => {
 
   expect(secondMatch[0]).toBe(originalVal)
 })
+
+describe('Machine Typed Array Bounds (Structure of Arrays)', () => {
+  it('handles massive capture group counts without memory corruption', () => {
+    // Generate 50 capture groups: (a)(b)(c)...
+    const pattern = Array.from({ length: 50 })
+      .map(() => '(a)')
+      .join('')
+    const re = RE2.compile(pattern)
+    const input = 'a'.repeat(50)
+
+    const match = re.findSubmatch(input)
+
+    expect(match).not.toBeNull()
+    expect(match.length).toBe(51) // 1 full match + 50 capture groups
+
+    // Verify the 50th capture group safely extracted its boundary
+    expect(match[50]).toBe('a')
+  })
+})
+
+describe('Sparse Queue Priority', () => {
+  it('maintains leftmost-first priority (Greedy vs Lazy) when dropping duplicate PCs', () => {
+    // Greedy: The first (a*) should consume everything
+    const reGreedy = RE2.compile('(a*)(a*)')
+    const match1 = reGreedy.findSubmatch('aaaa')
+    expect(match1[1]).toBe('aaaa')
+    expect(match1[2]).toBe('')
+
+    // Lazy: The first (a*?) should consume nothing, leaving it for the second
+    const reLazy = RE2.compile('(a*?)(a*)')
+    const match2 = reLazy.findSubmatch('aaaa')
+    expect(match2[1]).toBe('')
+    expect(match2[2]).toBe('aaaa')
+  })
+})
