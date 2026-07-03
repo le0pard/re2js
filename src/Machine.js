@@ -373,16 +373,18 @@ class Machine {
           if (anchor === RE2Flags.ANCHOR_BOTH && !atEnd) {
             break
           }
-          this.matched = true
-          if (this.ncap > 0 && (!longest || this.matchcap[1] < pos)) {
+          if (this.ncap > 0 && (!longest || !this.matched || this.matchcap[1] < pos)) {
             runq.denseCaps[capOffset + 1] = pos
             for (let k = 0; k < this.ncap; k++) {
               this.matchcap[k] = runq.denseCaps[capOffset + k]
             }
           }
           if (!longest) {
+            // First-match mode: cut off all lower-priority threads.
             runq.size = 0 // Clear the queue by resetting size, skipping remaining items
           }
+
+          this.matched = true
           break
         case Inst.RUNE:
           add = i.matchRune(c)
