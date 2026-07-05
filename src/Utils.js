@@ -222,7 +222,7 @@ class Utils {
     if (globalThis.TextEncoder) {
       if (!cachedNativeEncoder) cachedNativeEncoder = new TextEncoder()
 
-      return Utils.toArray(cachedNativeEncoder.encode(str))
+      return cachedNativeEncoder.encode(str)
     } else {
       // fallback, if no TextEncoder
       let out = [],

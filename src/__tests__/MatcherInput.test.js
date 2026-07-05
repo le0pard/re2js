@@ -13,5 +13,5 @@ it('Utf16MatcherInput.asBytes correctly translates UTF-16 surrogate pairs to UTF
   const input = MatcherInput.utf16('😊')
 
   // 4 bytes in UTF-8 for this emoji: F0 9F 98 8A
-  expect(input.asBytes()).toEqual([240, 159, 152, 138])
+  expect(input.asBytes()).toEqual(new Uint8Array([240, 159, 152, 138]))
 })
