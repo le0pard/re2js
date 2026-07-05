@@ -80,10 +80,6 @@ class Machine {
     return m
   }
 
-  static fromMachine(machine) {
-    return Machine.fromRE2(machine.re2)
-  }
-
   constructor() {
     this.prog = null
     this.re2 = null
