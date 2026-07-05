@@ -11,31 +11,6 @@ import { Simplify } from './Simplify.js'
 import { Parser } from './Parser.js'
 import { Utils } from './Utils.js'
 
-class AtomicReference {
-  constructor(initialValue) {
-    this.value = initialValue
-  }
-
-  // Returns the current value
-  get() {
-    return this.value
-  }
-
-  // Sets to the given value
-  set(newValue) {
-    this.value = newValue
-  }
-
-  // Atomically sets to the given value and returns true if the current value == the expected value
-  compareAndSet(expect, update) {
-    if (this.value === expect) {
-      this.value = update
-      return true
-    }
-    return false
-  }
-}
-
 /**
  * An RE2 class instance is a compiled representation of an RE2 regular expression, independent of
  * the public Java-like Pattern/Matcher API.
@@ -139,7 +114,7 @@ class RE2 {
     this.prefixUTF8 = null // required UTF-8 prefix in unanchored matches
     this.prefixComplete = false // true if prefix is the entire regexp
     this.prefixRune = 0 // first rune in prefix
-    this.pooled = new AtomicReference() // Cache of machines for running regexp. Forms a Treiber stack.
+    this.machinePool = [] // Cache of machines for running regexp
     this.dfa = new DFA(this.prog) // initialize Lazy DFA
     this.onepass = OnePass.compile(this.prog) // compile OnePass
     this.prefilter = null
@@ -255,68 +230,20 @@ class RE2 {
   // get() returns a machine to use for matching |this|.  It uses |this|'s
   // machine cache if possible, to avoid unnecessary allocation.
   get() {
-    // Pop a machine off the stack if available.
-    let head
-
-    do {
-      head = this.pooled.get()
-    } while (head && !this.pooled.compareAndSet(head, head.next))
-
-    return head
+    return this.machinePool.length > 0 ? this.machinePool.pop() : null
   }
 
   // Clears the memory associated with this machine.
   reset() {
-    this.pooled.set(null)
+    this.machinePool.length = 0
   }
 
   // put() returns a machine to |this|'s machine cache.  There is no attempt to
   // limit the size of the cache, so it will grow to the maximum number of
   // simultaneous matches run using |this|.  (The cache empties when |this|
   // gets garbage collected or reset is called.)
-  put(m, isNew) {
-    // To avoid allocation in the single-thread or uncontended case, reuse a node only if
-    // it was the only element in the stack when it was popped, and it's the only element
-    // in the stack when it's pushed back after use.
-    let head = this.pooled.get()
-    do {
-      head = this.pooled.get()
-      if (!isNew && head) {
-        // If an element had a null next pointer and it was previously in the stack, another thread
-        // might be trying to pop it out right now, and if it sees the same node now in the
-        // stack the pop will succeed, but the new top of the stack will be the stale (null) value
-        // of next. Allocate a new Machine so that the CAS will not succeed if this node has been
-        // popped and re-pushed.
-        m = Machine.fromMachine(m)
-        isNew = true
-      }
-
-      // Without this comparison, TSAN will complain about a race condition:
-      // Thread A, B, and C all attempt to do a match on the same pattern.
-      //
-      // A: Allocates Machine 1; executes match; put machine 1. State is now:
-      //
-      // pooled -> machine 1 -> null
-      //
-      // B reads pooled, sees machine 1
-      //
-      // C reads pooled, sees machine 1
-      //
-      // B successfully CASes pooled to null
-      //
-      // B executes match; put machine 1, which involves setting machine1.next to
-      // null (even though it's already null); preempted before CAS
-      //
-      // C resumes, and reads machine1.next in order to execute cas(head, head.next)
-      //
-      // There is no happens-before relationship between B's redundant null write
-      // and C's read, thus triggering TSAN.
-      //
-      // Not needed for JS code
-      if (m.next !== head) {
-        m.next = head
-      }
-    } while (!this.pooled.compareAndSet(head, m))
+  put(m) {
+    this.machinePool.push(m)
   }
 
   toString() {
@@ -330,18 +257,14 @@ class RE2 {
     let m = this.get()
     // The Treiber stack cannot reuse nodes, unless the node to be reused has only ever been at
     // the bottom of the stack (i.e., next == null).
-    let isNew = false
     if (!m) {
       m = Machine.fromRE2(this)
-      isNew = true
-    } else if (m.next !== null) {
-      m = Machine.fromMachine(m)
-      isNew = true
     }
 
     m.init(ncap)
     const cap = m.match(input, pos, anchor) ? m.submatches() : null
-    this.put(m, isNew)
+
+    this.put(m)
     return cap
   }
 
