@@ -26,6 +26,52 @@ const helperTestMatchEndUTF16 = (string, num, end) => {
   expect(num).toEqual(found)
 }
 
+describe('Matcher state reset on failure', () => {
+  it('resets Matcher state and throws when accessing stale groups', () => {
+    const p = RE2JS.compile('abc')
+    const m = p.matcher('abc')
+    expect(m.find()).toBe(true)
+    expect(m.group()).toBe('abc')
+
+    // Subsequent find() fails
+    expect(m.find()).toBe(false)
+
+    // Previous state must be wiped. All these should now throw.
+    expect(() => m.group()).toThrow('perhaps no match attempted')
+    expect(() => m.start()).toThrow('perhaps no match attempted')
+    expect(() => m.end()).toThrow('perhaps no match attempted')
+  })
+
+  it('resets state after matches() then find()', () => {
+    const p = RE2JS.compile('([1-5][0-9]{2})-([1-5][0-9]{2})')
+    const m = p.matcher('201-299')
+
+    expect(m.matches()).toBe(true)
+    expect(m.group()).toBe('201-299')
+
+    expect(m.find()).toBe(false) // should fail
+    expect(() => m.group(1)).toThrow('perhaps no match attempted')
+  })
+})
+
+describe('Java mode appendReplacement validation', () => {
+  it('throws exceptions on invalid references in Java mode', () => {
+    const p = RE2JS.compile('ab')
+    const m = p.matcher('ab')
+
+    // Validates that it throws the proper strict errors ONLY when javaMode = true
+    expect(() => m.replaceAll('$foo', true)).toThrow('Illegal group reference')
+    expect(() => m.replaceAll('foo$', true)).toThrow(
+      'Illegal group reference: group index is missing'
+    )
+    expect(() => m.replaceAll('foo$$bar', true)).toThrow('Illegal group reference')
+    expect(() => m.replaceAll('foo\\', true)).toThrow('character to be escaped is missing')
+    expect(() => m.replaceAll('foo${bar', true)).toThrow(
+      "named capture group is missing trailing '}'"
+    )
+  })
+})
+
 describe('.resetMatcherInput polymorphic inputs', () => {
   it('safely handles raw strings', () => {
     const re2 = RE2JS.compile('world')

@@ -422,6 +422,25 @@ describe('split with limit', () => {
   })
 })
 
+describe('split edge cases', () => {
+  it('handles splitting when input is fully matched and limit is 0', () => {
+    // Standard JS RegExp parity check: "   ".split(/\s+/) returns [] when trailing empties are dropped
+    const re2 = RE2JS.compile('\\s+')
+
+    // Completely empty strings
+    expect(re2.split('', 0)).toEqual([''])
+
+    // Fully matched strings (should drop the trailing empty strings)
+    expect(re2.split('   ', 0)).toEqual([])
+
+    // Prefix matched
+    expect(re2.split('   foo', 0)).toEqual(['', 'foo'])
+
+    // Suffix matched
+    expect(re2.split('foo   ', 0)).toEqual(['foo'])
+  })
+})
+
 describe('program size', () => {
   const cases = [
     ['', 3],
@@ -849,8 +868,6 @@ describe('replaceAll and replaceFirst', () => {
       ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
       ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
       ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', 'Hello World - Hello World'], // $0 is overall match in Java
-      ['(\\w+) (\\w+)', 'Hello World', '$$0 - $$0', '$Hello World - $Hello World'],
-      ['(\\w+) (\\w+)', 'Hello World', '$& - $&', '$& - $&'], // $& is not evaluated
       ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[$1] [$1] [$1] [$1]'], // \$ escapes the dollar
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
@@ -863,12 +880,6 @@ describe('replaceAll and replaceFirst', () => {
         'max.power@example.com',
         '\\${name} - user; \\${domain} - domain',
         '${name} - user; ${domain} - domain'
-      ],
-      [
-        '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
-        'max.power@example.com',
-        '$<name> - user; $<domain> - domain',
-        '$<name> - user; $<domain> - domain' // JS's $<name> is not evaluated
       ]
     ]
 

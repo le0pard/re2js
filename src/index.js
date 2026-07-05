@@ -375,7 +375,7 @@ class RE2JS {
       result.push(m.substring(last, m.inputLength()))
     }
 
-    if (limit !== 0 || result.length === 0) {
+    if (limit !== 0 || (result.length === 0 && !(last === m.inputLength() && last > 0))) {
       result.push(m.substring(last, m.inputLength()))
     }
 

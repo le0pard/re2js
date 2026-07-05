@@ -376,6 +376,7 @@ class Matcher {
 
     const ok = res[0]
     if (!ok) {
+      this.hasMatch = false
       return false
     }
     this.groups = res[1]
@@ -450,37 +451,47 @@ class Matcher {
     let res = ''
     let last = 0
     const m = replacement.length
+    let i = 0
 
-    for (let i = 0; i < m - 1; i++) {
-      if (replacement.codePointAt(i) === Codepoint.CODES.get('\\')) {
+    while (i < m) {
+      const cCode = replacement.codePointAt(i)
+
+      if (cCode === Codepoint.CODES.get('\\')) {
         if (last < i) {
           res += replacement.substring(last, i)
         }
-
         i++
+        if (i >= m) {
+          throw new RE2JSGroupException('character to be escaped is missing')
+        }
         last = i
+        i++
         continue
       }
 
-      if (replacement.codePointAt(i) === Codepoint.CODES.get('$')) {
-        let c = replacement.codePointAt(i + 1)
+      if (cCode === Codepoint.CODES.get('$')) {
+        if (last < i) {
+          res += replacement.substring(last, i)
+        }
+        if (i + 1 >= m) {
+          throw new RE2JSGroupException('Illegal group reference: group index is missing')
+        }
 
-        if (Codepoint.CODES.get('0') <= c && c <= Codepoint.CODES.get('9')) {
-          let n = c - Codepoint.CODES.get('0')
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
+        const nextCode = replacement.codePointAt(i + 1)
 
-          for (i += 2; i < m; i++) {
-            c = replacement.codePointAt(i)
+        if (Codepoint.CODES.get('0') <= nextCode && nextCode <= Codepoint.CODES.get('9')) {
+          let n = nextCode - Codepoint.CODES.get('0')
+          let j = i + 2
+          for (; j < m; j++) {
+            const digit = replacement.codePointAt(j)
             if (
-              c < Codepoint.CODES.get('0') ||
-              c > Codepoint.CODES.get('9') ||
-              n * 10 + c - Codepoint.CODES.get('0') > this.patternGroupCount
+              digit < Codepoint.CODES.get('0') ||
+              digit > Codepoint.CODES.get('9') ||
+              n * 10 + digit - Codepoint.CODES.get('0') > this.patternGroupCount
             ) {
               break
             }
-            n = n * 10 + c - Codepoint.CODES.get('0')
+            n = n * 10 + digit - Codepoint.CODES.get('0')
           }
 
           if (n > this.patternGroupCount) {
@@ -491,39 +502,29 @@ class Matcher {
           if (group !== null) {
             res += group
           }
-
+          i = j
           last = i
-          i--
-          continue
-        } else if (c === Codepoint.CODES.get('{')) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          i++
-          let j = i + 1
-          while (
-            j < replacement.length &&
-            replacement.codePointAt(j) !== Codepoint.CODES.get('}') &&
-            replacement.codePointAt(j) !== Codepoint.CODES.get(' ')
-          ) {
+        } else if (nextCode === Codepoint.CODES.get('{')) {
+          let j = i + 2
+          while (j < m && replacement.codePointAt(j) !== Codepoint.CODES.get('}')) {
             j++
           }
-
-          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('}')) {
+          if (j >= m) {
             throw new RE2JSGroupException("named capture group is missing trailing '}'")
           }
-
-          const groupName = replacement.substring(i + 1, j)
+          const groupName = replacement.substring(i + 2, j)
           const groupVal = this.group(groupName)
           if (groupVal !== null) {
             res += groupVal
           }
-          last = j + 1
-          i = j
-          continue
+          i = j + 1
+          last = i
+        } else {
+          throw new RE2JSGroupException('Illegal group reference')
         }
+        continue
       }
+      i++
     }
 
     if (last < m) {
