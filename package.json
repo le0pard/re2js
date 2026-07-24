@@ -55,25 +55,25 @@
     "bench": "vitest bench --run --project=node"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^9.39.5",
     "@unicode/unicode-17.0.0": "^1.6.17",
-    "@vitest/browser": "^4.1.9",
-    "@vitest/browser-playwright": "^4.1.9",
-    "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/browser": "^4.1.10",
+    "@vitest/browser-playwright": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.10",
     "@yarnpkg/pnpify": "^4.1.6",
     "dts-bundle-generator": "^9.5.1",
-    "eslint": "9.39.4",
+    "eslint": "9.39.5",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-node": "^0.4.0",
     "eslint-plugin-import": "^2.32.0",
     "globals": "^17.7.0",
     "lodash": "^4.18.1",
     "playwright": "^1.61.1",
-    "prettier": "^3.9.4",
-    "rolldown": "^1.1.4",
-    "typescript": "^6.0.3",
+    "prettier": "^3.9.6",
+    "rolldown": "^1.2.0",
+    "typescript": "^7.0.2",
     "unicode-property-value-aliases": "^3.9.0",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
-  "packageManager": "yarn@4.17.0"
+  "packageManager": "yarn@4.17.1"
 }
