@@ -2348,7 +2348,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^17.8.0":
+"globals@npm:^17.7.0":
   version: 17.8.0
   resolution: "globals@npm:17.8.0"
   checksum: 10/b7b854b2052d2608d1878884bf730c027e17b9e2d194834f48c3280a7f0005b06d5f51dba362d3149cc05eb90d36d990e5c996728ecd3585a43dc3b4a286ed85
@@ -3560,7 +3560,7 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     eslint-import-resolver-node: "npm:^0.4.0"
     eslint-plugin-import: "npm:^2.32.0"
-    globals: "npm:^17.8.0"
+    globals: "npm:^17.7.0"
     lodash: "npm:^4.18.1"
     playwright: "npm:^1.62.0"
     prettier: "npm:^3.9.6"
