@@ -24,7 +24,7 @@ class Simplify {
         const sub = Simplify.simplify(re.subs[0])
         if (sub !== re.subs[0]) {
           const nre = Regexp.fromRegexp(re)
-          nre.runes = []
+          nre.runes = new Int32Array(0)
           nre.subs = [sub]
           return nre
         }
@@ -94,7 +94,7 @@ class Simplify {
           }
 
           const nre = Regexp.fromRegexp(re)
-          nre.runes = []
+          nre.runes = new Int32Array(0)
           nre.subs = newSubs
           return nre
         }

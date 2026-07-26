@@ -83,11 +83,11 @@ class CharClass {
   // operations may mutate this array, so typically this is the last operation
   // performed on a given CharClass instance.
   toArray() {
-    if (this.len === this.r.length) {
-      return this.r
-    } else {
-      return this.r.slice(0, this.len)
+    if (this.r instanceof Int32Array) {
+      return this.len === this.r.length ? this.r : this.r.subarray(0, this.len)
     }
+
+    return Int32Array.from(this.len === this.r.length ? this.r : this.r.slice(0, this.len))
   }
 
   // cleanClass() sorts the ranges (pairs of elements) of this CharClass,

@@ -134,7 +134,7 @@ class Utils {
       i += cp > Unicode.MAX_BMP ? 2 : 1
     }
 
-    return runes
+    return new Int32Array(runes)
   }
 
   // Returns the JS UTF-16 string containing the single rune |r|.

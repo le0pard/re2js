@@ -512,7 +512,7 @@ describe('Octal Escape Parsing Fixes', () => {
     const re = Parser.parse('\\608', RE2Flags.PERL_X)
 
     expect(re.op).toBe(Regexp.Op.LITERAL)
-    expect(re.runes).toEqual([48, 56]) // 48 is '0', 56 is '8'
+    expect(re.runes).toEqual(new Int32Array([48, 56])) // 48 is '0', 56 is '8'
   })
 
   it('complex concatenation with octals', () => {
@@ -520,7 +520,7 @@ describe('Octal Escape Parsing Fixes', () => {
     const re = Parser.parse('\\11\\12\\13', RE2Flags.PERL_X)
 
     expect(re.op).toBe(Regexp.Op.LITERAL)
-    expect(re.runes).toEqual([9, 10, 11])
+    expect(re.runes).toEqual(new Int32Array([9, 10, 11]))
   })
 })
 

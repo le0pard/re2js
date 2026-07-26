@@ -86,7 +86,7 @@ class OnePassProg {
       const inst = new Inst(orig.op)
       inst.out = orig.out
       inst.arg = orig.arg
-      inst.runes = orig.runes ? orig.runes.slice() : []
+      inst.runes = orig.runes ? new Int32Array(orig.runes) : new Int32Array(0)
       inst.next = null
       this.inst[i] = inst
     }
@@ -175,7 +175,7 @@ const makeOnePass = (p) => {
 
         if (!mergeRes) return false
 
-        onePassRunes[pc] = mergeRes.merged
+        onePassRunes[pc] = new Int32Array(mergeRes.merged)
         inst.next = new Uint32Array(mergeRes.next)
         break
       }
@@ -185,7 +185,9 @@ const makeOnePass = (p) => {
         ok = check(inst.out)
         m[pc] = m[inst.out]
 
-        onePassRunes[pc] = onePassRunes[inst.out] ? onePassRunes[inst.out].slice() : []
+        onePassRunes[pc] = onePassRunes[inst.out]
+          ? new Int32Array(onePassRunes[inst.out])
+          : new Int32Array(0)
 
         inst.next = new Uint32Array(Math.floor(onePassRunes[pc].length / 2) + 1).fill(inst.out)
         break
@@ -200,7 +202,7 @@ const makeOnePass = (p) => {
         if (inst.next && inst.next.length > 0) break
         instQueue.insert(inst.out)
         if (!inst.runes || inst.runes.length === 0) {
-          onePassRunes[pc] = []
+          onePassRunes[pc] = new Int32Array(0)
           inst.next = new Uint32Array([inst.out])
           break
         }
@@ -217,7 +219,7 @@ const makeOnePass = (p) => {
             runes.push(inst.runes[j])
           }
         }
-        onePassRunes[pc] = runes
+        onePassRunes[pc] = new Int32Array(runes)
         inst.next = new Uint32Array(Math.floor(runes.length / 2) + 1).fill(inst.out)
         inst.op = Inst.RUNE
         break
@@ -237,7 +239,7 @@ const makeOnePass = (p) => {
         } else {
           runes.push(inst.runes[0], inst.runes[0])
         }
-        onePassRunes[pc] = runes
+        onePassRunes[pc] = new Int32Array(runes)
         inst.next = new Uint32Array(Math.floor(runes.length / 2) + 1).fill(inst.out)
         inst.op = Inst.RUNE
         break
@@ -246,7 +248,7 @@ const makeOnePass = (p) => {
         m[pc] = false
         if (inst.next && inst.next.length > 0) break
         instQueue.insert(inst.out)
-        onePassRunes[pc] = [0, Unicode.MAX_RUNE]
+        onePassRunes[pc] = new Int32Array([0, Unicode.MAX_RUNE])
         inst.next = new Uint32Array([inst.out])
         break
       }
@@ -254,7 +256,7 @@ const makeOnePass = (p) => {
         m[pc] = false
         if (inst.next && inst.next.length > 0) break
         instQueue.insert(inst.out)
-        onePassRunes[pc] = [0, 9, 11, Unicode.MAX_RUNE] // \n is 10
+        onePassRunes[pc] = new Int32Array([0, 9, 11, Unicode.MAX_RUNE]) // \n is 10
         inst.next = new Uint32Array(Math.floor(onePassRunes[pc].length / 2) + 1).fill(inst.out)
         break
       }
@@ -297,7 +299,9 @@ const cleanupOnePass = (p, original) => {
       case Inst.RUNE_ANY_NOT_NL:
         p.inst[ix].next = null
         p.inst[ix].op = instOriginal.op
-        p.inst[ix].runes = instOriginal.runes ? instOriginal.runes.slice() : []
+        p.inst[ix].runes = instOriginal.runes
+          ? new Int32Array(instOriginal.runes)
+          : new Int32Array(0)
         break
     }
   }
