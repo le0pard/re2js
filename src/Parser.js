@@ -401,9 +401,11 @@ class Parser {
         break
       case Regexp.Op.CHAR_CLASS:
         if (src.op === Regexp.Op.LITERAL) {
-          dst.runes = new CharClass(dst.runes).appendLiteral(src.runes[0], src.flags).toArray()
+          dst.runes = new CharClass(Array.from(dst.runes))
+            .appendLiteral(src.runes[0], src.flags)
+            .toArray()
         } else {
-          dst.runes = new CharClass(dst.runes).appendClass(src.runes).toArray()
+          dst.runes = new CharClass(Array.from(dst.runes)).appendClass(src.runes).toArray()
         }
         break
       case Regexp.Op.LITERAL:
@@ -541,10 +543,10 @@ class Parser {
   }
 
   static concatRunes(x, y) {
-    for (let i = 0; i < y.length; i++) {
-      x.push(y[i])
-    }
-    return x
+    const res = new Int32Array(x.length + y.length)
+    res.set(x)
+    res.set(y, x.length)
+    return res
   }
 
   // recursively check for captures
@@ -784,7 +786,7 @@ class Parser {
         return null
       }
       re.op = Regexp.Op.LITERAL
-      re.runes = [re.runes[0]]
+      re.runes = new Int32Array([re.runes[0]])
       re.flags = this.flags & ~RE2Flags.FOLD_CASE
     } else if (
       (re.op === Regexp.Op.CHAR_CLASS &&
@@ -805,7 +807,7 @@ class Parser {
       }
       // Rewrite as (case-insensitive) literal.
       re.op = Regexp.Op.LITERAL
-      re.runes = [re.runes[0]]
+      re.runes = new Int32Array([re.runes[0]])
       re.flags = this.flags | RE2Flags.FOLD_CASE
     } else {
       // Incremental concatenation.
@@ -989,9 +991,9 @@ class Parser {
   // cleanAlt cleans re for eventual inclusion in an alternation.
   cleanAlt(re) {
     if (re.op === Regexp.Op.CHAR_CLASS) {
-      re.runes = new CharClass(re.runes).cleanClass().toArray()
+      re.runes = new CharClass(Array.from(re.runes)).cleanClass().toArray()
       if (re.runes.length === 2 && re.runes[0] === 0 && re.runes[1] === Unicode.MAX_RUNE) {
-        re.runes = []
+        re.runes = new Int32Array(0)
         re.op = Regexp.Op.ANY_CHAR
       } else if (
         re.runes.length === 4 &&
@@ -1000,7 +1002,7 @@ class Parser {
         re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
         re.runes[3] === Unicode.MAX_RUNE
       ) {
-        re.runes = []
+        re.runes = new Int32Array(0)
         re.op = Regexp.Op.ANY_CHAR_NOT_NL
       }
     }
@@ -1909,7 +1911,7 @@ class Parser {
       // This is necessary for the negative case and just tidy
       // for the positive case.
       const tmp = new CharClass().appendTable(tab).appendTable(fold).cleanClass().toArray()
-      cc.appendClassWithSign(tmp, sign)
+      cc.appendClassWithSign(Array.from(tmp), sign)
     }
     return true
   }

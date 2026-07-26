@@ -41,7 +41,8 @@ class Inst {
     this.arg = 0 // ALT, ALT_MATCH, CAPTURE, EMPTY_WIDTH
     // length==1 => exact match
     // otherwise a list of [lo,hi] pairs.  hi is *inclusive*.
-    this.runes = []
+    /** @type {Int32Array} */
+    this.runes = new Int32Array(0)
     /** @type {Uint32Array | number[] | null} */
     this.next = null
   }

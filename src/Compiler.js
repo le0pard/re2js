@@ -7,6 +7,14 @@ import { Inst } from './Inst.js'
 import { Prog, PatchList } from './Prog.js'
 import { RE2JSCompileException } from './exceptions.js'
 
+const ANY_RUNE_NOT_NL = new Int32Array([
+  0,
+  Codepoint.CODES.get('\n') - 1,
+  Codepoint.CODES.get('\n') + 1,
+  Unicode.MAX_RUNE
+])
+const ANY_RUNE = new Int32Array([0, Unicode.MAX_RUNE])
+
 /**
  * A fragment of a compiled regular expression program.
  *
@@ -26,14 +34,6 @@ class Frag {
  * The only entry point is {@link #compileRegexp}.
  */
 class Compiler {
-  static ANY_RUNE_NOT_NL() {
-    return [0, Codepoint.CODES.get('\n') - 1, Codepoint.CODES.get('\n') + 1, Unicode.MAX_RUNE]
-  }
-
-  static ANY_RUNE() {
-    return [0, Unicode.MAX_RUNE]
-  }
-
   static compileRegexp(re) {
     const c = new Compiler()
     const f = c.compile(re)
@@ -226,7 +226,7 @@ class Compiler {
     this.prog.getInst(id.i).arg = lb
 
     // Create the prefix wildcard `.*` for the lookbehind automaton
-    const any = this.rune(Compiler.ANY_RUNE(), 0)
+    const any = this.rune(ANY_RUNE, 0)
     const dotStar = this.star(any, true) // nongreedy = true
     const lbAutomaton = this.cat(dotStar, a)
 
@@ -257,7 +257,10 @@ class Compiler {
         } else {
           let f = null
           for (let r of re.runes) {
-            const f1 = this.rune([r], re.flags)
+            const singleRune = new Int32Array(1)
+            singleRune[0] = r
+
+            const f1 = this.rune(singleRune, re.flags)
             f = f === null ? f1 : this.cat(f, f1)
           }
           return f
@@ -265,9 +268,9 @@ class Compiler {
       case Regexp.Op.CHAR_CLASS:
         return this.rune(re.runes, re.flags)
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        return this.rune(Compiler.ANY_RUNE_NOT_NL(), 0)
+        return this.rune(ANY_RUNE_NOT_NL, 0)
       case Regexp.Op.ANY_CHAR:
-        return this.rune(Compiler.ANY_RUNE(), 0)
+        return this.rune(ANY_RUNE, 0)
       case Regexp.Op.BEGIN_LINE:
         return this.empty(Utils.EMPTY_BEGIN_LINE)
       case Regexp.Op.END_LINE:

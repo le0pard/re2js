@@ -187,7 +187,7 @@ describe('Utils', () => {
     ]
 
     it.each(cases)('input %p returns %p', (input, expected) => {
-      expect(Utils.stringToRunes(input)).toEqual(expected)
+      expect(Utils.stringToRunes(input)).toEqual(new Int32Array(expected))
     })
   })
 
