@@ -87,7 +87,7 @@ class CharClass {
       return this.len === this.r.length ? this.r : this.r.subarray(0, this.len)
     }
 
-    return Int32Array.from(this.len === this.r.length ? this.r : this.r.slice(0, this.len))
+    return new Int32Array(this.len === this.r.length ? this.r : this.r.slice(0, this.len))
   }
 
   // cleanClass() sorts the ranges (pairs of elements) of this CharClass,

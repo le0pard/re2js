@@ -65,7 +65,7 @@ describe('.cleanClass', () => {
   ]
 
   it.each(cases)('input %p, returns %p', (input, expected) => {
-    expect(new CharClass(input).cleanClass().toArray()).toEqual(Int32Array.from(expected))
+    expect(new CharClass(input).cleanClass().toArray()).toEqual(new Int32Array(expected))
   })
 })
 
@@ -91,7 +91,7 @@ describe('.appendLiteral', () => {
     (input, literal, flags, expected) => {
       expect(
         new CharClass(input.map(codePoint)).appendLiteral(codePoint(literal), flags).toArray()
-      ).toEqual(Int32Array.from(expected.map(codePoint)))
+      ).toEqual(new Int32Array(expected.map(codePoint)))
     }
   )
 })
@@ -120,7 +120,7 @@ describe('.appendFoldedRange', () => {
   ]
 
   it.each(cases)('lo %p, hi %p, returns %p', (lo, hi, expected) => {
-    expect(new CharClass([]).appendFoldedRange(lo, hi).toArray()).toEqual(Int32Array.from(expected))
+    expect(new CharClass([]).appendFoldedRange(lo, hi).toArray()).toEqual(new Int32Array(expected))
   })
 })
 
@@ -132,7 +132,7 @@ describe('.appendClass', () => {
   ]
 
   it.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
-    expect(new CharClass(input).appendClass(append).toArray()).toEqual(Int32Array.from(expected))
+    expect(new CharClass(input).appendClass(append).toArray()).toEqual(new Int32Array(expected))
   })
 })
 
@@ -143,7 +143,7 @@ describe('.appendNegatedClass', () => {
         .appendNegatedClass(['b', 'f'].map(codePoint))
         .toArray()
     ).toEqual(
-      Int32Array.from([
+      new Int32Array([
         codePoint('d'),
         codePoint('e'),
         0,
@@ -176,7 +176,7 @@ describe('.appendFoldedClass', () => {
 
   it.each(cases)('input %p, append %p, returns %p', (input, append, expected) => {
     expect(new CharClass(input).appendFoldedClass(append).toArray()).toEqual(
-      Int32Array.from(expected)
+      new Int32Array(expected)
     )
   })
 })
@@ -202,7 +202,7 @@ describe('.negateClass', () => {
   ]
 
   it.each(cases)('input %p, returns %p', (input, expected) => {
-    expect(new CharClass(input).negateClass().toArray()).toEqual(Int32Array.from(expected))
+    expect(new CharClass(input).negateClass().toArray()).toEqual(new Int32Array(expected))
   })
 })
 
@@ -228,7 +228,7 @@ describe('.appendTable', () => {
   ]
 
   it.each(cases)('input %p, table %p, returns %p', (input, table, expected) => {
-    expect(new CharClass(input).appendTable(table).toArray()).toEqual(Int32Array.from(expected))
+    expect(new CharClass(input).appendTable(table).toArray()).toEqual(new Int32Array(expected))
   })
 })
 
@@ -240,7 +240,7 @@ describe('.appendNegatedTable', () => {
           new UnicodeRangeTable(new Uint32Array([codePoint('b'), codePoint('f'), 1]))
         )
         .toArray()
-    ).toEqual(Int32Array.from([0, codePoint('a'), codePoint('g'), Unicode.MAX_RUNE]))
+    ).toEqual(new Int32Array([0, codePoint('a'), codePoint('g'), Unicode.MAX_RUNE]))
   })
 })
 
@@ -252,7 +252,7 @@ describe('.appendGroup', () => {
 
   it.each(cases)('input %p, group %p, returns %p', (input, group, expected) => {
     expect(new CharClass(input).appendGroup(group, false).toArray()).toEqual(
-      Int32Array.from(expected)
+      new Int32Array(expected)
     )
   })
 })
