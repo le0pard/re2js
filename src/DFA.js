@@ -93,7 +93,7 @@ class DFA {
       }
     }
 
-    const sortedPCs = new Int32Array(closure).sort()
+    const sortedPCs = Int32Array.from(closure).sort()
     matchIDs.sort((a, b) => a - b)
     return { pcs: sortedPCs, isMatch, matchIDs }
   }
