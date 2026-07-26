@@ -484,11 +484,7 @@ class Matcher {
           let j = i + 2
           for (; j < m; j++) {
             const digit = replacement.codePointAt(j)
-            if (
-              digit < Codepoint.CODES.get('0') ||
-              digit > Codepoint.CODES.get('9') ||
-              n * 10 + digit - Codepoint.CODES.get('0') > this.patternGroupCount
-            ) {
+            if (digit < Codepoint.CODES.get('0') || digit > Codepoint.CODES.get('9')) {
               break
             }
             n = n * 10 + digit - Codepoint.CODES.get('0')

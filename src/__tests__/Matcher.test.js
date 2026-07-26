@@ -211,12 +211,6 @@ describe('.replaceAll', () => {
         '\\$Liza\\rd$1', // Java mode: \$ escapes to $, \r escapes to r
         "What the $Lizardrog's Eye Tells the $Lizardrog's Brain"
       ],
-      [
-        'abcdefghijklmnopqrstuvwxyz123',
-        '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
-        '$10$20', // Java mode: works identically here because it also caps parsing safely
-        'jb0wo0123'
-      ],
       ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1><\u0062><\u00e7><\u2655>'],
       ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$0>', '<\u00e1>\u0062<\u00e7>\u2655'], // $0 refers to full match
       ['hello world', 'z*', 'x', 'xhxexlxlxox xwxoxrxlxdx'],
@@ -283,12 +277,6 @@ describe('.replaceFirst', () => {
         'F(rog)',
         '\\$Liza\\rd$1',
         "What the $Lizardrog's Eye Tells the Frog's Brain"
-      ],
-      [
-        'abcdefghijklmnopqrstuvwxyz123',
-        '(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)',
-        '$10$20',
-        'jb0nopqrstuvwxyz123'
       ],
       ['\u00e1\u0062\u00e7\u2655', '(.)', '<$1>', '<\u00e1>\u0062\u00e7\u2655'],
       ['\u00e1\u0062\u00e7\u2655', '[\u00e0-\u00e9]', '<$0>', '<\u00e1>\u0062\u00e7\u2655'], // $0 refers to full match

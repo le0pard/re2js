@@ -231,6 +231,15 @@ describe('matches with flags', () => {
   )
 })
 
+describe('Category Case Insensitive Matching', () => {
+  it('matches symmetrically across case-folded categories', () => {
+    expect(RE2JS.compile('(?i)\\p{Ll}').matches('A')).toBe(true)
+    expect(RE2JS.compile('(?i)\\p{Ll}').matches('a')).toBe(true)
+    expect(RE2JS.compile('(?i)\\p{Lu}').matches('A')).toBe(true)
+    expect(RE2JS.compile('(?i)\\p{Lu}').matches('a')).toBe(true)
+  })
+})
+
 describe('.test (Unanchored DFA Match)', () => {
   const cases = [
     // [pattern, input, expected]
@@ -866,7 +875,6 @@ describe('replaceAll and replaceFirst', () => {
     const javaGroupCases = [
       ['(\\w+) (\\w+)', 'Hello World', '$2 - $1', 'World - Hello'],
       ['(\\w+)', 'Hello World Dear Friend', '[$1]', '[Hello] [World] [Dear] [Friend]'],
-      ['(\\w+) (\\w+)', 'Hello World', '$20 - $11', 'World0 - Hello1'],
       ['(\\w+) (\\w+)', 'Hello World', '$0 - $0', 'Hello World - Hello World'], // $0 is overall match in Java
       ['(\\w+)', 'Hello World Dear Friend', '[\\$1]', '[$1] [$1] [$1] [$1]'], // \$ escapes the dollar
       [
@@ -906,6 +914,9 @@ describe('replaceAll and replaceFirst', () => {
           .matcher('Hello World')
           .replaceAll('${test', true)
       ).toThrow(new RE2JSGroupException("named capture group is missing trailing '}'"))
+      expect(() =>
+        RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$20 - $11', true)
+      ).toThrow(new RE2JSGroupException('n > number of groups: 20'))
     })
   })
 })
@@ -1119,6 +1130,23 @@ it("safely evaluates $` and $' on zero-width boundary matches", () => {
     // $` is empty prefix, $' is full suffix "abc"
     expect(m.replaceFirst("[$`|$']")).toBe('[|abc]abc')
   }
+})
+
+describe('Java mode appendReplacement validation', () => {
+  it('throws exceptions on invalid references in Java mode', () => {
+    const p = RE2JS.compile('abc')
+    const m = p.matcher('abc')
+
+    expect(() => m.replaceAll('$foo', true)).toThrow('Illegal group reference')
+
+    const p2 = RE2JS.compile('(abc)')
+    const m2 = p2.matcher('abc')
+    expect(() => m2.replaceFirst('$10', true)).toThrow('n > number of groups: 10')
+
+    const p3 = RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
+    const m3 = p3.matcher('abcdefghijklmnopqrstuvwxyz123')
+    expect(() => m3.replaceAll('$10$20', true)).toThrow('n > number of groups: 20')
+  })
 })
 
 it('equals', () => {
