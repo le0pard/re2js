@@ -1,6 +1,13 @@
 import { describe, bench, test, expect } from 'vitest'
 import { RE2JS } from '../index.js'
 
+const benchOpts = {
+  time: 2000, // Run each benchmark for 2 seconds (default is 500ms)
+  warmupTime: 1000, // Warm up the JIT for 1 second before recording
+  warmupIterations: 30, // Ensure minimum warmup iterations
+  iterations: 100 // Force enough samples to smooth out CPU spikes
+}
+
 let RE2Node = null
 try {
   // eslint-disable-next-line import/no-unresolved
@@ -70,18 +77,26 @@ describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {
       })
 
       // Vitest Benchmark for RE2JS
-      bench('re2js', () => {
-        for (let i = 0; i < cards.length; i++) {
-          re2js.test(cards[i])
-        }
-      })
+      bench(
+        're2js',
+        () => {
+          for (let i = 0; i < cards.length; i++) {
+            re2js.test(cards[i])
+          }
+        },
+        benchOpts
+      )
 
       // Vitest Benchmark for RE2-Node (C++)
-      bench.skipIf(!RE2Node)('re2-node', () => {
-        for (let i = 0; i < cards.length; i++) {
-          re2node.test(cards[i])
-        }
-      })
+      bench.skipIf(!RE2Node)(
+        're2-node',
+        () => {
+          for (let i = 0; i < cards.length; i++) {
+            re2node.test(cards[i])
+          }
+        },
+        benchOpts
+      )
     })
   }
 })
