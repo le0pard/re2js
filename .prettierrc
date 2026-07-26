@@ -6,7 +6,6 @@
   "printWidth": 100,
   "trailingComma": "none",
   "svelteSortOrder": "options-scripts-markup-styles",
-  "svelteStrictMode": true,
   "svelteAllowShorthand": false,
   "svelteIndentScriptAndStyle": true,
   "plugins": [

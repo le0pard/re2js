@@ -133,8 +133,7 @@
       id="string"
       name="string"
       placeholder="Insert your test string here"
-      bind:value={string}
-    ></textarea>
+      bind:value={string}></textarea>
   </div>
 
   <div>
