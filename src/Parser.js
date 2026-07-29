@@ -448,7 +448,7 @@ class Parser {
           break
         }
       }
-      // oxlint-disable-next-line no-fallthrough
+      // fallsthrough
       case Codepoint.CODES.get('0'): {
         // Consume up to three octal digits; already have one.
         let r = c - Codepoint.CODES.get('0')
