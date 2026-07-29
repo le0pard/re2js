@@ -10,13 +10,13 @@ const benchOpts = {
 
 let RE2Node = null
 try {
-  // eslint-disable-next-line import/no-unresolved
+  // oxlint-disable-next-line import/no-unresolved
   const re2Module = await import('re2')
   RE2Node = re2Module.default || re2Module
 } catch {
-  // eslint-disable-next-line no-console
+  // oxlint-disable-next-line no-console
   console.warn('\n⚠️  "re2" (C++ binding) is not installed. Skipping comparison benchmarks.')
-  // eslint-disable-next-line no-console
+  // oxlint-disable-next-line no-console
   console.warn('👉 To run comparisons: yarn add -D re2 && yarn bench\n')
 }
 

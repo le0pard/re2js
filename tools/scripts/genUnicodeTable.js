@@ -426,4 +426,4 @@ code.push('}')
 code.push('')
 code.push('export { UnicodeTables }')
 
-console.log(code.join('\n')) // eslint-disable-line no-console
+console.log(code.join('\n')) // oxlint-disable-line no-console

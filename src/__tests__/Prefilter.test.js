@@ -176,7 +176,7 @@ describe('Advanced Prefilter Evaluation', () => {
 describe('Prefilter Aho-Corasick Automaton', () => {
   it('safely handles Object.prototype pollution', () => {
     // Maliciously pollute the global Object prototype
-    Object.prototype.pollutedProperty = 'hacked' // eslint-disable-line no-extend-native
+    Object.prototype.pollutedProperty = 'hacked' // oxlint-disable-line no-extend-native
 
     // Build an OR prefilter that triggers AhoCorasick generation.
     // If the for...in loops are unguarded, this will crash the Trie builder.

@@ -1,10 +1,9 @@
 pre-commit:
   parallel: true
   commands:
-    eslint:
+    oxlint:
       glob: '*.{js}'
-      run: yarn eslint {staged_files}
-    prettier:
+      run: yarn oxlint {staged_files}
+    oxfmt:
       glob: '*.{js}'
-      run: yarn pnpify run prettier --check {staged_files}
-
+      run: yarn oxfmt --check {staged_files}

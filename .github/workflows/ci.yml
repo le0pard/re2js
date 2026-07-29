@@ -13,7 +13,7 @@ on:
 
 jobs:
   test_node:
-    name: "Test node@${{ matrix.node }}"
+    name: 'Test node@${{ matrix.node }}'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,7 +47,7 @@ jobs:
         run: yarn test
 
   test_bun:
-    name: "Test bun@${{ matrix.bun }}"
+    name: 'Test bun@${{ matrix.bun }}'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -74,7 +74,7 @@ jobs:
         run: bun test
 
   test_deno:
-    name: "Test deno@${{ matrix.deno }}"
+    name: 'Test deno@${{ matrix.deno }}'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -101,7 +101,7 @@ jobs:
         run: deno task test
 
   test_browsers:
-    name: "Test browsers"
+    name: 'Test browsers'
     runs-on: ubuntu-latest
     permissions:
       contents: read

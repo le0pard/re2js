@@ -136,12 +136,9 @@ it.each(FIND_TESTS)('findAll %s', (testPattern) => {
 })
 
 it('compilePOSIX + findAll example', () => {
-  expect(RE2.compilePOSIX('[^\t]+').findAll('BE	abracadabra$	abracadabracadabra	(7,18)', -1)).toEqual([
-    'BE',
-    'abracadabra$',
-    'abracadabracadabra',
-    '(7,18)'
-  ])
+  expect(
+    RE2.compilePOSIX('[^\t]+').findAll('BE	abracadabra$	abracadabracadabra	(7,18)', -1)
+  ).toEqual(['BE', 'abracadabra$', 'abracadabracadabra', '(7,18)'])
 })
 
 it.each(FIND_TESTS)('findAllUTF8Index %s', (testPattern) => {

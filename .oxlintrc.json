@@ -1,0 +1,155 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["import"],
+  "categories": {
+    "correctness": "off"
+  },
+  "env": {
+    "builtin": true,
+    "es2018": true
+  },
+  "ignorePatterns": [".pnp.**", "**/.yarn/**"],
+  "rules": {
+    "constructor-super": "error",
+    "for-direction": "error",
+    "getter-return": "error",
+    "no-async-promise-executor": "error",
+    "no-case-declarations": "error",
+    "no-class-assign": "error",
+    "no-compare-neg-zero": "error",
+    "no-cond-assign": "error",
+    "no-const-assign": "error",
+    "no-constant-binary-expression": "error",
+    "no-constant-condition": "error",
+    "no-control-regex": "error",
+    "no-debugger": "error",
+    "no-delete-var": "error",
+    "no-dupe-class-members": "error",
+    "no-dupe-else-if": "error",
+    "no-dupe-keys": "error",
+    "no-duplicate-case": "error",
+    "no-empty": "error",
+    "no-empty-character-class": "error",
+    "no-empty-pattern": "error",
+    "no-empty-static-block": "error",
+    "no-ex-assign": "error",
+    "no-extra-boolean-cast": "error",
+    "no-fallthrough": "error",
+    "no-func-assign": "error",
+    "no-global-assign": "error",
+    "no-import-assign": "error",
+    "no-invalid-regexp": "error",
+    "no-irregular-whitespace": "error",
+    "no-loss-of-precision": "error",
+    "no-misleading-character-class": "error",
+    "no-new-native-nonconstructor": "error",
+    "no-nonoctal-decimal-escape": "error",
+    "no-obj-calls": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-regex-spaces": "error",
+    "no-self-assign": "error",
+    "no-setter-return": "error",
+    "no-shadow-restricted-names": "error",
+    "no-sparse-arrays": "error",
+    "no-this-before-super": "error",
+    "no-unexpected-multiline": "error",
+    "no-unreachable": "error",
+    "no-unsafe-finally": "error",
+    "no-unsafe-negation": "error",
+    "no-unsafe-optional-chaining": "error",
+    "no-unused-labels": "error",
+    "no-unused-private-class-members": "error",
+    "no-unused-vars": "error",
+    "no-useless-backreference": "error",
+    "no-useless-catch": "error",
+    "no-useless-escape": "error",
+    "no-with": "error",
+    "require-yield": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error",
+    "import/namespace": "error",
+    "import/default": "error",
+    "import/no-named-as-default": "warn",
+    "import/no-named-as-default-member": "warn",
+    "import/no-duplicates": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.js"],
+      "rules": {
+        "curly": ["error", "multi-line", "consistent"],
+        "eqeqeq": [
+          "error",
+          "always",
+          {
+            "null": "ignore"
+          }
+        ],
+        "func-style": [
+          "error",
+          "expression",
+          {
+            "allowArrowFunctions": true
+          }
+        ],
+        "guard-for-in": "error",
+        "new-cap": [
+          "error",
+          {
+            "capIsNew": false,
+            "newIsCap": true
+          }
+        ],
+        "no-bitwise": "off",
+        "no-console": "error",
+        "no-eval": "error",
+        "no-extend-native": "error",
+        "no-implied-eval": "error",
+        "no-inner-declarations": "error",
+        "no-iterator": "error",
+        "no-labels": "off",
+        "no-lonely-if": "error",
+        "no-loop-func": "error",
+        "no-new-func": "error",
+        "no-new-wrappers": "error",
+        "no-plusplus": "off",
+        "no-proto": "error",
+        "no-return-assign": "error",
+        "no-self-compare": "error",
+        "no-sequences": "error",
+        "no-shadow": "error",
+        "no-throw-literal": "error",
+        "no-undefined": "error",
+        "no-underscore-dangle": "off",
+        "no-unused-expressions": "error",
+        "no-unused-vars": [
+          "error",
+          {
+            "vars": "all",
+            "args": "after-used",
+            "argsIgnorePattern": "^_",
+            "caughtErrorsIgnorePattern": "^_"
+          }
+        ],
+        "no-use-before-define": ["error", "nofunc"],
+        "no-var": "error",
+        "no-warning-comments": [
+          "error",
+          {
+            "terms": ["todo", "fixme"]
+          }
+        ],
+        "radix": "off",
+        "vars-on-top": "off",
+        "yoda": "off",
+        "import/no-default-export": "error"
+      },
+      "env": {
+        "es2026": true,
+        "browser": true,
+        "node": true
+      }
+    }
+  ]
+}

@@ -689,7 +689,7 @@ describe('groups', () => {
     const groups = m.getNamedGroups()
 
     // The dictionary should correctly store the value without polluting the prototype chain
-    expect(groups.__proto__).toBe('malicious_payload') // eslint-disable-line no-proto
+    expect(groups.__proto__).toBe('malicious_payload') // oxlint-disable-line no-proto
 
     // Prove that the object's actual prototype is perfectly null
     expect(Object.getPrototypeOf(groups)).toBeNull()

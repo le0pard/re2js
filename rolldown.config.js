@@ -1,4 +1,4 @@
-/* eslint-disable import/no-default-export */
+/* oxlint-disable import/no-default-export */
 import { defineConfig } from 'rolldown'
 import pkg from './package.json' with { type: 'json' }
 

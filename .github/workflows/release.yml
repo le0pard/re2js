@@ -6,7 +6,7 @@ on:
 
 jobs:
   test:
-    name: "Test"
+    name: 'Test'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -32,7 +32,7 @@ jobs:
         run: yarn test
 
   publish:
-    name: "Publish"
+    name: 'Publish'
     needs: test
     runs-on: ubuntu-latest
     permissions:

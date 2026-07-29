@@ -169,7 +169,7 @@ const testRE2 = async (fileName) => {
       try {
         refull = RE2.compile(`\\A(?:${q})\\z`)
       } catch (e) {
-        console.error('Error to refull parse: ', q, e) // eslint-disable-line no-console
+        console.error('Error to refull parse: ', q, e) // oxlint-disable-line no-console
       }
 
       input = 0
