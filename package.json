@@ -62,7 +62,7 @@
     "dts-bundle-generator": "^9.5.1",
     "globals": "^17.7.0",
     "lodash": "^4.18.1",
-    "oxfmt": "^0.63.0",
+    "oxfmt": "0.61.0",
     "oxlint": "^1.78.0",
     "playwright": "^1.62.1",
     "rolldown": "1.2.3",
