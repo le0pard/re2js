@@ -56,19 +56,19 @@
   },
   "devDependencies": {
     "@unicode/unicode-17.0.0": "^1.6.17",
-    "@vitest/browser": "^4.1.10",
-    "@vitest/browser-playwright": "^4.1.10",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/browser": "^4.1.11",
+    "@vitest/browser-playwright": "^4.1.11",
+    "@vitest/coverage-v8": "^4.1.11",
     "dts-bundle-generator": "^9.5.1",
     "globals": "^17.7.0",
     "lodash": "^4.18.1",
-    "oxfmt": "0.61.0",
-    "oxlint": "1.76.0",
+    "oxfmt": "0.64.0",
+    "oxlint": "1.79.0",
     "playwright": "^1.62.1",
-    "rolldown": "1.2.3",
+    "rolldown": "1.2.4",
     "typescript": "^7.0.2",
     "unicode-property-value-aliases": "^3.9.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "packageManager": "yarn@4.18.0"
 }
