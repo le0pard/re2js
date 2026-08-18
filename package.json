@@ -68,7 +68,7 @@
     "rolldown": "1.2.4",
     "typescript": "^7.0.2",
     "unicode-property-value-aliases": "^3.9.0",
-    "vitest": "^4.1.11"
+    "vitest": "4.1.10"
   },
   "packageManager": "yarn@4.18.0"
 }
