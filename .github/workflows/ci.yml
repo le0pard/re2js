@@ -95,7 +95,7 @@ jobs:
           deno-version: ${{ matrix.deno }}
 
       - name: Install Javascript dependencies
-        run: deno install --node-modules-dir=auto
+        run: deno install --node-modules-dir=auto --minimum-dependency-age=0
 
       - name: Run tests
         run: deno task test
