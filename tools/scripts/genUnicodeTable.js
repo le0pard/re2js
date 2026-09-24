@@ -1,6 +1,6 @@
 import unicode from '@unicode/unicode-17.0.0'
-import CommonCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/C/code-points.js'
-import SimpleCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/S/code-points.js'
+import CommonCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/C/code-points.mjs'
+import SimpleCaseFolding from '@unicode/unicode-17.0.0/Case_Folding/S/code-points.mjs'
 import unicodePropertyValueAliases from 'unicode-property-value-aliases'
 import lodash from 'lodash'
 import { CodepointRange } from './codepointRange.js'
@@ -147,7 +147,7 @@ const addFoldExceptions = (codepoints) => {
 
 const getCodePoints = async (type, name) => {
   const { default: codePoints } = await import(
-    `@unicode/unicode-17.0.0/${type}/${name}/code-points.js`
+    `@unicode/unicode-17.0.0/${type}/${name}/code-points.mjs`
   )
   return codePoints.sort((a, b) => a - b)
 }
@@ -155,8 +155,8 @@ const getCodePoints = async (type, name) => {
 const getExtraCodePoints = async (name) => {
   // Some are strictly Binary Properties, others are Derived Core Properties
   const paths = [
-    `@unicode/unicode-17.0.0/Binary_Property/${name}/code-points.js`,
-    `@unicode/unicode-17.0.0/Derived_Core_Property/${name}/code-points.js`
+    `@unicode/unicode-17.0.0/Binary_Property/${name}/code-points.mjs`,
+    `@unicode/unicode-17.0.0/Derived_Core_Property/${name}/code-points.mjs`
   ]
   for (const path of paths) {
     try {
