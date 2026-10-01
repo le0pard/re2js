@@ -12,26 +12,29 @@
   },
   "devDependencies": {
     "@picocss/pico": "^2.1.1",
-    "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/adapter-static": "^4.0.0",
+    "@sveltejs/kit": "^3.0.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/cookie": "^1.0.0",
     "@yarnpkg/pnpify": "^4.1.7",
     "eslint": "^10.11.0",
     "eslint-plugin-svelte": "^3.23.0",
-    "globals": "^17.12.0",
-    "oxfmt": "^0.70.0",
-    "oxlint": "^1.85.0",
+    "globals": "^17.13.0",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
     "postcss": "^8.5.28",
     "postcss-import": "^17.0.0",
     "postcss-load-config": "^6.0.1",
-    "postcss-preset-env": "^11.5.3",
+    "postcss-preset-env": "^11.5.5",
     "re2js": "^2.8.6",
     "svelte": "^5.57.1",
     "svelte-check": "^4.7.6",
     "svelte-preprocess": "^6.0.5",
-    "typescript": "^7.0.2",
-    "vite": "^8.3.1"
+    "typescript": "^6",
+    "vite": "^8.3.2"
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*"
   },
   "type": "module",
   "packageManager": "yarn@4.18.0"
