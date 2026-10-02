@@ -17,9 +17,16 @@
   const execRE2JS = (regexInput, stringInput, flagsInput = 0) => {
     try {
       const p = RE2JS.compile(regexInput, flagsInput)
-      const m = p.matcher(stringInput)
-      const found = m.find()
-      const matches = m.matches()
+
+      const mFind = p.matcher(stringInput)
+      const found = mFind.find()
+
+      const mMatches = p.matcher(stringInput)
+      const matches = mMatches.matches()
+
+      const mLookingAt = p.matcher(stringInput)
+      const startWith = mLookingAt.lookingAt()
+
       const contains = p.test(stringInput)
       const allMatches = [...p.matchAll(stringInput)]
 
@@ -36,13 +43,14 @@
         programSize: p.programSize(),
         matches: matches,
         contains: contains,
-        startWith: m.lookingAt(),
+        startWith: startWith,
         groupCount: p.groupCount(),
         namedGroups: p.namedGroups(),
+        // Extract groups safely from the dedicated mFind matcher
         groupsArray: found
-          ? Array.from(Array(p.groupCount() + 1)).map((_, index) => m.group(index))
+          ? Array.from(Array(p.groupCount() + 1)).map((_, index) => mFind.group(index))
           : null,
-        groupsHash: found ? m.getNamedGroups() : null,
+        groupsHash: found ? mFind.getNamedGroups() : null,
         allMatches: found ? serializableMatches : null
       }
     } catch (err) {
