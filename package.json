@@ -34,6 +34,7 @@
     "vite": "^8.3.2"
   },
   "imports": {
+    "#lib": "./src/lib/index.js",
     "#lib/*": "./src/lib/*"
   },
   "type": "module",
