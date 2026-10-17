@@ -27,50 +27,22 @@ class CharClass {
     return result
   }
 
-  // cmp() returns the ordering of the pair (a[i], a[i+1]) relative to
-  // (pivotFrom, pivotTo), where the first component of the pair (lo) is
-  // ordered naturally and the second component (hi) is in reverse order.
-  static cmp(array, i, pivotFrom, pivotTo) {
-    const cmp = array[i] - pivotFrom
-    return cmp !== 0 ? cmp : pivotTo - array[i + 1]
-  }
-
-  // qsortIntPair() quicksorts pairs of ints in |array| according to lt().
-  // Precondition: |left|, |right|, |this.len| must all be even; |this.len > 1|.
-  static qsortIntPair(array, left, right) {
-    const pivotIndex = (((left + right) / 2) | 0) & ~1
-    const pivotFrom = array[pivotIndex]
-    const pivotTo = array[pivotIndex + 1]
-    let i = left
-    let j = right
-    while (i <= j) {
-      while (i < right && CharClass.cmp(array, i, pivotFrom, pivotTo) < 0) {
-        i += 2
-      }
-
-      while (j > left && CharClass.cmp(array, j, pivotFrom, pivotTo) > 0) {
-        j -= 2
-      }
-
-      if (i <= j) {
-        if (i !== j) {
-          let temp = array[i]
-          array[i] = array[j]
-          array[j] = temp
-          temp = array[i + 1]
-          array[i + 1] = array[j + 1]
-          array[j + 1] = temp
-        }
-        i += 2
-        j -= 2
-      }
+  // sortRanges() sorts the first |len| elements of |array|, taken as [lo, hi] pairs, by lo
+  // increasing and hi decreasing to break ties (Go: sort.Sort(ranges{rp})). It relies on the
+  // runtime's O(n log n) sort instead of a hand-written recursive quicksort, whose recursion
+  // depth and comparison count grew linearly and quadratically with adversarial input.
+  // Precondition: |len| is even.
+  static sortRanges(array, len) {
+    const n = len >> 1
+    const order = new Array(n)
+    for (let i = 0; i < n; i++) {
+      order[i] = i
     }
-
-    if (left < j) {
-      CharClass.qsortIntPair(array, left, j)
-    }
-    if (i < right) {
-      CharClass.qsortIntPair(array, i, right)
+    order.sort((a, b) => array[2 * a] - array[2 * b] || array[2 * b + 1] - array[2 * a + 1])
+    const sorted = array.slice(0, len)
+    for (let i = 0; i < n; i++) {
+      array[2 * i] = sorted[2 * order[i]]
+      array[2 * i + 1] = sorted[2 * order[i] + 1]
     }
   }
 
@@ -90,6 +62,17 @@ class CharClass {
     return new Int32Array(this.len === this.r.length ? this.r : this.r.slice(0, this.len))
   }
 
+  // Returns the character class as a plain array that further CharClass operations can keep
+  // appending to, without copying when the class is already backed by one. Used by the parser
+  // while a class is being accumulated; toArray() produces the final form.
+  toGrowableArray() {
+    if (Array.isArray(this.r)) {
+      this.r.length = this.len
+      return this.r
+    }
+    return Array.from(this.r.subarray(0, this.len))
+  }
+
   // cleanClass() sorts the ranges (pairs of elements) of this CharClass,
   // merges them, and eliminates duplicates.
   cleanClass() {
@@ -97,7 +80,7 @@ class CharClass {
       return this
     }
     // Sort by lo increasing, hi decreasing to break ties.
-    CharClass.qsortIntPair(this.r, 0, this.len - 2)
+    CharClass.sortRanges(this.r, this.len)
     // Merge abutting, overlapping.
     let w = 2 // write index
     for (let i = 2; i < this.len; i += 2) {

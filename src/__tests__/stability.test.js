@@ -118,6 +118,46 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     })
   })
 
+  describe('Parsing large patterns stays linear', () => {
+    // These used to be quadratic: the parse stack was copied on every '|' or ')', literal runes
+    // were copied on every appended rune, and classes merged across '|' were copied per branch.
+    const assertParsesQuickly = (pattern, maxMs) => {
+      const start = Date.now()
+      const re = RE2JS.compile(pattern)
+      const elapsed = Date.now() - start
+      expect(elapsed).toBeLessThan(maxMs)
+      return re
+    }
+
+    it('50,000 alternatives', () => {
+      const pattern = Array.from({ length: 50000 }, (_, i) => `w${i}x`).join('|')
+      const re = assertParsesQuickly(pattern, 1000) // was ~2.5 s
+      expect(re.test('zz w49999x')).toBe(true)
+      expect(re.test('zz w50000x')).toBe(false)
+    })
+
+    it('50,000 nested non-capturing groups and parentheses', () => {
+      const re = assertParsesQuickly(`${'(?:'.repeat(50000)}a${')'.repeat(50000)}`, 1000) // was ~4 s
+      expect(re.test('a')).toBe(true)
+    })
+
+    it('a 200,000-rune literal', () => {
+      const literal = 'a'.repeat(200000)
+      const re = assertParsesQuickly(literal, 1000) // was ~6.5 s
+      expect(re.test(`x${literal}`)).toBe(true)
+      expect(re.test('a'.repeat(199999))).toBe(false)
+    })
+
+    it('10,000 single-rune classes merged across an alternation', () => {
+      const pattern = Array.from({ length: 10000 }, (_, i) =>
+        String.fromCodePoint(0x4e00 + 2 * i)
+      ).join('|')
+      const re = assertParsesQuickly(pattern, 1000) // was ~1.3 s
+      expect(re.test(String.fromCodePoint(0x4e00 + 2 * 9999))).toBe(true)
+      expect(re.test(String.fromCodePoint(0x4e00 + 2 * 9999 + 1))).toBe(false)
+    })
+  })
+
   describe('Infinite Loop & Memory Explosion Protections', () => {
     it('Safely matches massive strings without exceeding Call Stack Size', () => {
       const re = RE2JS.compile('a*b')
