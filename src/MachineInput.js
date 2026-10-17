@@ -63,9 +63,7 @@ class MachineUTF8Input extends MachineInputBase {
   // Executes a high-speed, single - pass search for multiple literal strings
   // simultaneously using an Aho-Corasick automaton.
   hasAnyString(prefilter, pos) {
-    if (!prefilter.ac8) return false
-
-    return prefilter.ac8.searchUTF8(this.bytes, this.start + pos, this.end)
+    return prefilter.automaton8().searchUTF8(this.bytes, this.start + pos, this.end)
   }
 
   // Returns the rune at the specified index; the units are
@@ -245,9 +243,7 @@ class MachineUTF16Input extends MachineInputBase {
   // Executes a high-speed, single - pass search for multiple literal strings
   // simultaneously using an Aho-Corasick automaton.
   hasAnyString(prefilter, pos) {
-    if (!prefilter.ac16) return false
-
-    return prefilter.ac16.searchUTF16(this.charSequence, this.start + pos, this.end)
+    return prefilter.automaton16().searchUTF16(this.charSequence, this.start + pos, this.end)
   }
 
   // Returns the rune at the specified index; the units are

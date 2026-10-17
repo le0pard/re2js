@@ -1,7 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import { Parser } from '../Parser.js'
 import { Simplify } from '../Simplify.js'
-import { PrefilterTree, Prefilter } from '../Prefilter.js'
+import { PrefilterTree, Prefilter, AhoCorasick } from '../Prefilter.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { RE2JS } from '../index.js'
 import { MachineInput } from '../MachineInput.js'
@@ -52,8 +52,8 @@ describe('PrefilterTree.build AST Extraction', () => {
 
     // Repetitions
     ['a+b', 'AND(EXACT("a"), EXACT("b"))'],
-    // a{2,5} flattens to -> a a a? a? a?
-    ['a{2,5}b', 'AND(EXACT("a"), EXACT("a"), EXACT("b"))'],
+    // a{2,5} flattens to -> a a a? a? a?, and the repeated requirement is kept once
+    ['a{2,5}b', 'AND(EXACT("a"), EXACT("b"))'],
     ['a?b', 'EXACT("b")'],
     ['a*b', 'EXACT("b")'],
 
@@ -187,8 +187,9 @@ describe('Prefilter Aho-Corasick Automaton', () => {
       pf = PrefilterTree.build(re)
     }).not.toThrow()
 
-    expect(pf.ac16).toBeDefined()
-    expect(pf.ac8).toBeDefined()
+    expect(pf.allExact).toBe(true)
+    expect(pf.eval(MachineInput.fromUTF16('a banana'), 0)).toBe(true)
+    expect(pf.eval(MachineInput.fromUTF16('a pollutedProperty'), 0)).toBe(false)
 
     // Clean up global pollution
     delete Object.prototype.pollutedProperty
@@ -198,9 +199,11 @@ describe('Prefilter Aho-Corasick Automaton', () => {
     const re = Simplify.simplify(Parser.parse('foo|bar|baz', RE2Flags.PERL))
     const pf = PrefilterTree.build(re)
 
-    // Ensure the AST simplified into the AhoCorasick optimization
-    expect(pf.ac16).toBeDefined()
-    expect(pf.ac8).toBeDefined()
+    // Ensure the AST simplified into the AhoCorasick optimization; automata are built on
+    // first use, one per encoding
+    expect(pf.allExact).toBe(true)
+    expect(pf.ac16).toBeNull()
+    expect(pf.ac8).toBeNull()
 
     const utf16InputMatch = MachineInput.fromUTF16('I have a baz in here')
     const utf16InputFail = MachineInput.fromUTF16('I have a qux in here')
@@ -217,5 +220,89 @@ describe('Prefilter Aho-Corasick Automaton', () => {
 
     expect(pf.eval(utf8InputMatch, 0)).toBe(true)
     expect(pf.eval(utf8InputFail, 0)).toBe(false)
+    expect(pf.ac16).not.toBeNull()
+    expect(pf.ac8).not.toBeNull()
+  })
+
+  it('agrees with a naive substring search', () => {
+    let seed = 3
+    const rnd = (n) => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff
+      return seed % n
+    }
+    const alphabet = ['a', 'b', 'c', 'é', '😀']
+    const word = (max) => {
+      let w = ''
+      const n = 1 + rnd(max)
+      for (let i = 0; i < n; i++) w += alphabet[rnd(alphabet.length)]
+      return w
+    }
+    for (let round = 0; round < 200; round++) {
+      const words = Array.from({ length: 1 + rnd(12) }, () => word(4))
+      const unique = [...new Set(words)]
+      const ac16 = new AhoCorasick(
+        unique.map((w) => Array.from({ length: w.length }, (_, i) => w.charCodeAt(i))),
+        0x10000
+      )
+      const ac8 = new AhoCorasick(
+        unique.map((w) => Utils.stringToUtf8ByteArray(w)),
+        0x100
+      )
+      for (let k = 0; k < 10; k++) {
+        const text = word(12)
+        const expected = unique.some((w) => text.includes(w))
+        expect(ac16.searchUTF16(text, 0, text.length)).toBe(expected)
+        const bytes = Utils.stringToUtf8ByteArray(text)
+        expect(ac8.searchUTF8(bytes, 0, bytes.length)).toBe(expected)
+      }
+    }
+  })
+})
+
+describe('Prefilter size and cost bounds', () => {
+  const build = (pattern) =>
+    PrefilterTree.build(Simplify.simplify(Parser.parse(pattern, RE2Flags.PERL)))
+
+  it('keeps the first requirements of a long concatenation, up to the scan budget', () => {
+    const literals = Array.from({ length: 100 }, (_, i) => `w${i}x`)
+    const pf = build(literals.join('\\d'))
+    expect(pf.type).toBe(Prefilter.Type.AND)
+    expect(pf.subs).toHaveLength(Prefilter.MAX_SCANS)
+    expect(pf.subs[0].str).toBe('w0x')
+    expect(pf.cost).toBe(Prefilter.MAX_SCANS)
+  })
+
+  it('requires nothing from an alternation that would need too many scans', () => {
+    // Each alternative is an AND of two literals, so the OR cannot use one automaton; distinct
+    // leading runes keep the parser from factoring out a common prefix
+    const alternative = (i) => `${String.fromCodePoint(0x4e00 + i)}\\db${i}`
+    const many = Array.from({ length: 40 }, (_, i) => alternative(i))
+    expect(build(many.join('|')).type).toBe(Prefilter.Type.NONE)
+    const few = Array.from({ length: 10 }, (_, i) => alternative(i))
+    const pf = build(few.join('|'))
+    expect(pf.type).toBe(Prefilter.Type.OR)
+    expect(pf.cost).toBe(20)
+  })
+
+  it('stores each repeated literal requirement once', () => {
+    const pf = build('x{1000}')
+    expect(dumpPrefilter(pf)).toBe('EXACT("x")')
+  })
+
+  it('bounds the size of literal alternations', () => {
+    const big = Array.from({ length: 30000 }, (_, i) => `z${String.fromCodePoint(0x4e00 + i)}${i}`)
+    // ~ 30000 words x ~10 bytes is above the automaton budget: no prefilter, correct matching
+    const re = RE2JS.compile(big.join('|'))
+    expect(re.test(`--${big[29999]}--`)).toBe(true)
+    expect(re.test('-- z --')).toBe(false)
+  })
+
+  it('keeps the compiled prefilter small for large literal alternations', () => {
+    const words = Array.from({ length: 20000 }, (_, i) => `w${i}x`)
+    const re = RE2JS.compile(words.join('|'))
+    const count = (pf) => (pf.subs.length === 0 ? 1 : 1 + pf.subs.reduce((n, s) => n + count(s), 0))
+    expect(count(re.re2().prefilter ?? new Prefilter(Prefilter.Type.NONE))).toBeLessThan(200)
+    expect(re.test('zz w19999x')).toBe(true)
+    expect(re.test('zz w5 w5 w5')).toBe(false)
   })
 })
