@@ -311,6 +311,30 @@ describe('Lookbehinds across repeated matches', () => {
   })
 })
 
+describe('Lookbehind state is only allocated for patterns with lookbehinds', () => {
+  it('plain patterns carry no lookbehind state and mark no lookbehind instructions', () => {
+    const re = RE2JS.compile('(a+)b', RE2JS.LOOKBEHINDS)
+    expect(re.re2().createLookbehindState()).toBeNull()
+    expect(re.matcher('aab').lookbehindState).toBeNull()
+    expect(re.re2().prog.numLb).toBe(0)
+    expect(re.re2().prog.lbInst.every((v) => v === 0)).toBe(true)
+  })
+
+  it('patterns with lookbehinds get one state per matcher, reset on a new input', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const m = re.matcher('ab')
+    const state = m.lookbehindState
+    expect(state).not.toBeNull()
+    expect(m.find()).toBe(true)
+    expect(state.pos).toBeGreaterThanOrEqual(0)
+
+    m.resetMatcherInput('xb')
+    expect(m.lookbehindState).toBe(state)
+    expect(state.pos).toBe(-1)
+    expect(m.find()).toBe(false)
+  })
+})
+
 describe('Lookbehinds keep repeated matching linear', () => {
   // One Machine.step() call processes one input position, so counting the calls measures the
   // work of a loop deterministically. Before the lookbehind state was carried between matches,
