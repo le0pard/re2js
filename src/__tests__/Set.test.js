@@ -208,32 +208,43 @@ describe('RE2Set flags', () => {
   })
 })
 
-describe('RE2Set anchored matching on the NFA fallback', () => {
-  // \b makes the DFA decline the program, so these run on Machine.matchSet
-  it('ANCHOR_START', () => {
-    const set = new RE2Set(RE2Set.ANCHOR_START)
-    set.add('\\bfoo')
-    set.add('\\bbar')
-    set.add('o\\b')
+describe('RE2Set anchored matching', () => {
+  // The same expectations through the DFA (word boundaries are DFA-capable) and through
+  // Machine.matchSet, the NFA fallback, which a lookbehind in the set forces.
+  const viaEngine = (anchor, patterns, nfa) => {
+    const set = new RE2Set(anchor, nfa ? RE2JS.LOOKBEHINDS : 0)
+    for (const p of patterns) set.add(p)
+    if (nfa) set.add('(?<=never)never')
+    set.compile()
+    expect(set.dfa.failed).toBe(nfa)
+    return set
+  }
+
+  it.each([false, true])('ANCHOR_START (nfa: %s)', (nfa) => {
+    const set = viaEngine(RE2Set.ANCHOR_START, ['\\bfoo', '\\bbar', 'o\\b'], nfa)
     expect(set.match('foo bar')).toEqual([0])
     expect(set.match('bar foo')).toEqual([1])
     expect(set.match(' foo')).toEqual([])
-    expect(set.dfa.failed).toBe(true)
   })
 
-  it('ANCHOR_BOTH, on strings and bytes', () => {
-    const set = new RE2Set(RE2Set.ANCHOR_BOTH)
-    set.add('\\bfoo\\b')
-    set.add('foo.*')
-    set.add('.')
+  it.each([false, true])('ANCHOR_BOTH, on strings and bytes (nfa: %s)', (nfa) => {
+    const set = viaEngine(RE2Set.ANCHOR_BOTH, ['\\bfoo\\b', 'foo.*', '.'], nfa)
     expect(set.match('foo')).toEqual([0, 1])
     expect(set.match('foo bar')).toEqual([1])
     expect(set.match('x')).toEqual([2])
     expect(set.match('')).toEqual([])
 
-    const bytes = new RE2Set(RE2Set.ANCHOR_BOTH)
-    bytes.add('\\bé\\B') // RE2's \\b is ASCII-only: no boundary next to é
-    bytes.add('é+')
+    // RE2's \\b is ASCII-only: no boundary next to é
+    const bytes = viaEngine(RE2Set.ANCHOR_BOTH, ['\\bé\\B', 'é+'], nfa)
     expect(bytes.match(new TextEncoder().encode('éé'))).toEqual([1])
+  })
+
+  it.each([false, true])('UNANCHORED with line and text anchors (nfa: %s)', (nfa) => {
+    const set = viaEngine(RE2Set.UNANCHORED, ['(?m)^b', 'a$', '\\Ax', 'y\\z', '\\Bo'], nfa)
+    expect(set.match('a\nb')).toEqual([0])
+    expect(set.match('xa')).toEqual([1, 2])
+    expect(set.match('zzy')).toEqual([3])
+    expect(set.match('foo')).toEqual([4])
+    expect(set.match('o')).toEqual([])
   })
 })

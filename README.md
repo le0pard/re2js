@@ -698,13 +698,13 @@ Originally, the C++ implementation of the RE2 engine included both NFA (Nondeter
 - **Aggressive AST Simplification:** Trims impossible match branches and collapses redundant logic prior to compilation, mathematically pruning dead execution paths to dramatically reduce the size of the generated state machine.
 - **Multi-Pattern Sets (`RE2Set`):** Combines hundreds or thousands of regular expressions into a single combined DFA, allowing you to search a string for all patterns simultaneously in strict $O(N)$ linear time.
 - **OnePass DFA:** Provides high-speed capture group extraction for mathematically 1-unambiguous patterns, bypassing thread queues entirely.
-- **Lazy Powerset DFA:** Executes high-speed boolean matches (e.g., `.test()`) by fusing active states dynamically on the fly.
+- **Lazy Powerset DFA:** Executes high-speed boolean matches (e.g., `.test()`) by fusing active states dynamically on the fly, including patterns with anchors and word boundaries (`^`, `$`, `\b`), which it resolves from the surrounding characters as RE2's DFA does.
 - **BitState Backtracker:** Avoids heavy object array allocations by using bitwise operations to extract captures on short-to-medium length strings.
 - **Pike VM (NFA):** Acts as the robust, bounded-memory fallback engine for complex, ambiguous patterns that exceed fast-path limits.
 
 Thanks to these dynamic fast-paths, `re2js` delivers performance comparable to native engines for simple queries, while remaining completely immune to catastrophic backtracking and stack overflow crashes.
 
-If your code runs only on Node.js and mostly makes a few calls on very large inputs, or relies heavily on word boundaries (`\b`), consider [Node-RE2](https://github.com/uhop/node-re2/), the native RE2 C++ binding. Its per-call cost into C++ matters less there. For many calls on short strings, RE2JS is usually faster, as the comparison below shows, and it also runs in browsers and other JavaScript runtimes.
+If your code runs only on Node.js and mostly makes a few calls on very large inputs, consider [Node-RE2](https://github.com/uhop/node-re2/), the native RE2 C++ binding. Its per-call cost into C++ matters less there. For many calls on short strings, RE2JS is usually faster, as the comparison below shows, and it also runs in browsers and other JavaScript runtimes.
 
 ### RE2JS vs RE2-Node (C++ Bindings)
 
@@ -712,26 +712,25 @@ Because RE2JS's Lazy DFA, Prefilter, and OnePass engines operate efficiently wit
 
 Here is a [benchmark running 30,000 short strings](src/__tests__/re2.bench.js) through both engines using their respective `.test()` fast-paths. The ratio is the comparable figure; absolute times depend on the machine:
 
-| Benchmark Scenario        | Pattern Example            | Result                           | RE2JS (Pure JS) | RE2-Node (C++) |
-| :------------------------ | :------------------------- | :------------------------------- | --------------: | -------------: |
-| **Simple Literal**        | `/damage/`                 | `re2js` is **14.8x** faster      |         0.71 ms |       10.34 ms |
-| **ReDoS Attempt**         | `/(a+)+!/`                 | `re2js` is **13.3x** faster      |         1.01 ms |       13.41 ms |
-| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | `re2js` is **5.6x** faster       |         2.39 ms |       13.53 ms |
-| **Greedy Wildcard**       | `/enters.*battlefield/`    | `re2js` is **4.0x** faster       |         2.80 ms |       11.11 ms |
-| **Lazy Wildcard**         | `/enters.*?battlefield/`   | `re2js` is **3.9x** faster       |         2.82 ms |       10.97 ms |
-| **Massive Alternation**   | `/White\|Blue\|Black.../`  | `re2js` is **2.4x** faster       |         5.19 ms |       12.54 ms |
-| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | `re2js` is **2.2x** faster       |         5.40 ms |       11.81 ms |
-| **Case Insensitive**      | `/(?i)swamp/`              | `re2js` is **1.3x** faster       |        10.51 ms |       13.59 ms |
-| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | `re2-node` is **1.3x** faster    |        16.69 ms |       13.18 ms |
+| Benchmark Scenario      | Pattern Example            | Result                      | RE2JS (Pure JS) | RE2-Node (C++) |
+| :---------------------- | :------------------------- | :-------------------------- | --------------: | -------------: |
+| **Simple Literal**      | `/damage/`                 | `re2js` is **14.6x** faster |         0.71 ms |       10.42 ms |
+| **ReDoS Attempt**       | `/(a+)+!/`                 | `re2js` is **13.2x** faster |         1.02 ms |       13.57 ms |
+| **Deep State Machine**  | `/([0-9]+(/[0-9]+)+)/`     | `re2js` is **5.6x** faster  |         2.39 ms |       13.33 ms |
+| **Lazy Wildcard**       | `/enters.*?battlefield/`   | `re2js` is **4.0x** faster  |         2.78 ms |       11.13 ms |
+| **Greedy Wildcard**     | `/enters.*battlefield/`    | `re2js` is **4.0x** faster  |         2.83 ms |       11.08 ms |
+| **Word Boundaries**     | `/\b(Flying\|First...)\b/` | `re2js` is **2.4x** faster  |         5.33 ms |       12.96 ms |
+| **Massive Alternation** | `/White\|Blue\|Black.../`  | `re2js` is **2.3x** faster  |         5.30 ms |       12.32 ms |
+| **Bounded Repetition**  | `/[A-Z][a-z]{5,15}/`       | `re2js` is **2.1x** faster  |         5.51 ms |       11.63 ms |
+| **Case Insensitive**    | `/(?i)swamp/`              | `re2js` is **1.3x** faster  |        10.37 ms |       13.65 ms |
 
 Measured on an Apple M3 Max with macOS 27, Node.js 24.14.0, `re2js` 2.8.7 and `re2` 1.27.0 (October 2026). Times are the mean of one pass over the 30,000 strings, and the result is the median ratio of three runs (each benchmark measures for 2 seconds after a 1 second warm-up). The benchmark also checks that both libraries find the same matches.
 
 **Takeaways:**
 
 - **Many short calls favour RE2JS.** Every `re2-node` call crosses from JavaScript into C++, and that fixed cost dominates here: `re2-node` takes roughly the same 10-14 ms for every pattern, while RE2JS's time follows the work each pattern needs. With few calls on very large inputs, that per-call cost is amortized and the C++ engine is the better fit; this benchmark does not measure that case.
-- **DFA-friendly patterns are fastest.** Literals, wildcards, nested groups, alternations, character classes and case-insensitive matching all run on RE2JS's lazy DFA, often after the prefilter has already ruled out most strings.
-- **Word boundaries are the exception.** The DFA cannot evaluate `\b`, so RE2JS answers these on its NFA, and `re2-node` is slightly faster here. Matching remains linear-time; if `\b` patterns dominate a hot path, a pattern without `\b` keeps RE2JS on its DFA.
-- **Ratios vary by hardware.** On a GitHub Actions `ubuntu-24.04` (x86-64) runner, the same benchmark shows larger gaps in favour of RE2JS and the word-boundary case at parity, because the per-call cost of the native binding is higher there.
+- **Boolean matching runs on the lazy DFA.** Literals, wildcards, nested groups, alternations, character classes, case-insensitive matching and assertions such as `^`, `$` and `\b` all run on RE2JS's lazy DFA, often after the prefilter has already ruled out most strings. Lookbehinds are the exception: they run on the NFA (see [Lookbehinds](#lookbehinds-linear-time-execution)).
+- **Ratios vary by hardware.** On a GitHub Actions `ubuntu-24.04` (x86-64) runner, the same benchmark shows larger gaps in favour of RE2JS, because the per-call cost of the native binding is higher there.
 
 To reproduce, install the binding temporarily and run the benchmarks (each result is also written as JSON to `bench-results/`):
 
