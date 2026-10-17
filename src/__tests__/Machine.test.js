@@ -1,6 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import { Machine } from '../Machine.js'
 import { RE2 } from '../RE2.js'
+import { RE2JS, RE2Set } from '../index.js'
 
 describe('Machine Sparse Array Queue', () => {
   it('avoids allocating objects per thread, tracking paths by indices instead', () => {
@@ -131,5 +132,82 @@ describe('Sparse Queue Priority', () => {
     const match2 = reLazy.findSubmatch('aaaa')
     expect(match2[1]).toBe('')
     expect(match2[2]).toBe('aaaa')
+  })
+})
+
+describe('Machine.add() uses an explicit stack (no recursion depth limit)', () => {
+  // An alternation of n branches compiles to a chain of n ALT instructions and n nested groups to
+  // n CAPTURE instructions. The recursive add() overflowed the JS stack at a few thousand of
+  // either when the search ran on the NFA (inputs beyond the bit-state backtracker's limit).
+  const alternatives = (n) =>
+    Array.from({ length: n }, (_, i) => String.fromCodePoint(0x1000 + i) + 'x')
+  // The bit-state backtracker handles inputs up to 256 Ki bits / numInst characters, so a few
+  // dozen characters already send these large programs to the NFA; small programs need more.
+  const nfaInput = (tail, zs = 50) => 'z'.repeat(zs) + tail
+
+  it('finds a match among 20,000 alternatives through the NFA', () => {
+    const re = RE2JS.compile(alternatives(20000).join('|'))
+    const m = re.matcher(nfaInput(String.fromCodePoint(0x1000 + 19999) + 'x'))
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(50)
+    expect(m.group()).toBe(String.fromCodePoint(0x1000 + 19999) + 'x')
+    expect(m.find()).toBe(false)
+  })
+
+  it('keeps leftmost-first priority across a wide alternation', () => {
+    // 'ab' is listed before 'abc', so it wins even though 'abc' is longer
+    const re = RE2JS.compile(['ab', ...alternatives(5000), 'abc'].join('|'))
+    const m = re.matcher(nfaInput('abc'))
+    expect(m.find()).toBe(true)
+    expect(m.group()).toBe('ab')
+    const longestFirst = RE2JS.compile(['abc', ...alternatives(5000), 'ab'].join('|'))
+    const m2 = longestFirst.matcher(nfaInput('abc'))
+    expect(m2.find()).toBe(true)
+    expect(m2.group()).toBe('abc')
+  })
+
+  it('evaluates a wide alternation inside an RE2Set that falls back to the NFA', () => {
+    const set = new RE2Set()
+    // \\b makes the DFA decline the program; the ASCII 'k' prefix gives the boundary something
+    // to hold against (RE2's \\b is ASCII-only).
+    set.add(`\\bk(?:${alternatives(20000).join('|')})`)
+    set.add('never')
+    set.compile()
+    expect(set.match(`z z k${String.fromCodePoint(0x1000 + 19999)}x`)).toEqual([0])
+    expect(set.match(`zk${String.fromCodePoint(0x1000 + 19999)}x`)).toEqual([])
+  })
+
+  it('extracts thousands of optional capture groups (each one is on the closure path)', () => {
+    // Every CAPTURE of (a?)(a?)... is reached while following empty arrows from the start, so
+    // the recursive add() went one frame deeper per group and overflowed at about 3,000.
+    expect(RE2JS.compile('(a?)'.repeat(3000)).exec('aaa')).toHaveLength(3001)
+    const m = RE2JS.compile('(a?)'.repeat(5000)).matcher('a')
+    expect(m.find()).toBe(true)
+    expect(m.group(1)).toBe('a')
+    expect(m.group(2)).toBe('')
+    expect(m.group(5000)).toBe('')
+  })
+
+  it('restores capture slots in the right order for nested groups through the NFA', () => {
+    const re = RE2JS.compile('('.repeat(999) + 'a' + ')'.repeat(999))
+    const m = re.matcher(nfaInput('a', 1000))
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(1000)
+    expect(m.group(1)).toBe('a')
+    expect(m.group(999)).toBe('a')
+    // a sibling group after a failed nested branch must not keep a stale position
+    const re2 = RE2JS.compile('(?:(b)|(a))(c)?')
+    const m2 = re2.matcher(nfaInput('a', 100000))
+    expect(m2.find()).toBe(true)
+    expect(m2.group(1)).toBeNull()
+    expect(m2.group(2)).toBe('a')
+    expect(m2.group(3)).toBeNull()
+  })
+
+  it('handles lookbehind instructions in the same loop', () => {
+    const re = RE2JS.compile(`(?<=q)(?:${alternatives(5000).join('|')})`, RE2JS.LOOKBEHINDS)
+    const m = re.matcher(nfaInput(`q${String.fromCodePoint(0x1000)}x`))
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(51)
   })
 })
