@@ -281,7 +281,8 @@ class Matcher {
    * @private
    */
   loadGroup(group) {
-    if (group < 0 || group > this.patternGroupCount) {
+    // Java's int parameter rules out fractions and NaN, which would index the wrong slot here.
+    if (!Number.isInteger(group) || group < 0 || group > this.patternGroupCount) {
       throw new RE2JSGroupException(`Group index out of bounds: ${group}`)
     }
 
@@ -344,7 +345,8 @@ class Matcher {
    */
   find(start = null) {
     if (start !== null) {
-      if (start < 0 || start > this.matcherInputLength) {
+      // Java's int parameter rules out fractions, NaN and strings, which would corrupt positions.
+      if (!Number.isInteger(start) || start < 0 || start > this.matcherInputLength) {
         throw new RE2JSGroupException(`start index out of bounds: ${start}`)
       }
       this.reset()
@@ -498,11 +500,17 @@ class Matcher {
         const nextCode = replacement.codePointAt(i + 1)
 
         if (Codepoint.CODES.get('0') <= nextCode && nextCode <= Codepoint.CODES.get('9')) {
+          // The group number is the longest run of digits that is still a valid group
+          // (re2j / java.util.regex): with one group, "$10" is group 1 followed by "0".
           let n = nextCode - Codepoint.CODES.get('0')
           let j = i + 2
           for (; j < m; j++) {
             const digit = replacement.codePointAt(j)
-            if (digit < Codepoint.CODES.get('0') || digit > Codepoint.CODES.get('9')) {
+            if (
+              digit < Codepoint.CODES.get('0') ||
+              digit > Codepoint.CODES.get('9') ||
+              n * 10 + digit - Codepoint.CODES.get('0') > this.patternGroupCount
+            ) {
               break
             }
             n = n * 10 + digit - Codepoint.CODES.get('0')

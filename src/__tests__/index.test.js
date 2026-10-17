@@ -3,7 +3,7 @@ import { RE2JS, re } from '../index.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { MatcherInput } from '../MatcherInput.js'
 import { Utils } from '../Utils.js'
-import { RE2JSGroupException } from '../exceptions.js'
+import { RE2JSGroupException, RE2JSFlagsException } from '../exceptions.js'
 
 it('compile', () => {
   const p = RE2JS.compile('abc')
@@ -914,9 +914,15 @@ describe('replaceAll and replaceFirst', () => {
           .matcher('Hello World')
           .replaceAll('${test', true)
       ).toThrow(new RE2JSGroupException("named capture group is missing trailing '}'"))
-      expect(() =>
+      // re2j / java.util.regex take the longest valid group number: with two groups, "$20" is
+      // group 2 followed by "0" and "$11" is group 1 followed by "1"
+      expect(
         RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$20 - $11', true)
-      ).toThrow(new RE2JSGroupException('n > number of groups: 20'))
+      ).toBe('World0 - Hello1')
+      // only a first digit beyond the number of groups is an error
+      expect(() =>
+        RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$31', true)
+      ).toThrow(new RE2JSGroupException('n > number of groups: 3'))
     })
   })
 })
@@ -1139,13 +1145,15 @@ describe('Java mode appendReplacement validation', () => {
 
     expect(() => m.replaceAll('$foo', true)).toThrow('Illegal group reference')
 
+    // With one group, "$10" is group 1 followed by "0" (re2j); "$2" has no valid group
     const p2 = RE2JS.compile('(abc)')
-    const m2 = p2.matcher('abc')
-    expect(() => m2.replaceFirst('$10', true)).toThrow('n > number of groups: 10')
+    expect(p2.matcher('abc').replaceFirst('$10', true)).toBe('abc0')
+    expect(() => p2.matcher('abc').replaceFirst('$2', true)).toThrow('n > number of groups: 2')
 
+    // With 13 groups, "$10" is group 10 and "$20" is group 2 followed by "0"
     const p3 = RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
-    const m3 = p3.matcher('abcdefghijklmnopqrstuvwxyz123')
-    expect(() => m3.replaceAll('$10$20', true)).toThrow('n > number of groups: 20')
+    const m3 = p3.matcher('abcdefghijklm')
+    expect(m3.replaceAll('$10$20', true)).toBe('jb0')
   })
 })
 
@@ -1457,5 +1465,19 @@ describe('Machine Pooling and Reentrancy', () => {
     })
 
     expect(matches).toBe(2)
+  })
+})
+
+describe('compile flags', () => {
+  it('rejects unknown flag bits', () => {
+    expect(() => RE2JS.compile('a', 1 << 20)).toThrow(RE2JSFlagsException)
+  })
+
+  it('DISABLE_UNICODE_GROUPS rejects Unicode classes and keeps ASCII ones', () => {
+    expect(() => RE2JS.compile('\\pL', RE2JS.DISABLE_UNICODE_GROUPS)).toThrow(
+      'invalid escape sequence'
+    )
+    expect(RE2JS.compile('\\d', RE2JS.DISABLE_UNICODE_GROUPS).test('5')).toBe(true)
+    expect(RE2JS.compile('\\pL').test('é')).toBe(true)
   })
 })

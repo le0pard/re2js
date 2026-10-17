@@ -1,10 +1,14 @@
 import { expect, describe, it } from 'vitest'
 import { RE2JS } from '../index.js'
+import { Parser } from '../Parser.js'
+import { RE2Flags } from '../RE2Flags.js'
 
 describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Catastrophic Backtracking Immunity (ReDoS)', () => {
-    // A helper to assert that an execution finishes in under 50ms,
-    // whereas native RegExp would hang the main thread indefinitely.
+    // A helper to assert that an execution finishes quickly, whereas a backtracking engine
+    // would take exponential time (2^60 steps) on these inputs and never finish. The bound is
+    // generous so that slow CI machines do not make it flaky; a regression to exponential
+    // behaviour would exceed it by many orders of magnitude.
     const assertLinearTime = (regexStr, inputStr, expectedMatch, flags = 0) => {
       const re = RE2JS.compile(regexStr, flags)
       const start = Date.now()
@@ -14,9 +18,8 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       const elapsed = Date.now() - start
 
       expect(result).toBe(expectedMatch)
-      // Mathematical O(N) guarantee means even massive strings on complex regexes
-      // evaluate nearly instantly. 50ms is highly generous for V8.
-      expect(elapsed).toBeLessThan(50)
+      // Takes well under a millisecond on a laptop.
+      expect(elapsed).toBeLessThan(2000)
     }
 
     it('Defeats classic nested repetition ReDoS: (a+)+b', () => {
@@ -83,8 +86,9 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       const start = Date.now()
       const result = fn()
       const elapsed = Date.now() - start
-      // Takes a few milliseconds; the quadratic version needs ~30 seconds for this input.
-      expect(elapsed).toBeLessThan(500)
+      // Takes a few milliseconds; the quadratic version needed ~30 seconds for this input.
+      // Lookbehind.test.js checks the same loops deterministically by counting NFA steps.
+      expect(elapsed).toBeLessThan(5000)
       return result
     }
 
@@ -115,6 +119,112 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     it('matcher().replaceAll()', () => {
       const replaced = assertFast(() => re.matcher(input).replaceAll('X'))
       expect(replaced).toBe('aX'.repeat(8000))
+    })
+  })
+
+  describe('Parsing large patterns stays linear', () => {
+    // These used to be quadratic: the parse stack was copied on every '|' or ')', literal runes
+    // were copied on every appended rune, and classes merged across '|' were copied per branch.
+    // Measure scaling rather than absolute time so the check holds on slow CI machines: parsing
+    // 4x the pattern must cost well under 16x the time (the quadratic code gave 16-22x).
+    const parseTime = (pattern) => {
+      const start = performance.now()
+      Parser.parse(pattern, RE2Flags.PERL)
+      return performance.now() - start
+    }
+    const assertLinearParse = (makePattern, n) => {
+      const small = makePattern(n)
+      const large = makePattern(4 * n)
+      Parser.parse(small, RE2Flags.PERL) // warm up
+      const tSmall = parseTime(small)
+      const tLarge = parseTime(large)
+      expect(tLarge).toBeLessThan(8 * tSmall + 100)
+    }
+
+    it('alternatives', () => {
+      assertLinearParse((n) => Array.from({ length: n }, (_, i) => `w${i}x`).join('|'), 10000)
+    })
+
+    it('nested non-capturing groups and parentheses', () => {
+      assertLinearParse((n) => `${'(?:'.repeat(n)}a${')'.repeat(n)}`, 10000)
+    })
+
+    it('a long literal', () => {
+      assertLinearParse((n) => 'a'.repeat(n), 50000)
+    })
+
+    it('single-rune classes merged across an alternation', () => {
+      assertLinearParse(
+        (n) => Array.from({ length: n }, (_, i) => String.fromCodePoint(0x4e00 + 2 * i)).join('|'),
+        2500
+      )
+    })
+
+    it('large patterns still compile and match correctly', () => {
+      const alternatives = RE2JS.compile(
+        Array.from({ length: 20000 }, (_, i) => `w${i}x`).join('|')
+      )
+      expect(alternatives.test('zz w19999x')).toBe(true)
+      expect(alternatives.test('zz w20000x')).toBe(false)
+
+      const literal = 'a'.repeat(100000)
+      expect(RE2JS.compile(literal).test(`x${literal}`)).toBe(true)
+      expect(RE2JS.compile(literal).test('a'.repeat(99999))).toBe(false)
+
+      const classes = RE2JS.compile(
+        Array.from({ length: 5000 }, (_, i) => String.fromCodePoint(0x4e00 + 2 * i)).join('|')
+      )
+      expect(classes.test(String.fromCodePoint(0x4e00 + 2 * 4999))).toBe(true)
+      expect(classes.test(String.fromCodePoint(0x4e00 + 2 * 4999 + 1))).toBe(false)
+    })
+  })
+
+  describe('Compile-time walks are not limited by the JS stack', () => {
+    // The parser bounds nesting at 1000 levels, but Simplify expands x{n,m} into one nesting
+    // level per optional copy, so a pattern that passes every parser check can be ~3000 levels
+    // deep. Simplify, the compiler and the prefilter builder walk it without recursion.
+    it('deeply nested groups around a wide counted repetition', () => {
+      const re = RE2JS.compile(`${'('.repeat(998)}x{1,1000}${')'.repeat(998)}`)
+      const m = re.matcher('x'.repeat(1000))
+      expect(m.matches()).toBe(true)
+      expect(m.group(998)).toBe('x'.repeat(1000))
+      expect(re.matcher('x'.repeat(1001)).matches()).toBe(false)
+      expect(re.matcher('').matches()).toBe(false)
+    })
+
+    it('a counted repetition with an optional body at full width', () => {
+      const re = RE2JS.compile(`${'('.repeat(998)}x{0,1000}${')'.repeat(998)}`)
+      expect(re.matcher('').matches()).toBe(true)
+      expect(re.matcher('x'.repeat(1000)).matches()).toBe(true)
+      expect(re.matcher('x'.repeat(1001)).matches()).toBe(false)
+    })
+
+    it('deeply nested alternations around a counted repetition', () => {
+      // (?:a|b(?:a|b(?:...(?:a|bx{1,1000})...))): each level matches 'a' or 'b' then the next
+      const re = RE2JS.compile(`${'(?:a|b'.repeat(499)}x{1,1000}${')'.repeat(499)}`)
+      expect(re.test('a')).toBe(true)
+      expect(re.test('ba')).toBe(true)
+      expect(re.test(`${'b'.repeat(499)}xxx`)).toBe(true)
+      expect(re.test('c')).toBe(false)
+      expect(re.matcher(`${'b'.repeat(499)}xxx`).matches()).toBe(true)
+      expect(re.matcher('b'.repeat(499)).matches()).toBe(false)
+    })
+
+    it('deeply nested lookbehinds around a counted repetition', () => {
+      const re = RE2JS.compile(
+        `${'(?<='.repeat(500)}x{1,1000}${')'.repeat(500)}y`,
+        RE2JS.LOOKBEHINDS
+      )
+      expect(re.test('xy')).toBe(true)
+      expect(re.test('zy')).toBe(false)
+    })
+
+    it('deeply nested literal alternations build their prefilter', () => {
+      // Two parse levels per repetition, so 450 stays within the 1000-level limit
+      const re = RE2JS.compile(`${'(?:foo|bar'.repeat(450)}baz${')'.repeat(450)}`)
+      expect(re.test('foo')).toBe(true)
+      expect(re.test(`${'bar'.repeat(450)}baz`)).toBe(true)
+      expect(re.test('zzz')).toBe(false)
     })
   })
 
@@ -160,10 +270,11 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     })
 
     it('DFA State Explosion limits are enforced (OOM Protection)', () => {
+      // A tiny DFA memory budget: the cache is reset repeatedly and the search either
+      // completes on the DFA or is handed to the NFA for that call.
       const re = RE2JS.compile('.*a.*b.*c')
-
-      // Artificially restrict the DFA state cache limit
-      re.re2Input.dfa.stateLimit = 5
+      re.re2Input.dfa.stateBudget = 1200
+      re.re2Input.dfa.memBudget = 1200
 
       // The DFA will run out of states and bailout gracefully, routing the rest
       // of the string to the NFA fallback without crashing or throwing OOM errors.

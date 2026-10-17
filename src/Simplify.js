@@ -2,6 +2,7 @@ import { RE2Flags } from './RE2Flags.js'
 import { Regexp } from './Regexp.js'
 import { Unicode } from './Unicode.js'
 import { Codepoint } from './Codepoint.js'
+import { RegexpWalker } from './RegexpWalker.js'
 
 class Simplify {
   // Simplify returns a regexp equivalent to re but without counted
@@ -12,16 +13,135 @@ class Simplify {
   // or removed.  For example, the simplified form for /(x){1,2}/ is
   // /(x)(x)?/ but both parentheses capture as $1.  The returned regexp
   // may share structure with or be the original.
+  //
+  // The tree is walked bottom-up without recursion (see RegexpWalker); enter/child/leave
+  // below are the handler, which keeps for each node the simplified subexpressions seen so far.
   static simplify(re) {
     if (re === null) {
       return null
     }
+    return RegexpWalker.walk(re, Simplify.WALKER)
+  }
 
+  static WALKER = {
+    leaf: (re) => Simplify.leaf(re),
+    enter: (re) => Simplify.enter(re),
+    child: (re, state, result, i) => Simplify.child(re, state, result, i),
+    leave: (re, state) => Simplify.leave(re, state)
+  }
+
+  // leaf returns the simplification of a node without subexpressions.
+  static leaf(re) {
+    if (re.op === Regexp.Op.CHAR_CLASS) {
+      if (re.runes === null) return re
+
+      // Empty character classes match nothing.
+      if (re.runes.length === 0) {
+        return new Regexp(Regexp.Op.NO_MATCH)
+      }
+      // Full character classes match everything.
+      if (re.runes.length === 2 && re.runes[0] === 0 && re.runes[1] === Unicode.MAX_RUNE) {
+        return new Regexp(Regexp.Op.ANY_CHAR)
+      }
+      // Standard catch-all except newline
+      if (
+        re.runes.length === 4 &&
+        re.runes[0] === 0 &&
+        re.runes[1] === Codepoint.CODES.get('\n') - 1 &&
+        re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
+        re.runes[3] === Unicode.MAX_RUNE
+      ) {
+        return new Regexp(Regexp.Op.ANY_CHAR_NOT_NL)
+      }
+    }
+    // An empty CONCAT or ALTERNATE is left as is, like every other leaf.
+    return re
+  }
+
+  // enter returns the walk state for a node with subexpressions, or a state holding the
+  // result when the subexpressions need not be visited.
+  static enter(re) {
+    switch (re.op) {
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB:
+      case Regexp.Op.CAPTURE:
+      case Regexp.Op.STAR:
+      case Regexp.Op.PLUS:
+      case Regexp.Op.QUEST:
+        return { sub: null }
+
+      case Regexp.Op.CONCAT:
+      case Regexp.Op.ALTERNATE:
+        return { subs: [], changed: false }
+
+      case Regexp.Op.REPEAT:
+        // Special special case: x{0} matches the empty string
+        // and doesn't even need to consider x.
+        if (re.min === 0 && re.max === 0) {
+          return { result: new Regexp(Regexp.Op.EMPTY_MATCH) }
+        }
+        return { sub: null }
+
+      default:
+        return { result: re }
+    }
+  }
+
+  static child(re, state, nsub, i) {
+    if (state.subs === void 0) {
+      state.sub = nsub
+      return
+    }
+
+    if (nsub !== re.subs[i]) {
+      state.changed = true
+    }
+
+    if (re.op === Regexp.Op.CONCAT) {
+      // If any part of a CONCAT is mathematically impossible,
+      // the entire CONCAT sequence becomes impossible.
+      if (nsub.op === Regexp.Op.NO_MATCH) {
+        state.result = new Regexp(Regexp.Op.NO_MATCH)
+        return
+      }
+      // Drop empty 0-width match nodes entirely from sequences
+      if (nsub.op === Regexp.Op.EMPTY_MATCH) {
+        state.changed = true
+        return
+      }
+      // Flatten nested concatenations
+      if (nsub.op === Regexp.Op.CONCAT) {
+        state.changed = true
+        for (let j = 0; j < nsub.subs.length; j++) {
+          state.subs.push(nsub.subs[j])
+        }
+        return
+      }
+    } else {
+      // Drop impossible branches from alternations
+      if (nsub.op === Regexp.Op.NO_MATCH) {
+        state.changed = true
+        return
+      }
+      // Flatten nested alternations
+      if (nsub.op === Regexp.Op.ALTERNATE) {
+        state.changed = true
+        for (let j = 0; j < nsub.subs.length; j++) {
+          state.subs.push(nsub.subs[j])
+        }
+        return
+      }
+    }
+
+    state.subs.push(nsub)
+  }
+
+  static leave(re, state) {
     switch (re.op) {
       case Regexp.Op.PLB:
       case Regexp.Op.NLB:
       case Regexp.Op.CAPTURE: {
-        const sub = Simplify.simplify(re.subs[0])
+        const sub = state.sub
         if (sub !== re.subs[0]) {
           const nre = Regexp.fromRegexp(re)
           nre.runes = new Int32Array(0)
@@ -33,55 +153,8 @@ class Simplify {
 
       case Regexp.Op.CONCAT:
       case Regexp.Op.ALTERNATE: {
-        const newSubs = []
-        let changed = false
-
-        for (let i = 0; i < re.subs.length; i++) {
-          const sub = re.subs[i]
-          const nsub = Simplify.simplify(sub)
-          if (nsub !== sub) {
-            changed = true
-          }
-
-          if (re.op === Regexp.Op.CONCAT) {
-            // If any part of a CONCAT is mathematically impossible,
-            // the entire CONCAT sequence becomes impossible.
-            if (nsub.op === Regexp.Op.NO_MATCH) {
-              return new Regexp(Regexp.Op.NO_MATCH)
-            }
-            // Drop empty 0-width match nodes entirely from sequences
-            if (nsub.op === Regexp.Op.EMPTY_MATCH) {
-              changed = true
-              continue
-            }
-            // Flatten nested concatenations
-            if (nsub.op === Regexp.Op.CONCAT) {
-              changed = true
-              for (let j = 0; j < nsub.subs.length; j++) {
-                newSubs.push(nsub.subs[j])
-              }
-              continue
-            }
-          } else if (re.op === Regexp.Op.ALTERNATE) {
-            // Drop impossible branches from alternations
-            if (nsub.op === Regexp.Op.NO_MATCH) {
-              changed = true
-              continue
-            }
-            // Flatten nested alternations
-            if (nsub.op === Regexp.Op.ALTERNATE) {
-              changed = true
-              for (let j = 0; j < nsub.subs.length; j++) {
-                newSubs.push(nsub.subs[j])
-              }
-              continue
-            }
-          }
-
-          newSubs.push(nsub)
-        }
-
-        if (changed) {
+        if (state.changed) {
+          const newSubs = state.subs
           // If we filtered out all nodes, return the mathematically correct fallback
           if (newSubs.length === 0) {
             return new Regexp(
@@ -98,120 +171,118 @@ class Simplify {
           nre.subs = newSubs
           return nre
         }
-
-        return re
-      }
-
-      case Regexp.Op.CHAR_CLASS: {
-        if (re.runes === null) return re
-
-        // Empty character classes match nothing.
-        if (re.runes.length === 0) {
-          return new Regexp(Regexp.Op.NO_MATCH)
-        }
-        // Full character classes match everything.
-        if (re.runes.length === 2 && re.runes[0] === 0 && re.runes[1] === Unicode.MAX_RUNE) {
-          return new Regexp(Regexp.Op.ANY_CHAR)
-        }
-        // Standard catch-all except newline
-        if (
-          re.runes.length === 4 &&
-          re.runes[0] === 0 &&
-          re.runes[1] === Codepoint.CODES.get('\n') - 1 &&
-          re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
-          re.runes[3] === Unicode.MAX_RUNE
-        ) {
-          return new Regexp(Regexp.Op.ANY_CHAR_NOT_NL)
-        }
         return re
       }
 
       case Regexp.Op.STAR:
       case Regexp.Op.PLUS:
-      case Regexp.Op.QUEST: {
-        const sub = Simplify.simplify(re.subs[0])
-        return Simplify.simplify1(re.op, re.flags, sub, re)
+      case Regexp.Op.QUEST:
+        return Simplify.simplify1(re.op, re.flags, state.sub, re)
+
+      case Regexp.Op.REPEAT:
+        return Simplify.simplifyRepeat(re, state.sub)
+
+      default:
+        return re
+    }
+  }
+
+  // simplifyRepeat returns the simplification of the counted repetition re, given the
+  // already simplified sub.
+  static simplifyRepeat(re, sub) {
+    // x{n,} means at least n matches of x.
+    if (re.max === -1) {
+      // Special case: x{0,} is x*.
+      if (re.min === 0) {
+        return Simplify.simplify1(Regexp.Op.STAR, re.flags, sub, null)
       }
+      // Special case: x{1,} is x+.
+      if (re.min === 1) {
+        return Simplify.simplify1(Regexp.Op.PLUS, re.flags, sub, null)
+      }
+      // General case: x{4,} is xxxx+.
+      const subs = []
+      for (let i = 0; i < re.min - 1; i++) {
+        subs.push(sub)
+      }
+      subs.push(Simplify.simplify1(Regexp.Op.PLUS, re.flags, sub, null))
+      return Simplify.concat(subs)
+    }
+    // Special case x{0} handled by enter().
 
-      case Regexp.Op.REPEAT: {
-        // Special special case: x{0} matches the empty string
-        // and doesn't even need to consider x.
-        if (re.min === 0 && re.max === 0) {
-          return new Regexp(Regexp.Op.EMPTY_MATCH)
-        }
-        // The fun begins.
-        const sub = Simplify.simplify(re.subs[0])
+    // Special case: x{1} is just x.
+    if (re.min === 1 && re.max === 1) {
+      return sub
+    }
 
-        // x{n,} means at least n matches of x.
-        if (re.max === -1) {
-          // Special case: x{0,} is x*.
-          if (re.min === 0) {
-            return Simplify.simplify1(Regexp.Op.STAR, re.flags, sub, null)
-          }
-          // Special case: x{1,} is x+.
-          if (re.min === 1) {
-            return Simplify.simplify1(Regexp.Op.PLUS, re.flags, sub, null)
-          }
-          // General case: x{4,} is xxxx+.
-          const nre = new Regexp(Regexp.Op.CONCAT)
-          const subs = []
-          for (let i = 0; i < re.min - 1; i++) {
-            subs.push(sub)
-          }
-          subs.push(Simplify.simplify1(Regexp.Op.PLUS, re.flags, sub, null))
-          nre.subs = subs.slice(0)
+    // General case: x{n,m} means n copies of x and m copies of x?
+    // The machine will do less work if we nest the final m copies,
+    // so that x{2,5} = xx(x(x(x)?)?)?
 
-          // Ensure newly created CONCAT is properly flattened
-          return Simplify.simplify(nre)
-        }
-        // Special case x{0} handled above.
-
-        // Special case: x{1} is just x.
-        if (re.min === 1 && re.max === 1) {
-          return sub
-        }
-
-        // General case: x{n,m} means n copies of x and m copies of x?
-        // The machine will do less work if we nest the final m copies,
-        // so that x{2,5} = xx(x(x(x)?)?)?
-
-        // Build leading prefix: xx.
-        let prefixSubs = null
-        if (re.min > 0) {
-          prefixSubs = []
-          for (let i = 0; i < re.min; i++) {
-            prefixSubs.push(sub)
-          }
-        }
-
-        // Build and attach suffix: (x(x(x)?)?)?
-        if (re.max > re.min) {
-          let suffix = Simplify.simplify1(Regexp.Op.QUEST, re.flags, sub, null)
-          for (let i = re.min + 1; i < re.max; i++) {
-            const nre2 = new Regexp(Regexp.Op.CONCAT)
-            nre2.subs = [sub, suffix]
-            suffix = Simplify.simplify1(Regexp.Op.QUEST, re.flags, nre2, null)
-          }
-
-          if (prefixSubs === null) {
-            return suffix
-          }
-          prefixSubs.push(suffix)
-        }
-
-        if (prefixSubs !== null) {
-          const prefix = new Regexp(Regexp.Op.CONCAT)
-          prefix.subs = prefixSubs.slice(0)
-          // Ensure newly created CONCAT is properly flattened
-          return Simplify.simplify(prefix)
-        }
-
-        // Some degenerate case like min > max or min < max < 0.
-        // Handle as impossible match.
-        return new Regexp(Regexp.Op.NO_MATCH)
+    // Build leading prefix: xx.
+    let prefixSubs = null
+    if (re.min > 0) {
+      prefixSubs = []
+      for (let i = 0; i < re.min; i++) {
+        prefixSubs.push(sub)
       }
     }
-    return re
+
+    // Build and attach suffix: (x(x(x)?)?)?
+    // Each concatenation is simplified as it is built (concat), so the chain needs no second
+    // pass even when x can match the empty string.
+    if (re.max > re.min) {
+      let suffix = Simplify.simplify1(Regexp.Op.QUEST, re.flags, sub, null)
+      for (let i = re.min + 1; i < re.max; i++) {
+        suffix = Simplify.simplify1(Regexp.Op.QUEST, re.flags, Simplify.concat([sub, suffix]), null)
+      }
+
+      if (prefixSubs === null) {
+        return suffix
+      }
+      prefixSubs.push(suffix)
+    }
+
+    if (prefixSubs !== null) {
+      return Simplify.concat(prefixSubs)
+    }
+
+    // Some degenerate case like min > max or min < max < 0.
+    // Handle as impossible match.
+    return new Regexp(Regexp.Op.NO_MATCH)
+  }
+
+  // concat returns the simplified concatenation of subs, which must already be simple. It applies
+  // the same rules as the CONCAT case of the walk (an impossible part makes the whole sequence
+  // impossible, empty matches are dropped, nested concatenations are flattened) without
+  // revisiting the subs, which simplification would leave unchanged anyway.
+  static concat(subs) {
+    const newSubs = []
+    for (let i = 0; i < subs.length; i++) {
+      const sub = subs[i]
+      if (sub.op === Regexp.Op.NO_MATCH) {
+        return new Regexp(Regexp.Op.NO_MATCH)
+      }
+      if (sub.op === Regexp.Op.EMPTY_MATCH) {
+        continue
+      }
+      if (sub.op === Regexp.Op.CONCAT) {
+        for (let j = 0; j < sub.subs.length; j++) {
+          newSubs.push(sub.subs[j])
+        }
+        continue
+      }
+      newSubs.push(sub)
+    }
+    if (newSubs.length === 0) {
+      return new Regexp(Regexp.Op.EMPTY_MATCH)
+    }
+    if (newSubs.length === 1) {
+      return newSubs[0]
+    }
+    const nre = new Regexp(Regexp.Op.CONCAT)
+    nre.subs = newSubs
+    return nre
   }
 
   // simplify1 implements Simplify for the unary OpStar,

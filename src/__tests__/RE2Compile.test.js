@@ -1,5 +1,6 @@
 import { expect, describe, it } from 'vitest'
 import { RE2 } from '../RE2.js'
+import { Parser } from '../Parser.js'
 import { RE2Flags } from '../RE2Flags.js'
 
 describe('.compile', () => {
@@ -95,5 +96,15 @@ describe('.compile (Linear-Time Lookbehinds Enabled)', () => {
     }
 
     compile()
+  })
+})
+
+describe('program size budget', () => {
+  it('allows about 1.4 million instructions, following Go maxSize with the JS instruction size', () => {
+    expect(Parser.MAX_SIZE).toBe(Math.floor((128 << 20) / 96))
+    expect(() => Parser.parse('x{1000}'.repeat(1398), RE2Flags.PERL)).not.toThrow()
+    expect(() => Parser.parse('x{1000}'.repeat(1399), RE2Flags.PERL)).toThrow(
+      'expression too large'
+    )
   })
 })

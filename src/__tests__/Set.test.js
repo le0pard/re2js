@@ -1,4 +1,5 @@
 import { expect, describe, it } from 'vitest'
+import { Parser } from '../Parser.js'
 import { RE2JS, RE2Set } from '../index.js'
 import { Utils } from '../Utils.js'
 
@@ -137,26 +138,102 @@ describe('RE2Set Memory Limits', () => {
     const set = new RE2Set()
     set.add('foo')
     set.compile()
-
-    // 8MB (8,388,608 bytes) / 838 bytes per state = 10010
-    expect(set.dfa.stateLimit).toBe(10010)
+    expect(set.dfa.maxMem).toBe(8388608)
   })
 
-  it('respects custom maxMem parameter', () => {
-    const customMem = 8380 // Exactly enough for 10 states
-    const set = new RE2Set(RE2Set.UNANCHORED, 0, customMem)
+  it('passes a custom maxMem to the DFA budget', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, 0, 4096)
     set.add('foo')
     set.compile()
-
-    expect(set.dfa.stateLimit).toBe(10)
+    expect(set.dfa.maxMem).toBe(4096)
+    expect(set.dfa.memBudget).toBe(4096)
   })
 
-  it('enforces a minimum state limit of 1 for very small maxMem', () => {
-    const customMem = 100 // Less than the 838 bytes needed for a single state
-    const set = new RE2Set(RE2Set.UNANCHORED, 0, customMem)
+  it('still matches through the NFA when the budget cannot hold the DFA', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, 0, 100)
     set.add('foo')
+    set.add('bar')
     set.compile()
+    expect(set.match('xx bar')).toEqual([1])
+    expect(set.dfa.failed).toBe(false)
+  })
+})
 
-    expect(set.dfa.stateLimit).toBe(1)
+describe('RE2Set program size budget', () => {
+  it('rejects a set whose combined program exceeds the single-regexp budget', () => {
+    const saved = Parser.MAX_SIZE
+    Parser.MAX_SIZE = 5000 // keep the test fast: each pattern below is within it, the sum is not
+    try {
+      const set = new RE2Set()
+      for (let i = 0; i < 6; i++) {
+        set.add('x{1000}')
+      }
+      expect(() => set.compile()).toThrow('expression too large')
+      const ok = new RE2Set()
+      for (let i = 0; i < 4; i++) {
+        ok.add('x{1000}')
+      }
+      ok.compile()
+      expect(ok.match('x'.repeat(1000))).toEqual([0, 1, 2, 3])
+    } finally {
+      Parser.MAX_SIZE = saved
+    }
+  })
+})
+
+describe('RE2Set flags', () => {
+  it('applies CASE_INSENSITIVE, DOTALL and MULTILINE to every pattern', () => {
+    const folded = new RE2Set(RE2Set.UNANCHORED, RE2JS.CASE_INSENSITIVE)
+    folded.add('abc')
+    folded.add('XYZ')
+    expect(folded.match('xyz ABC')).toEqual([0, 1])
+
+    const dotall = new RE2Set(RE2Set.UNANCHORED, RE2JS.DOTALL)
+    dotall.add('a.b')
+    expect(dotall.match('a\nb')).toEqual([0])
+    const plain = new RE2Set()
+    plain.add('a.b')
+    expect(plain.match('a\nb')).toEqual([])
+
+    const multiline = new RE2Set(RE2Set.UNANCHORED, RE2JS.MULTILINE)
+    multiline.add('^b')
+    expect(multiline.match('a\nb')).toEqual([0])
+  })
+
+  it('rejects Unicode classes with DISABLE_UNICODE_GROUPS', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, RE2JS.DISABLE_UNICODE_GROUPS)
+    expect(() => set.add('\\pL')).toThrow('invalid escape sequence')
+    set.add('\\d')
+    expect(set.match('5')).toEqual([0])
+  })
+})
+
+describe('RE2Set anchored matching on the NFA fallback', () => {
+  // \b makes the DFA decline the program, so these run on Machine.matchSet
+  it('ANCHOR_START', () => {
+    const set = new RE2Set(RE2Set.ANCHOR_START)
+    set.add('\\bfoo')
+    set.add('\\bbar')
+    set.add('o\\b')
+    expect(set.match('foo bar')).toEqual([0])
+    expect(set.match('bar foo')).toEqual([1])
+    expect(set.match(' foo')).toEqual([])
+    expect(set.dfa.failed).toBe(true)
+  })
+
+  it('ANCHOR_BOTH, on strings and bytes', () => {
+    const set = new RE2Set(RE2Set.ANCHOR_BOTH)
+    set.add('\\bfoo\\b')
+    set.add('foo.*')
+    set.add('.')
+    expect(set.match('foo')).toEqual([0, 1])
+    expect(set.match('foo bar')).toEqual([1])
+    expect(set.match('x')).toEqual([2])
+    expect(set.match('')).toEqual([])
+
+    const bytes = new RE2Set(RE2Set.ANCHOR_BOTH)
+    bytes.add('\\bé\\B') // RE2's \\b is ASCII-only: no boundary next to é
+    bytes.add('é+')
+    expect(bytes.match(new TextEncoder().encode('éé'))).toEqual([1])
   })
 })

@@ -24,12 +24,26 @@ class Queue {
     this.mainThreads = 0
   }
 
+  // Capture slots are kept in one flat array, ncap per dense slot. It starts small and grows
+  // in growCaps() as slots are used, so memory follows the threads actually queued at a
+  // position (Go and RE2 allocate capture arrays per thread, from a pool) rather than costing
+  // numInst x ncap integers up front for every program with many groups.
+  static INITIAL_THREADS = 32
+
   init(ncap) {
     this.ncap = ncap
-    const needed = this.densePcs.length * ncap
+    const needed = Math.min(this.densePcs.length, Queue.INITIAL_THREADS) * ncap
     if (!this.denseCaps || this.denseCaps.length < needed) {
       this.denseCaps = new Int32Array(needed)
     }
+  }
+
+  // Makes denseCaps at least |needed| long, doubling to keep the total copying linear.
+  growCaps(needed) {
+    const limit = this.densePcs.length * this.ncap
+    const grown = new Int32Array(Math.min(limit, Math.max(needed, 2 * this.denseCaps.length)))
+    grown.set(this.denseCaps)
+    this.denseCaps = grown
   }
 
   contains(pc) {
@@ -107,6 +121,8 @@ class Machine {
     m.re2 = re2
     m.q0 = new Queue(m.prog.numInst())
     m.q1 = new Queue(m.prog.numInst())
+    // Work stack for add(): at most one entry per ALT or CAPTURE instruction plus the start.
+    m.addStack = new Int32Array(2 * (m.prog.numInst() + 1))
     m.matched = false
     // Use Int32Array instead of standard JS array
     m.matchcap = new Int32Array(m.prog.numCap < 2 ? 2 : m.prog.numCap)
@@ -119,6 +135,7 @@ class Machine {
     this.re2 = null
     this.q0 = null
     this.q1 = null
+    this.addStack = null
     this.matched = false
     this.matchcap = null
     this.ncap = 0
@@ -498,80 +515,98 @@ class Machine {
     lbState.lbTable.set(this.lbTable)
   }
 
+  // add() follows all empty arrows from |pc| and enqueues every instruction reached, in the
+  // same order as a depth-first walk: the left branch of an ALT before its right branch, and a
+  // capture slot restored once everything below the CAPTURE has been queued.
+  //
+  // Like RE2's AddToThreadq it keeps its own stack instead of recursing (Go recurses but can
+  // grow its goroutine stack): an alternation of n branches compiles to a chain of n ALT
+  // instructions and n nested groups to n CAPTUREs, either of which would otherwise recurse n
+  // frames deep and overflow the JS stack. Stack entries are pairs: a pc to visit next, or a
+  // negative value -slot-1 together with the saved position to restore into capture |slot|.
   add(q, pc, pos, capArray, capOffset, cond) {
-    while (true) {
-      if (pc === 0) {
-        return
-      }
-      if (q.contains(pc)) {
-        return
+    const stk = this.addStack
+    let nstk = 0
+    for (;;) {
+      // Follow the path from pc until it ends or is already queued.
+      while (pc !== 0 && !q.contains(pc)) {
+        const d = q.add(pc)
+        const inst = this.prog.inst[pc]
+        switch (inst.op) {
+          case Inst.FAIL:
+            pc = 0
+            break
+          case Inst.ALT:
+          case Inst.ALT_MATCH:
+            // Explore out first; arg waits on the stack.
+            stk[nstk++] = inst.arg
+            stk[nstk++] = 0
+            pc = inst.out
+            break
+          case Inst.EMPTY_WIDTH:
+            pc = (inst.arg & ~cond) === 0 ? inst.out : 0
+            break
+          case Inst.NOP:
+            pc = inst.out
+            break
+          case Inst.CAPTURE:
+            if (inst.arg < this.ncap) {
+              // Record the position and arrange for the old value to be restored afterwards.
+              stk[nstk++] = -inst.arg - 1
+              stk[nstk++] = capArray[capOffset + inst.arg]
+              capArray[capOffset + inst.arg] = pos
+            }
+            pc = inst.out
+            break
+          case Inst.LB_WRITE:
+            this.lbTable[Math.abs(inst.arg)] = pos
+            pc = inst.out
+            break
+          case Inst.LB_CHECK:
+            if (inst.arg > 0) {
+              // Positive Lookbehind
+              pc = this.lbTable[inst.arg] === pos ? inst.out : 0
+            } else {
+              // Negative Lookbehind
+              pc = this.lbTable[-inst.arg] !== pos ? inst.out : 0
+            }
+            break
+          case Inst.MATCH:
+          case Inst.RUNE:
+          case Inst.RUNE1:
+          case Inst.RUNE_ANY:
+          case Inst.RUNE_ANY_NOT_NL:
+            if (this.prog.lbInst[pc] === 0) {
+              q.mainThreads++
+            }
+            if (this.ncap > 0) {
+              // Direct assignment utilizing Typed Array performance
+              const destOffset = d * this.ncap
+              if (destOffset + this.ncap > q.denseCaps.length) {
+                q.growCaps(destOffset + this.ncap)
+              }
+              for (let c = 0; c < this.ncap; c++) {
+                q.denseCaps[destOffset + c] = capArray[capOffset + c]
+              }
+            }
+            pc = 0
+            break
+          default:
+            throw new RE2JSInternalException('unhandled')
+        }
       }
 
-      const d = q.add(pc)
-      const inst = this.prog.inst[pc]
-      switch (inst.op) {
-        case Inst.FAIL:
-          return
-        case Inst.ALT:
-        case Inst.ALT_MATCH:
-          this.add(q, inst.out, pos, capArray, capOffset, cond)
-          pc = inst.arg // Flattened tail recursion
-          continue
-        case Inst.EMPTY_WIDTH:
-          if ((inst.arg & ~cond) === 0) {
-            pc = inst.out // Flattened tail recursion
-            continue
-          }
-          return
-        case Inst.NOP:
-          pc = inst.out // Flattened tail recursion
-          continue
-        case Inst.CAPTURE:
-          if (inst.arg < this.ncap) {
-            const opos = capArray[capOffset + inst.arg]
-            capArray[capOffset + inst.arg] = pos
-            this.add(q, inst.out, pos, capArray, capOffset, cond)
-            capArray[capOffset + inst.arg] = opos
-            return
-          } else {
-            pc = inst.out // Flattened tail recursion
-            continue
-          }
-        case Inst.LB_WRITE:
-          this.lbTable[Math.abs(inst.arg)] = pos
-          pc = inst.out
-          continue
-        case Inst.LB_CHECK:
-          if (inst.arg > 0) {
-            // Positive Lookbehind
-            if (this.lbTable[inst.arg] === pos) {
-              pc = inst.out // Flattened tail recursion
-              continue
-            }
-          } else if (this.lbTable[-inst.arg] !== pos) {
-            // Negative Lookbehind
-            pc = inst.out // Flattened tail recursion
-            continue
-          }
-          return
-        case Inst.MATCH:
-        case Inst.RUNE:
-        case Inst.RUNE1:
-        case Inst.RUNE_ANY:
-        case Inst.RUNE_ANY_NOT_NL:
-          if (this.prog.lbInst[pc] === 0) {
-            q.mainThreads++
-          }
-          if (this.ncap > 0) {
-            // Direct assignment utilizing Typed Array performance
-            const destOffset = d * this.ncap
-            for (let c = 0; c < this.ncap; c++) {
-              q.denseCaps[destOffset + c] = capArray[capOffset + c]
-            }
-          }
-          return
-        default:
-          throw new RE2JSInternalException('unhandled')
+      // The path ended: resume the most recent pending entry, if any.
+      if (nstk === 0) {
+        return
+      }
+      nstk -= 2
+      const entry = stk[nstk]
+      if (entry < 0) {
+        capArray[capOffset - entry - 1] = stk[nstk + 1]
+        pc = 0
+      } else {
+        pc = entry
       }
     }
   }

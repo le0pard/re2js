@@ -6,6 +6,19 @@ import { UnicodeTables } from './UnicodeTables.js'
 class Unicode {
   // The highest legal rune value.
   static MAX_RUNE = 0x10ffff
+  // The "error" rune U+FFFD, which invalid UTF-8 input decodes to (Go: utf8.RuneError).
+  static RUNE_ERROR = 0xfffd
+
+  // Reports whether a literal rune cannot be located by a plain string or byte search for its
+  // encoding: U+FFFD, which invalid UTF-8 decodes to without containing its encoding, and
+  // surrogate code points, whose code unit may sit inside a surrogate pair that the engines
+  // read as one rune. Prefix and prefilter searches must not rely on such runes.
+  static isUnsearchable(r) {
+    return (
+      r === Unicode.RUNE_ERROR ||
+      (r >= Unicode.MIN_HIGH_SURROGATE && r <= Unicode.MAX_LOW_SURROGATE)
+    )
+  }
   // The highest legal ASCII value.
   static MAX_ASCII = 0x7f
   // The highest legal Latin-1 value.

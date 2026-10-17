@@ -6,6 +6,7 @@ import { Regexp } from './Regexp.js'
 import { Inst } from './Inst.js'
 import { Prog, PatchList } from './Prog.js'
 import { RE2JSCompileException } from './exceptions.js'
+import { RegexpWalker } from './RegexpWalker.js'
 
 const ANY_RUNE_NOT_NL = new Int32Array([
   0,
@@ -78,6 +79,15 @@ class Compiler {
   constructor() {
     this.prog = new Prog()
     this.newInst(Inst.FAIL)
+    // One shared rune array per literal rune, so repeated literals do not allocate one per
+    // instruction (RE2 keeps a similar rune_cache_; Go slices the literal's rune array).
+    this.runeCache = new Map()
+    this.walker = {
+      leaf: (re) => this.leaf(re),
+      enter: (re) => this.enter(re),
+      child: (re, state, result) => this.child(re, state, result),
+      leave: (re, state) => this.leave(re, state)
+    }
   }
 
   newInst(op) {
@@ -248,26 +258,37 @@ class Compiler {
     return checkId
   }
 
+  // compile returns the fragment for re. The tree is walked bottom-up without recursion (see
+  // RegexpWalker); enter/child/leave are the handler. Instructions are allocated in the same
+  // order as a recursive compile would allocate them: a capture's opening instruction before its
+  // body, and an alternation's ALT after each branch.
   compile(re) {
+    return RegexpWalker.walk(re, this.walker)
+  }
+
+  // leaf returns the fragment for a node without subexpressions.
+  leaf(re) {
     switch (re.op) {
       case Regexp.Op.NO_MATCH:
         return this.fail()
       case Regexp.Op.EMPTY_MATCH:
         return this.nop()
-      case Regexp.Op.LITERAL:
+      case Regexp.Op.LITERAL: {
         if (re.runes.length === 0) {
           return this.nop()
-        } else {
-          let f = null
-          for (let r of re.runes) {
-            const singleRune = new Int32Array(1)
-            singleRune[0] = r
-
-            const f1 = this.rune(singleRune, re.flags)
-            f = f === null ? f1 : this.cat(f, f1)
-          }
-          return f
         }
+        let f = null
+        for (let r of re.runes) {
+          let singleRune = this.runeCache.get(r)
+          if (singleRune === void 0) {
+            singleRune = new Int32Array([r])
+            this.runeCache.set(r, singleRune)
+          }
+          const f1 = this.rune(singleRune, re.flags)
+          f = f === null ? f1 : this.cat(f, f1)
+        }
+        return f
+      }
       case Regexp.Op.CHAR_CLASS:
         return this.rune(re.runes, re.flags)
       case Regexp.Op.ANY_CHAR_NOT_NL:
@@ -286,45 +307,61 @@ class Compiler {
         return this.empty(Utils.EMPTY_WORD_BOUNDARY)
       case Regexp.Op.NO_WORD_BOUNDARY:
         return this.empty(Utils.EMPTY_NO_WORD_BOUNDARY)
+      case Regexp.Op.CONCAT:
+      case Regexp.Op.ALTERNATE:
+        return this.nop()
+      default:
+        throw new RE2JSCompileException('regexp: unhandled case in compile')
+    }
+  }
+
+  // enter returns the walk state for a node with subexpressions.
+  enter(re) {
+    switch (re.op) {
       case Regexp.Op.PLB:
       case Regexp.Op.NLB:
-        return this.lookBehind(this.compile(re.subs[0]), re.lb)
+      case Regexp.Op.STAR:
+      case Regexp.Op.PLUS:
+      case Regexp.Op.QUEST:
+        return { sub: null }
+      case Regexp.Op.CAPTURE:
+        return { bra: this.cap(re.cap << 1), sub: null }
+      case Regexp.Op.CONCAT:
+      case Regexp.Op.ALTERNATE:
+        return { f: null }
+      default:
+        throw new RE2JSCompileException('regexp: unhandled case in compile')
+    }
+  }
+
+  child(re, state, f1) {
+    if (re.op === Regexp.Op.CONCAT) {
+      state.f = state.f === null ? f1 : this.cat(state.f, f1)
+    } else if (re.op === Regexp.Op.ALTERNATE) {
+      state.f = state.f === null ? f1 : this.alt(state.f, f1)
+    } else {
+      state.sub = f1
+    }
+  }
+
+  leave(re, state) {
+    switch (re.op) {
+      case Regexp.Op.PLB:
+      case Regexp.Op.NLB:
+        return this.lookBehind(state.sub, re.lb)
       case Regexp.Op.CAPTURE: {
-        const bra = this.cap(re.cap << 1)
-        const sub = this.compile(re.subs[0])
         const ket = this.cap((re.cap << 1) | 1)
-        return this.cat(this.cat(bra, sub), ket)
+        return this.cat(this.cat(state.bra, state.sub), ket)
       }
       case Regexp.Op.STAR:
-        return this.star(this.compile(re.subs[0]), (re.flags & RE2Flags.NON_GREEDY) !== 0)
+        return this.star(state.sub, (re.flags & RE2Flags.NON_GREEDY) !== 0)
       case Regexp.Op.PLUS:
-        return this.plus(this.compile(re.subs[0]), (re.flags & RE2Flags.NON_GREEDY) !== 0)
+        return this.plus(state.sub, (re.flags & RE2Flags.NON_GREEDY) !== 0)
       case Regexp.Op.QUEST:
-        return this.quest(this.compile(re.subs[0]), (re.flags & RE2Flags.NON_GREEDY) !== 0)
-      case Regexp.Op.CONCAT: {
-        if (re.subs.length === 0) {
-          return this.nop()
-        } else {
-          let f = null
-          for (let sub of re.subs) {
-            const f1 = this.compile(sub)
-            f = f === null ? f1 : this.cat(f, f1)
-          }
-          return f
-        }
-      }
-      case Regexp.Op.ALTERNATE: {
-        if (re.subs.length === 0) {
-          return this.nop()
-        } else {
-          let f = null
-          for (let sub of re.subs) {
-            const f1 = this.compile(sub)
-            f = f === null ? f1 : this.alt(f, f1)
-          }
-          return f
-        }
-      }
+        return this.quest(state.sub, (re.flags & RE2Flags.NON_GREEDY) !== 0)
+      case Regexp.Op.CONCAT:
+      case Regexp.Op.ALTERNATE:
+        return state.f
       default:
         throw new RE2JSCompileException('regexp: unhandled case in compile')
     }

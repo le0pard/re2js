@@ -133,9 +133,10 @@ class Parser {
   // It too is somewhat arbitrarily chosen, but the idea is to be large enough
   // to allow significant regexps while at the same time small enough that
   // the compiled form will not take up too much memory.
-  // 128 MB is enough for a 3.3 million Inst structures, which roughly
-  // corresponds to a 3.3 MB regexp.
-  static MAX_SIZE = 3355443 // 128 << 20 / (5 * 8) (instSize = byte, 2 uint32, slice is 5 64-bit words)
+  // Go uses the same 128 MB budget with its 40-byte Inst (3.3 million instructions). A JS Inst
+  // object with its program array slot costs about 96 bytes, so the same budget allows
+  // about 1.4 million instructions, which roughly corresponds to a 1.4 MB regexp.
+  static MAX_SIZE = 1398101 // 128 << 20 / 96 (instSize measured for the JS Inst object)
 
   // maxRunes is the maximum number of runes allowed in a regexp tree
   // counting the runes in all the nodes.
@@ -399,15 +400,19 @@ class Parser {
           dst.op = Regexp.Op.ANY_CHAR
         }
         break
-      case Regexp.Op.CHAR_CLASS:
+      case Regexp.Op.CHAR_CLASS: {
+        // Append to dst in place (Go: appendClass/appendLiteral on dst.Rune). The class keeps
+        // growing in the same array while the alternation is parsed; cleanAlt() sorts it and
+        // converts it to its final form once the element is complete.
+        const cc = new CharClass(Array.isArray(dst.runes) ? dst.runes : Array.from(dst.runes))
         if (src.op === Regexp.Op.LITERAL) {
-          dst.runes = new CharClass(Array.from(dst.runes))
-            .appendLiteral(src.runes[0], src.flags)
-            .toArray()
+          cc.appendLiteral(src.runes[0], src.flags)
         } else {
-          dst.runes = new CharClass(Array.from(dst.runes)).appendClass(src.runes).toArray()
+          cc.appendClass(src.runes)
         }
+        dst.runes = cc.toGrowableArray()
         break
+      }
       case Regexp.Op.LITERAL:
         if (src.runes[0] === dst.runes[0] && src.flags === dst.flags) {
           break
@@ -416,7 +421,7 @@ class Parser {
         dst.runes = new CharClass()
           .appendLiteral(dst.runes[0], dst.flags)
           .appendLiteral(src.runes[0], src.flags)
-          .toArray()
+          .toGrowableArray()
         break
     }
   }
@@ -540,13 +545,6 @@ class Parser {
       return Parser.parseEscape(t)
     }
     return t.pop()
-  }
-
-  static concatRunes(x, y) {
-    const res = new Int32Array(x.length + y.length)
-    res.set(x)
-    res.set(y, x.length)
-    return res
   }
 
   // recursively check for captures
@@ -771,10 +769,9 @@ class Parser {
     while (i > 0 && !Regexp.isPseudoOp(this.stack[i - 1].op)) {
       i--
     }
-
-    const r = this.stack.slice(i, n)
-    this.stack = this.stack.slice(0, i)
-    return r
+    // Truncate the stack in place (Go: p.stack = p.stack[:i]); copying the remaining
+    // stack on every '|' or ')' made parsing large alternations quadratic.
+    return this.stack.splice(i, n - i)
   }
 
   // push pushes the regexp re onto the parse stack and returns the regexp.
@@ -786,7 +783,7 @@ class Parser {
         return null
       }
       re.op = Regexp.Op.LITERAL
-      re.runes = new Int32Array([re.runes[0]])
+      re.runes = [re.runes[0]]
       re.flags = this.flags & ~RE2Flags.FOLD_CASE
     } else if (
       (re.op === Regexp.Op.CHAR_CLASS &&
@@ -807,7 +804,7 @@ class Parser {
       }
       // Rewrite as (case-insensitive) literal.
       re.op = Regexp.Op.LITERAL
-      re.runes = new Int32Array([re.runes[0]])
+      re.runes = [re.runes[0]]
       re.flags = this.flags | RE2Flags.FOLD_CASE
     } else {
       // Incremental concatenation.
@@ -841,8 +838,14 @@ class Parser {
     ) {
       return false
     }
-    // Push re1 into re2.
-    re2.runes = Parser.concatRunes(re2.runes, re1.runes)
+    // Push re1 into re2. Literal runes stay in a growable array while the literal is on the
+    // parse stack, so appending is amortized O(1) as with Go's append.
+    if (!Array.isArray(re2.runes)) {
+      re2.runes = Array.from(re2.runes)
+    }
+    for (let i = 0; i < re1.runes.length; i++) {
+      re2.runes.push(re1.runes[i])
+    }
     // Reuse re1 if possible.
     if (r >= 0) {
       re1.runes = [r]

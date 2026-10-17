@@ -6,6 +6,7 @@ import { Unicode } from '../Unicode.js'
 import { UnicodeRangeTable } from '../UnicodeRangeTable.js'
 import { Utils } from '../Utils.js'
 import { codePoint } from '../__utils__/chars.js'
+import { RE2JS } from '../index.js'
 
 describe('.cleanClass', () => {
   const cases = [
@@ -261,5 +262,72 @@ describe('.toString', () => {
   it('return correct string', () => {
     expect(new CharClass([10, 10, 12, 20]).toString()).toEqual('[0xa 0xc-0x14]')
     expect(new CharClass([10, 20, 30, 40]).toString()).toEqual('[0xa-0x14 0x1e-0x28]')
+  })
+})
+
+describe('CharClass.sortRanges and cleanClass on large or adversarial input', () => {
+  it('sorts by lo ascending and hi descending before merging', () => {
+    const cc = new CharClass([5, 9, 5, 20, 1, 3, 30, 30, 21, 25])
+    expect(Array.from(cc.cleanClass().toArray())).toEqual([1, 3, 5, 25, 30, 30])
+  })
+
+  it('cleans a large class given in reverse order', () => {
+    const r = []
+    for (let i = 20000; i >= 0; i--) {
+      r.push(2 * i, 2 * i)
+    }
+    const out = new CharClass(r).cleanClass().toArray()
+    expect(out.length).toBe(2 * 20001)
+    expect(out[0]).toBe(0)
+    expect(out[1]).toBe(0)
+    expect(out[out.length - 2]).toBe(40000)
+  })
+
+  it('cleans a large class given in pseudo-random order with duplicates and overlaps', () => {
+    let seed = 7
+    const next = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff)
+    const r = []
+    for (let i = 0; i < 30000; i++) {
+      const lo = next() % 100000
+      r.push(lo, lo + (next() % 3))
+    }
+    const out = new CharClass(r).cleanClass().toArray()
+    // Result is sorted, non-overlapping and non-abutting
+    for (let i = 2; i < out.length; i += 2) {
+      expect(out[i]).toBeGreaterThan(out[i - 1] + 1)
+    }
+    // and covers exactly the input runes
+    const covered = new Set()
+    for (let i = 0; i < r.length; i += 2) {
+      for (let c = r[i]; c <= r[i + 1]; c++) {
+        covered.add(c)
+      }
+    }
+    let total = 0
+    for (let i = 0; i < out.length; i += 2) {
+      total += out[i + 1] - out[i] + 1
+    }
+    expect(total).toBe(covered.size)
+  })
+
+  it('compiles a 30,000-rune character class written in adversarial order', () => {
+    // Every rune distinct and non-adjacent, so nothing coalesces while appending.
+    let s = ''
+    for (let i = 30000; i > 0; i--) {
+      s += String.fromCodePoint(0x4e00 + 2 * ((i * 7919) % 30000))
+    }
+    const re = RE2JS.compile(`[${s}]`)
+    expect(re.test(String.fromCodePoint(0x4e00))).toBe(true)
+    expect(re.test(String.fromCodePoint(0x4e01))).toBe(false)
+  })
+
+  it('toGrowableArray() returns the backing array without copying and keeps it appendable', () => {
+    const backing = [1, 2]
+    const cc = new CharClass(backing)
+    cc.appendRange(5, 6)
+    const grown = cc.toGrowableArray()
+    expect(grown).toBe(backing)
+    expect(grown).toEqual([1, 2, 5, 6])
+    expect(Array.from(new CharClass(grown).appendRange(9, 9).toArray())).toEqual([1, 2, 5, 6, 9, 9])
   })
 })

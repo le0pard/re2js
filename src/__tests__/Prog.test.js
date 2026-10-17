@@ -2,7 +2,9 @@ import { expect, describe, it } from 'vitest'
 import { RE2Flags } from '../RE2Flags.js'
 import { Parser } from '../Parser.js'
 import { Compiler } from '../Compiler.js'
+import { Simplify } from '../Simplify.js'
 import { Inst } from '../Inst.js'
+import { RE2JS } from '../index.js'
 
 describe('.compileRegexp', () => {
   const cases = [
@@ -273,5 +275,48 @@ describe('Prog - Lookbehind instruction marking', () => {
       expect(prog.lbInst[pc]).toBe(0)
     }
     expect(prog.lbInst[prog.start]).toBe(0)
+  })
+})
+
+describe('Prog.prefix stops at U+FFFD', () => {
+  // Invalid UTF-8 bytes decode to U+FFFD, but a byte search for its encoding (EF BF BD) could
+  // never find them, so the literal prefix must end before it (Go: i.Rune[0] != utf8.RuneError).
+  const prefixOf = (pattern) =>
+    Compiler.compileRegexp(Parser.parse(pattern, RE2Flags.PERL)).prefix()
+
+  it('excludes the error rune from the prefix', () => {
+    expect(prefixOf('abc')).toEqual([true, 'abc'])
+    expect(prefixOf('ab\\x{FFFD}c')).toEqual([false, 'ab'])
+    expect(prefixOf('\\x{FFFD}abc')).toEqual([false, ''])
+    expect(prefixOf('\\x{FFFD}')).toEqual([false, ''])
+  })
+
+  it('so a literal with U+FFFD still matches invalid bytes through every engine', () => {
+    const re = RE2JS.compile('\\x{FFFD}abc')
+    const input = new Uint8Array([0x61, 0xff, 0x61, 0x62, 0x63])
+    expect(re.test(input)).toBe(true)
+    const m = re.matcher(input)
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(1)
+    expect(RE2JS.compile('x\\x{FFFD}y|zzz').test(new Uint8Array([0x78, 0xc0, 0x79]))).toBe(true)
+    expect(RE2JS.compile('x\\x{FFFD}y|zzz').test(new Uint8Array([0x78, 0x79]))).toBe(false)
+  })
+})
+
+describe('Compiler shares the rune array of repeated literal runes', () => {
+  it('uses one array per distinct rune', () => {
+    const prog = Compiler.compileRegexp(
+      Simplify.simplify(Parser.parse('(?:ab){500}', RE2Flags.PERL))
+    )
+    const runeArrays = new Set()
+    let runeInsts = 0
+    for (const inst of prog.inst) {
+      if (inst.op === Inst.RUNE1) {
+        runeInsts++
+        runeArrays.add(inst.runes)
+      }
+    }
+    expect(runeInsts).toBe(1000)
+    expect(runeArrays.size).toBe(2)
   })
 })
