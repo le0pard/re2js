@@ -6,6 +6,8 @@ import { UnicodeTables } from './UnicodeTables.js'
 class Unicode {
   // The highest legal rune value.
   static MAX_RUNE = 0x10ffff
+  // The "error" rune U+FFFD, which invalid UTF-8 input decodes to (Go: utf8.RuneError).
+  static RUNE_ERROR = 0xfffd
   // The highest legal ASCII value.
   static MAX_ASCII = 0x7f
   // The highest legal Latin-1 value.

@@ -1,5 +1,6 @@
 import { RE2Flags } from './RE2Flags.js'
 import { Inst } from './Inst.js'
+import { Unicode } from './Unicode.js'
 
 /**
  * A list of instruction pointers waiting to be patched.
@@ -110,7 +111,14 @@ class Prog {
       return [i.op === Inst.MATCH, prefix]
     }
 
-    while (Inst.isRuneOp(i.op) && i.runes.length === 1 && (i.arg & RE2Flags.FOLD_CASE) === 0) {
+    // Stop at U+FFFD (Go: i.Rune[0] != utf8.RuneError): invalid UTF-8 bytes decode to it, but a
+    // byte search for its encoding could never find them.
+    while (
+      Inst.isRuneOp(i.op) &&
+      i.runes.length === 1 &&
+      (i.arg & RE2Flags.FOLD_CASE) === 0 &&
+      i.runes[0] !== Unicode.RUNE_ERROR
+    ) {
       prefix += String.fromCodePoint(i.runes[0])
       i = this.skipNop(i.out)
     }

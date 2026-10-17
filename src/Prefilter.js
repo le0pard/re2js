@@ -1,6 +1,7 @@
 import { Regexp } from './Regexp.js'
 import { Utils } from './Utils.js'
 import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
 
 // High-speed, single-pass Aho-Corasick string matcher optimized for V8.
 // Builds a trie with failure links to search for multiple prefixes simultaneously.
@@ -160,11 +161,16 @@ class PrefilterTree {
           // Skip case-folded literals for simplicity
           return new Prefilter(Prefilter.Type.NONE)
         }
-        const pf = new Prefilter(Prefilter.Type.EXACT)
         let str = ''
         for (let i = 0; i < re.runes.length; i++) {
+          if (re.runes[i] === Unicode.RUNE_ERROR) {
+            // Invalid UTF-8 bytes decode to U+FFFD but never contain its encoding, so a
+            // literal U+FFFD cannot be required as a byte string (see Prog.prefix).
+            return new Prefilter(Prefilter.Type.NONE)
+          }
           str += String.fromCodePoint(re.runes[i])
         }
+        const pf = new Prefilter(Prefilter.Type.EXACT)
         pf.str = str
         pf.bytes = Utils.stringToUtf8ByteArray(pf.str)
         return pf

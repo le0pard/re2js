@@ -41,6 +41,9 @@ class MachineInputBase {
 // An implementation of MachineInput for UTF-8 byte arrays.
 // |pos| and |width| are byte indices.
 class MachineUTF8Input extends MachineInputBase {
+  // step() result for an invalid byte: U+FFFD (Go's utf8.RuneError) with width 1.
+  static RUNE_ERROR_STEP = (Unicode.RUNE_ERROR << 3) | 1
+
   constructor(bytes, start = 0, end = bytes.length) {
     super()
     this.bytes = bytes
@@ -71,47 +74,76 @@ class MachineUTF8Input extends MachineInputBase {
   // the lower 3 bits, and the rune (Unicode code point) in the high
   // bits.  Never negative, except for EOF which is represented as -1
   // << 3 | 0.
+  //
+  // Decoding follows Go's utf8.DecodeRune exactly: only the shortest encoding of a code point
+  // below U+110000 that is not a surrogate is accepted. Any other byte (overlong forms,
+  // surrogates, values above U+10FFFF, stray continuation or lead bytes, a bad continuation
+  // byte or a sequence truncated by the end of the input) decodes as U+FFFD with width 1, so
+  // the engines never see runes outside the Unicode range and invalid input cannot be read as
+  // a different character than a validating decoder would produce.
   step(pos) {
     pos += this.start
     if (pos >= this.end) {
       return MachineInputBase.EOF()
     }
 
-    // Read UTF-8 bytes to extract the Rune and its width
     const c = this.bytes[pos] & 0xff
     if (c < 0x80) {
       return (c << 3) | 1
-    } else if (c >= 0xc2 && c <= 0xdf && pos + 1 < this.end) {
-      const c1 = this.bytes[pos + 1] & 0xff
-      if ((c1 & 0xc0) !== 0x80) return (c << 3) | 1
-
-      const rune = ((c & 0x1f) << 6) | (c1 & 0x3f)
-      return (rune << 3) | 2
-    } else if (c >= 0xe0 && c <= 0xef && pos + 2 < this.end) {
-      const c1 = this.bytes[pos + 1] & 0xff
-      if ((c1 & 0xc0) !== 0x80) return (c << 3) | 1
-
-      const c2 = this.bytes[pos + 2] & 0xff
-      if ((c2 & 0xc0) !== 0x80) return (c << 3) | 1
-
-      const rune = ((c & 0x0f) << 12) | ((c1 & 0x3f) << 6) | (c2 & 0x3f)
-      return (rune << 3) | 3
-    } else if (c >= 0xf0 && c <= 0xf4 && pos + 3 < this.end) {
-      const c1 = this.bytes[pos + 1] & 0xff
-      if ((c1 & 0xc0) !== 0x80) return (c << 3) | 1
-
-      const c2 = this.bytes[pos + 2] & 0xff
-      if ((c2 & 0xc0) !== 0x80) return (c << 3) | 1
-
-      const c3 = this.bytes[pos + 3] & 0xff
-      if ((c3 & 0xc0) !== 0x80) return (c << 3) | 1
-
-      const rune = ((c & 0x07) << 18) | ((c1 & 0x3f) << 12) | ((c2 & 0x3f) << 6) | (c3 & 0x3f)
-      return (rune << 3) | 4
-    } else {
-      // Invalid sequence fallback
-      return (c << 3) | 1
     }
+
+    // Size of the sequence and the accepted range of its second byte, by lead byte
+    // (Go: utf8.first and utf8.acceptRanges).
+    let size
+    let rune
+    let lo = 0x80
+    let hi = 0xbf
+    if (c >= 0xc2 && c <= 0xdf) {
+      size = 2
+      rune = c & 0x1f
+    } else if (c >= 0xe0 && c <= 0xef) {
+      size = 3
+      rune = c & 0x0f
+      if (c === 0xe0) {
+        lo = 0xa0 // rejects overlong 3-byte forms
+      } else if (c === 0xed) {
+        hi = 0x9f // rejects surrogates U+D800..U+DFFF
+      }
+    } else if (c >= 0xf0 && c <= 0xf4) {
+      size = 4
+      rune = c & 0x07
+      if (c === 0xf0) {
+        lo = 0x90 // rejects overlong 4-byte forms
+      } else if (c === 0xf4) {
+        hi = 0x8f // rejects values above U+10FFFF
+      }
+    } else {
+      return MachineUTF8Input.RUNE_ERROR_STEP
+    }
+
+    if (pos + size > this.end) {
+      return MachineUTF8Input.RUNE_ERROR_STEP
+    }
+    const c1 = this.bytes[pos + 1] & 0xff
+    if (c1 < lo || c1 > hi) {
+      return MachineUTF8Input.RUNE_ERROR_STEP
+    }
+    rune = (rune << 6) | (c1 & 0x3f)
+    if (size > 2) {
+      const c2 = this.bytes[pos + 2] & 0xff
+      if ((c2 & 0xc0) !== 0x80) {
+        return MachineUTF8Input.RUNE_ERROR_STEP
+      }
+      rune = (rune << 6) | (c2 & 0x3f)
+      if (size > 3) {
+        const c3 = this.bytes[pos + 3] & 0xff
+        if ((c3 & 0xc0) !== 0x80) {
+          return MachineUTF8Input.RUNE_ERROR_STEP
+        }
+        rune = (rune << 6) | (c3 & 0x3f)
+      }
+    }
+    return (rune << 3) | size
   }
 
   // Returns the index relative to |pos| at which |re2.prefix| is found
