@@ -72,6 +72,52 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     })
   })
 
+  describe('Repeated matching with lookbehinds (quadratic-time regression)', () => {
+    // Every find() used to re-run the lookbehind automata from the beginning of the input,
+    // so iterating over all matches was quadratic: 16,000 characters took tens of seconds.
+    // The lookbehind state is now carried from one match to the next (see LookbehindState).
+    const input = 'ab'.repeat(8000)
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+
+    const assertFast = (fn) => {
+      const start = Date.now()
+      const result = fn()
+      const elapsed = Date.now() - start
+      // Takes a few milliseconds; the quadratic version needs ~30 seconds for this input.
+      expect(elapsed).toBeLessThan(500)
+      return result
+    }
+
+    it('matcher().find() loop', () => {
+      const count = assertFast(() => {
+        const m = re.matcher(input)
+        let found = 0
+        while (m.find()) {
+          found++
+        }
+        return found
+      })
+      expect(count).toBe(8000)
+    })
+
+    it('matchAll()', () => {
+      const matches = assertFast(() => Array.from(re.matchAll(input)))
+      expect(matches).toHaveLength(8000)
+      expect(matches[7999].index).toBe(input.length - 1)
+    })
+
+    it('split()', () => {
+      const parts = assertFast(() => re.split(input))
+      expect(parts.length).toBeGreaterThanOrEqual(8000)
+      expect(parts[0]).toBe('a')
+    })
+
+    it('matcher().replaceAll()', () => {
+      const replaced = assertFast(() => re.matcher(input).replaceAll('X'))
+      expect(replaced).toBe('aX'.repeat(8000))
+    })
+  })
+
   describe('Infinite Loop & Memory Explosion Protections', () => {
     it('Safely matches massive strings without exceeding Call Stack Size', () => {
       const re = RE2JS.compile('a*b')

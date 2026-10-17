@@ -102,6 +102,10 @@ class Matcher {
     this.namedGroups = re2.namedGroups
     /** @type {number} */
     this.numberOfInstructions = re2.numberOfInstructions()
+    // Lookbehind automata state carried between successive matches over the current input, so
+    // that find()/group() loops stay linear. null when the pattern has no lookbehinds.
+    /** @type {import('./Machine.js').LookbehindState|null} */
+    this.lookbehindState = null
 
     if (input instanceof MatcherInputBase) {
       this.resetMatcherInput(input)
@@ -161,6 +165,12 @@ class Matcher {
     }
 
     this.matcherInput = input
+    // The lookbehind state is specific to the input text: a new input must start from scratch.
+    if (this.lookbehindState !== null) {
+      this.lookbehindState.reset()
+    } else {
+      this.lookbehindState = this.patternInput.re2().createLookbehindState()
+    }
     this.reset()
     return this
   }
@@ -292,7 +302,8 @@ class Matcher {
         this.groups[0],
         end,
         this.anchorFlag,
-        1 + this.patternGroupCount
+        1 + this.patternGroupCount,
+        this.lookbehindState
       )
 
     const ok = res[0]
@@ -372,7 +383,14 @@ class Matcher {
   genMatch(startByte, anchor) {
     const res = this.patternInput
       .re2()
-      .matchMachineInput(this.matcherInput, startByte, this.matcherInputLength, anchor, 1)
+      .matchMachineInput(
+        this.matcherInput,
+        startByte,
+        this.matcherInputLength,
+        anchor,
+        1,
+        this.lookbehindState
+      )
 
     const ok = res[0]
     if (!ok) {

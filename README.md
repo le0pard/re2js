@@ -787,8 +787,9 @@ negative.test('foobar') // false
 ### Important Limitations and Warnings
 
 1. **Performance Overhead:** If a regex contains a lookbehind, the engine is forced to safely bypass the ultra-fast Lazy DFA and OnePass engines. It evaluates the lookbehinds using parallel automata running on the NFA (Pike VM). While execution remains mathematically safe and linear $O(n)$, the NFA engine is generally slower than the DFA fast-paths. Use lookbehinds only when necessary.
-2. **Prefix Acceleration is Disabled:** To ensure the parallel tracking automata initialize correctly, high-speed string prefix skipping (e.g., using `indexOf` to jump to a starting literal) is disabled when lookbehinds are present.
+2. **Prefix Acceleration is Disabled:** The lookbehind automata must observe every character of the input, so high-speed string prefix skipping (e.g., using `indexOf` to jump to a starting literal) is disabled when lookbehinds are present.
 3. **Captureless Guarantee:** To prevent state-explosion vulnerabilities and maintain strict safety invariants, lookbehinds are strictly evaluated as _captureless_. If you attempt to include a capturing group inside a lookbehind (e.g., `(?<=(foo))bar`), the engine will proactively throw a `SyntaxError` at compile time. Use non-capturing groups `(?:...)` instead.
+4. **Repeated Matching:** The lookbehind automata run from the beginning of the input, because a lookbehind may depend on text arbitrarily far behind the match (e.g. `(?<=x.*)b`). A `Matcher` therefore carries their state from one match to the next: `find()` loops, `matchAll()`, `split()` and `replaceAll()` scan the input once and stay linear in its length. Only a `find(start)` that jumps _backwards_ (to a position before the previous search started) re-evaluates the lookbehinds from the beginning of the input.
 
 ## Development
 

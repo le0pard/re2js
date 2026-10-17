@@ -34,6 +34,9 @@ class Prog {
     this.numCap = 2
     this.lbStarts = [] // Track starting PCs of lookbehind automata
     this.numLb = 0 // Total number of lookbehinds
+    // Per-instruction flags: 1 if the instruction belongs to a lookbehind automaton.
+    // Filled by markLookbehindInsts() once compilation is complete.
+    this.lbInst = null
   }
 
   // Returns the instruction at the specified pc.
@@ -51,6 +54,36 @@ class Prog {
   // to |numInst()|.
   addInst(op) {
     this.inst.push(new Inst(op))
+  }
+
+  // markLookbehindInsts() records, in |lbInst|, every instruction reachable from the start of a
+  // lookbehind automaton. These instructions run alongside the main pattern but never produce a
+  // match on their own; the Machine uses the map to tell whether the main pattern still has live
+  // threads (see Queue.mainThreads in Machine.js).
+  markLookbehindInsts() {
+    const lbInst = new Uint8Array(this.inst.length)
+    const pending = this.lbStarts.slice()
+    while (pending.length > 0) {
+      const pc = pending.pop()
+      // pc 0 is the FAIL instruction every program starts with; LB_WRITE points to it.
+      if (pc === 0 || lbInst[pc] === 1) {
+        continue
+      }
+      lbInst[pc] = 1
+      const i = this.inst[pc]
+      switch (i.op) {
+        case Inst.ALT:
+        case Inst.ALT_MATCH:
+          pending.push(i.out, i.arg)
+          break
+        case Inst.MATCH:
+        case Inst.FAIL:
+          break
+        default:
+          pending.push(i.out)
+      }
+    }
+    this.lbInst = lbInst
   }
 
   // skipNop() follows any no-op or capturing instructions and returns the
