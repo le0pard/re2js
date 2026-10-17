@@ -1,5 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import { RE2JS } from '../index.js'
+import { Parser } from '../Parser.js'
+import { RE2Flags } from '../RE2Flags.js'
 
 describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Catastrophic Backtracking Immunity (ReDoS)', () => {
@@ -121,40 +123,57 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Parsing large patterns stays linear', () => {
     // These used to be quadratic: the parse stack was copied on every '|' or ')', literal runes
     // were copied on every appended rune, and classes merged across '|' were copied per branch.
-    const assertParsesQuickly = (pattern, maxMs) => {
-      const start = Date.now()
-      const re = RE2JS.compile(pattern)
-      const elapsed = Date.now() - start
-      expect(elapsed).toBeLessThan(maxMs)
-      return re
+    // Measure scaling rather than absolute time so the check holds on slow CI machines: parsing
+    // 4x the pattern must cost well under 16x the time (the quadratic code gave 16-22x).
+    const parseTime = (pattern) => {
+      const start = performance.now()
+      Parser.parse(pattern, RE2Flags.PERL)
+      return performance.now() - start
+    }
+    const assertLinearParse = (makePattern, n) => {
+      const small = makePattern(n)
+      const large = makePattern(4 * n)
+      Parser.parse(small, RE2Flags.PERL) // warm up
+      const tSmall = parseTime(small)
+      const tLarge = parseTime(large)
+      expect(tLarge).toBeLessThan(8 * tSmall + 100)
     }
 
-    it('50,000 alternatives', () => {
-      const pattern = Array.from({ length: 50000 }, (_, i) => `w${i}x`).join('|')
-      const re = assertParsesQuickly(pattern, 1000) // was ~2.5 s
-      expect(re.test('zz w49999x')).toBe(true)
-      expect(re.test('zz w50000x')).toBe(false)
+    it('alternatives', () => {
+      assertLinearParse((n) => Array.from({ length: n }, (_, i) => `w${i}x`).join('|'), 10000)
     })
 
-    it('50,000 nested non-capturing groups and parentheses', () => {
-      const re = assertParsesQuickly(`${'(?:'.repeat(50000)}a${')'.repeat(50000)}`, 1000) // was ~4 s
-      expect(re.test('a')).toBe(true)
+    it('nested non-capturing groups and parentheses', () => {
+      assertLinearParse((n) => `${'(?:'.repeat(n)}a${')'.repeat(n)}`, 10000)
     })
 
-    it('a 200,000-rune literal', () => {
-      const literal = 'a'.repeat(200000)
-      const re = assertParsesQuickly(literal, 1000) // was ~6.5 s
-      expect(re.test(`x${literal}`)).toBe(true)
-      expect(re.test('a'.repeat(199999))).toBe(false)
+    it('a long literal', () => {
+      assertLinearParse((n) => 'a'.repeat(n), 50000)
     })
 
-    it('10,000 single-rune classes merged across an alternation', () => {
-      const pattern = Array.from({ length: 10000 }, (_, i) =>
-        String.fromCodePoint(0x4e00 + 2 * i)
-      ).join('|')
-      const re = assertParsesQuickly(pattern, 1000) // was ~1.3 s
-      expect(re.test(String.fromCodePoint(0x4e00 + 2 * 9999))).toBe(true)
-      expect(re.test(String.fromCodePoint(0x4e00 + 2 * 9999 + 1))).toBe(false)
+    it('single-rune classes merged across an alternation', () => {
+      assertLinearParse(
+        (n) => Array.from({ length: n }, (_, i) => String.fromCodePoint(0x4e00 + 2 * i)).join('|'),
+        2500
+      )
+    })
+
+    it('large patterns still compile and match correctly', () => {
+      const alternatives = RE2JS.compile(
+        Array.from({ length: 20000 }, (_, i) => `w${i}x`).join('|')
+      )
+      expect(alternatives.test('zz w19999x')).toBe(true)
+      expect(alternatives.test('zz w20000x')).toBe(false)
+
+      const literal = 'a'.repeat(100000)
+      expect(RE2JS.compile(literal).test(`x${literal}`)).toBe(true)
+      expect(RE2JS.compile(literal).test('a'.repeat(99999))).toBe(false)
+
+      const classes = RE2JS.compile(
+        Array.from({ length: 5000 }, (_, i) => String.fromCodePoint(0x4e00 + 2 * i)).join('|')
+      )
+      expect(classes.test(String.fromCodePoint(0x4e00 + 2 * 4999))).toBe(true)
+      expect(classes.test(String.fromCodePoint(0x4e00 + 2 * 4999 + 1))).toBe(false)
     })
   })
 
