@@ -177,6 +177,55 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     })
   })
 
+  describe('Compile-time walks are not limited by the JS stack', () => {
+    // The parser bounds nesting at 1000 levels, but Simplify expands x{n,m} into one nesting
+    // level per optional copy, so a pattern that passes every parser check can be ~3000 levels
+    // deep. Simplify, the compiler and the prefilter builder walk it without recursion.
+    it('deeply nested groups around a wide counted repetition', () => {
+      const re = RE2JS.compile(`${'('.repeat(998)}x{1,1000}${')'.repeat(998)}`)
+      const m = re.matcher('x'.repeat(1000))
+      expect(m.matches()).toBe(true)
+      expect(m.group(998)).toBe('x'.repeat(1000))
+      expect(re.matcher('x'.repeat(1001)).matches()).toBe(false)
+      expect(re.matcher('').matches()).toBe(false)
+    })
+
+    it('a counted repetition with an optional body at full width', () => {
+      const re = RE2JS.compile(`${'('.repeat(998)}x{0,1000}${')'.repeat(998)}`)
+      expect(re.matcher('').matches()).toBe(true)
+      expect(re.matcher('x'.repeat(1000)).matches()).toBe(true)
+      expect(re.matcher('x'.repeat(1001)).matches()).toBe(false)
+    })
+
+    it('deeply nested alternations around a counted repetition', () => {
+      // (?:a|b(?:a|b(?:...(?:a|bx{1,1000})...))): each level matches 'a' or 'b' then the next
+      const re = RE2JS.compile(`${'(?:a|b'.repeat(499)}x{1,1000}${')'.repeat(499)}`)
+      expect(re.test('a')).toBe(true)
+      expect(re.test('ba')).toBe(true)
+      expect(re.test(`${'b'.repeat(499)}xxx`)).toBe(true)
+      expect(re.test('c')).toBe(false)
+      expect(re.matcher(`${'b'.repeat(499)}xxx`).matches()).toBe(true)
+      expect(re.matcher('b'.repeat(499)).matches()).toBe(false)
+    })
+
+    it('deeply nested lookbehinds around a counted repetition', () => {
+      const re = RE2JS.compile(
+        `${'(?<='.repeat(500)}x{1,1000}${')'.repeat(500)}y`,
+        RE2JS.LOOKBEHINDS
+      )
+      expect(re.test('xy')).toBe(true)
+      expect(re.test('zy')).toBe(false)
+    })
+
+    it('deeply nested literal alternations build their prefilter', () => {
+      // Two parse levels per repetition, so 450 stays within the 1000-level limit
+      const re = RE2JS.compile(`${'(?:foo|bar'.repeat(450)}baz${')'.repeat(450)}`)
+      expect(re.test('foo')).toBe(true)
+      expect(re.test(`${'bar'.repeat(450)}baz`)).toBe(true)
+      expect(re.test('zzz')).toBe(false)
+    })
+  })
+
   describe('Infinite Loop & Memory Explosion Protections', () => {
     it('Safely matches massive strings without exceeding Call Stack Size', () => {
       const re = RE2JS.compile('a*b')
