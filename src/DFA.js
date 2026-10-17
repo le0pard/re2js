@@ -23,38 +23,132 @@ const arraysEqual = (a, b) => {
 }
 
 class DFAState {
-  constructor(nfaStates, isMatch, matchIDs = []) {
+  constructor(nfaStates, isMatch, matchIDs) {
     this.nfaStates = nfaStates // Int32Array of Instruction PCs
     this.isMatch = isMatch // Boolean
     this.matchIDs = matchIDs // Array of integers indicating which Set patterns matched
-
-    // Latin-1 (Unicode.MAX_LATIN1 + 1) flat arrays for blisteringly fast O(1) lookups
-    // completely covering standard English, European languages, and 1-byte encodings.
-    this.nextLatin1 = new Array(Unicode.MAX_LATIN1 + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
-    this.nextLatin1Anchored = new Array(Unicode.MAX_LATIN1 + 1).fill(null) // Flat array for blisteringly fast ASCII lookups
-    // 2 arrays used as hash map for V8 optimization (N is small number, so O(n) faster than Map O(1))
-    this.transKeys = []
-    this.transVals = []
-
-    this.lastSeen = 0 // Track when this state was last used for LRU eviction
+    // Transitions, indexed by rune class (see DFA.runeClass); one table per anchoring mode,
+    // allocated on first use and charged to the memory budget.
+    this.next = null
+    this.nextAnchored = null
   }
 }
 
+// A lazily built DFA over the Unicode code points of the input.
+//
+// Transitions are indexed by rune class rather than by rune: the program's rune ranges split
+// the code point space into intervals within which every instruction either matches all runes
+// or none (RE2 does the same at byte level with Prog::ComputeByteMap), so a state needs one
+// table entry per class instead of per character and no per-rune lookup structure.
+//
+// Memory is bounded like RE2's mem_budget_: every state and transition table is charged its
+// approximate size against |maxMem|. When the budget is exhausted the cache is reset and the
+// search goes on from the current state; if a search keeps exhausting the cache without making
+// progress (RE2: fewer than 10 bytes per cached state since the last reset) it gives up and
+// returns null, and the caller falls back to the NFA for that search only.
 class DFA {
-  static MAX_CACHE_CLEARS = 5
-  // Approximate bytes per state to map onto an 8MB default
-  static STATE_MEMORY_ESTIMATE = 838
+  // Approximate bytes charged per state (object, instruction list header, hash bucket entry)
+  // and per transition table, on top of their elements.
+  static STATE_OVERHEAD = 160
+  static TABLE_OVERHEAD = 16
+  // Bail out of a search when fewer than this many characters were processed per cached state
+  // since the previous cache reset (RE2: 10 bytes per state).
+  static PROGRESS_PER_STATE = 10
 
   // maxMem - the maximum memory in bytes to use for the DFA (default 8MB)
   constructor(prog, maxMem = 8388608) {
     this.prog = prog
+    this.maxMem = maxMem
     this.stateCache = new Map() // hash(number) -> DFAState[]
-    this.stateCount = 0 // Tracks total states for memory limits
+    this.stateCount = 0
     this.startState = null
-    this.stateLimit = Math.max(1, Math.floor(maxMem / DFA.STATE_MEMORY_ESTIMATE)) // Prevent memory explosion (ReDoS protection)
-    this.cacheClears = 0 // Track thrashing
-    this.failed = false // mark if DFA cannot work with provided prog
-    this.clock = 0 // Global clock for LRU eviction
+    // Structurally unsupported: empty-width assertions and lookbehinds depend on the position
+    // in the input, which a state of this DFA does not track. The NFA handles those programs.
+    this.failed = false
+    for (let pc = 0; pc < prog.numInst(); pc++) {
+      const op = prog.getInst(pc).op
+      if (op === Inst.EMPTY_WIDTH || op === Inst.LB_WRITE || op === Inst.LB_CHECK) {
+        this.failed = true
+        break
+      }
+    }
+    this.computeRuneClasses()
+    this.stateBudget = maxMem
+    this.memBudget = maxMem
+  }
+
+  // Splits the code point space at every boundary of every rune instruction, so that runes in
+  // the same class are indistinguishable to the program. Case-insensitive literals contribute
+  // their whole fold orbit, as Inst.matchRune compares against it.
+  computeRuneClasses() {
+    const bounds = new Set()
+    const addRune = (r) => {
+      bounds.add(r)
+      bounds.add(r + 1)
+    }
+    for (let pc = 0; pc < this.prog.numInst(); pc++) {
+      const inst = this.prog.getInst(pc)
+      switch (inst.op) {
+        case Inst.RUNE:
+        case Inst.RUNE1:
+          if (inst.runes.length === 1) {
+            addRune(inst.runes[0])
+            if ((inst.arg & RE2Flags.FOLD_CASE) !== 0) {
+              for (
+                let f = Unicode.simpleFold(inst.runes[0]);
+                f !== inst.runes[0];
+                f = Unicode.simpleFold(f)
+              ) {
+                addRune(f)
+              }
+            }
+          } else {
+            for (let j = 0; j < inst.runes.length; j += 2) {
+              bounds.add(inst.runes[j])
+              bounds.add(inst.runes[j + 1] + 1)
+            }
+          }
+          break
+        case Inst.RUNE_ANY_NOT_NL:
+          addRune(10) // '\n'
+          break
+        default:
+          break
+      }
+    }
+    bounds.delete(0)
+    this.classBounds = Int32Array.from(bounds).sort()
+    this.numClasses = this.classBounds.length + 1
+    // Precomputed classes for Latin-1 runes, the common case in the search loop.
+    const latin1Class = new Int32Array(Unicode.MAX_LATIN1 + 1)
+    for (let r = 0; r <= Unicode.MAX_LATIN1; r++) {
+      latin1Class[r] = this.searchClass(r)
+    }
+    this.latin1Class = latin1Class
+  }
+
+  // Returns the class of rune |r|: the number of class boundaries at or below it.
+  runeClass(r) {
+    if (r <= Unicode.MAX_LATIN1) {
+      return this.latin1Class[r]
+    }
+    return this.searchClass(r)
+  }
+
+  // Binary search of the class boundaries for rune |r|.
+  searchClass(r) {
+    const bounds = this.classBounds
+    let lo = 0
+    let hi = bounds.length
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1
+      if (bounds[mid] <= r) {
+        lo = mid + 1
+      } else {
+        hi = mid
+      }
+    }
+    return lo
   }
 
   // Follows epsilon (empty) transitions to find all reachable states without consuming a char
@@ -62,7 +156,7 @@ class DFA {
     const closure = new Set()
     const stack = [...pcs]
     let isMatch = false
-    const matchIDs = []
+    const matchIDs = new Set()
 
     while (stack.length > 0) {
       const pc = stack.pop()
@@ -73,7 +167,7 @@ class DFA {
       switch (inst.op) {
         case Inst.MATCH:
           isMatch = true
-          if (!matchIDs.includes(inst.arg)) matchIDs.push(inst.arg)
+          matchIDs.add(inst.arg)
           break
         case Inst.ALT:
         case Inst.ALT_MATCH:
@@ -84,24 +178,24 @@ class DFA {
         case Inst.CAPTURE:
           stack.push(inst.out)
           break
-        // Bailing out on complex empty-width assertions to keep DFA fast.
-        // Engine will seamlessly fall back to the NFA.
         case Inst.EMPTY_WIDTH:
         case Inst.LB_WRITE:
         case Inst.LB_CHECK:
+          // Not representable in this DFA (see the constructor); the engine falls back to the NFA.
           return null
       }
     }
 
     const sortedPCs = Int32Array.from(closure).sort()
-    matchIDs.sort((a, b) => a - b)
-    return { pcs: sortedPCs, isMatch, matchIDs }
+    const ids = Array.from(matchIDs).sort((a, b) => a - b)
+    return { pcs: sortedPCs, isMatch, matchIDs: ids }
   }
 
-  // Get or create a DFA state from a list of NFA PCs
+  // Get or create a DFA state from a list of NFA PCs.
+  // Returns null when the state would not fit in the memory budget (or the program is unsupported).
   getState(pcs) {
     const closureResult = this.computeClosure(pcs)
-    if (!closureResult) return null // Bailout to NFA required
+    if (!closureResult) return null
 
     const sortedPCs = closureResult.pcs
     const hash = hashPCs(sortedPCs)
@@ -113,125 +207,76 @@ class DFA {
       for (let i = 0; i < bucket.length; i++) {
         const state = bucket[i]
         if (arraysEqual(state.nfaStates, sortedPCs)) {
-          state.lastSeen = ++this.clock
           return state
         }
       }
-    } else {
+    }
+
+    const cost = DFA.STATE_OVERHEAD + 4 * sortedPCs.length + 8 * closureResult.matchIDs.length
+    if (this.memBudget < cost) {
+      return null // out of memory: the caller resets the cache or gives up
+    }
+    this.memBudget -= cost
+
+    if (!bucket) {
       bucket = []
       this.stateCache.set(hash, bucket)
     }
-
-    // DFA already failed once - exit
-    if (this.failed) return null
-
-    // Safety: prevent memory exhaustion from state explosion
-    // We prune the cache to keep the newest 50%
-    if (this.stateCount >= this.stateLimit) {
-      this.cacheClears++
-
-      // If this regex causes continuous cache thrashing, permanently fall back to NFA
-      // to avoid spending CPU cycles constantly rebuilding the DFA tree.
-      if (this.cacheClears >= DFA.MAX_CACHE_CLEARS) {
-        this.failed = true
-        this.stateCache.clear()
-        this.stateCount = 0
-        this.startState = null
-        return null
-      }
-
-      this.evictCache()
-
-      // After eviction, the bucket reference might be stale or empty.
-      // We must re-fetch or re-create the bucket.
-      bucket = this.stateCache.get(hash)
-      if (!bucket) {
-        bucket = []
-        this.stateCache.set(hash, bucket)
-      }
-    }
-
-    // State not found, create it and add to bucket
     const state = new DFAState(sortedPCs, closureResult.isMatch, closureResult.matchIDs)
-    state.lastSeen = ++this.clock
     bucket.push(state)
     this.stateCount++
     return state
   }
 
-  evictCache() {
-    const allStates = []
-    for (const bucket of this.stateCache.values()) {
-      for (let i = 0; i < bucket.length; i++) {
-        allStates.push(bucket[i])
-      }
+  // Allocates the transition table of |state| for the given anchoring, charging the budget.
+  // Returns null when it does not fit.
+  allocTable(state, anchor) {
+    const cost = DFA.TABLE_OVERHEAD + 8 * this.numClasses
+    if (this.memBudget < cost) {
+      return null
     }
-
-    // Sort ascending by lastSeen (oldest first)
-    allStates.sort((a, b) => a.lastSeen - b.lastSeen)
-
-    // Keep the newest 50%
-    const keepCount = Math.max(1, Math.floor(this.stateLimit / 2))
-    const startIndex = allStates.length - keepCount
-    const survivorsArray = allStates.slice(startIndex)
-    const survivors = new Set(survivorsArray)
-
-    this.stateCache.clear()
-    this.stateCount = 0
-
-    for (let i = 0; i < survivorsArray.length; i++) {
-      const state = survivorsArray[i]
-
-      // Sever ties to all states to prevent memory leaks and dangling pointers
-      state.nextLatin1.fill(null)
-      state.nextLatin1Anchored.fill(null)
-      // zero-allocation cleanup
-      state.transKeys.length = 0
-      state.transVals.length = 0
-
-      const hash = hashPCs(state.nfaStates)
-      let bucket = this.stateCache.get(hash)
-      if (!bucket) {
-        bucket = []
-        this.stateCache.set(hash, bucket)
-      }
-      bucket.push(state)
-      this.stateCount++
+    this.memBudget -= cost
+    const table = new Array(this.numClasses).fill(null)
+    if (anchor === RE2Flags.UNANCHORED) {
+      state.next = table
+    } else {
+      state.nextAnchored = table
     }
-
-    // Start state must either be preserved or nullified so it gets re-created
-    if (this.startState && !survivors.has(this.startState)) {
-      this.startState = null
-    }
+    return table
   }
 
-  // Compute the next DFA state given a current state and a character
-  step(state, charCode, anchor) {
-    // OPTIMIZATION: Latin-1 Array Fast-Path
-    if (charCode <= Unicode.MAX_LATIN1) {
-      if (anchor === RE2Flags.UNANCHORED) {
-        const next = state.nextLatin1[charCode]
-        if (next !== null) return next
-      } else {
-        const next = state.nextLatin1Anchored[charCode]
-        if (next !== null) return next
-      }
+  // Drops every cached state and restores the budget (RE2: DFA::ResetCache).
+  clearCache() {
+    this.stateCache.clear()
+    this.stateCount = 0
+    this.startState = null
+    this.memBudget = this.stateBudget
+  }
+
+  // Resets the cache and re-creates |current| so the search can continue from it. Returns the
+  // re-created state, or null if even that does not fit.
+  resetCache(current) {
+    this.clearCache()
+    return this.getState(current.nfaStates)
+  }
+
+  // Compute the next DFA state given a current state and a rune of class |cls|.
+  // Returns null when the transition cannot be cached within the memory budget.
+  step(state, cls, rune, anchor) {
+    let table = anchor === RE2Flags.UNANCHORED ? state.next : state.nextAnchored
+    if (table !== null) {
+      const cached = table[cls]
+      if (cached !== null) return cached
     } else {
-      // Dense Array Linear Search fallback for Runes > 255
-      const key = charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1)
-      // get [key] -> nextState
-      const keys = state.transKeys
-      const len = keys.length
-      for (let i = 0; i < len; i++) {
-        if (keys[i] === key) return state.transVals[i]
-      }
+      table = this.allocTable(state, anchor)
+      if (table === null) return null
     }
 
     const nextPCs = []
     for (let i = 0; i < state.nfaStates.length; i++) {
       const pc = state.nfaStates[i]
       const inst = this.prog.getInst(pc)
-      if (Inst.isRuneOp(inst.op) && inst.matchRune(charCode)) {
+      if (Inst.isRuneOp(inst.op) && inst.matchRune(rune)) {
         nextPCs.push(inst.out)
       }
     }
@@ -241,140 +286,126 @@ class DFA {
     }
 
     const nextState = this.getState(nextPCs)
+    if (nextState === null) return null
 
-    // Cache the result
-    if (charCode <= Unicode.MAX_LATIN1) {
-      if (anchor === RE2Flags.UNANCHORED) {
-        state.nextLatin1[charCode] = nextState
-      } else {
-        state.nextLatin1Anchored[charCode] = nextState
-      }
-    } else {
-      const key = charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1)
-      // store key -> nextState
-      state.transKeys.push(key)
-      state.transVals.push(nextState)
-    }
-
+    table[cls] = nextState
     return nextState
   }
 
-  // The hot loop: Execute the Lazy DFA
+  // Returns the start state, creating it if needed; null if the program is unsupported or the
+  // budget cannot hold it.
+  start() {
+    if (this.startState === null) {
+      this.startState = this.getState([this.prog.start])
+      if (this.startState === null && !this.failed) {
+        // The cache is full (e.g. an earlier search gave up): start over with an empty one.
+        this.clearCache()
+        this.startState = this.getState([this.prog.start])
+      }
+    }
+    return this.startState
+  }
+
+  // Runs the search loop from |state| over input[pos, endPos), calling onState(state, nextPos)
+  // after each transition; onState returns true to stop with a result. Returns the result of
+  // onState, |noMatch| when the input is exhausted, or null when the DFA gives up on this search.
+  run(input, pos, anchor, state, onState, noMatch) {
+    const endPos = input.endPos()
+    const latin1Class = this.latin1Class
+    let resetPos = -1
+    let i = pos
+    while (i < endPos) {
+      const r = input.step(i)
+      const rune = r >> 3
+      const width = r & 7
+      if (width === 0) break // prevent infinite loop on EOF
+
+      const cls = rune <= Unicode.MAX_LATIN1 ? latin1Class[rune] : this.runeClass(rune)
+      let next = anchor === RE2Flags.UNANCHORED && state.next !== null ? state.next[cls] : null
+      if (next === null) {
+        next = this.step(state, cls, rune, anchor)
+        if (next === null) {
+          // Out of memory. Give up if the cache keeps filling without progress, otherwise reset
+          // it and continue from the current state (RE2: InlinedSearchLoop / ResetCache).
+          if (resetPos >= 0 && i - resetPos < DFA.PROGRESS_PER_STATE * this.stateCount) {
+            return null
+          }
+          resetPos = i
+          state = this.resetCache(state)
+          if (state === null) return null
+          next = this.step(state, cls, rune, anchor)
+          if (next === null) return null
+        }
+      }
+      state = next
+      i += width
+
+      const result = onState(state, i)
+      if (result !== null) return result
+
+      // If we hit a dead end, and anchored, fail early
+      if (state.nfaStates.length === 0 && anchor !== RE2Flags.UNANCHORED) {
+        return noMatch
+      }
+    }
+    return noMatch
+  }
+
+  // The hot loop: Execute the Lazy DFA. Returns true/false, or null to fall back to the NFA.
   match(input, pos, anchor) {
+    if (this.failed) return null
     if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
       return false
     }
 
-    if (!this.startState) {
-      this.startState = this.getState([this.prog.start])
-      if (!this.startState) return null // Fallback to NFA
+    const startState = this.start()
+    if (startState === null) return null
+
+    const endPos = input.endPos()
+    if (startState.isMatch && (anchor !== RE2Flags.ANCHOR_BOTH || pos === endPos)) {
+      return true
     }
 
-    let endPos = input.endPos()
-    let currentState = this.startState
-    if (currentState.isMatch) {
-      if (anchor === RE2Flags.ANCHOR_BOTH) {
-        if (pos === endPos) return true
-      } else {
-        return true
-      }
-    }
-
-    let i = pos
-
-    while (i < endPos) {
-      const r = input.step(i)
-      const rune = r >> 3
-      const width = r & 7
-
-      // prevent infinite loop on EOF
-      if (width === 0) {
-        break
-      }
-
-      currentState =
-        (anchor === RE2Flags.UNANCHORED &&
-          rune <= Unicode.MAX_LATIN1 &&
-          currentState.nextLatin1[rune]) ||
-        this.step(currentState, rune, anchor)
-
-      // If we hit an unrecoverable DFA error or bailout, signal fallback
-      if (currentState === null) return null
-
-      currentState.lastSeen = ++this.clock
-
-      if (currentState.isMatch) {
-        if (anchor === RE2Flags.ANCHOR_BOTH) {
-          if (i + width === endPos) return true
-        } else {
+    return this.run(
+      input,
+      pos,
+      anchor,
+      startState,
+      (state, nextPos) => {
+        if (state.isMatch && (anchor !== RE2Flags.ANCHOR_BOTH || nextPos === endPos)) {
           return true
         }
-      }
-
-      // If we hit a dead end, and anchored, fail early
-      if (currentState.nfaStates.length === 0) {
-        if (anchor !== RE2Flags.UNANCHORED) return false
-      }
-      i += width
-    }
-
-    return false
+        return null
+      },
+      false
+    )
   }
 
-  // The hot loop for evaluating Multi-Pattern Sets
+  // The hot loop for evaluating Multi-Pattern Sets. Returns the sorted matching pattern ids,
+  // or null to fall back to the NFA.
   matchSet(input, pos, anchor) {
+    if (this.failed) return null
     if ((anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) && pos !== 0) {
       return []
     }
 
-    if (!this.startState) {
-      this.startState = this.getState([this.prog.start])
-      if (!this.startState) return null // Fallback to NFA
-    }
+    const startState = this.start()
+    if (startState === null) return null
 
-    let endPos = input.endPos()
-    let currentState = this.startState
+    const endPos = input.endPos()
     const matches = new Set()
-
-    const checkMatch = (state, currentPos) => {
-      if (state.isMatch) {
-        if (anchor === RE2Flags.ANCHOR_BOTH) {
-          if (currentPos === endPos) {
-            state.matchIDs.forEach((id) => matches.add(id))
-          }
-        } else {
-          state.matchIDs.forEach((id) => matches.add(id))
+    const collect = (state, currentPos) => {
+      if (state.isMatch && (anchor !== RE2Flags.ANCHOR_BOTH || currentPos === endPos)) {
+        for (let k = 0; k < state.matchIDs.length; k++) {
+          matches.add(state.matchIDs[k])
         }
       }
+      return null // keep scanning: later positions may match other patterns
     }
 
-    checkMatch(currentState, pos)
-
-    let i = pos
-    while (i < endPos) {
-      const r = input.step(i)
-      const rune = r >> 3
-      const width = r & 7
-
-      if (width === 0) break
-
-      currentState =
-        (anchor === RE2Flags.UNANCHORED &&
-          rune <= Unicode.MAX_LATIN1 &&
-          currentState.nextLatin1[rune]) ||
-        this.step(currentState, rune, anchor)
-
-      if (currentState === null) return null // Bailout to NFA
-
-      currentState.lastSeen = ++this.clock
-
-      i += width
-      checkMatch(currentState, i)
-
-      if (currentState.nfaStates.length === 0) {
-        if (anchor !== RE2Flags.UNANCHORED) break
-      }
-    }
+    collect(startState, pos)
+    const result = this.run(input, pos, anchor, startState, collect, false)
+    if (result === null) return null
 
     return Array.from(matches).sort((a, b) => a - b)
   }

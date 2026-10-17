@@ -1,12 +1,13 @@
 import { expect, describe, it } from 'vitest'
 import { DFA } from '../DFA.js'
 import { Compiler } from '../Compiler.js'
+import { Simplify } from '../Simplify.js'
 import { Parser } from '../Parser.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { MachineInput } from '../MachineInput.js'
 
 const createDFA = (pattern, flags = RE2Flags.PERL, maxMem = void 0) => {
-  const re = Parser.parse(pattern, flags)
+  const re = Simplify.simplify(Parser.parse(pattern, flags))
   const prog = Compiler.compileRegexp(re)
   return new DFA(prog, maxMem)
 }
@@ -76,185 +77,134 @@ describe('Bailout / Unsupported Features', () => {
   })
 })
 
-describe('Memory Limit (ReDoS Protection)', () => {
-  it('granular eviction allows completion for simple patterns despite low limits', () => {
-    const dfa = createDFA('(a+)+b')
-    // An NFA state combination for a simple query like (a+)+b is highly optimized
-    // and will recycle very few unique DFA states. Setting the limit to 1 guarantees
-    // it leverages granular eviction to complete successfully without permanently disabling.
-    dfa.stateLimit = 1
-
+describe('Memory budget (ReDoS Protection)', () => {
+  it('completes a search within a tiny budget by resetting the cache while making progress', () => {
+    // Enough for a handful of states: the cache is reset as needed and the search goes on.
+    const dfa = createDFA('(a+)+b', RE2Flags.PERL, 2000)
     expect(runDFA(dfa, 'aaaaaab')).toBe(true)
+    expect(dfa.failed).toBe(false)
   })
 
-  it('flushes cache and falls back, permanently disabling after thrashing', () => {
-    // A pattern and string that creates a continuously growing NFA state set,
-    // guaranteeing a unique DFA state for every character.
-    const dfa = createDFA('a.*b.*c.*d.*e.*f')
-    dfa.stateLimit = 1
-
-    // 1st to 5th attempt will flush the cache, increment cacheClears, and return null
-    for (let i = 0; i < DFA.MAX_CACHE_CLEARS; i++) {
-      expect(runDFA(dfa, 'abcdef')).toBeNull()
+  it('gives up on a search that keeps exhausting the cache, for that search only', () => {
+    // [ab]*a[ab]{12}c needs a distinct state for (almost) every recent 13-character window,
+    // so random a/b input keeps creating states and never matches.
+    let seed = 1
+    let text = ''
+    for (let i = 0; i < 20000; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff
+      text += seed & 0x10000 ? 'a' : 'b'
     }
-
-    // After 5 clears, it officially sets failed = true
-    expect(dfa.failed).toBe(true)
-
-    // 6th attempt should return immediately with null
-    expect(runDFA(dfa, 'abcdef')).toBeNull()
-  })
-})
-
-describe('DFA Cache Transitions (Latin-1 & Dense Arrays)', () => {
-  it('uses nextLatin1 array for ASCII and Latin-1 characters (<= 255)', () => {
-    // 'a' is code 97, 'é' is code 233 (both fit in the 256-length Latin-1 flat array)
-    const dfa = createDFA('aé')
-    runDFA(dfa, 'aé')
-
-    const startState = dfa.startState
-    expect(startState).not.toBeNull()
-
-    // 'a' transitions should be populated in the flat array
-    const stateAfterA = startState.nextLatin1[97]
-    expect(stateAfterA).not.toBeNull()
-
-    // 'é' transitions should also be populated in the flat array
-    const stateAfterE = stateAfterA.nextLatin1[233]
-    expect(stateAfterE).not.toBeNull()
-
-    // Ensure the dense arrays were never touched because everything fit in Latin-1
-    expect(startState.transKeys.length).toBe(0)
-    expect(stateAfterA.transKeys.length).toBe(0)
+    const dfa = createDFA('[ab]*a[ab]{12}c', RE2Flags.PERL, 4000)
+    expect(runDFA(dfa, text)).toBeNull()
+    // Not a permanent failure: an input that fits the budget still runs on the DFA
+    expect(dfa.failed).toBe(false)
+    expect(runDFA(dfa, 'xyz')).toBe(false)
+    expect(runDFA(dfa, `a${'b'.repeat(12)}c`)).toBe(true)
   })
 
-  it('uses parallel transKeys and transVals arrays for Runes > 255', () => {
-    // '€' is code 8364, which heavily exceeds the 255 limit
-    const dfa = createDFA('€')
-    runDFA(dfa, '€')
-
-    const startState = dfa.startState
-    expect(startState).not.toBeNull()
-
-    // Should not be in Latin1 array (which only has 256 slots, so accessing 8364 is undefined)
-    expect(startState.nextLatin1[8364]).toBeUndefined()
-
-    // Should be pushed into the parallel dense arrays
-    expect(startState.transKeys.length).toBeGreaterThan(0)
-    expect(startState.transKeys[0]).toBe(8364) // Unanchored key is exactly the rune code
-    expect(startState.transVals[0]).not.toBeNull() // Target state is saved
+  it('returns null when the budget cannot hold even the start state', () => {
+    const dfa = createDFA('a', RE2Flags.PERL, 10)
+    expect(runDFA(dfa, 'a')).toBeNull()
+    expect(dfa.failed).toBe(false)
   })
 
-  it('eviction properly clears Latin-1 flat arrays and resets dense array lengths to 0', () => {
-    const dfa = createDFA('a.*b.*c.*d.*e.*f')
-
-    // Run normally to parse successfully, generating and caching states
-    runDFA(dfa, 'abcdef')
-
-    // Verify the cache has populated transitions before we test eviction
-    let preEvictionHasTransitions = false
-    for (const bucket of dfa.stateCache.values()) {
-      for (const state of bucket) {
-        if (state.nextLatin1.some((x) => x !== null)) {
-          preEvictionHasTransitions = true
-        }
-      }
-    }
-    expect(preEvictionHasTransitions).toBe(true)
-
-    // Lower the limit and trigger the eviction sweep manually
-    dfa.stateLimit = 4
-    dfa.evictCache()
-
-    // Inspect the remaining survivors in the cache to ensure all transition ties were fully severed
-    let survivorCount = 0
-    for (const bucket of dfa.stateCache.values()) {
-      for (const state of bucket) {
-        survivorCount++
-
-        // Verify Latin-1 flat arrays were fully zeroed out using .fill(null)
-        expect(state.nextLatin1.every((x) => x === null)).toBe(true)
-        expect(state.nextLatin1Anchored.every((x) => x === null)).toBe(true)
-
-        // Verify the GC-friendly zero-allocation truncation worked perfectly
-        expect(state.transKeys.length).toBe(0)
-        expect(state.transVals.length).toBe(0)
-      }
-    }
-
-    // Ensure we actually checked some surviving states and didn't permanently bailout
-    expect(survivorCount).toBeGreaterThan(0)
-  })
-
-  it('survives extreme limit thrashing without 100% cache wipes', () => {
+  it('charges states and transition tables against the budget and restores it on reset', () => {
     const dfa = createDFA('a+b')
-    dfa.stateLimit = 1
-
+    const before = dfa.memBudget
     runDFA(dfa, 'aaab')
-
-    // Even though limit is 1, the eviction formula Math.max(1, floor(1/2))
-    // ensures exactly 1 state survives the wipe. The engine then immediately
-    // pushes the 1 newly evaluated state, leaving exactly 2 states in the cache.
-    let survivorCount = 0
-    for (const bucket of dfa.stateCache.values()) {
-      survivorCount += bucket.length
-    }
-
-    expect(survivorCount).toBe(2)
+    expect(dfa.memBudget).toBeLessThan(before)
+    expect(dfa.stateCount).toBeGreaterThan(0)
+    const current = dfa.startState
+    const recreated = dfa.resetCache(current)
+    expect(dfa.stateCount).toBe(1)
+    expect(recreated.nfaStates).toEqual(current.nfaStates)
+    expect(dfa.memBudget).toBe(before - DFA.STATE_OVERHEAD - 4 * recreated.nfaStates.length)
   })
 
-  it('uses nextLatin1Anchored array when anchor is strictly enforced', () => {
-    const dfa = createDFA('a')
-
-    // Process input to populate cache
-    runDFA(dfa, 'a', RE2Flags.ANCHOR_START)
-
-    const startState = dfa.startState
-    expect(startState).not.toBeNull()
-
-    // The anchored array should be populated for 'a' (code 97)
-    const stateAfterA = startState.nextLatin1Anchored[97]
-    expect(stateAfterA).not.toBeNull()
-
-    // The unanchored array should remain null because the engine explicitly evaluated anchored
-    expect(startState.nextLatin1[97]).toBeNull()
-  })
-
-  it('dense arrays do not accumulate duplicates for the same transition', () => {
-    // Append 'x' to prevent the DFA from early-exiting on the first Euro sign
-    const dfa = createDFA('€+x')
-
-    // Match a string with multiple Euro signs to trigger the same transition repeatedly
-    runDFA(dfa, '€€€x')
-
-    const startState = dfa.startState
-    expect(startState).not.toBeNull()
-
-    // Should only have pushed the key exactly once, reusing it for subsequent '€' runes
-    expect(startState.transKeys.length).toBe(1)
-    expect(startState.transKeys[0]).toBe(8364) // Euro sign is Rune 8364
-
-    // The state it transitions to should also only have 1 key (looping back to itself)
-    const nextState = startState.transVals[0]
-    expect(nextState.transKeys.length).toBe(1)
-    expect(nextState.transKeys[0]).toBe(8364)
+  it('declines programs with empty-width assertions or lookbehinds up front', () => {
+    const dfa = createDFA('\\bword\\b')
+    expect(dfa.failed).toBe(true)
+    expect(runDFA(dfa, 'word')).toBeNull()
+    const lb = createDFA('(?<=a)b', RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    expect(lb.failed).toBe(true)
   })
 })
 
-describe('DFA Memory Limits', () => {
-  it('calculates stateLimit proportionally to maxMem', () => {
-    // 8380 bytes / 838 bytes per state = 10 states
-    const dfa1 = createDFA('a', RE2Flags.PERL, 8380)
-    expect(dfa1.stateLimit).toBe(10)
+describe('Rune classes', () => {
+  it('splits the code point space at the boundaries of the program runes', () => {
+    const dfa = createDFA('a[c-e]')
+    // classes: [0,97) a=97 [98,99) [99,102) [102,...)
+    expect(Array.from(dfa.classBounds)).toEqual([97, 98, 99, 102])
+    expect(dfa.numClasses).toBe(5)
+    expect(dfa.runeClass(0)).toBe(0)
+    expect(dfa.runeClass(97)).toBe(1)
+    expect(dfa.runeClass(98)).toBe(2)
+    expect(dfa.runeClass(99)).toBe(3)
+    expect(dfa.runeClass(101)).toBe(3)
+    expect(dfa.runeClass(102)).toBe(4)
+    expect(dfa.runeClass(0x10ffff)).toBe(4)
   })
 
-  it('defaults to ~8MB (10010 states) if maxMem is not provided', () => {
-    const dfa2 = createDFA('a')
-    expect(dfa2.stateLimit).toBe(10010)
+  it('includes the fold orbit of case-insensitive literals', () => {
+    const dfa = createDFA('k', RE2Flags.PERL | RE2Flags.FOLD_CASE)
+    // k, K and the Kelvin sign U+212A
+    expect(Array.from(dfa.classBounds)).toEqual([75, 76, 107, 108, 0x212a, 0x212b])
+    expect(runDFA(dfa, '\u212a')).toBe(true)
   })
 
-  it('safely guarantees at least 1 state for restrictively low memory', () => {
-    const dfa3 = createDFA('a', RE2Flags.PERL, 10)
-    expect(dfa3.stateLimit).toBe(1)
+  it('treats the newline specially only for "." patterns', () => {
+    expect(Array.from(createDFA('.').classBounds)).toEqual([10, 11])
+    expect(Array.from(createDFA('(?s).').classBounds)).toEqual([])
+    expect(createDFA('(?s).').numClasses).toBe(1)
+  })
+
+  it('shares one transition per class, for Latin-1 and higher runes alike', () => {
+    const dfa = createDFA('€+x')
+    runDFA(dfa, '€€€x')
+    const startState = dfa.startState
+    expect(startState).not.toBeNull()
+    const euro = dfa.runeClass(8364)
+    const afterEuro = startState.next[euro]
+    expect(afterEuro).not.toBeNull()
+    // the loop on '€' maps back to the same state
+    expect(afterEuro.next[euro]).toBe(afterEuro)
+    // runes of the same class share the entry: 'a' and 'b' are both "anything else" here
+    expect(dfa.runeClass(97)).toBe(dfa.runeClass(98))
+    expect(dfa.stateCount).toBeLessThanOrEqual(4)
+  })
+
+  it('keeps separate tables for anchored and unanchored searches', () => {
+    const dfa = createDFA('a')
+    runDFA(dfa, 'a', RE2Flags.ANCHOR_START)
+    const startState = dfa.startState
+    expect(startState.nextAnchored).not.toBeNull()
+    expect(startState.next).toBeNull()
+    runDFA(dfa, 'xa')
+    expect(startState.next).not.toBeNull()
+  })
+
+  it('stays linear in the number of distinct non-Latin-1 runes', () => {
+    // Every rune outside the program's classes shares one transition entry
+    const dfa = createDFA('.c')
+    let s = ''
+    for (let i = 0; i < 40000; i++) s += String.fromCodePoint(0x100 + i)
+    const t0 = Date.now()
+    expect(runDFA(dfa, `${s}c`)).toBe(true)
+    expect(Date.now() - t0).toBeLessThan(500) // was quadratic: ~280 ms here, ~1 s for 80,000
+    expect(dfa.stateCount).toBeLessThanOrEqual(4)
+  })
+})
+
+describe('Sets with many patterns', () => {
+  it('collects match ids without quadratic work per state', () => {
+    const regexps = []
+    for (let i = 0; i < 2000; i++) {
+      regexps.push(Simplify.simplify(Parser.parse(`x{${(i % 5) + 1}}`, RE2Flags.PERL)))
+    }
+    const dfa = new DFA(Compiler.compileSet(regexps))
+    const t0 = Date.now()
+    const ids = dfa.matchSet(MachineInput.fromUTF16('xxxxx'), 0, RE2Flags.UNANCHORED)
+    expect(Date.now() - t0).toBeLessThan(1000)
+    expect(ids).toHaveLength(2000)
   })
 })

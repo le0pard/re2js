@@ -138,27 +138,24 @@ describe('RE2Set Memory Limits', () => {
     const set = new RE2Set()
     set.add('foo')
     set.compile()
-
-    // 8MB (8,388,608 bytes) / 838 bytes per state = 10010
-    expect(set.dfa.stateLimit).toBe(10010)
+    expect(set.dfa.maxMem).toBe(8388608)
   })
 
-  it('respects custom maxMem parameter', () => {
-    const customMem = 8380 // Exactly enough for 10 states
-    const set = new RE2Set(RE2Set.UNANCHORED, 0, customMem)
+  it('passes a custom maxMem to the DFA budget', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, 0, 4096)
     set.add('foo')
     set.compile()
-
-    expect(set.dfa.stateLimit).toBe(10)
+    expect(set.dfa.maxMem).toBe(4096)
+    expect(set.dfa.memBudget).toBe(4096)
   })
 
-  it('enforces a minimum state limit of 1 for very small maxMem', () => {
-    const customMem = 100 // Less than the 838 bytes needed for a single state
-    const set = new RE2Set(RE2Set.UNANCHORED, 0, customMem)
+  it('still matches through the NFA when the budget cannot hold the DFA', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, 0, 100)
     set.add('foo')
+    set.add('bar')
     set.compile()
-
-    expect(set.dfa.stateLimit).toBe(1)
+    expect(set.match('xx bar')).toEqual([1])
+    expect(set.dfa.failed).toBe(false)
   })
 })
 

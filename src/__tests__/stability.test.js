@@ -268,10 +268,11 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     })
 
     it('DFA State Explosion limits are enforced (OOM Protection)', () => {
+      // A tiny DFA memory budget: the cache is reset repeatedly and the search either
+      // completes on the DFA or is handed to the NFA for that call.
       const re = RE2JS.compile('.*a.*b.*c')
-
-      // Artificially restrict the DFA state cache limit
-      re.re2Input.dfa.stateLimit = 5
+      re.re2Input.dfa.stateBudget = 1200
+      re.re2Input.dfa.memBudget = 1200
 
       // The DFA will run out of states and bailout gracefully, routing the rest
       // of the string to the NFA fallback without crashing or throwing OOM errors.
