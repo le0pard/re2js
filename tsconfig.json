@@ -1,5 +1,7 @@
 {
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
@@ -14,5 +16,10 @@
     "stripInternal": true,
     "outDir": "tmp/types",
     "rootDir": "src"
-  }
+  },
+  "exclude": [
+    "src/__tests__",
+    "src/__utils__",
+    "src/__fixtures__"
+  ]
 }
