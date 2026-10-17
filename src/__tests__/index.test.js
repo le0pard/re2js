@@ -914,9 +914,15 @@ describe('replaceAll and replaceFirst', () => {
           .matcher('Hello World')
           .replaceAll('${test', true)
       ).toThrow(new RE2JSGroupException("named capture group is missing trailing '}'"))
-      expect(() =>
+      // re2j / java.util.regex take the longest valid group number: with two groups, "$20" is
+      // group 2 followed by "0" and "$11" is group 1 followed by "1"
+      expect(
         RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$20 - $11', true)
-      ).toThrow(new RE2JSGroupException('n > number of groups: 20'))
+      ).toBe('World0 - Hello1')
+      // only a first digit beyond the number of groups is an error
+      expect(() =>
+        RE2JS.compile('(\\w+) (\\w+)').matcher('Hello World').replaceAll('$31', true)
+      ).toThrow(new RE2JSGroupException('n > number of groups: 3'))
     })
   })
 })
@@ -1139,13 +1145,15 @@ describe('Java mode appendReplacement validation', () => {
 
     expect(() => m.replaceAll('$foo', true)).toThrow('Illegal group reference')
 
+    // With one group, "$10" is group 1 followed by "0" (re2j); "$2" has no valid group
     const p2 = RE2JS.compile('(abc)')
-    const m2 = p2.matcher('abc')
-    expect(() => m2.replaceFirst('$10', true)).toThrow('n > number of groups: 10')
+    expect(p2.matcher('abc').replaceFirst('$10', true)).toBe('abc0')
+    expect(() => p2.matcher('abc').replaceFirst('$2', true)).toThrow('n > number of groups: 2')
 
+    // With 13 groups, "$10" is group 10 and "$20" is group 2 followed by "0"
     const p3 = RE2JS.compile('(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)(.)')
-    const m3 = p3.matcher('abcdefghijklmnopqrstuvwxyz123')
-    expect(() => m3.replaceAll('$10$20', true)).toThrow('n > number of groups: 20')
+    const m3 = p3.matcher('abcdefghijklm')
+    expect(m3.replaceAll('$10$20', true)).toBe('jb0')
   })
 })
 

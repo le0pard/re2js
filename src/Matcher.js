@@ -498,11 +498,17 @@ class Matcher {
         const nextCode = replacement.codePointAt(i + 1)
 
         if (Codepoint.CODES.get('0') <= nextCode && nextCode <= Codepoint.CODES.get('9')) {
+          // The group number is the longest run of digits that is still a valid group
+          // (re2j / java.util.regex): with one group, "$10" is group 1 followed by "0".
           let n = nextCode - Codepoint.CODES.get('0')
           let j = i + 2
           for (; j < m; j++) {
             const digit = replacement.codePointAt(j)
-            if (digit < Codepoint.CODES.get('0') || digit > Codepoint.CODES.get('9')) {
+            if (
+              digit < Codepoint.CODES.get('0') ||
+              digit > Codepoint.CODES.get('9') ||
+              n * 10 + digit - Codepoint.CODES.get('0') > this.patternGroupCount
+            ) {
               break
             }
             n = n * 10 + digit - Codepoint.CODES.get('0')

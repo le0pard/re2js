@@ -112,12 +112,14 @@ class Prog {
     }
 
     // Stop at U+FFFD (Go: i.Rune[0] != utf8.RuneError): invalid UTF-8 bytes decode to it, but a
-    // byte search for its encoding could never find them.
+    // byte search for its encoding could never find them. Also stop at a surrogate code point:
+    // it only matches an unpaired surrogate in the input, but a search for the code unit would
+    // also find it inside a surrogate pair, which the engines read as a single rune.
     while (
       Inst.isRuneOp(i.op) &&
       i.runes.length === 1 &&
       (i.arg & RE2Flags.FOLD_CASE) === 0 &&
-      i.runes[0] !== Unicode.RUNE_ERROR
+      !Unicode.isUnsearchable(i.runes[0])
     ) {
       prefix += String.fromCodePoint(i.runes[0])
       i = this.skipNop(i.out)

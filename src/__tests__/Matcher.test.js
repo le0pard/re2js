@@ -806,3 +806,55 @@ describe('Replacement String Injection Prevention', () => {
     expect(matcher.replaceAll(safeReplacement, true)).toEqual('hello $1')
   })
 })
+
+describe('Java-mode group references follow re2j', () => {
+  it('takes the longest run of digits that is a valid group number', () => {
+    const re = RE2JS.compile('(a)(b)(c)(d)(e)(f)(g)(h)(i)(j)(k)')
+    expect(re.matcher('abcdefghijk').replaceAll('$11', true)).toBe('k')
+    expect(re.matcher('abcdefghijk').replaceAll('$12', true)).toBe('a2')
+    expect(re.matcher('abcdefghijk').replaceAll('$111', true)).toBe('k1')
+    expect(re.matcher('abcdefghijk').replaceAll('$0x', true)).toBe('abcdefghijkx')
+    // "00" is still group 0, so both digits are consumed (as in re2j)
+    expect(re.matcher('abcdefghijk').replaceAll('$00', true)).toBe('abcdefghijk')
+  })
+
+  it('agrees with the JS-mode rule for the same references', () => {
+    const re = RE2JS.compile('(x)(y)')
+    expect(re.matcher('xy').replaceAll('$10|$21', true)).toBe(
+      re.matcher('xy').replaceAll('$10|$21')
+    )
+  })
+})
+
+describe('Lone surrogates in patterns', () => {
+  // A lone surrogate in the pattern only matches an unpaired surrogate in the input; the
+  // literal fast path and prefix search must not find it inside a surrogate pair.
+  const pair = '\uD800\uDC00'
+
+  it('does not match half of a surrogate pair', () => {
+    expect(RE2JS.compile('\\x{DC00}').test(pair)).toBe(false)
+    expect(RE2JS.compile('\\x{DC00}').test('a\uDC00')).toBe(true)
+    expect(RE2JS.compile('\uDC00').test(pair)).toBe(false)
+    expect(RE2JS.compile('\\x{D800}').test(pair)).toBe(false)
+    expect(RE2JS.compile('\\x{D800}').test('\uD800a')).toBe(true)
+    expect(RE2JS.compile('\\x{DC00}x').test(`${pair}x`)).toBe(false)
+    expect(RE2JS.compile('\\x{DC00}x').test('\uDC00x')).toBe(true)
+  })
+
+  it('keeps surrogates out of the literal prefix', () => {
+    const re2 = RE2JS.compile('ab\\x{DC00}c').re2()
+    expect(re2.prefix).toBe('ab')
+    expect(re2.prefixComplete).toBe(false)
+  })
+
+  it('agrees between the literal fast path and the engines', () => {
+    const literal = RE2JS.compile('\\x{DC00}')
+    const viaEngine = RE2JS.compile('\\x{DC00}|zzz')
+    for (const s of [pair, '\uDC00', 'x\uDC00\uD800', '\uD83D\uDE00\uDC00']) {
+      expect(literal.test(s)).toBe(viaEngine.test(s))
+      expect(Array.from(literal.matchAll(s), (m) => m.index)).toEqual(
+        Array.from(viaEngine.matchAll(s), (m) => m.index)
+      )
+    }
+  })
+})

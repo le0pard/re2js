@@ -234,9 +234,8 @@ class PrefilterTree {
     }
     let str = ''
     for (let i = 0; i < re.runes.length; i++) {
-      if (re.runes[i] === Unicode.RUNE_ERROR) {
-        // Invalid UTF-8 bytes decode to U+FFFD but never contain its encoding, so a
-        // literal U+FFFD cannot be required as a byte string (see Prog.prefix).
+      if (Unicode.isUnsearchable(re.runes[i])) {
+        // U+FFFD and surrogates cannot be required as a plain string (see Prog.prefix).
         return new Prefilter(Prefilter.Type.NONE)
       }
       str += String.fromCodePoint(re.runes[i])
