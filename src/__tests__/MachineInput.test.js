@@ -1,6 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import { MachineInput, MachineInputBase } from '../MachineInput.js'
 import { RE2JS } from '../index.js'
+import { Utils } from '../Utils.js'
 
 describe('MachineUTF16Input Boundary Checks', () => {
   it('does not report literal prefix matches that exceed the bounded substring', () => {
@@ -182,6 +183,38 @@ describe('Invalid UTF-8 input never matches as a different character', () => {
     expect(dot.test(bytes(0xf4, 0x90, 0x80, 0x80))).toBe(true)
     expect(dot.matcher(bytes(0xf4, 0x90, 0x80, 0x80)).find()).toBe(true)
     expect(RE2JS.compile('^(?s).{4}$').test(bytes(0xf4, 0x90, 0x80, 0x80))).toBe(true)
+  })
+
+  it('decodes the character before a position like Go utf8.DecodeLastRune', () => {
+    // The rune before pos must end exactly at pos; a truncated sequence or a stray byte after
+    // an ASCII character is U+FFFD, not that ASCII character.
+    const context = (b, pos) => MachineInput.fromUTF8(Uint8Array.from(b)).context(pos)
+    const { EMPTY_BEGIN_LINE, EMPTY_WORD_BOUNDARY, EMPTY_NO_WORD_BOUNDARY } = Utils
+    expect(context([0x61, 0xc3], 2) & EMPTY_NO_WORD_BOUNDARY).not.toBe(0)
+    expect(context([0x61, 0xff], 2) & EMPTY_NO_WORD_BOUNDARY).not.toBe(0)
+    expect(context([0x61, 0xf0, 0x9f], 3) & EMPTY_NO_WORD_BOUNDARY).not.toBe(0)
+    expect(context([0x0a, 0xff, 0x62], 2) & EMPTY_BEGIN_LINE).toBe(0)
+    expect(context([0x0a, 0xc3, 0x62], 2) & EMPTY_BEGIN_LINE).toBe(0)
+    // valid sequences decode as themselves
+    expect(context([0xc3, 0xa9, 0x61], 3) & EMPTY_WORD_BOUNDARY).not.toBe(0)
+    expect(context([0x61, 0xc3, 0xa9], 3) & EMPTY_NO_WORD_BOUNDARY).not.toBe(0)
+    expect(context([0xe2, 0x82, 0xac, 0x0a], 4) & EMPTY_BEGIN_LINE).toBe(EMPTY_BEGIN_LINE)
+  })
+
+  it.each([
+    // [pattern, input, Go's FindIndex]
+    ['\\b$', [0x61, 0xc3], null],
+    ['\\b$', [0x61, 0xff], null],
+    ['\\B$', [0x61, 0xc3], [2, 2]],
+    ['(?m)^b', [0x0a, 0xff, 0x62], null],
+    ['(?m)^b', [0x0a, 0xc3, 0x62], null],
+    ['a\\b', [0x61, 0xf0, 0x9f], [0, 1]],
+    ['(?m)^', [0xc3, 0xa9, 0x0a, 0x80, 0x78], [0, 0]]
+  ])('evaluates %s after invalid bytes as Go does, in every engine', (pattern, b, want) => {
+    const re = RE2JS.compile(pattern)
+    const m = re.matcher(Uint8Array.from(b))
+    expect(m.find() ? [m.start(), m.end()] : null).toEqual(want)
+    expect(re.test(Uint8Array.from(b))).toBe(want !== null)
   })
 
   it('advances through invalid bytes in repeated matching', () => {

@@ -122,6 +122,41 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     })
   })
 
+  describe('Lazy DFA state explosion stays linear', () => {
+    // [ab]*a[ab]{19} needs 2^20 DFA states. The DFA fills its cache, resets it, then gives up
+    // when resets come too often and the NFA finishes the search (RE2's policy), so a search
+    // costs a bounded DFA attempt plus a linear NFA scan. Assertions are handled by the DFA
+    // too and must not change that. 4x the input must cost well under 16x the time.
+    const random = (n, seed) => {
+      let state = seed
+      let s = ''
+      for (let i = 0; i < n; i++) {
+        state = (Math.imul(state, 1103515245) + 12345) & 0x7fffffff
+        s += (state >>> 16) & 1 ? 'a' : 'b'
+      }
+      return `${s} !`
+    }
+    const testTime = (pattern, text) => {
+      const re = RE2JS.compile(pattern) // a fresh, empty DFA cache
+      const start = performance.now()
+      const result = re.test(text)
+      return [performance.now() - start, result]
+    }
+
+    it.each(['[ab]*a[ab]{19}!', '\\b[ab]*a[ab]{19}\\b!', '(?i)\\B[ab]*a[ab]{19}\\B!'])(
+      '%s on random text that never matches',
+      (pattern) => {
+        const small = random(50000, 1)
+        const large = random(200000, 2)
+        testTime(pattern, small) // warm up
+        const [tSmall, rSmall] = testTime(pattern, small)
+        const [tLarge, rLarge] = testTime(pattern, large)
+        expect([rSmall, rLarge]).toEqual([false, false])
+        expect(tLarge).toBeLessThan(8 * tSmall + 100)
+      }
+    )
+  })
+
   describe('Parsing large patterns stays linear', () => {
     // These used to be quadratic: the parse stack was copied on every '|' or ')', literal runes
     // were copied on every appended rune, and classes merged across '|' were copied per branch.

@@ -157,6 +157,24 @@ describe('RE2Set Memory Limits', () => {
     expect(set.match('xx bar')).toEqual([1])
     expect(set.dfa.failed).toBe(false)
   })
+
+  it('gives the same ids with assertions when a small budget forces cache resets', () => {
+    const patterns = ['\\bfoo\\b', '(?m)^bar$', '\\Bz', '[ab]*a[ab]{6}\\b', 'qux\\z', '(?i)\\bk']
+    const text = 'foo bar_baz qux\nbar\nfoo\n'.repeat(20) + 'abababbab Kelvin K quz'
+    for (const anchor of [RE2Set.UNANCHORED, RE2Set.ANCHOR_START, RE2Set.ANCHOR_BOTH]) {
+      const make = (maxMem) => {
+        const set = new RE2Set(anchor, 0, maxMem)
+        for (const p of patterns) set.add(p)
+        set.compile()
+        return set
+      }
+      const want = make(8388608).match(text)
+      for (const maxMem of [3000, 1200, 300]) {
+        expect(make(maxMem).match(text), `anchor=${anchor} maxMem=${maxMem}`).toEqual(want)
+      }
+    }
+    expect(RE2JS.compile('[ab]*a[ab]{6}\\b').test('abababbab ')).toBe(true)
+  })
 })
 
 describe('RE2Set program size budget', () => {

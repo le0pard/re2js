@@ -1,0 +1,1428 @@
+{
+  "source": "re2/testing/search_test.cc simple_tests",
+  "engine": "re2 1.27.0",
+  "cases": [
+    {
+      "pattern": "a",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "a",
+      "text": "zyzzyva",
+      "partial": [6, 7],
+      "full": null
+    },
+    {
+      "pattern": "a+",
+      "text": "aa",
+      "partial": [0, 2],
+      "full": [0, 2]
+    },
+    {
+      "pattern": "(a+|b)+",
+      "text": "ab",
+      "partial": [0, 2, 1, 2],
+      "full": [0, 2, 1, 2]
+    },
+    {
+      "pattern": "ab|cd",
+      "text": "xabcdx",
+      "partial": [1, 3],
+      "full": null
+    },
+    {
+      "pattern": "h.*od?",
+      "text": "hello\ngoodbye\n",
+      "partial": [0, 5],
+      "full": null
+    },
+    {
+      "pattern": "h.*o",
+      "text": "hello\ngoodbye\n",
+      "partial": [0, 5],
+      "full": null
+    },
+    {
+      "pattern": "h.*o",
+      "text": "goodbye\nhello\n",
+      "partial": [8, 13],
+      "full": null
+    },
+    {
+      "pattern": "h.*o",
+      "text": "hello world",
+      "partial": [0, 8],
+      "full": null
+    },
+    {
+      "pattern": "h.*o",
+      "text": "othello, world",
+      "partial": [2, 11],
+      "full": null
+    },
+    {
+      "pattern": "[^\\s\\S]",
+      "text": "aaaaaaa",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "a",
+      "text": "aaaaaaa",
+      "partial": [0, 1],
+      "full": null
+    },
+    {
+      "pattern": "a*",
+      "text": "aaaaaaa",
+      "partial": [0, 7],
+      "full": [0, 7]
+    },
+    {
+      "pattern": "a*",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "ab|cd",
+      "text": "xabcdx",
+      "partial": [1, 3],
+      "full": null
+    },
+    {
+      "pattern": "a",
+      "text": "cab",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "a*b",
+      "text": "cab",
+      "partial": [1, 3],
+      "full": null
+    },
+    {
+      "pattern": "((((((((((((((((((((x))))))))))))))))))))",
+      "text": "x",
+      "partial": [
+        0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
+      ],
+      "full": [
+        0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
+      ]
+    },
+    {
+      "pattern": "[abcd]",
+      "text": "xxxabcdxxx",
+      "partial": [3, 4],
+      "full": null
+    },
+    {
+      "pattern": "[^x]",
+      "text": "xxxabcdxxx",
+      "partial": [3, 4],
+      "full": null
+    },
+    {
+      "pattern": "[abcd]+",
+      "text": "xxxabcdxxx",
+      "partial": [3, 7],
+      "full": null
+    },
+    {
+      "pattern": "[^x]+",
+      "text": "xxxabcdxxx",
+      "partial": [3, 7],
+      "full": null
+    },
+    {
+      "pattern": "(fo|foo)",
+      "text": "fo",
+      "partial": [0, 2, 0, 2],
+      "full": [0, 2, 0, 2]
+    },
+    {
+      "pattern": "(foo|fo)",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "aa",
+      "text": "aA",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "a",
+      "text": "Aa",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "a",
+      "text": "A",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "ABC",
+      "text": "abc",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "abc",
+      "text": "XABCY",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "ABC",
+      "text": "xabcy",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "foo|bar|[A-Z]",
+      "text": "foo",
+      "partial": [0, 3],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "^(foo|bar|[A-Z])",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "(foo|bar|[A-Z])$",
+      "text": "foo\n",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(foo|bar|[A-Z])$",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "^(foo|bar|[A-Z])$",
+      "text": "foo\n",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^(foo|bar|[A-Z])$",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "^(foo|bar|[A-Z])$",
+      "text": "bar",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "^(foo|bar|[A-Z])$",
+      "text": "X",
+      "partial": [0, 1, 0, 1],
+      "full": [0, 1, 0, 1]
+    },
+    {
+      "pattern": "^(foo|bar|[A-Z])$",
+      "text": "XY",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^(fo|foo)$",
+      "text": "fo",
+      "partial": [0, 2, 0, 2],
+      "full": [0, 2, 0, 2]
+    },
+    {
+      "pattern": "^(fo|foo)$",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "^^(fo|foo)$",
+      "text": "fo",
+      "partial": [0, 2, 0, 2],
+      "full": [0, 2, 0, 2]
+    },
+    {
+      "pattern": "^^(fo|foo)$",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "^$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^^$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^$$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^^$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^^$$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^^$$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^^^^^^^^$$$$$$$$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^",
+      "text": "x",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "$",
+      "text": "x",
+      "partial": [1, 1],
+      "full": null
+    },
+    {
+      "pattern": "\\bfoo\\b",
+      "text": "nofoo foo that",
+      "partial": [6, 9],
+      "full": null
+    },
+    {
+      "pattern": "a\\b",
+      "text": "faoa x",
+      "partial": [3, 4],
+      "full": null
+    },
+    {
+      "pattern": "\\bbar",
+      "text": "bar x",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\bbar",
+      "text": "foo\nbar x",
+      "partial": [4, 7],
+      "full": null
+    },
+    {
+      "pattern": "bar\\b",
+      "text": "foobar",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "bar\\b",
+      "text": "foobar\nxxx",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "(foo|bar|[A-Z])\\b",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "(foo|bar|[A-Z])\\b",
+      "text": "foo\n",
+      "partial": [0, 3, 0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\b",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\b",
+      "text": "x",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])\\b",
+      "text": "X",
+      "partial": [0, 1, 0, 1],
+      "full": [0, 1, 0, 1]
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])\\b",
+      "text": "XY",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])\\b",
+      "text": "bar",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])\\b",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])\\b",
+      "text": "foo\n",
+      "partial": [0, 3, 0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\b(foo|bar|[A-Z])\\b",
+      "text": "ffoo bbar N x",
+      "partial": [10, 11, 10, 11],
+      "full": null
+    },
+    {
+      "pattern": "\\b(fo|foo)\\b",
+      "text": "fo",
+      "partial": [0, 2, 0, 2],
+      "full": [0, 2, 0, 2]
+    },
+    {
+      "pattern": "\\b(fo|foo)\\b",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "\\b\\b",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\b\\b",
+      "text": "x",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "\\b$",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\b$",
+      "text": "x",
+      "partial": [1, 1],
+      "full": null
+    },
+    {
+      "pattern": "\\b$",
+      "text": "y x",
+      "partial": [3, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\b.$",
+      "text": "x",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "^\\b(fo|foo)\\b",
+      "text": "fo",
+      "partial": [0, 2, 0, 2],
+      "full": [0, 2, 0, 2]
+    },
+    {
+      "pattern": "^\\b(fo|foo)\\b",
+      "text": "foo",
+      "partial": [0, 3, 0, 3],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "^\\b",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\b",
+      "text": "x",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "^\\b\\b",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\b\\b",
+      "text": "x",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "^\\b$",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\b$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\b.$",
+      "text": "x",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "^\\b.\\b$",
+      "text": "x",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "^^^^^^^^\\b$$$$$$$",
+      "text": "",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^^^^^^^^\\b.$$$$$$",
+      "text": "x",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "^^^^^^^^\\b$$$$$$$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\Bfoo\\B",
+      "text": "n foo xfoox that",
+      "partial": [7, 10],
+      "full": null
+    },
+    {
+      "pattern": "a\\B",
+      "text": "faoa x",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\Bbar",
+      "text": "bar x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\Bbar",
+      "text": "foo\nbar x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "bar\\B",
+      "text": "foobar",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "bar\\B",
+      "text": "foobar\nxxx",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(foo|bar|[A-Z])\\B",
+      "text": "foox",
+      "partial": [0, 3, 0, 3],
+      "full": null
+    },
+    {
+      "pattern": "(foo|bar|[A-Z])\\B",
+      "text": "foo\n",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "\\B",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])",
+      "text": "foo",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "xXy",
+      "partial": [1, 2, 1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "XY",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "XYZ",
+      "partial": [1, 2, 1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "abara",
+      "partial": [1, 4, 1, 4],
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "xfoo_",
+      "partial": [1, 4, 1, 4],
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "xfoo\n",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|bar|[A-Z])\\B",
+      "text": "foo bar vNx",
+      "partial": [9, 10, 9, 10],
+      "full": null
+    },
+    {
+      "pattern": "\\B(fo|foo)\\B",
+      "text": "xfoo",
+      "partial": [1, 3, 1, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\B(foo|fo)\\B",
+      "text": "xfooo",
+      "partial": [1, 4, 1, 4],
+      "full": null
+    },
+    {
+      "pattern": "\\B\\B",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "\\B\\B",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "\\B$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B$",
+      "text": "y x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B.$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B(fo|foo)\\B",
+      "text": "fo",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B(fo|foo)\\B",
+      "text": "foo",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^\\B",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B\\B",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^\\B\\B",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^\\B$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B.$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\B.\\B$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^^^^^^^^\\B$$$$$$$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^^^^^^^^\\B.$$$$$$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^^^^^^^^\\B$$$$$$$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "x",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "x>",
+      "partial": [0, 1],
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "<x",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "<x>",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "ax",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "xb",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "axb",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "«x",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "x»",
+      "partial": [0, 1],
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "«x»",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "axb",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\bx\\b",
+      "text": "áxβ",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\Bx\\B",
+      "text": "axb",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "\\Bx\\B",
+      "text": "áxβ",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$^$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^$^",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "$^$",
+      "text": "",
+      "partial": [0, 0],
+      "full": [0, 0]
+    },
+    {
+      "pattern": "^$^$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$^",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "$^$",
+      "text": "x",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$^$",
+      "text": "x\ny",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$^",
+      "text": "x\ny",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "$^$",
+      "text": "x\ny",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$^$",
+      "text": "x\n\ny",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^$^",
+      "text": "x\n\ny",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "$^$",
+      "text": "x\n\ny",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^(foo\\$)$",
+      "text": "foo$bar",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(foo\\$)",
+      "text": "foo$bar",
+      "partial": [0, 4, 0, 4],
+      "full": null
+    },
+    {
+      "pattern": "^...$",
+      "text": "abc",
+      "partial": [0, 3],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "^本$",
+      "text": "本",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "^...$",
+      "text": "日本語",
+      "partial": [0, 3],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "^...$",
+      "text": ".本.",
+      "partial": [0, 3],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "^\\C\\C\\C$",
+      "text": "本",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "^\\C$",
+      "text": "本",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^\\C\\C\\C$",
+      "text": "日本語",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^...$",
+      "text": "日本語",
+      "partial": [0, 3],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "^.........$",
+      "text": "日本語",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^...$",
+      "text": ".本.",
+      "partial": [0, 3],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "^.....$",
+      "text": ".本.",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "\\B(fo|foo)\\B",
+      "text": "xfooo",
+      "partial": [1, 3, 1, 3],
+      "full": null
+    },
+    {
+      "pattern": "(fo|foo)",
+      "text": "foo",
+      "partial": [0, 2, 0, 2],
+      "full": [0, 3, 0, 3]
+    },
+    {
+      "pattern": "\\141",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\060",
+      "text": "0",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\0600",
+      "text": "00",
+      "partial": [0, 2],
+      "full": [0, 2]
+    },
+    {
+      "pattern": "\\608",
+      "text": "08",
+      "partial": [0, 2],
+      "full": [0, 2]
+    },
+    {
+      "pattern": "\\01",
+      "text": "\u0001",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\x{61}",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\x61",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\x{00000061}",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "\\p{Greek}+",
+      "text": "aαβb",
+      "partial": [1, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\P{Greek}+",
+      "text": "aαβb",
+      "partial": [0, 1],
+      "full": null
+    },
+    {
+      "pattern": "\\p{^Greek}+",
+      "text": "aαβb",
+      "partial": [0, 1],
+      "full": null
+    },
+    {
+      "pattern": "\\P{^Greek}+",
+      "text": "aαβb",
+      "partial": [1, 3],
+      "full": null
+    },
+    {
+      "pattern": "[^0-9]+",
+      "text": "abc123",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\p{Nd}+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "\\p{^Nd}+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\P{Nd}+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\P{^Nd}+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "\\pN+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [3, 13],
+      "full": null
+    },
+    {
+      "pattern": "\\p{N}+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [3, 13],
+      "full": null
+    },
+    {
+      "pattern": "\\p{^N}+",
+      "text": "abc123²³¼½¾₀₉",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\p{Any}+",
+      "text": "abc123",
+      "partial": [0, 6],
+      "full": [0, 6]
+    },
+    {
+      "pattern": "(?i)[@-A]+",
+      "text": "@AaB",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "(?i)[A-Z]+",
+      "text": "aAzZ",
+      "partial": [0, 4],
+      "full": [0, 4]
+    },
+    {
+      "pattern": "(?i)[^\\\\]+",
+      "text": "Aa\\",
+      "partial": [0, 2],
+      "full": null
+    },
+    {
+      "pattern": "(?i)[\\\\]+",
+      "text": "Aa",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(?i)[acegikmoqsuwy]+",
+      "text": "acegikmoqsuwyACEGIKMOQSUWY",
+      "partial": [0, 26],
+      "full": [0, 26]
+    },
+    {
+      "pattern": "[@-A]+",
+      "text": "@AaB",
+      "partial": [0, 2],
+      "full": null
+    },
+    {
+      "pattern": "[A-Z]+",
+      "text": "aAzZ",
+      "partial": [1, 2],
+      "full": null
+    },
+    {
+      "pattern": "[^\\\\]+",
+      "text": "Aa\\",
+      "partial": [0, 2],
+      "full": null
+    },
+    {
+      "pattern": "[acegikmoqsuwy]+",
+      "text": "acegikmoqsuwyACEGIKMOQSUWY",
+      "partial": [0, 13],
+      "full": null
+    },
+    {
+      "pattern": "^abc",
+      "text": "abcdef",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "^abc",
+      "text": "aabcdef",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^[ay]*[bx]+c",
+      "text": "abcdef",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "^[ay]*[bx]+c",
+      "text": "aabcdef",
+      "partial": [0, 4],
+      "full": null
+    },
+    {
+      "pattern": "def$",
+      "text": "abcdef",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "def$",
+      "text": "abcdeff",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "d[ex][fy]$",
+      "text": "abcdef",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "d[ex][fy]$",
+      "text": "abcdeff",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "[dz][ex][fy]$",
+      "text": "abcdef",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "[dz][ex][fy]$",
+      "text": "abcdeff",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(?m)^abc",
+      "text": "abcdef",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "(?m)^abc",
+      "text": "aabcdef",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(?m)^[ay]*[bx]+c",
+      "text": "abcdef",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "(?m)^[ay]*[bx]+c",
+      "text": "aabcdef",
+      "partial": [0, 4],
+      "full": null
+    },
+    {
+      "pattern": "(?m)def$",
+      "text": "abcdef",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "(?m)def$",
+      "text": "abcdeff",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(?m)d[ex][fy]$",
+      "text": "abcdef",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "(?m)d[ex][fy]$",
+      "text": "abcdeff",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "(?m)[dz][ex][fy]$",
+      "text": "abcdef",
+      "partial": [3, 6],
+      "full": null
+    },
+    {
+      "pattern": "(?m)[dz][ex][fy]$",
+      "text": "abcdeff",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "^",
+      "text": "a",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "^^",
+      "text": "a",
+      "partial": [0, 0],
+      "full": null
+    },
+    {
+      "pattern": "a",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "ab*",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "a\\C*",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "a\\C+",
+      "text": "a",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "a\\C?",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "a\\C*?",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "a\\C+?",
+      "text": "a",
+      "partial": null,
+      "full": null
+    },
+    {
+      "pattern": "a\\C??",
+      "text": "a",
+      "partial": [0, 1],
+      "full": [0, 1]
+    },
+    {
+      "pattern": "a\\C*|ba\\C",
+      "text": "baba",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "\\w*I\\w*",
+      "text": "Inc.",
+      "partial": [0, 3],
+      "full": null
+    },
+    {
+      "pattern": "(?:|a)*",
+      "text": "aaa",
+      "partial": [0, 0],
+      "full": [0, 3]
+    },
+    {
+      "pattern": "(?:|a)+",
+      "text": "aaa",
+      "partial": [0, 0],
+      "full": [0, 3]
+    }
+  ]
+}

@@ -323,3 +323,67 @@ describe('Empty-width assertions (port of RE2 dfa.cc flag handling)', () => {
     }
   })
 })
+
+describe('DFA agrees with the NFA under memory pressure', () => {
+  // Seeded random patterns with assertions on hostile inputs (lone surrogates, invalid UTF-8,
+  // Kelvin sign and long s, CR/LF), from every start position and anchoring, with budgets small
+  // enough to force cache resets and give-ups mid-search. The DFA answers yes/no questions such
+  // as validation with test(), so under any budget it must either agree with the NFA or decline
+  // (null).
+  const makeRandom = (seed) => {
+    let state = seed
+    const next = () => {
+      state = (Math.imul(state, 1103515245) + 12345) & 0x7fffffff
+      return state / 0x7fffffff
+    }
+    return { next, pick: (items) => items[Math.floor(next() * items.length)] }
+  }
+  const ATOMS = ['a', 'b', 'K', '(?i:k)', '(?i:s)', 'é', '😀', '\\n', '.', '(?s:.)', '[^a]', '\\w']
+  ATOMS.push('\\W', '\\pL', '\\x{FFFD}', '^', '$', '\\A', '\\z', '\\b', '\\B', '(?m:^)', '(?m:$)')
+  const PIECES = ['a', 'b', 'K', 'K', 's', 'ſ', 'é', '😀', '\n', '\r', ' ', '_']
+  PIECES.push('\ud800', '\udc00', '�')
+  const BYTES = [[0x61], [0x0a], [0x20], [0x5f], [0xff], [0xc3], [0xc3, 0xa9], [0xf0, 0x9f]]
+  BYTES.push([0xed, 0xa0, 0x80], [0xf0, 0x9f, 0x98, 0x80], [0x80])
+  const ANCHORS = [RE2Flags.UNANCHORED, RE2Flags.ANCHOR_START, RE2Flags.ANCHOR_BOTH]
+
+  it.each([1, 2])('random patterns and inputs (seed %i)', (seed) => {
+    const random = makeRandom(seed)
+    const atom = (depth) =>
+      random.next() < 0.7 || depth > 1 ? random.pick(ATOMS) : `(?:${sequence(depth + 1)})`
+    const quantify = (s) => (random.next() < 0.5 ? s : s + random.pick(['*', '+', '?', '{2}']))
+    const sequence = (depth) => {
+      let s = ''
+      for (let n = 1 + Math.floor(random.next() * 4); n > 0; n--) s += quantify(atom(depth))
+      return random.next() < 0.3 ? `${s}|${quantify(atom(depth))}` : s
+    }
+
+    let answered = 0
+    for (let i = 0; i < 120; i++) {
+      const re = RE2.compile(random.pick(['', '(?i)', '(?m)', '(?s)']) + sequence(0))
+      const dfas = [new DFA(re.prog), new DFA(re.prog, 4000), new DFA(re.prog, 1200)]
+      let text = ''
+      for (let n = Math.floor(random.next() * 12); n > 0; n--) text += random.pick(PIECES)
+      const bytes = []
+      for (let n = Math.floor(random.next() * 12); n > 0; n--) bytes.push(...random.pick(BYTES))
+      const inputs = [
+        [() => MachineInput.fromUTF16(text), text.length, JSON.stringify(text)],
+        [() => MachineInput.fromUTF8(Uint8Array.from(bytes)), bytes.length, `[${bytes}]`]
+      ]
+      for (const [makeInput, length, shown] of inputs) {
+        for (let pos = 0; pos <= length; pos++) {
+          for (const anchor of ANCHORS) {
+            const want = re.doExecuteNFA(makeInput(), pos, anchor, 0) !== null
+            for (const dfa of dfas) {
+              const have = dfa.match(makeInput(), pos, anchor)
+              if (have === null) continue
+              answered++
+              const where = `/${re}/ on ${shown} pos=${pos} anchor=${anchor} maxMem=${dfa.maxMem}`
+              expect(have, where).toBe(want)
+            }
+          }
+        }
+      }
+    }
+    expect(answered).toBeGreaterThan(1000)
+  })
+})
