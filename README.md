@@ -802,4 +802,10 @@ yarn node ./tools/scripts/genUnicodeTable.js > src/UnicodeTables.js
 
 To run `make_perl_groups.pl`, you need to have Perl installed (the required version is specified inside `.tool-versions`).
 
+The conformance tests in `src/__tests__/Exec.test.js` run the RE2 and AT&T POSIX test data through every matching engine, on both UTF-16 and UTF-8 input. By default they check a sample of the 5.8 million-line exhaustive RE2 data; to check all of it (this takes several minutes):
+
+```bash
+RE2JS_EXHAUSTIVE=1 yarn vitest run --project=node src/__tests__/Exec.test.js
+```
+
 [Playground website](https://re2js.leopard.in.ua/) maintained in `www` branch

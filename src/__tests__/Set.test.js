@@ -180,3 +180,60 @@ describe('RE2Set program size budget', () => {
     }
   })
 })
+
+describe('RE2Set flags', () => {
+  it('applies CASE_INSENSITIVE, DOTALL and MULTILINE to every pattern', () => {
+    const folded = new RE2Set(RE2Set.UNANCHORED, RE2JS.CASE_INSENSITIVE)
+    folded.add('abc')
+    folded.add('XYZ')
+    expect(folded.match('xyz ABC')).toEqual([0, 1])
+
+    const dotall = new RE2Set(RE2Set.UNANCHORED, RE2JS.DOTALL)
+    dotall.add('a.b')
+    expect(dotall.match('a\nb')).toEqual([0])
+    const plain = new RE2Set()
+    plain.add('a.b')
+    expect(plain.match('a\nb')).toEqual([])
+
+    const multiline = new RE2Set(RE2Set.UNANCHORED, RE2JS.MULTILINE)
+    multiline.add('^b')
+    expect(multiline.match('a\nb')).toEqual([0])
+  })
+
+  it('rejects Unicode classes with DISABLE_UNICODE_GROUPS', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, RE2JS.DISABLE_UNICODE_GROUPS)
+    expect(() => set.add('\\pL')).toThrow('invalid escape sequence')
+    set.add('\\d')
+    expect(set.match('5')).toEqual([0])
+  })
+})
+
+describe('RE2Set anchored matching on the NFA fallback', () => {
+  // \b makes the DFA decline the program, so these run on Machine.matchSet
+  it('ANCHOR_START', () => {
+    const set = new RE2Set(RE2Set.ANCHOR_START)
+    set.add('\\bfoo')
+    set.add('\\bbar')
+    set.add('o\\b')
+    expect(set.match('foo bar')).toEqual([0])
+    expect(set.match('bar foo')).toEqual([1])
+    expect(set.match(' foo')).toEqual([])
+    expect(set.dfa.failed).toBe(true)
+  })
+
+  it('ANCHOR_BOTH, on strings and bytes', () => {
+    const set = new RE2Set(RE2Set.ANCHOR_BOTH)
+    set.add('\\bfoo\\b')
+    set.add('foo.*')
+    set.add('.')
+    expect(set.match('foo')).toEqual([0, 1])
+    expect(set.match('foo bar')).toEqual([1])
+    expect(set.match('x')).toEqual([2])
+    expect(set.match('')).toEqual([])
+
+    const bytes = new RE2Set(RE2Set.ANCHOR_BOTH)
+    bytes.add('\\bé\\B') // RE2's \\b is ASCII-only: no boundary next to é
+    bytes.add('é+')
+    expect(bytes.match(new TextEncoder().encode('éé'))).toEqual([1])
+  })
+})

@@ -1,23 +1,60 @@
+// Conformance tests against the RE2 and AT&T POSIX (Fowler) test data.
+//
+// Ported from Go's regexp/exec_test.go and re2j's ExecTest.java, with two additions:
+// - every case is also run on the UTF-8 byte API (re2j's "Perhaps we should use the UTF-8 RE2
+//   API?"), whose indices are the byte offsets the test data uses;
+// - every case is run through each matching engine directly (Pike VM, bit-state backtracker,
+//   one-pass, lazy DFA), not only through the engine the dispatcher happens to pick. The test
+//   strings are short, so the dispatcher alone never reaches the Pike VM.
 import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
-import readline from 'node:readline'
 
 import { expect, it } from 'vitest'
 import { RE2 } from '../RE2.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { Utils } from '../Utils.js'
-import { utf16IndicesToUtf8 } from '../__utils__/unicode.js'
+import { unquote, unquoteBytes } from '../__utils__/strconv.js'
+import { runEngines } from '../__utils__/engines.js'
 
 const FIXTURES_DIRNAME = path.join(process.cwd(), 'src', '__fixtures__')
 
-const isSingleBytes = (s) => {
-  for (let i = 0; i < s.length; i++) {
-    if (s.codePointAt(i) >= 0x80) {
-      return false
+// Lines of a (possibly gzipped) fixture, split like Go's bufio.ScanLines: on '\n', dropping one
+// trailing '\r'. A carriage return inside a line is kept (the exhaustive data has two).
+const readLines = async function* (fileName) {
+  let stream = fs.createReadStream(path.join(FIXTURES_DIRNAME, fileName))
+  if (fileName.endsWith('.gz')) {
+    stream = stream.pipe(zlib.createGunzip())
+  }
+  stream.setEncoding('utf8')
+  let rest = ''
+  for await (const chunk of stream) {
+    const parts = (rest + chunk).split('\n')
+    rest = parts.pop()
+    for (const line of parts) {
+      yield line.endsWith('\r') ? line.slice(0, -1) : line
     }
   }
-  return true
+  if (rest.length > 0) {
+    yield rest.endsWith('\r') ? rest.slice(0, -1) : rest
+  }
+}
+
+const isSingleBytes = (bytes) => bytes.every((b) => b < 0x80)
+
+// Checks every engine result against |want| (null for no match), comparing only the first
+// |want.length| positions when |prefixOnly| is set (the Fowler data lists fewer groups).
+const expectEngines = (re, text, bytes, want, where, prefixOnly = false) => {
+  for (const [engine, have] of runEngines(re, text, bytes)) {
+    const message = `${where}: ${engine} /${re.toString()}/ on ${JSON.stringify(text ?? Array.from(bytes))}`
+    if (typeof have === 'boolean') {
+      expect(have, message).toBe(want !== null)
+    } else if (prefixOnly && have !== null && want !== null) {
+      expect(have.slice(0, want.length), message).toEqual(want)
+    } else {
+      expect(have, message).toEqual(want)
+    }
+  }
 }
 
 const parseResult = (lineno, res) => {
@@ -25,100 +62,46 @@ const parseResult = (lineno, res) => {
   if (res === '-') {
     return null
   }
-  // Otherwise, a space-separated list of pairs.
-  let n = 1
-  let len = res.length
-  for (let j = 0; j < len; j++) {
-    if (res.charAt(j) === ' ') {
-      n++
+  // Otherwise, a space-separated list of pairs; - means no submatch.
+  const out = []
+  for (const pair of res.split(' ')) {
+    if (pair === '-') {
+      out.push(-1, -1)
+      continue
     }
-  }
-  let out = new Array(2 * n)
-  let i = 0
-  n = 0
-  for (let j = 0; j <= len; j++) {
-    if (j === len || res.charAt(j) === ' ') {
-      // Process a single pair.  - means no submatch.
-      let pair = res.substring(i, j)
-      if (pair === '-') {
-        out[n++] = -1
-        out[n++] = -1
-      } else {
-        let k = pair.indexOf('-')
-        if (k < 0) {
-          throw new Error(`${lineno}: invalid pair ${pair}`)
-        }
-        let lo = -1,
-          hi = -2
-        try {
-          lo = parseInt(pair.substring(0, k))
-          hi = parseInt(pair.substring(k + 1))
-        } catch (_e) {
-          /* fall through */
-        }
-        if (lo > hi) {
-          throw new Error(`${lineno}: invalid pair ${pair}`)
-        }
-        out[n++] = lo
-        out[n++] = hi
-      }
-      i = j + 1
+    const k = pair.indexOf('-')
+    const lo = k < 0 ? NaN : Number(pair.substring(0, k))
+    const hi = k < 0 ? NaN : Number(pair.substring(k + 1))
+    if (!Number.isInteger(lo) || !Number.isInteger(hi) || lo > hi) {
+      throw new Error(`${lineno}: invalid pair ${pair}`)
     }
+    out.push(lo, hi)
   }
   return out
 }
 
-const unquote = (str) => {
-  // Remove quotes at the beginning and end of the string
-  if ((str.startsWith("'") && str.endsWith("'")) || (str.startsWith('"') && str.endsWith('"'))) {
-    str = str.slice(1, -1)
-  }
-
-  // Replace escaped characters
-  str = str
-    .replace(/\\'/g, "'")
-    .replace(/\\"/g, '"')
-    .replace(/\\t/g, '\t')
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\\\/g, '\\')
-
-  // Replace hexadecimal escape sequences
-  str = str.replace(/\\x([0-9A-Fa-f]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)))
-
-  return str
-}
-
-const testRE2 = async (fileName) => {
-  let inputFile = fs.createReadStream(path.join(FIXTURES_DIRNAME, fileName))
-  if (fileName.endsWith('.gz')) {
-    inputFile = inputFile.pipe(zlib.createGunzip())
-  }
-
+// Runs the RE2 test data. With |sample| = n > 1 only every n-th regexp is checked (against all
+// strings of its stanza), which spreads the checks over every stanza of the file.
+const testRE2 = async (fileName, sample = 1) => {
   let lineno = 0
   let strings = []
   let inStrings = false
   let input = 0
   let re = null
   let refull = null
-  let lineBuffer = null
+  let regexps = 0
 
-  for await (let line of readline.createInterface({
-    input: inputFile,
-    crlfDelay: Infinity
-  })) {
-    lineno += 1
+  for await (const line of readLines(fileName)) {
+    lineno++
     if (line.length === 0) {
       throw new Error(`${lineno}: unexpected blank line`)
     }
 
     const first = line.charAt(0)
-    const firstCodePoint = first.codePointAt(0)
     if (first === '#') {
       continue
     }
-
-    if ('A'.codePointAt(0) <= firstCodePoint && firstCodePoint <= 'Z'.codePointAt(0)) {
+    if (first >= 'A' && first <= 'Z') {
       // name
       continue
     }
@@ -127,35 +110,25 @@ const testRE2 = async (fileName) => {
       if (input < strings.length) {
         throw new Error(`${lineno}: out of sync: strings left`)
       }
-
       strings = []
       inStrings = true
     } else if (line === 'regexps') {
       inStrings = false
-    } else if (first === '"' || lineBuffer) {
-      let q = line
-
-      if (lineBuffer && lineBuffer.length > 0) {
-        q = `${lineBuffer}${q}`
-        lineBuffer = null
-      } else if (!q.endsWith('"') || q === '"') {
-        lineBuffer = `${q}\r` // looks like java do not think \r is new line
-        continue
-      }
-
-      try {
-        q = unquote(q)
-      } catch (e) {
-        throw new Error(`${lineno}: Error to unquote: ${line}, error: ${e}`)
-      }
-
+    } else if (first === '"') {
       if (inStrings) {
-        strings = [...strings, q]
+        strings.push(unquoteBytes(line))
         continue
       }
 
+      const q = unquote(line)
+      if (q === null) {
+        throw new Error(`${lineno}: regexp is not valid UTF-8: ${line}`)
+      }
       re = refull = null
-
+      input = 0
+      if (regexps++ % sample !== 0) {
+        continue
+      }
       try {
         re = RE2.compile(q)
       } catch (e) {
@@ -163,32 +136,27 @@ const testRE2 = async (fileName) => {
           // We don't and likely never will support \C; keep going.
           continue
         }
-        throw e
+        throw new Error(`${lineno}: compile ${line}: ${e.message}`)
       }
-
-      try {
-        refull = RE2.compile(`\\A(?:${q})\\z`)
-      } catch (e) {
-        console.error('Error to refull parse: ', q, e) // oxlint-disable-line no-console
-      }
-
-      input = 0
-    } else if (
-      first === '-' ||
-      ('0'.codePointAt(0) <= firstCodePoint && firstCodePoint <= '9'.codePointAt(0))
-    ) {
-      if (re === null) {
-        continue
-      }
-
+      refull = RE2.compile(`\\A(?:${q})\\z`)
+    } else if (first === '-' || (first >= '0' && first <= '9')) {
       if (input >= strings.length) {
         throw new Error(`${lineno}: out of sync: no input remaining`)
       }
+      const bytes = strings[input++]
+      if (re === null) {
+        // not sampled, or uses \C
+        continue
+      }
 
-      const text = strings[input++]
-      const multibyte = !isSingleBytes(text)
+      let text = null
+      try {
+        text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+      } catch {
+        // Not valid UTF-8: only the byte API can represent this input
+      }
 
-      if (multibyte && re.toString().includes('\\B')) {
+      if (!isSingleBytes(bytes) && re.toString().includes('\\B')) {
         // C++ RE2's \B considers every position in the input, which
         // is a stream of bytes, so it sees 'not word boundary' in the
         // middle of a rune.  But this package only considers whole
@@ -204,24 +172,11 @@ const testRE2 = async (fileName) => {
       for (let i = 0; i < 4; i++) {
         const partial = (i & 1) !== 0
         const longest = (i & 2) !== 0
-
         const regexp = partial ? re : refull
-
         regexp.longest = longest
-        let have = regexp.findSubmatchIndex(text) // UTF-16 indices
-
-        if (multibyte && have !== null) {
-          // The testdata uses UTF-8 indices, but we're using the UTF-16 API.
-          // Perhaps we should use the UTF-8 RE2 API?
-          have = utf16IndicesToUtf8(have, text)
-        }
-
-        const want = parseResult(lineno, res[i]) // UTF-8 indices
-
-        expect(want).toEqual(have)
-
-        regexp.longest = longest
-        expect(regexp.match(text)).toEqual(want !== null)
+        const want = parseResult(lineno, res[i])
+        const mode = `${partial ? 'partial' : 'full'}${longest ? ' longest' : ''}`
+        expectEngines(regexp, text, bytes, want, `${fileName}:${lineno} ${mode}`)
       }
     } else {
       throw new Error(`${lineno}: out of sync`)
@@ -238,7 +193,7 @@ const parseFowlerResult = (s) => {
     return [[], [true, true]]
   } else if (s === 'NOMATCH') {
     return [[], [true, false]]
-  } else if ('A'.codePointAt(0) <= s.codePointAt(0) && s.codePointAt(0) <= 'Z'.codePointAt(0)) {
+  } else if (s.charAt(0) >= 'A' && s.charAt(0) <= 'Z') {
     return [[], [false, false]]
   }
 
@@ -274,16 +229,11 @@ const parseFowlerResult = (s) => {
 }
 
 const testFowler = async (fileName) => {
-  let inputFile = fs.createReadStream(path.join(FIXTURES_DIRNAME, fileName))
-  if (fileName.endsWith('.gz')) {
-    inputFile = inputFile.pipe(zlib.createGunzip())
-  }
-
   let lineno = 0
   let lastRegexp = ''
   const NOTAB = RE2.compilePOSIX('[^\t]+')
 
-  for await (let line of readline.createInterface({ input: inputFile })) {
+  for await (const line of readLines(fileName)) {
     lineno += 1
 
     if (!line || line[0] === '#') {
@@ -291,12 +241,13 @@ const testFowler = async (fileName) => {
     }
 
     const field = NOTAB.findAll(line, -1)
+    // NULL is the empty string; a line using NIL (a null pointer) is skipped (as in Go)
+    if (field.includes('NIL')) {
+      continue
+    }
     for (let i = 0; i < field.length; i++) {
       if (field[i] === 'NULL') {
         field[i] = ''
-      }
-      if (field[i] === 'NIL') {
-        continue
       }
     }
 
@@ -347,17 +298,20 @@ const testFowler = async (fileName) => {
       throw new Error(`${lineno}: too few fields: ${line}`)
     }
 
+    // With '$' the pattern and text are C-escaped; the text may then hold bytes that are not
+    // valid UTF-8 (e.g. \xff), which only the byte API can represent.
+    let text = field[2]
+    let bytes = Utils.stringToUtf8ByteArray(text)
     if (flag.indexOf('$') >= 0) {
       field[1] = unquote(`"${field[1]}"`)
-      field[2] = unquote(`"${field[2]}"`)
+      bytes = unquoteBytes(`"${field[2]}"`)
+      text = unquote(`"${field[2]}"`)
     }
 
     if (field[1] === 'SAME') {
       field[1] = lastRegexp
     }
     lastRegexp = field[1]
-
-    const text = field[2]
 
     const [pos, shouldCompileMatch] = parseFowlerResult(field[3]) // in/out param to parser
 
@@ -388,24 +342,20 @@ const testFowler = async (fileName) => {
         continue
       }
 
-      expect(shouldCompileMatch[0]).toBe(true)
+      expect(shouldCompileMatch[0], `${fileName}:${lineno}: ${pattern} compiled`).toBe(true)
 
-      let match = re.match(text)
-      expect(match).toEqual(shouldCompileMatch[1])
-
-      let haveArray = re.findSubmatchIndex(text)
-      if (haveArray === null) {
-        haveArray = [] // to make .length and printing safe
+      const where = `${fileName}:${lineno}`
+      if (!shouldCompileMatch[1]) {
+        expectEngines(re, text, bytes, null, where)
+      } else if (pos.length === 0) {
+        // Matches, positions not given: check only that every engine matches
+        for (const [engine, have] of runEngines(re, text, bytes)) {
+          expect(have === true || Array.isArray(have), `${where}: ${engine} ${pattern}`).toBe(true)
+        }
+      } else {
+        // The data lists positions in bytes; the patterns and texts are ASCII
+        expectEngines(re, text, bytes, pos, where, true)
       }
-
-      expect(haveArray.length > 0).toEqual(match)
-
-      let have = []
-      for (let j = 0; j < pos.length; ++j) {
-        have.push(haveArray[j])
-      }
-
-      expect(have).toEqual(pos)
     }
   }
 }
@@ -416,9 +366,19 @@ it('RE2 search', async () => {
   await testRE2('re2-search.txt')
 })
 
-it.skip('RE2 exhaustive', async () => {
-  await testRE2('re2-exhaustive.txt.gz')
-}, 2000000) // long running test, run only locally
+// The full exhaustive data has 5.8 million lines and takes several minutes; a fixed sample of
+// its regexps runs by default and RE2JS_EXHAUSTIVE=1 runs all of it.
+it('RE2 exhaustive (sample)', async () => {
+  await testRE2('re2-exhaustive.txt.gz', 400)
+}, 600000)
+
+it.skipIf(!process.env.RE2JS_EXHAUSTIVE)(
+  'RE2 exhaustive',
+  async () => {
+    await testRE2('re2-exhaustive.txt.gz')
+  },
+  20000000
+)
 
 it('RE2 fowler basic', async () => {
   await testFowler('basic.dat')

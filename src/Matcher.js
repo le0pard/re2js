@@ -281,7 +281,8 @@ class Matcher {
    * @private
    */
   loadGroup(group) {
-    if (group < 0 || group > this.patternGroupCount) {
+    // Java's int parameter rules out fractions and NaN, which would index the wrong slot here.
+    if (!Number.isInteger(group) || group < 0 || group > this.patternGroupCount) {
       throw new RE2JSGroupException(`Group index out of bounds: ${group}`)
     }
 
@@ -344,7 +345,8 @@ class Matcher {
    */
   find(start = null) {
     if (start !== null) {
-      if (start < 0 || start > this.matcherInputLength) {
+      // Java's int parameter rules out fractions, NaN and strings, which would corrupt positions.
+      if (!Number.isInteger(start) || start < 0 || start > this.matcherInputLength) {
         throw new RE2JSGroupException(`start index out of bounds: ${start}`)
       }
       this.reset()

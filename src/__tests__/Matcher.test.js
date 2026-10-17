@@ -858,3 +858,28 @@ describe('Lone surrogates in patterns', () => {
     }
   })
 })
+
+describe('index arguments must be integers', () => {
+  // Java's int parameters rule these out; in JS they used to index the wrong slot or corrupt
+  // positions (find('1') concatenated the string into offsets, group(1.5) read a wrong slot).
+  it('find(start)', () => {
+    const m = RE2JS.compile('b').matcher('abab')
+    for (const start of [Number.NaN, 1.5, '1', Infinity, -1, 5]) {
+      expect(() => m.find(start)).toThrow('start index out of bounds')
+    }
+    expect(m.find(1)).toBe(true)
+    expect(m.start()).toBe(1)
+    expect(m.find(4)).toBe(false)
+  })
+
+  it('group(), start() and end()', () => {
+    const m = RE2JS.compile('(a)(b)').matcher('ab')
+    expect(m.find()).toBe(true)
+    for (const group of [Number.NaN, 1.5, -1, 3]) {
+      expect(() => m.group(group)).toThrow('Group index out of bounds')
+      expect(() => m.start(group)).toThrow('Group index out of bounds')
+      expect(() => m.end(group)).toThrow('Group index out of bounds')
+    }
+    expect(m.group(2)).toBe('b')
+  })
+})

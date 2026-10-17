@@ -3,7 +3,7 @@ import { RE2JS, re } from '../index.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { MatcherInput } from '../MatcherInput.js'
 import { Utils } from '../Utils.js'
-import { RE2JSGroupException } from '../exceptions.js'
+import { RE2JSGroupException, RE2JSFlagsException } from '../exceptions.js'
 
 it('compile', () => {
   const p = RE2JS.compile('abc')
@@ -1465,5 +1465,19 @@ describe('Machine Pooling and Reentrancy', () => {
     })
 
     expect(matches).toBe(2)
+  })
+})
+
+describe('compile flags', () => {
+  it('rejects unknown flag bits', () => {
+    expect(() => RE2JS.compile('a', 1 << 20)).toThrow(RE2JSFlagsException)
+  })
+
+  it('DISABLE_UNICODE_GROUPS rejects Unicode classes and keeps ASCII ones', () => {
+    expect(() => RE2JS.compile('\\pL', RE2JS.DISABLE_UNICODE_GROUPS)).toThrow(
+      'invalid escape sequence'
+    )
+    expect(RE2JS.compile('\\d', RE2JS.DISABLE_UNICODE_GROUPS).test('5')).toBe(true)
+    expect(RE2JS.compile('\\pL').test('é')).toBe(true)
   })
 })
