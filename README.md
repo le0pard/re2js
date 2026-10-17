@@ -713,25 +713,36 @@ Should you require maximum absolute performance on the server side when using RE
 
 Because RE2JS's Lazy DFA, Prefilter, and OnePass engines operate efficiently within V8's Just-In-Time (JIT) compiler, they can outperform native C++ bindings (`re2-node`) for many operations by avoiding the cross-boundary serialization costs between JavaScript and C++.
 
-Here is a [benchmark running 30,000 items](src/__tests__/re2.bench.js) through both engines using their respective `.test()` fast-paths (averages of multiple runs):
+Here is a [benchmark running 30,000 short strings](src/__tests__/re2.bench.js) through both engines using their respective `.test()` fast-paths. The ratio is the comparable figure; absolute times depend on the machine:
 
-| Benchmark Scenario        | Pattern Example            | RE2JS (Pure JS) | RE2-Node (C++) | Result                      |
-| :------------------------ | :------------------------- | :-------------- | :------------- | :-------------------------- |
-| **ReDoS Attempt**         | `/(a+)+!/`                 | **2.16 ms**     | 15.94 ms       | `re2js` is **7.38x** faster |
-| **Simple Literal**        | `/damage/`                 | **2.58 ms**     | 12.39 ms       | `re2js` is **4.80x** faster |
-| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | **11.20 ms**    | 15.76 ms       | `re2js` is **1.41x** faster |
-| **Lazy Wildcard**         | `/enters.*?battlefield/`   | **9.78 ms**     | 12.99 ms       | `re2js` is **1.33x** faster |
-| **Greedy Wildcard**       | `/enters.*battlefield/`    | **9.90 ms**     | 12.99 ms       | `re2js` is **1.31x** faster |
-| **Massive Alternation**   | `/White\|Blue\|Black.../`  | **11.31 ms**    | 14.81 ms       | `re2js` is **1.31x** faster |
-| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | 28.20 ms        | **13.60 ms**   | `re2-node` is 2.07x faster  |
-| **Case Insensitive**      | `/(?i)swamp/`              | 56.41 ms        | **16.13 ms**   | `re2-node` is 3.50x faster  |
-| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | 107.12 ms       | **15.41 ms**   | `re2-node` is 6.95x faster  |
+| Benchmark Scenario        | Pattern Example            | Result                           | RE2JS (Pure JS) | RE2-Node (C++) |
+| :------------------------ | :------------------------- | :------------------------------- | --------------: | -------------: |
+| **Simple Literal**        | `/damage/`                 | `re2js` is **14.8x** faster      |         0.71 ms |       10.34 ms |
+| **ReDoS Attempt**         | `/(a+)+!/`                 | `re2js` is **13.3x** faster      |         1.01 ms |       13.41 ms |
+| **Deep State Machine**    | `/([0-9]+(/[0-9]+)+)/`     | `re2js` is **5.6x** faster       |         2.39 ms |       13.53 ms |
+| **Greedy Wildcard**       | `/enters.*battlefield/`    | `re2js` is **4.0x** faster       |         2.80 ms |       11.11 ms |
+| **Lazy Wildcard**         | `/enters.*?battlefield/`   | `re2js` is **3.9x** faster       |         2.82 ms |       10.97 ms |
+| **Massive Alternation**   | `/White\|Blue\|Black.../`  | `re2js` is **2.4x** faster       |         5.19 ms |       12.54 ms |
+| **Bounded Repetition**    | `/[A-Z][a-z]{5,15}/`       | `re2js` is **2.2x** faster       |         5.40 ms |       11.81 ms |
+| **Case Insensitive**      | `/(?i)swamp/`              | `re2js` is **1.3x** faster       |        10.51 ms |       13.59 ms |
+| **Word Boundaries (NFA)** | `/\b(Flying\|First...)\b/` | `re2-node` is **1.3x** faster    |        16.69 ms |       13.18 ms |
+
+Measured on an Apple M3 Max with macOS 27, Node.js 24.14.0, `re2js` 2.8.7 and `re2` 1.27.0 (October 2026). Times are the mean of one pass over the 30,000 strings, and the result is the median ratio of three runs (each benchmark measures for 2 seconds after a 1 second warm-up). The benchmark also checks that both libraries find the same matches.
 
 **Takeaways:**
 
-- **Pure JS Strengths:** For complex state tracking (nested groups, wildcards) and literal string scanning, `re2js` actually beats the native C++ bindings. V8's Turbofan JIT compiler is able to heavily optimize the Pure JS DFA loop, bypassing the C++ boundary entirely.
-- **C++ Strengths:** For character class evaluations (Case Insensitivity, Bounded Repetitions), `re2-node` has a slight edge thanks to highly optimized, hardware-level memory tables.
-- **The NFA Fallback:** Pure DFA engines mathematically cannot track look-behind context like Word Boundaries (`\b`). When RE2JS encounters these, it safely bails out to its NFA engine. As shown in the benchmarks, the pure JS NFA is significantly slower than the C++ NFA. **For maximum performance in RE2JS, avoid `\b` when doing bulk boolean `.test()` matching.**
+- **Many short calls favour RE2JS.** Every `re2-node` call crosses from JavaScript into C++, and that fixed cost dominates here: `re2-node` takes roughly the same 10-14 ms for every pattern, while RE2JS's time follows the work each pattern needs. With few calls on very large inputs, that per-call cost is amortized and the C++ engine is the better fit; this benchmark does not measure that case.
+- **DFA-friendly patterns are fastest.** Literals, wildcards, nested groups, alternations, character classes and case-insensitive matching all run on RE2JS's lazy DFA, often after the prefilter has already ruled out most strings.
+- **Word boundaries are the exception.** The DFA cannot evaluate `\b`, so RE2JS answers these on its NFA, and `re2-node` is slightly faster here. Matching remains linear-time; if `\b` patterns dominate a hot path, a pattern without `\b` keeps RE2JS on its DFA.
+- **Ratios vary by hardware.** On a GitHub Actions `ubuntu-24.04` (x86-64) runner, the same benchmark shows larger gaps in favour of RE2JS and the word-boundary case at parity, because the per-call cost of the native binding is higher there.
+
+To reproduce, install the binding temporarily and run the benchmarks (each result is also written as JSON to `bench-results/`):
+
+```bash
+YARN_ENABLE_SCRIPTS=true YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn add -D re2@1.27.0
+RE2JS_BENCH_OUTPUT=bench-results yarn bench
+git checkout package.json yarn.lock && yarn install
+```
 
 ### RE2JS vs JavaScript's native RegExp
 
