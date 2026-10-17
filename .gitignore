@@ -77,3 +77,4 @@ typings/
 
 # sveltekit
 .svelte-kit/*
+/bench-results/

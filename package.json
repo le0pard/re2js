@@ -60,7 +60,7 @@
     "test:browser": "vitest run --browser.enabled --project=browser",
     "test:package": "node tools/build-check/smoke.mjs && node tools/build-check/smoke.cjs && node tools/build-check/umd.cjs && tsc -p tools/build-check/tsconfig.json && publint --strict && attw --pack . --profile node16",
     "coverage": "vitest run --project=node --coverage",
-    "bench": "vitest bench --run --project=node"
+    "bench": "rolldown -c && vitest bench --run --project='node (bench)'"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

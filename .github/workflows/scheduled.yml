@@ -56,13 +56,17 @@ jobs:
       - name: Install Javascript dependencies
         run: yarn install --immutable
 
-      # Kept as an artifact to compare runs over time; shared runners are too noisy to gate on
+      # Kept as artifacts to compare runs over time; shared runners are too noisy to gate on.
+      # yarn bench builds the bundle first and benchmarks it; RE2JS_BENCH_OUTPUT makes each
+      # benchmark write its result (latency and throughput statistics) as JSON.
       - name: Run benchmarks
-        run: yarn vitest bench --run --project=node --outputJson bench.json
+        env:
+          RE2JS_BENCH_OUTPUT: bench-results
+        run: yarn bench
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bench-${{ github.run_number }}
-          path: bench.json
+          path: bench-results/
           retention-days: 90
