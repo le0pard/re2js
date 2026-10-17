@@ -56,6 +56,16 @@ jobs:
       - name: Install Javascript dependencies
         run: yarn install --immutable
 
+      # The C++ binding is installed only here, for a same-runner comparison and for the
+      # parity checks against C++ RE2 in re2.bench.js. It is a native addon whose install script
+      # fetches a prebuilt binary, so scripts are allowed for this step only; the package.json
+      # and lockfile changes stay in this run, and the version still passes npmMinimalAgeGate.
+      - name: Install the re2 C++ binding for comparison
+        env:
+          YARN_ENABLE_SCRIPTS: 'true'
+          YARN_ENABLE_IMMUTABLE_INSTALLS: 'false'
+        run: yarn add -D re2@1.27.0
+
       # Kept as artifacts to compare runs over time; shared runners are too noisy to gate on.
       # yarn bench builds the bundle first and benchmarks it; RE2JS_BENCH_OUTPUT makes each
       # benchmark write its result (latency and throughput statistics) as JSON.
