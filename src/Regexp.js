@@ -301,6 +301,9 @@ export class Regexp {
       }
       case Regexp.Op.LITERAL:
       case Regexp.Op.CHAR_CLASS: {
+        if ((this.flags & RE2Flags.FOLD_CASE) !== (that.flags & RE2Flags.FOLD_CASE)) {
+          return false
+        }
         if (this.runes === null && that.runes === null) {
           break
         }

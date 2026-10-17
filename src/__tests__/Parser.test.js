@@ -36,6 +36,11 @@ describe('.parse', () => {
     ['x{9876543210,', 'str{x{9876543210,}'],
     ['x{2,1', 'str{x{2,1}'],
     ['x{1,9876543210', 'str{x{1,9876543210}'],
+    // A literal { is not a repetition operator, so one may follow it (as in Go)
+    ['{+', 'plus{lit{{}}'],
+    ['a{{2}', 'cat{lit{a}rep{2,2 lit{{}}}'],
+    ['x{*?', 'cat{lit{x}nstar{lit{{}}}'],
+    ['{{0}', 'rep{0,0 lit{{}}'],
     ['', 'emp{}'],
     ['|', 'emp{}'], // alt{emp{}emp{}} but got factored
     ['|x|', 'alt{emp{}lit{x}emp{}}'],
@@ -206,6 +211,13 @@ describe('.parse', () => {
     ['[\\x00-\\x{10FFFF}]', 'dot{}'],
     ['[^\\x00-\\x{10FFFF}]', 'cc{}'],
     ['(?:[a][a-])', 'cat{lit{a}cc{0x2d 0x61}}'],
+    ['[\\s\\S]a', 'cat{cc{0x0-0x10ffff}lit{a}}'],
+    // A case-sensitive and a case-folded literal are not a common prefix (Regexp.equals
+    // compares FoldCase, as Go's Regexp.Equal does).
+    ['(?:A\\d|(?i:a))', 'alt{cat{lit{A}cc{0x30-0x39}}litfold{A}}'],
+    ['(?:(?i:a)\\d|A)', 'alt{cat{litfold{A}cc{0x30-0x39}}lit{A}}'],
+    ['(?:A|(?i:a)b)', 'alt{lit{A}cat{litfold{A}lit{b}}}'],
+    ['(?:[Aa]x|(?i:a)y)', 'cat{litfold{A}cc{0x78-0x79}}'],
 
     // RE2 prefix_tests
     ['abc|abd', 'cat{str{ab}cc{0x63-0x64}}'],
@@ -423,7 +435,10 @@ describe('.equals', () => {
     ['a{1,3}', 'a{1,3}', RE2Flags.POSIX, true],
     ['a{2,3}', 'a{1,3}', RE2Flags.POSIX, false],
     ['^((?P<foo>what)a)$', '^((?P<foo>what)a)$', RE2Flags.PERL, true],
-    ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false]
+    ['^((?P<foo>what)a)$', '^((?P<bar>what)a)$', RE2Flags.PERL, false],
+    ['A', '(?i:a)', RE2Flags.PERL, false],
+    ['(?i:a)', '[Aa]', RE2Flags.PERL, true],
+    ['(?i:[a-c])', '[A-Ca-c]', RE2Flags.PERL, false]
   ]
 
   it.each(cases)('input %p and %p with flags %p expected %p', (a, b, flags, expected) => {

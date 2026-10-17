@@ -167,12 +167,13 @@ describe('Machine.add() uses an explicit stack (no recursion depth limit)', () =
   })
 
   it('evaluates a wide alternation inside an RE2Set that falls back to the NFA', () => {
-    const set = new RE2Set()
-    // \\b makes the DFA decline the program; the ASCII 'k' prefix gives the boundary something
-    // to hold against (RE2's \\b is ASCII-only).
+    // A lookbehind makes the DFA decline the set, so it runs on Machine.matchSet; the ASCII 'k'
+    // prefix gives the boundary something to hold against (RE2's \\b is ASCII-only).
+    const set = new RE2Set(RE2Set.UNANCHORED, RE2JS.LOOKBEHINDS)
     set.add(`\\bk(?:${alternatives(20000).join('|')})`)
-    set.add('never')
+    set.add('(?<=never)never')
     set.compile()
+    expect(set.dfa.failed).toBe(true)
     expect(set.match(`z z k${String.fromCodePoint(0x1000 + 19999)}x`)).toEqual([0])
     expect(set.match(`zk${String.fromCodePoint(0x1000 + 19999)}x`)).toEqual([])
   })

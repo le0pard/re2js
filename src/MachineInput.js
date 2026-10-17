@@ -157,6 +157,7 @@ class MachineUTF8Input extends MachineInputBase {
     pos += this.start
     let r1 = -1
     if (pos > this.start && pos <= this.end) {
+      // The rune before pos, decoded like Go's utf8.DecodeLastRune.
       let start = pos - 1
       r1 = this.bytes[start--]
       if (r1 >= 128) {
@@ -171,7 +172,10 @@ class MachineUTF8Input extends MachineInputBase {
         if (start < this.start) {
           start = this.start
         }
-        r1 = this.step(start - this.start) >> 3
+        const r = this.step(start - this.start)
+        // The rune must end exactly at pos; otherwise the byte before pos is invalid (e.g. a
+        // truncated sequence after an ASCII character) and decodes as U+FFFD.
+        r1 = start + (r & 7) === pos ? r >> 3 : Unicode.RUNE_ERROR
       }
     }
     const r2 = pos < this.end ? this.step(pos - this.start) >> 3 : -1

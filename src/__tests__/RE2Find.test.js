@@ -272,3 +272,22 @@ it.each(FIND_TESTS)('findAllSubmatchIndex %s', (testPattern) => {
     }
   }
 })
+
+// Go's findTests rows whose input is not valid UTF-8, which only the byte API can take. Each
+// invalid byte decodes as U+FFFD, one byte wide, as Go's utf8.DecodeRune does.
+const ascii = (s) => [...s].map((c) => c.charCodeAt(0))
+it.each([
+  ['�', [0xff], [0, 1]],
+  ['�', [...ascii('hello'), 0xff, ...ascii('world')], [5, 6]],
+  ['.*', [...ascii('hello'), 0xff, ...ascii('world')], [0, 11]],
+  ['\\x{fffd}', [0xc2, 0x00], [0, 1]],
+  ['[�]', [0xff], [0, 1]],
+  ['[\\x{fffd}]', [0xc2, 0x00], [0, 1]]
+])('findUTF8Index %j on invalid UTF-8 %j', (pattern, bytes, want) => {
+  const re = RE2.compile(pattern)
+  const input = Uint8Array.from(bytes)
+  expect(re.findUTF8Index(input)).toEqual(want)
+  expect(re.findUTF8SubmatchIndex(input)).toEqual(want)
+  expect(re.findAllUTF8Index(input, -1)).toEqual([want])
+  expect(re.matchUTF8(input)).toBe(true)
+})

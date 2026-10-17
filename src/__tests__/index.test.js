@@ -504,7 +504,10 @@ describe('named groups', () => {
     ['hello', {}],
     ['(.*)', {}],
     ['(?P<any>.*)', { any: 1 }],
-    ['(?P<foo>.*)(?P<bar>.*)', { foo: 1, bar: 2 }]
+    ['(?P<foo>.*)(?P<bar>.*)', { foo: 1, bar: 2 }],
+    // a group that simplification removes keeps its name and number, as in Go
+    ['(?P<n>b){0}x(?<m>y)', { n: 1, m: 2 }],
+    ['(?:(?P<n>a)[^\\x00-\\x{10FFFF}])?(?P<m>b)', { n: 1, m: 2 }]
   ]
 
   it.each(cases)('pattern %p named groups %p', (pattern, expected) => {

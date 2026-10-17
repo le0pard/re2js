@@ -144,9 +144,12 @@ describe('every engine agrees with the Pike VM', () => {
       [0xc3],
       [0x80],
       [0xff],
-      [0xe2, 0x82]
+      [0xe2, 0x82],
+      [0xf0, 0x9f],
+      [0x5f],
+      [0x20]
     ]
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 400; i++) {
       let re
       try {
         re = RE2.compile(generate())
@@ -155,9 +158,38 @@ describe('every engine agrees with the Pike VM', () => {
       }
       for (let k = 0; k < 3; k++) {
         const bytes = []
-        const n = Math.floor(random.next() * 6)
+        const n = Math.floor(random.next() * 8)
         for (let j = 0; j < n; j++) bytes.push(...random.pick(byteRuns))
-        expectSameAsNfa(re, null, Uint8Array.from(bytes), RE2Flags.UNANCHORED)
+        for (const anchor of [RE2Flags.UNANCHORED, RE2Flags.ANCHOR_START, RE2Flags.ANCHOR_BOTH]) {
+          expectSameAsNfa(re, null, Uint8Array.from(bytes), anchor)
+        }
+      }
+    }
+  })
+
+  it('on every short input around invalid UTF-8, for each empty-width assertion', () => {
+    // Exhaustive over inputs of up to three byte runs, as RE2's exhaustive tests are: the
+    // assertions look at the character before the position, which must decode exactly as the
+    // DFA decodes it while scanning (Go: utf8.DecodeLastRune).
+    const runs = [[0x61], [0x0a], [0x20], [0xc3, 0xa9], [0xc3], [0xf0, 0x9f], [0x80], [0xff]]
+    const inputs = [[]]
+    for (let length = 1; length <= 3; length++) {
+      for (const prefix of inputs.filter((b) => b.length === length - 1)) {
+        for (let r = 0; r < runs.length; r++) inputs.push([...prefix, r])
+      }
+    }
+    // The same over UTF-16 strings, with lone surrogates
+    const pieces = ['a', '\n', ' ', 'é', '😀', '\ud800', '\udc00', '\ufffd']
+    const patterns = ['\\b', '\\B', '(?m)^', '(?m)$', '\\b$', '\\B$', '(?m)^a', '.\\b', '\\B.']
+    for (const pattern of patterns) {
+      const re = RE2.compile(pattern)
+      for (const input of inputs) {
+        const bytes = Uint8Array.from(input.flatMap((r) => runs[r]))
+        const text = input.map((r) => pieces[r]).join('')
+        for (const anchor of [RE2Flags.UNANCHORED, RE2Flags.ANCHOR_START, RE2Flags.ANCHOR_BOTH]) {
+          expectSameAsNfa(re, null, bytes, anchor)
+          expectSameAsNfa(re, text, Utils.stringToUtf8ByteArray(text), anchor)
+        }
       }
     }
   })

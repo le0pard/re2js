@@ -70,7 +70,7 @@ const patterns = [
   ['Lazy Wildcard', 'enters.*?battlefield'],
   ['Bounded Repetition', '[A-Z][a-z]{5,15}'],
   ['Deep State Machine', '([0-9]+(/[0-9]+)+)'],
-  ['Word Boundaries (NFA Fallback)', '\\b(Flying|First strike|vigilance)\\b'],
+  ['Word Boundaries', '\\b(Flying|First strike|vigilance)\\b'],
   ['ReDoS Attempt', '(a+)+!']
 ]
 
