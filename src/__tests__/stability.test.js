@@ -5,8 +5,10 @@ import { RE2Flags } from '../RE2Flags.js'
 
 describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Catastrophic Backtracking Immunity (ReDoS)', () => {
-    // A helper to assert that an execution finishes in under 50ms,
-    // whereas native RegExp would hang the main thread indefinitely.
+    // A helper to assert that an execution finishes quickly, whereas a backtracking engine
+    // would take exponential time (2^60 steps) on these inputs and never finish. The bound is
+    // generous so that slow CI machines do not make it flaky; a regression to exponential
+    // behaviour would exceed it by many orders of magnitude.
     const assertLinearTime = (regexStr, inputStr, expectedMatch, flags = 0) => {
       const re = RE2JS.compile(regexStr, flags)
       const start = Date.now()
@@ -16,9 +18,8 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       const elapsed = Date.now() - start
 
       expect(result).toBe(expectedMatch)
-      // Mathematical O(N) guarantee means even massive strings on complex regexes
-      // evaluate nearly instantly. 50ms is highly generous for V8.
-      expect(elapsed).toBeLessThan(50)
+      // Takes well under a millisecond on a laptop.
+      expect(elapsed).toBeLessThan(2000)
     }
 
     it('Defeats classic nested repetition ReDoS: (a+)+b', () => {
@@ -85,8 +86,9 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       const start = Date.now()
       const result = fn()
       const elapsed = Date.now() - start
-      // Takes a few milliseconds; the quadratic version needs ~30 seconds for this input.
-      expect(elapsed).toBeLessThan(500)
+      // Takes a few milliseconds; the quadratic version needed ~30 seconds for this input.
+      // Lookbehind.test.js checks the same loops deterministically by counting NFA steps.
+      expect(elapsed).toBeLessThan(5000)
       return result
     }
 

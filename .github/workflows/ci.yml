@@ -11,14 +11,49 @@ on:
       - docs/**
   pull_request:
 
+# Jobs get only the permissions they ask for
+permissions: {}
+
+# A new push to a pull request cancels the run for the previous one
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  lint:
+    name: 'Lint'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      - name: Run linters
+        run: yarn lint
+
   test_node:
     name: 'Test node@${{ matrix.node }}'
     runs-on: ubuntu-latest
+    # A regression to super-linear matching would otherwise hang for GitHub's 6 hour default
+    timeout-minutes: 20
     permissions:
       contents: read
     strategy:
-      fail-fast: true
+      # Report every Node version, so a version-specific failure is visible as such
+      fail-fast: false
       matrix:
         node:
           - '20'
@@ -27,12 +62,12 @@ jobs:
           - '26'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
       - name: Install Node.JS
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           cache: 'yarn'
           node-version: ${{ matrix.node }}
@@ -40,35 +75,96 @@ jobs:
       - name: Install Javascript dependencies
         run: yarn install --immutable
 
-      - name: Run linters
-        run: yarn lint
-
       - name: Run tests
         run: yarn test
+
+  coverage:
+    name: 'Coverage'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      - name: Run tests with coverage thresholds
+        run: yarn coverage
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: |
+            coverage/lcov.info
+            coverage/coverage-final.json
+          retention-days: 14
+
+  package:
+    name: 'Build and check package'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      - name: Build all files
+        run: yarn build
+
+      # ESM, CommonJS and UMD smoke tests, consumer type checks, publint and attw
+      - name: Check the built package
+        run: yarn test:package
 
   test_bun:
     name: 'Test bun@${{ matrix.bun }}'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         bun:
           - '1.x'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: ${{ matrix.bun }}
 
+      # Bun cannot read the Yarn lockfile, so do not let freshly resolved packages run scripts
       - name: Install Javascript dependencies
-        run: bun install
+        run: bun install --ignore-scripts
 
       - name: Run tests
         run: bun test
@@ -76,26 +172,28 @@ jobs:
   test_deno:
     name: 'Test deno@${{ matrix.deno }}'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         deno:
           - 'v2.x'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
       - name: Setup Deno
-        uses: denoland/setup-deno@v2
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: ${{ matrix.deno }}
 
+      # Same minimum release age as Yarn's npmMinimalAgeGate; Deno never runs install scripts
       - name: Install Javascript dependencies
-        run: deno install --node-modules-dir=auto --minimum-dependency-age=0
+        run: deno install --node-modules-dir=auto --min-dep-age=P3D
 
       - name: Run tests
         run: deno task test
@@ -103,22 +201,23 @@ jobs:
   test_browsers:
     name: 'Test browsers'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
       - name: Install Node.JS
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           cache: 'yarn'
           node-version-file: '.tool-versions'
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-browsers-${{ runner.os }}-${{ hashFiles('yarn.lock') }}

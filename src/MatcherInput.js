@@ -16,7 +16,7 @@ class MatcherInputBase {
     throw Error('not implemented')
   }
 
-  /** @returns {Uint8Array|number[]} */
+  /** @returns {Uint8Array|number[]|null} */
   asBytes() {
     throw Error('not implemented')
   }

@@ -4,23 +4,37 @@ on:
     tags:
       - '*'
 
+permissions: {}
+
 jobs:
   test:
     name: 'Test'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
       - name: Install Node.JS
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           cache: 'yarn'
           node-version-file: '.tool-versions'
+
+      # Tags are plain versions (e.g. 2.8.7); refuse to publish a version the tag does not name
+      - name: Check that the tag matches package.json
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Tag $TAG does not match package.json version $VERSION"
+            exit 1
+          fi
 
       - name: Install Javascript dependencies
         run: yarn install --immutable
@@ -31,11 +45,19 @@ jobs:
       - name: Run tests
         run: yarn test
 
+      - name: Build all files
+        run: yarn build
+
+      - name: Check the built package
+        run: yarn test:package
+
   publish:
     name: 'Publish'
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
+      # id-token signs the npm provenance attestation (and authenticates trusted publishing)
       id-token: write
       contents: read
     environment:
@@ -44,12 +66,12 @@ jobs:
       NODE_ENV: production
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
 
       - name: Install Node.JS
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           cache: 'yarn'
           registry-url: 'https://registry.npmjs.org'
@@ -66,5 +88,6 @@ jobs:
           yarn config set npmRegistryServer "https://registry.npmjs.org"
           yarn config set npmPublishAccess "public"
 
+      # --provenance attaches a signed attestation linking the tarball to this workflow run
       - name: Publish packages 🚀
-        run: yarn npm publish
+        run: yarn npm publish --provenance

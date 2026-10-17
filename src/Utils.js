@@ -45,7 +45,9 @@ class Utils {
   }
 
   static isByteArray(input) {
-    return Array.isArray(input) || input instanceof Uint8Array
+    // The tag check also accepts a Uint8Array from another realm (an iframe, a vm context),
+    // for which instanceof is false, and Node's Buffer, which is a Uint8Array.
+    return Array.isArray(input) || Object.prototype.toString.call(input) === '[object Uint8Array]'
   }
 
   // Returns true iff |c| is an ASCII letter or decimal digit.

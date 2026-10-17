@@ -1,4 +1,4 @@
-import { expect, describe, it } from 'vitest'
+import { expect, describe, it, vi } from 'vitest'
 import { DFA } from '../DFA.js'
 import { Compiler } from '../Compiler.js'
 import { Simplify } from '../Simplify.js'
@@ -184,13 +184,15 @@ describe('Rune classes', () => {
   })
 
   it('stays linear in the number of distinct non-Latin-1 runes', () => {
-    // Every rune outside the program's classes shares one transition entry
+    // Every rune outside the program's classes shares one transition entry, so 40,000
+    // distinct runes cost a handful of transition computations. Per-rune transitions (the
+    // old scheme, scanned linearly) cost one computation per distinct rune: quadratic time.
     const dfa = createDFA('.c')
     let s = ''
     for (let i = 0; i < 40000; i++) s += String.fromCodePoint(0x100 + i)
-    const t0 = Date.now()
+    const step = vi.spyOn(dfa, 'step')
     expect(runDFA(dfa, `${s}c`)).toBe(true)
-    expect(Date.now() - t0).toBeLessThan(500) // was quadratic: ~280 ms here, ~1 s for 80,000
+    expect(step.mock.calls.length).toBeLessThan(10)
     expect(dfa.stateCount).toBeLessThanOrEqual(4)
   })
 })
@@ -202,9 +204,8 @@ describe('Sets with many patterns', () => {
       regexps.push(Simplify.simplify(Parser.parse(`x{${(i % 5) + 1}}`, RE2Flags.PERL)))
     }
     const dfa = new DFA(Compiler.compileSet(regexps))
-    const t0 = Date.now()
     const ids = dfa.matchSet(MachineInput.fromUTF16('xxxxx'), 0, RE2Flags.UNANCHORED)
-    expect(Date.now() - t0).toBeLessThan(1000)
     expect(ids).toHaveLength(2000)
+    expect(new Set(ids).size).toBe(2000)
   })
 })

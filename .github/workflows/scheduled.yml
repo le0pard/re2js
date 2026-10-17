@@ -1,0 +1,68 @@
+name: Scheduled
+on:
+  schedule:
+    # Mondays at 04:17 UTC
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  exhaustive:
+    name: 'Exhaustive RE2 conformance'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      # All 5.8 million lines of the RE2 exhaustive data, through every engine
+      - name: Run the exhaustive conformance tests
+        env:
+          RE2JS_EXHAUSTIVE: '1'
+        run: yarn vitest run --project=node src/__tests__/Exec.test.js
+
+  bench:
+    name: 'Benchmarks'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      # Kept as an artifact to compare runs over time; shared runners are too noisy to gate on
+      - name: Run benchmarks
+        run: yarn vitest bench --run --project=node --outputJson bench.json
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bench-${{ github.run_number }}
+          path: bench.json
+          retention-days: 90
