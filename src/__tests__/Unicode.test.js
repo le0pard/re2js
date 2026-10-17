@@ -1,4 +1,4 @@
-import { expect, describe, it } from 'vitest'
+import { expect, describe, it, vi } from 'vitest'
 import { Unicode } from '../Unicode.js'
 import { UnicodeTables } from '../UnicodeTables.js'
 import { codePoint } from '../__utils__/chars.js'
@@ -56,6 +56,51 @@ describe('#simpleFold', () => {
     [57, 57]
   ])('#simpleFold(%p) === %p', (input, expected) => {
     expect(Unicode.simpleFold(input)).toEqual(expected)
+  })
+
+  // Go's simpleFoldTests (unicode/letter_test.go): each fold cycle, in SimpleFold order
+  it.each([
+    [[0x41, 0x61]], // Aa
+    [[0x3b4, 0x394]], // δΔ
+    [[0x4b, 0x6b, 0x212a]], // KkK (Kelvin sign)
+    [[0x53, 0x73, 0x17f]], // Ssſ
+    [[0x3c1, 0x3f1, 0x3a1]], // ρϱΡ
+    [[0x345, 0x399, 0x3b9, 0x1fbe]], // ͅΙιι
+    [[0x130]], // İ has lower and upper case mappings but no case fold
+    [[0x131]], // ı likewise
+    [[0x13b0, 0xab80]] // Cherokee: upper case comes before lower case
+  ])('follows the fold cycle %j', (cycle) => {
+    let r = cycle[cycle.length - 1]
+    for (const out of cycle) {
+      expect(Unicode.simpleFold(r)).toBe(out)
+      r = out
+    }
+  })
+
+  it('folds by its own tables only, never the JS runtime case mapping', () => {
+    // The generated tables hold every case-folding pair, so results cannot depend on the
+    // Unicode version of the runtime (Node, Bun, browsers), as Go uses only its own tables.
+    const lower = vi.spyOn(String.prototype, 'toLowerCase')
+    const upper = vi.spyOn(String.prototype, 'toUpperCase')
+    let folding = 0
+    try {
+      for (let r = 0; r <= Unicode.MAX_RUNE; r++) {
+        const f = Unicode.simpleFold(r)
+        if (f === r) continue
+        folding++
+        // every rune is on a cycle: folding repeatedly comes back to it
+        let next = f
+        for (let steps = 0; next !== r && steps < 4; steps++) next = Unicode.simpleFold(next)
+        expect(next).toBe(r)
+      }
+      expect(lower).not.toHaveBeenCalled()
+      expect(upper).not.toHaveBeenCalled()
+    } finally {
+      lower.mockRestore()
+      upper.mockRestore()
+    }
+    // the number of runes with a simple case fold in Unicode 17 (Go 1.27 unicode.SimpleFold)
+    expect(folding).toBe(2994)
   })
 })
 

@@ -125,14 +125,17 @@ class Unicode {
       return UnicodeTables.CASE_ORBIT.get(r)
     }
 
-    // No folding specified.  This is a one- or two-element
-    // equivalence class containing rune and toLower(rune)
-    // and toUpper(rune) if they are different from rune.
-    const l = Codepoint.toLowerCase(r)
-    if (l !== r) {
-      return l
+    // ASCII letters fold to their other case through static tables (Go: asciiFold). K, k, S and s
+    // are in the table above, as their orbits include the Kelvin sign and the long s.
+    if (r <= Unicode.MAX_ASCII) {
+      const l = Codepoint.toLowerCase(r)
+      return l !== r ? l : Codepoint.toUpperCase(r)
     }
-    return Codepoint.toUpperCase(r)
+
+    // The generated table holds every other case-folding pair, so the rune folds only to itself.
+    // Like Go, which uses only its own tables, the JS runtime's case mapping (and its Unicode
+    // version) never decides a fold.
+    return r
   }
 
   // equalsIgnoreCase performs case-insensitive equality comparison
