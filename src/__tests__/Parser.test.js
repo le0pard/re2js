@@ -36,6 +36,11 @@ describe('.parse', () => {
     ['x{9876543210,', 'str{x{9876543210,}'],
     ['x{2,1', 'str{x{2,1}'],
     ['x{1,9876543210', 'str{x{1,9876543210}'],
+    // A literal { is not a repetition operator, so one may follow it (as in Go)
+    ['{+', 'plus{lit{{}}'],
+    ['a{{2}', 'cat{lit{a}rep{2,2 lit{{}}}'],
+    ['x{*?', 'cat{lit{x}nstar{lit{{}}}'],
+    ['{{0}', 'rep{0,0 lit{{}}'],
     ['', 'emp{}'],
     ['|', 'emp{}'], // alt{emp{}emp{}} but got factored
     ['|x|', 'alt{emp{}lit{x}emp{}}'],

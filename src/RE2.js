@@ -73,6 +73,8 @@ class RE2 {
   static compileImpl(expr, mode, longest) {
     let re = Parser.parse(expr, mode)
     const maxCap = re.maxCap()
+    // Before simplifying, which can drop a named group (e.g. (?P<n>x){0}) but not its number
+    const namedGroups = re.namedGroups
     re = Simplify.simplify(re)
 
     const prefilter = PrefilterTree.build(re)
@@ -90,7 +92,7 @@ class RE2 {
     if (re2.prefix.length > 0) {
       re2.prefixRune = re2.prefix.codePointAt(0)
     }
-    re2.namedGroups = re.namedGroups
+    re2.namedGroups = namedGroups
     return re2
   }
 

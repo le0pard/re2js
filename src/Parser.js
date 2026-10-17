@@ -1458,14 +1458,16 @@ class Parser {
           }
 
           case Codepoint.CODES.get('{'): {
-            repeatPos = t.pos()
+            const before = t.pos()
             const minMax = Parser.parseRepeat(t)
             if (minMax < 0) {
-              // If the repeat cannot be parsed, { is a literal.
-              t.rewindTo(repeatPos)
+              // If the repeat cannot be parsed, { is a literal (and not a repetition operator,
+              // so a following one is not nested: Go leaves |repeat| empty here).
+              t.rewindTo(before)
               this.literal(t.pop()) // '{'
               break
             }
+            repeatPos = before
             min = minMax >> 16
             max = ((minMax & Unicode.MAX_BMP) << 16) >> 16
             this.repeat(Regexp.Op.REPEAT, min, max, repeatPos, t, lastRepeatPos)
