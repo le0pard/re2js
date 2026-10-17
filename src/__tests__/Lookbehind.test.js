@@ -1,5 +1,8 @@
-import { expect, describe, it } from 'vitest'
+import { expect, describe, it, vi } from 'vitest'
 import { RE2JS, RE2Set } from '../index.js'
+import { RE2 } from '../RE2.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { Machine } from '../Machine.js'
 
 // more info - https://systemf.epfl.ch/blog/re2-lookbehinds/
 describe('Lookbehinds (Linear Time EPFL Algorithm)', () => {
@@ -155,5 +158,258 @@ describe('Advanced Integrations', () => {
     const re = RE2JS.compile('(?<=)a', RE2JS.LOOKBEHINDS)
     expect(re.test('a')).toBe(true)
     expect(re.test('ba')).toBe(true)
+  })
+})
+
+describe('Lookbehinds across repeated matches', () => {
+  // Successive matches over one input carry the lookbehind automata forward (LookbehindState in
+  // Machine.js) instead of re-running them from the beginning of the input on every call. These
+  // tests check that the carried state produces the same matches as a scan from scratch.
+  const spans = (re, input) => {
+    const m = re.matcher(input)
+    const result = []
+    while (m.find()) {
+      result.push([m.start(), m.end()])
+    }
+    return result
+  }
+
+  it('positive lookbehind with an unbounded prefix sees text far before the match', () => {
+    const re = RE2JS.compile('(?<=x.*)b', RE2JS.LOOKBEHINDS)
+    const half = 'ab'.repeat(50)
+
+    expect(spans(re, half)).toEqual([])
+
+    const result = spans(re, `${half}x${half}`)
+    expect(result).toHaveLength(50)
+    // The first "b" after "x" is two positions behind it ("xab")
+    expect(result[0]).toEqual([half.length + 2, half.length + 3])
+    expect(result[49]).toEqual([2 * half.length, 2 * half.length + 1])
+  })
+
+  it('negative lookbehind with an unbounded prefix stops matching once the prefix appeared', () => {
+    const re = RE2JS.compile('(?<!x.*)b', RE2JS.LOOKBEHINDS)
+    const half = 'ab'.repeat(50)
+
+    const result = spans(re, `${half}x${half}`)
+    expect(result).toHaveLength(50)
+    expect(result[0]).toEqual([1, 2])
+    expect(result[49]).toEqual([half.length - 1, half.length])
+  })
+
+  it('nested lookbehinds', () => {
+    // "b" preceded by an "a" that is itself not preceded by "x"
+    const re = RE2JS.compile('(?<=(?<!x)a)b', RE2JS.LOOKBEHINDS)
+    expect(spans(re, 'ab xab ab')).toEqual([
+      [1, 2],
+      [8, 9]
+    ])
+  })
+
+  it('matchAll() loads the capture groups of every match', () => {
+    const re = RE2JS.compile('(?<=a)(b)(c)?', RE2JS.LOOKBEHINDS)
+    const matches = Array.from(re.matchAll('ab abc xb ab'), (m) => [m.index, m[0], m[1], m[2]])
+    expect(matches).toEqual([
+      [1, 'b', 'b', void 0],
+      [4, 'bc', 'b', 'c'],
+      [11, 'b', 'b', void 0]
+    ])
+  })
+
+  it('find(start) resumes forwards and rescans when moving backwards', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const m = re.matcher('ab'.repeat(5))
+
+    expect(m.find(0)).toBe(true)
+    expect(m.start()).toBe(1)
+    expect(m.find(4)).toBe(true)
+    expect(m.start()).toBe(5)
+    expect(m.find(9)).toBe(true)
+    expect(m.start()).toBe(9)
+    // Backwards: the saved state is past this position, so the lookbehinds are re-evaluated
+    expect(m.find(2)).toBe(true)
+    expect(m.start()).toBe(3)
+    expect(m.find(10)).toBe(false)
+  })
+
+  it('matches(), lookingAt() and reset() interleaved with find()', () => {
+    const re = RE2JS.compile('(?<!x)ab', RE2JS.LOOKBEHINDS)
+    const m = re.matcher('abab')
+
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(0)
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(2)
+    expect(m.find()).toBe(false)
+
+    expect(m.lookingAt()).toBe(true)
+    expect(m.end()).toBe(2)
+    expect(m.matches()).toBe(false)
+
+    m.reset()
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(0)
+  })
+
+  it('resetting the matcher to a new input discards the previous lookbehind state', () => {
+    const re = RE2JS.compile('(?<=x.*)b', RE2JS.LOOKBEHINDS)
+    const m = re.matcher('xab ab')
+    expect(m.find()).toBe(true)
+    expect(m.find()).toBe(true)
+    expect(m.find()).toBe(false)
+
+    m.resetMatcherInput('ab ab')
+    expect(m.find()).toBe(false)
+
+    m.resetMatcherInput('ab xab')
+    expect(m.find()).toBe(true)
+    expect(m.start()).toBe(5)
+    expect(m.find()).toBe(false)
+  })
+
+  it('UTF-8 byte input with multi-byte characters', () => {
+    const re = RE2JS.compile('(?<=é)b', RE2JS.LOOKBEHINDS)
+    const bytes = new TextEncoder().encode('éb éb xb')
+    expect(spans(re, bytes)).toEqual([
+      [2, 3],
+      [6, 7]
+    ])
+  })
+
+  it('UTF-16 input with surrogate pairs', () => {
+    const re = RE2JS.compile('(?<=😀)b', RE2JS.LOOKBEHINDS)
+    expect(spans(re, '😀b 😀b xb')).toEqual([
+      [2, 3],
+      [6, 7]
+    ])
+  })
+
+  it('leftmost-longest matching', () => {
+    const re = RE2JS.compile('(?<=a)(?:b|bc)', RE2JS.LOOKBEHINDS | RE2JS.LONGEST_MATCH)
+    expect(spans(re, 'abc abc')).toEqual([
+      [1, 3],
+      [5, 7]
+    ])
+  })
+
+  it('zero-width matches of a lookbehind-only pattern', () => {
+    const re = RE2JS.compile('(?<=a)', RE2JS.LOOKBEHINDS)
+    expect(spans(re, 'aab')).toEqual([
+      [1, 1],
+      [2, 2]
+    ])
+    expect(re.matcher('aab').replaceAll('|')).toBe('a|a|b')
+  })
+
+  it('RE2 findAll and replaceAll loops', () => {
+    const re2 = RE2.compileImpl('(?<=a)b', RE2Flags.PERL | RE2Flags.LOOKBEHIND, false)
+    expect(re2.findAllIndex('ab ab xb', -1)).toEqual([
+      [1, 2],
+      [4, 5]
+    ])
+    expect(re2.replaceAll('ab ab xb', 'X')).toBe('aX aX xb')
+  })
+})
+
+describe('Lookbehind state is only allocated for patterns with lookbehinds', () => {
+  it('plain patterns carry no lookbehind state and mark no lookbehind instructions', () => {
+    const re = RE2JS.compile('(a+)b', RE2JS.LOOKBEHINDS)
+    expect(re.re2().createLookbehindState()).toBeNull()
+    expect(re.matcher('aab').lookbehindState).toBeNull()
+    expect(re.re2().prog.numLb).toBe(0)
+    expect(re.re2().prog.lbInst.every((v) => v === 0)).toBe(true)
+  })
+
+  it('patterns with lookbehinds get one state per matcher, reset on a new input', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const m = re.matcher('ab')
+    const state = m.lookbehindState
+    expect(state).not.toBeNull()
+    expect(m.find()).toBe(true)
+    expect(state.pos).toBeGreaterThanOrEqual(0)
+
+    m.resetMatcherInput('xb')
+    expect(m.lookbehindState).toBe(state)
+    expect(state.pos).toBe(-1)
+    expect(m.find()).toBe(false)
+  })
+})
+
+describe('Lookbehinds keep repeated matching linear', () => {
+  // One Machine.step() call processes one input position, so counting the calls measures the
+  // work of a loop deterministically. Before the lookbehind state was carried between matches,
+  // every call rescanned the input from the beginning: about n²/4 steps for the inputs below.
+  const countSteps = (fn) => {
+    const spy = vi.spyOn(Machine.prototype, 'step')
+    try {
+      fn()
+      return spy.mock.calls.length
+    } finally {
+      spy.mockRestore()
+    }
+  }
+  const n = 4000
+  const input = 'ab'.repeat(n / 2)
+
+  it('matcher().find() loop', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const steps = countSteps(() => {
+      const m = re.matcher(input)
+      let found = 0
+      while (m.find()) {
+        found++
+      }
+      expect(found).toBe(n / 2)
+    })
+    expect(steps).toBeLessThan(4 * n)
+  })
+
+  it('matchAll() with capture groups', () => {
+    const re = RE2JS.compile('(?<=a)(b)', RE2JS.LOOKBEHINDS)
+    const steps = countSteps(() => {
+      const matches = Array.from(re.matchAll(input))
+      expect(matches).toHaveLength(n / 2)
+      expect(matches[n / 2 - 1][1]).toBe('b')
+    })
+    expect(steps).toBeLessThan(6 * n)
+  })
+
+  it('split()', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const steps = countSteps(() => {
+      expect(re.split(input)).toEqual(new Array(n / 2).fill('a'))
+    })
+    expect(steps).toBeLessThan(4 * n)
+  })
+
+  it('matcher().replaceAll()', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const steps = countSteps(() => {
+      expect(re.matcher(input).replaceAll('X')).toBe('aX'.repeat(n / 2))
+    })
+    expect(steps).toBeLessThan(4 * n)
+  })
+
+  it('RE2 findAll loop', () => {
+    const re2 = RE2.compileImpl('(?<=a)b', RE2Flags.PERL | RE2Flags.LOOKBEHIND, false)
+    const steps = countSteps(() => {
+      expect(re2.findAllIndex(input, -1)).toHaveLength(n / 2)
+    })
+    expect(steps).toBeLessThan(4 * n)
+  })
+
+  it('doubling the input doubles the work', () => {
+    const re = RE2JS.compile('(?<=a)b', RE2JS.LOOKBEHINDS)
+    const run = (length) =>
+      countSteps(() => {
+        const m = re.matcher('ab'.repeat(length / 2))
+        while (m.find()) {
+          // consume all matches
+        }
+      })
+    const ratio = run(2 * n) / run(n)
+    // A quadratic loop would give a ratio of about 4
+    expect(ratio).toBeGreaterThan(1.5)
+    expect(ratio).toBeLessThan(2.5)
   })
 })

@@ -1,6 +1,6 @@
 import { RE2Flags } from './RE2Flags.js'
 import { MatcherInput, MatcherInputBase } from './MatcherInput.js'
-import { Machine } from './Machine.js'
+import { Machine, LookbehindState } from './Machine.js'
 import { MachineInput } from './MachineInput.js'
 import { DFA } from './DFA.js'
 import { Backtracker } from './Backtracker.js'
@@ -160,7 +160,15 @@ class RE2 {
     return [] // Matched successfully, but no capture data requested
   }
 
-  executeEngine(input, pos, anchor, ncap) {
+  // Returns a fresh LookbehindState for repeated searches over one input, or null when the
+  // regexp has no lookbehinds and needs no such state. See LookbehindState in Machine.js.
+  createLookbehindState() {
+    return this.prog.numLb > 0 ? new LookbehindState(this.prog) : null
+  }
+
+  // |lbState| (optional) carries the lookbehind automata between successive calls over the same
+  // input; only the NFA engine uses it, and it is the only engine that runs regexps with lookbehinds.
+  executeEngine(input, pos, anchor, ncap, lbState = null) {
     // LITERAL FAST PATH
     // If the entire regex is just a literal string (and no nested capture boundaries are requested),
     // bypass all state machines and execute via V8's blistering fast native indexOf
@@ -192,7 +200,7 @@ class RE2 {
         return Backtracker.execute(this, input, pos, anchor, ncap)
       }
       // NFA execution
-      return this.doExecuteNFA(input, pos, anchor, ncap)
+      return this.doExecuteNFA(input, pos, anchor, ncap, lbState)
     }
 
     // The DFA will safely return null (bailout) if it encounters a lookbehind
@@ -210,7 +218,7 @@ class RE2 {
     }
 
     // Fallback to NFA
-    return this.doExecuteNFA(input, pos, anchor, ncap)
+    return this.doExecuteNFA(input, pos, anchor, ncap, lbState)
   }
 
   /**
@@ -253,7 +261,7 @@ class RE2 {
   // doExecuteNFA() finds the leftmost match in the input and returns
   // the position of its subexpressions.
   // Derived from exec.go.
-  doExecuteNFA(input, pos, anchor, ncap) {
+  doExecuteNFA(input, pos, anchor, ncap, lbState = null) {
     let m = this.get()
     // The Treiber stack cannot reuse nodes, unless the node to be reused has only ever been at
     // the bottom of the stack (i.e., next == null).
@@ -262,7 +270,7 @@ class RE2 {
     }
 
     m.init(ncap)
-    const cap = m.match(input, pos, anchor) ? m.submatches() : null
+    const cap = m.match(input, pos, anchor, lbState) ? m.submatches() : null
 
     this.put(m)
     return cap
@@ -284,9 +292,11 @@ class RE2 {
    * @param anchor the anchoring flag (UNANCHORED, ANCHOR_START, ANCHOR_BOTH)
    * @param group the array to fill with submatch positions
    * @param ngroup the number of array pairs to fill in
+   * @param lbState optional state carried between successive matches over the same input (see
+   *   createLookbehindState); omit it to evaluate lookbehinds from the beginning of the input
    * @returns true if a match was found
    */
-  matchWithGroup(input, start, end, anchor, ngroup) {
+  matchWithGroup(input, start, end, anchor, ngroup, lbState = null) {
     if (!(input instanceof MatcherInputBase)) {
       if (Utils.isByteArray(input)) {
         input = MatcherInput.utf8(input)
@@ -295,10 +305,10 @@ class RE2 {
       }
     }
 
-    return this.matchMachineInput(input, start, end, anchor, ngroup)
+    return this.matchMachineInput(input, start, end, anchor, ngroup, lbState)
   }
 
-  matchMachineInput(input, start, end, anchor, ngroup) {
+  matchMachineInput(input, start, end, anchor, ngroup, lbState = null) {
     if (start > end) {
       return [false, null]
     }
@@ -306,7 +316,7 @@ class RE2 {
       ? MachineInput.fromUTF16(input.asCharSequence(), 0, end)
       : MachineInput.fromUTF8(input.asBytes(), 0, end)
 
-    const groupMatch = this.executeEngine(machineInput, start, anchor, 2 * ngroup)
+    const groupMatch = this.executeEngine(machineInput, start, anchor, 2 * ngroup, lbState)
 
     if (groupMatch === null) {
       return [false, null]
@@ -355,9 +365,10 @@ class RE2 {
     let out = ''
 
     const input = MachineInput.fromUTF16(src)
+    const lbState = this.createLookbehindState()
     let numReplaces = 0
     while (searchPos <= src.length) {
-      const a = this.executeEngine(input, searchPos, RE2Flags.UNANCHORED, 2)
+      const a = this.executeEngine(input, searchPos, RE2Flags.UNANCHORED, 2, lbState)
       if (a === null || a.length === 0) {
         break
       }
@@ -420,8 +431,9 @@ class RE2 {
     let pos = 0
     let i = 0
     let prevMatchEnd = -1
+    const lbState = this.createLookbehindState()
     while (i < n && pos <= end) {
-      const matches = this.executeEngine(input, pos, RE2Flags.UNANCHORED, this.prog.numCap)
+      const matches = this.executeEngine(input, pos, RE2Flags.UNANCHORED, this.prog.numCap, lbState)
       if (matches === null || matches.length === 0) {
         break
       }

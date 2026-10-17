@@ -39,6 +39,7 @@ class Compiler {
     const f = c.compile(re)
     c.prog.patch(f.out, c.newInst(Inst.MATCH).i)
     c.prog.start = f.i
+    c.prog.markLookbehindInsts()
     return c.prog
   }
 
@@ -47,6 +48,7 @@ class Compiler {
 
     if (regexps.length === 0) {
       c.prog.start = c.newInst(Inst.FAIL).i
+      c.prog.markLookbehindInsts()
       return c.prog
     }
 
@@ -69,6 +71,7 @@ class Compiler {
       start = f.i
     }
     c.prog.start = start
+    c.prog.markLookbehindInsts()
     return c.prog
   }
 

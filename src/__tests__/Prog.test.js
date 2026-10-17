@@ -2,6 +2,7 @@ import { expect, describe, it } from 'vitest'
 import { RE2Flags } from '../RE2Flags.js'
 import { Parser } from '../Parser.js'
 import { Compiler } from '../Compiler.js'
+import { Inst } from '../Inst.js'
 
 describe('.compileRegexp', () => {
   const cases = [
@@ -186,5 +187,91 @@ describe('Prog - Lookbehinds Compilation', () => {
     // One of the instructions in the main thread should be LB_CHECK
     const hasLbCheck = prog.inst.some((i) => i.op === 13) // Inst.LB_CHECK = 13
     expect(hasLbCheck).toBe(true)
+  })
+})
+
+describe('Prog - Lookbehind instruction marking', () => {
+  const pcsWhere = (prog, pred) =>
+    prog.inst.map((inst, pc) => (pred(inst) ? pc : -1)).filter((pc) => pc >= 0)
+  const isRune = (ch) => (inst) =>
+    Inst.isRuneOp(inst.op) && inst.runes.length === 1 && inst.runes[0] === ch.codePointAt(0)
+
+  it('marks exactly the instructions of the lookbehind automata', () => {
+    const re = Parser.parse('(?<=fo+)bar', RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    const prog = Compiler.compileRegexp(re)
+
+    expect(prog.lbInst).toBeInstanceOf(Uint8Array)
+    expect(prog.lbInst.length).toBe(prog.numInst())
+
+    // The automaton: its `.*?` prefix, the lookbehind body and the final LB_WRITE
+    for (const pc of prog.lbStarts) {
+      expect(prog.lbInst[pc]).toBe(1)
+    }
+    for (const pc of pcsWhere(prog, (inst) => inst.op === Inst.RUNE_ANY)) {
+      expect(prog.lbInst[pc]).toBe(1)
+    }
+    for (const ch of ['f', 'o']) {
+      for (const pc of pcsWhere(prog, isRune(ch))) {
+        expect(prog.lbInst[pc]).toBe(1)
+      }
+    }
+    for (const pc of pcsWhere(prog, (inst) => inst.op === Inst.LB_WRITE)) {
+      expect(prog.lbInst[pc]).toBe(1)
+    }
+
+    // The main pattern: its start, the LB_CHECK, the literal and the MATCH
+    expect(prog.lbInst[prog.start]).toBe(0)
+    for (const pc of pcsWhere(prog, (inst) => inst.op === Inst.LB_CHECK)) {
+      expect(prog.lbInst[pc]).toBe(0)
+    }
+    for (const ch of ['b', 'a', 'r']) {
+      for (const pc of pcsWhere(prog, isRune(ch))) {
+        expect(prog.lbInst[pc]).toBe(0)
+      }
+    }
+    for (const pc of pcsWhere(prog, (inst) => inst.op === Inst.MATCH)) {
+      expect(prog.lbInst[pc]).toBe(0)
+    }
+  })
+
+  it('treats the check of a nested lookbehind as part of the enclosing automaton', () => {
+    const re = Parser.parse('(?<=a(?<!x))b', RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    const prog = Compiler.compileRegexp(re)
+
+    const checks = pcsWhere(prog, (inst) => inst.op === Inst.LB_CHECK)
+    expect(checks).toHaveLength(2)
+    // The inner check (lookbehind 2, negative) sits inside the outer automaton,
+    // the outer check (lookbehind 1) sits in the main pattern.
+    const marks = checks.map((pc) => [prog.inst[pc].arg, prog.lbInst[pc]])
+    expect(marks).toEqual(
+      expect.arrayContaining([
+        [-2, 1],
+        [1, 0]
+      ])
+    )
+  })
+
+  it('marks nothing when the regexp has no lookbehinds', () => {
+    const prog = Compiler.compileRegexp(Parser.parse('fo+bar', RE2Flags.PERL))
+    expect(prog.lbInst.length).toBe(prog.numInst())
+    expect(prog.lbInst.every((v) => v === 0)).toBe(true)
+
+    const empty = Compiler.compileSet([])
+    expect(empty.lbInst.length).toBe(empty.numInst())
+  })
+
+  it('marks lookbehind automata of compiled sets', () => {
+    const prog = Compiler.compileSet([
+      Parser.parse('(?<=a)b', RE2Flags.PERL | RE2Flags.LOOKBEHIND),
+      Parser.parse('c', RE2Flags.PERL | RE2Flags.LOOKBEHIND)
+    ])
+    expect(prog.lbInst.length).toBe(prog.numInst())
+    for (const pc of prog.lbStarts) {
+      expect(prog.lbInst[pc]).toBe(1)
+    }
+    for (const pc of pcsWhere(prog, (inst) => inst.op === Inst.MATCH)) {
+      expect(prog.lbInst[pc]).toBe(0)
+    }
+    expect(prog.lbInst[prog.start]).toBe(0)
   })
 })

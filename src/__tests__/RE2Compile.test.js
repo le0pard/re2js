@@ -40,6 +40,9 @@ describe('.compile', () => {
     ['((g{2,32}|q){1,32})', 'invalid repeat count: `{1,32}`'],
     ['((g{2,20}|q){1,20}){0,40}', 'invalid repeat count: `{0,40}`'],
     [`${[...new Array(1000)].map(() => '(xx?){1000}').join('')}`, 'expression too large'],
+    [`${'('.repeat(1000)}a${')'.repeat(1000)}`, 'expression nests too deeply'],
+    [`${'(?:'.repeat(999)}a${'|b)*'.repeat(999)}`, 'expression nests too deeply'],
+    [`${'('.repeat(999)}a${')'.repeat(999)}`, null],
     ['(?<=a)b', 'invalid named capture: `(?<=a)b`'],
     ['(?<!a)b', 'invalid named capture: `(?<!a)b`']
   ]

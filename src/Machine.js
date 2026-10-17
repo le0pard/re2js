@@ -18,6 +18,10 @@ class Queue {
     this.denseCaps = null // Allocated on demand based on ncap
     this.size = 0
     this.ncap = 0
+    // Number of queued instructions of the main pattern that can still consume input or report a
+    // match. Lookbehind automata are excluded: they stay alive for the whole input and must never
+    // keep a search running on their own.
+    this.mainThreads = 0
   }
 
   init(ncap) {
@@ -47,6 +51,7 @@ class Queue {
   clear() {
     // The sparse set logic safely ignores stale integers in Typed Arrays.
     this.size = 0
+    this.mainThreads = 0
   }
 
   toString() {
@@ -59,6 +64,35 @@ class Queue {
     }
     out += '}'
     return out
+  }
+}
+
+// Lookbehind state carried between successive searches over the same input.
+//
+// Lookbehinds are evaluated by automata that run in lockstep with the main pattern. Because they
+// are prefixed with `.*?` (see Compiler.lookBehind) they must be started at the beginning of the
+// input and observe every character before the position where the main pattern is searched for.
+// Restarting them from offset 0 on every call makes a find() loop quadratic in the input length.
+//
+// Callers that search the same input repeatedly (Matcher, RE2.allMatches, RE2.replaceAllFunc) keep
+// one LookbehindState instead. After each search it holds the live lookbehind threads and the
+// lookbehind table at the position where that search started looking for the main pattern; the next
+// search resumes from there whenever its own start position is not earlier. The state depends only on
+// the program and the input text, so it stays valid for any later search over the same input.
+class LookbehindState {
+  constructor(prog) {
+    // Input position of the saved threads, or -1 when nothing has been saved yet.
+    this.pos = -1
+    // Live lookbehind instruction pointers at |pos|, in queue (priority) order.
+    this.pcs = new Int32Array(prog.numInst())
+    this.size = 0
+    // Copy of Machine.lbTable at |pos|.
+    this.lbTable = new Int32Array(prog.numLb + 1)
+  }
+
+  reset() {
+    this.pos = -1
+    this.size = 0
   }
 }
 
@@ -120,7 +154,12 @@ class Machine {
     return Utils.toArray(this.matchcap.subarray(0, this.ncap))
   }
 
-  match(input, pos, anchor) {
+  // Runs the NFA over |input| and reports whether the main pattern matched; submatches() returns
+  // the capture positions afterwards. The search for the main pattern starts at |pos|. When the
+  // program contains lookbehinds, their automata are either resumed from |lbState| (saved by an
+  // earlier search over the same input) or started at the beginning of the input, and the state at
+  // |pos| is saved back into |lbState| for the next search.
+  match(input, pos, anchor, lbState = null) {
     const startCond = this.re2.cond
     if (startCond === Utils.EMPTY_ALL) {
       return false
@@ -131,10 +170,23 @@ class Machine {
     this.matched = false
     this.matchcap.fill(-1)
 
-    // Lookbehinds must scan from the beginning of the string to build their state table,
-    // even if the main pattern search is requested to start mid-string.
-    let currentPos = this.prog.numLb > 0 ? 0 : pos
-    let matchStartPos = pos
+    const hasLookbehinds = this.prog.numLb > 0
+    // The main pattern is only spawned once the scan reaches the requested start position.
+    const matchStartPos = pos
+    // Lookbehind automata must have observed every character before matchStartPos. Resume them
+    // from the saved state when it is not past the requested start, otherwise start them at the
+    // beginning of the input.
+    let currentPos = pos
+    let resumeLookbehinds = false
+    if (hasLookbehinds) {
+      if (lbState !== null && lbState.pos >= 0 && lbState.pos <= pos) {
+        currentPos = lbState.pos
+        resumeLookbehinds = true
+      } else {
+        currentPos = 0
+      }
+    }
+    let saveLookbehinds = hasLookbehinds && lbState !== null
 
     let runq = this.q0
     let nextq = this.q1
@@ -157,8 +209,21 @@ class Machine {
       flag = input.context(currentPos)
     }
 
+    // Lookbehind threads are queued before any main-pattern thread. The main pattern relies on this
+    // order: lookbehind writes for a position happen before the checks that read them, and a match
+    // only cuts off the lower-priority threads that follow it in the queue.
+    if (hasLookbehinds) {
+      if (resumeLookbehinds) {
+        this.restoreLookbehinds(lbState, runq, flag)
+      } else {
+        this.spawnLookbehinds(runq, currentPos, flag)
+      }
+    }
+
     while (true) {
-      if (runq.isEmpty()) {
+      // Only the main pattern's threads decide whether the search may stop or skip ahead; the
+      // lookbehind automata stay alive until the end of the input.
+      if (runq.mainThreads === 0) {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && currentPos !== 0) {
           break
         }
@@ -171,11 +236,13 @@ class Machine {
         if (this.matched) {
           break
         }
-        // Disable Prefix Acceleration if the regex contains lookbehinds
-        // Fast-forwarding the string pointer will skip over the positions where
-        // the parallel lookbehind automata need to be spawned.
+        // Prefix acceleration jumps the string pointer to the next occurrence of the literal prefix.
+        // It is disabled when the regex contains lookbehinds, whose automata must observe every
+        // character, and it requires a completely empty queue: stale epsilon entries would shadow
+        // the threads spawned at the new position.
         if (
           this.prog.numLb === 0 &&
+          runq.isEmpty() &&
           !(this.re2.prefix.length === 0) &&
           rune1 !== this.re2.prefixRune &&
           input.canCheckPrefix()
@@ -195,17 +262,13 @@ class Machine {
         }
       }
 
-      // Optimize lookbehind spawning. Because lookbehinds are prefixed with `.*` by the compiler,
-      // they only need to be spawned exactly once at the beginning of the string (currentPos === 0).
-      if (currentPos === 0 && this.prog.numLb > 0) {
-        for (let i = 0; i < this.prog.lbStarts.length; i++) {
-          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, 0, flag)
+      // ONLY spawn the main pattern once we have reached the requested search start boundary
+      if (currentPos >= matchStartPos) {
+        if (saveLookbehinds) {
+          this.saveLookbehinds(lbState, runq, currentPos)
+          saveLookbehinds = false
         }
-      }
-
-      if (!this.matched && (currentPos === 0 || anchor === RE2Flags.UNANCHORED)) {
-        // ONLY spawn the main pattern if we have reached the requested search start boundary
-        if (currentPos >= matchStartPos) {
+        if (!this.matched && (currentPos === 0 || anchor === RE2Flags.UNANCHORED)) {
           if (this.ncap > 0) {
             this.matchcap[0] = currentPos
           }
@@ -236,6 +299,8 @@ class Machine {
       runq = nextq
       nextq = tmpq
     }
+    // The search may stop while lookbehind threads are still queued.
+    runq.clear()
     nextq.clear()
     return this.matched
   }
@@ -269,21 +334,18 @@ class Machine {
     let flag = currentPos === 0 ? Utils.emptyOpContext(-1, rune) : input.context(currentPos)
     const matches = new Set()
 
+    if (this.prog.numLb > 0) {
+      this.spawnLookbehinds(runq, currentPos, flag)
+    }
+
     while (true) {
-      if (runq.isEmpty()) {
+      if (runq.mainThreads === 0) {
         if ((startCond & Utils.EMPTY_BEGIN_TEXT) !== 0 && currentPos !== 0) break
         if (
           (anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) &&
           currentPos !== 0
         ) {
           break
-        }
-      }
-
-      // Optimize lookbehind spawning to exactly once at BOF
-      if (currentPos === 0 && this.prog.numLb > 0) {
-        for (let i = 0; i < this.prog.lbStarts.length; i++) {
-          this.add(runq, this.prog.lbStarts[i], currentPos, this.matchcap, 0, flag)
         }
       }
 
@@ -404,6 +466,38 @@ class Machine {
     runq.clear()
   }
 
+  // Starts one automaton per lookbehind at |pos|. The compiler prefixes them with `.*?`, so a
+  // single start is enough for them to begin matching at any later position.
+  spawnLookbehinds(q, pos, flag) {
+    for (let i = 0; i < this.prog.lbStarts.length; i++) {
+      this.add(q, this.prog.lbStarts[i], pos, this.matchcap, 0, flag)
+    }
+  }
+
+  // Re-queues the lookbehind threads recorded by saveLookbehinds(), in their original order.
+  restoreLookbehinds(lbState, q, flag) {
+    this.lbTable.set(lbState.lbTable)
+    for (let j = 0; j < lbState.size; j++) {
+      this.add(q, lbState.pcs[j], lbState.pos, this.matchcap, 0, flag)
+    }
+  }
+
+  // Records the lookbehind threads of |q|, which holds the threads at |pos|, together with the
+  // lookbehind table. Only rune instructions are kept: they are the complete live state, whereas
+  // restoring epsilon entries would re-run their closures (LB_WRITE/LB_CHECK) out of order.
+  saveLookbehinds(lbState, q, pos) {
+    let size = 0
+    for (let j = 0; j < q.size; j++) {
+      const pc = q.densePcs[j]
+      if (this.prog.lbInst[pc] === 1 && Inst.isRuneOp(this.prog.inst[pc].op)) {
+        lbState.pcs[size++] = pc
+      }
+    }
+    lbState.size = size
+    lbState.pos = pos
+    lbState.lbTable.set(this.lbTable)
+  }
+
   add(q, pc, pos, capArray, capOffset, cond) {
     while (true) {
       if (pc === 0) {
@@ -465,6 +559,9 @@ class Machine {
         case Inst.RUNE1:
         case Inst.RUNE_ANY:
         case Inst.RUNE_ANY_NOT_NL:
+          if (this.prog.lbInst[pc] === 0) {
+            q.mainThreads++
+          }
           if (this.ncap > 0) {
             // Direct assignment utilizing Typed Array performance
             const destOffset = d * this.ncap
@@ -480,4 +577,4 @@ class Machine {
   }
 }
 
-export { Machine }
+export { Machine, LookbehindState }
