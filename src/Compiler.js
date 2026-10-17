@@ -79,6 +79,9 @@ class Compiler {
   constructor() {
     this.prog = new Prog()
     this.newInst(Inst.FAIL)
+    // One shared rune array per literal rune, so repeated literals do not allocate one per
+    // instruction (RE2 keeps a similar rune_cache_; Go slices the literal's rune array).
+    this.runeCache = new Map()
     this.walker = {
       leaf: (re) => this.leaf(re),
       enter: (re) => this.enter(re),
@@ -276,9 +279,11 @@ class Compiler {
         }
         let f = null
         for (let r of re.runes) {
-          const singleRune = new Int32Array(1)
-          singleRune[0] = r
-
+          let singleRune = this.runeCache.get(r)
+          if (singleRune === void 0) {
+            singleRune = new Int32Array([r])
+            this.runeCache.set(r, singleRune)
+          }
           const f1 = this.rune(singleRune, re.flags)
           f = f === null ? f1 : this.cat(f, f1)
         }

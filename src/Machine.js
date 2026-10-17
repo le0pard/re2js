@@ -24,12 +24,26 @@ class Queue {
     this.mainThreads = 0
   }
 
+  // Capture slots are kept in one flat array, ncap per dense slot. It starts small and grows
+  // in growCaps() as slots are used, so memory follows the threads actually queued at a
+  // position (Go and RE2 allocate capture arrays per thread, from a pool) rather than costing
+  // numInst x ncap integers up front for every program with many groups.
+  static INITIAL_THREADS = 32
+
   init(ncap) {
     this.ncap = ncap
-    const needed = this.densePcs.length * ncap
+    const needed = Math.min(this.densePcs.length, Queue.INITIAL_THREADS) * ncap
     if (!this.denseCaps || this.denseCaps.length < needed) {
       this.denseCaps = new Int32Array(needed)
     }
+  }
+
+  // Makes denseCaps at least |needed| long, doubling to keep the total copying linear.
+  growCaps(needed) {
+    const limit = this.densePcs.length * this.ncap
+    const grown = new Int32Array(Math.min(limit, Math.max(needed, 2 * this.denseCaps.length)))
+    grown.set(this.denseCaps)
+    this.denseCaps = grown
   }
 
   contains(pc) {
@@ -568,6 +582,9 @@ class Machine {
             if (this.ncap > 0) {
               // Direct assignment utilizing Typed Array performance
               const destOffset = d * this.ncap
+              if (destOffset + this.ncap > q.denseCaps.length) {
+                q.growCaps(destOffset + this.ncap)
+              }
               for (let c = 0; c < this.ncap; c++) {
                 q.denseCaps[destOffset + c] = capArray[capOffset + c]
               }

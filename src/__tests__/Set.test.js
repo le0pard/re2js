@@ -1,4 +1,5 @@
 import { expect, describe, it } from 'vitest'
+import { Parser } from '../Parser.js'
 import { RE2JS, RE2Set } from '../index.js'
 import { Utils } from '../Utils.js'
 
@@ -158,5 +159,27 @@ describe('RE2Set Memory Limits', () => {
     set.compile()
 
     expect(set.dfa.stateLimit).toBe(1)
+  })
+})
+
+describe('RE2Set program size budget', () => {
+  it('rejects a set whose combined program exceeds the single-regexp budget', () => {
+    const saved = Parser.MAX_SIZE
+    Parser.MAX_SIZE = 5000 // keep the test fast: each pattern below is within it, the sum is not
+    try {
+      const set = new RE2Set()
+      for (let i = 0; i < 6; i++) {
+        set.add('x{1000}')
+      }
+      expect(() => set.compile()).toThrow('expression too large')
+      const ok = new RE2Set()
+      for (let i = 0; i < 4; i++) {
+        ok.add('x{1000}')
+      }
+      ok.compile()
+      expect(ok.match('x'.repeat(1000))).toEqual([0, 1, 2, 3])
+    } finally {
+      Parser.MAX_SIZE = saved
+    }
   })
 })

@@ -133,9 +133,10 @@ class Parser {
   // It too is somewhat arbitrarily chosen, but the idea is to be large enough
   // to allow significant regexps while at the same time small enough that
   // the compiled form will not take up too much memory.
-  // 128 MB is enough for a 3.3 million Inst structures, which roughly
-  // corresponds to a 3.3 MB regexp.
-  static MAX_SIZE = 3355443 // 128 << 20 / (5 * 8) (instSize = byte, 2 uint32, slice is 5 64-bit words)
+  // Go uses the same 128 MB budget with its 40-byte Inst (3.3 million instructions). A JS Inst
+  // object with its program array slot costs about 96 bytes, so the same budget allows
+  // about 1.4 million instructions, which roughly corresponds to a 1.4 MB regexp.
+  static MAX_SIZE = 1398101 // 128 << 20 / 96 (instSize measured for the JS Inst object)
 
   // maxRunes is the maximum number of runes allowed in a regexp tree
   // counting the runes in all the nodes.

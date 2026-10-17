@@ -78,7 +78,15 @@ class RE2Set {
    */
   compile() {
     if (this.prog) return
-    this.prog = Compiler.compileSet(this.regexps)
+    const prog = Compiler.compileSet(this.regexps)
+    // Each pattern is bounded by the parser, but their combined program is not; apply the
+    // same instruction budget to the set as a whole (RE2 compiles a set under max_mem).
+    if (prog.numInst() > Parser.MAX_SIZE) {
+      throw new RE2JSCompileException(
+        `${Parser.ERR_LARGE}: the set compiles to ${prog.numInst()} instructions, more than ${Parser.MAX_SIZE}`
+      )
+    }
+    this.prog = prog
     this.dfa = new DFA(this.prog, this.maxMem)
     this.dummyRe2 = {
       prog: this.prog,

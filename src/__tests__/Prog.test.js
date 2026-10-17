@@ -2,6 +2,7 @@ import { expect, describe, it } from 'vitest'
 import { RE2Flags } from '../RE2Flags.js'
 import { Parser } from '../Parser.js'
 import { Compiler } from '../Compiler.js'
+import { Simplify } from '../Simplify.js'
 import { Inst } from '../Inst.js'
 import { RE2JS } from '../index.js'
 
@@ -299,5 +300,23 @@ describe('Prog.prefix stops at U+FFFD', () => {
     expect(m.start()).toBe(1)
     expect(RE2JS.compile('x\\x{FFFD}y|zzz').test(new Uint8Array([0x78, 0xc0, 0x79]))).toBe(true)
     expect(RE2JS.compile('x\\x{FFFD}y|zzz').test(new Uint8Array([0x78, 0x79]))).toBe(false)
+  })
+})
+
+describe('Compiler shares the rune array of repeated literal runes', () => {
+  it('uses one array per distinct rune', () => {
+    const prog = Compiler.compileRegexp(
+      Simplify.simplify(Parser.parse('(?:ab){500}', RE2Flags.PERL))
+    )
+    const runeArrays = new Set()
+    let runeInsts = 0
+    for (const inst of prog.inst) {
+      if (inst.op === Inst.RUNE1) {
+        runeInsts++
+        runeArrays.add(inst.runes)
+      }
+    }
+    expect(runeInsts).toBe(1000)
+    expect(runeArrays.size).toBe(2)
   })
 })

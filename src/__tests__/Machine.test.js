@@ -211,3 +211,32 @@ describe('Machine.add() uses an explicit stack (no recursion depth limit)', () =
     expect(m.start()).toBe(51)
   })
 })
+
+describe('Machine capture slots grow with the threads actually queued', () => {
+  it('does not allocate numInst x ncap integers up front', () => {
+    const re = RE2JS.compile(`^${'(a)'.repeat(3000)}`)
+    const m = re.matcher('a'.repeat(3000))
+    expect(m.find()).toBe(true)
+    expect(m.group(3000)).toBe('a')
+    const re2 = re.re2()
+    const machine = re2.machinePool[0]
+    expect(machine).toBeDefined()
+    const ncap = 2 * (1 + re2.numberOfCapturingGroups())
+    const eager = re2.numberOfInstructions() * ncap // what used to be allocated per queue
+    // One live thread per position for this program: a few slots suffice
+    expect(machine.q0.denseCaps.length).toBeLessThan(eager / 10)
+    expect(machine.q1.denseCaps.length).toBeLessThan(eager / 10)
+  })
+
+  it('grows when many threads are queued at once and keeps every capture', () => {
+    const re = RE2JS.compile('(a?)'.repeat(300))
+    const m = re.matcher('a'.repeat(5000))
+    expect(m.find()).toBe(true)
+    expect(m.group(1)).toBe('a')
+    expect(m.group(300)).toBe('a')
+    const machine = re.re2().machinePool[0]
+    const ncap = 2 * 301
+    expect(machine.q0.denseCaps.length % ncap).toBe(0)
+    expect(machine.q0.denseCaps.length).toBeLessThanOrEqual(re.re2().numberOfInstructions() * ncap)
+  })
+})
