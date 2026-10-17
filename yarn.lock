@@ -4407,10 +4407,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"re2js@npm:^2.8.7":
-  version: 2.8.7
-  resolution: "re2js@npm:2.8.7"
-  checksum: 10/57fc908b18ff5e217757bc934aaed01fc6b6c6464e436741a6593a904cade40ba6da45e66de1446ebb7da68e58d8df78dfc6b3b89b9155a2cd5a263d6c132392
+"re2js@npm:^2.8.8":
+  version: 2.8.8
+  resolution: "re2js@npm:2.8.8"
+  checksum: 10/c1b72e547d0293be4febca7531d580615463b044af8cb237916693c5c0c5ad83c4cdacb1df876a9ea606dd4e41e34308758ba4a1532fe36e57c087cbb3d138ae
   languageName: node
   linkType: hard
 
@@ -4433,7 +4433,7 @@ __metadata:
     postcss-import: "npm:^17.0.1"
     postcss-load-config: "npm:^6.0.1"
     postcss-preset-env: "npm:^11.6.1"
-    re2js: "npm:^2.8.7"
+    re2js: "npm:^2.8.8"
     svelte: "npm:^5.57.2"
     svelte-check: "npm:^4.7.7"
     svelte-preprocess: "npm:^6.0.5"
