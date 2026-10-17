@@ -704,10 +704,7 @@ Originally, the C++ implementation of the RE2 engine included both NFA (Nondeter
 
 Thanks to these dynamic fast-paths, `re2js` delivers performance comparable to native engines for simple queries, while remaining completely immune to catastrophic backtracking and stack overflow crashes.
 
-Should you require maximum absolute performance on the server side when using RE2, it would be beneficial to consider the following packages for JS:
-
-- [Node-RE2](https://github.com/uhop/node-re2/): A powerful RE2 C++ binding for Node.js
-- [RE2-WASM](https://github.com/google/re2-wasm/): This package is a WASM wrapper for RE2. Please note, as of now, it does not work in browsers
+If your code runs only on Node.js and mostly makes a few calls on very large inputs, or relies heavily on word boundaries (`\b`), consider [Node-RE2](https://github.com/uhop/node-re2/), the native RE2 C++ binding. Its per-call cost into C++ matters less there. For many calls on short strings, RE2JS is usually faster, as the comparison below shows, and it also runs in browsers and other JavaScript runtimes.
 
 ### RE2JS vs RE2-Node (C++ Bindings)
 
