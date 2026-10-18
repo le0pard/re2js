@@ -71,7 +71,7 @@ const patterns = [
   ['Bounded Repetition', '[A-Z][a-z]{5,15}'],
   ['Deep State Machine', '([0-9]+(/[0-9]+)+)'],
   ['Word Boundaries', '\\b(Flying|First strike|vigilance)\\b'],
-  ['ReDoS Attempt', '(a+)+!']
+  ['ReDoS Attempt', '(a+)+$']
 ]
 
 describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {

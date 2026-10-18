@@ -715,7 +715,7 @@ Here is a [benchmark running 30,000 short strings](src/__tests__/re2.bench.js) t
 | Benchmark Scenario      | Pattern Example            | Result                      | RE2JS (Pure JS) | RE2-Node (C++) |
 | :---------------------- | :------------------------- | :-------------------------- | --------------: | -------------: |
 | **Simple Literal**      | `/damage/`                 | `re2js` is **14.6x** faster |         0.71 ms |       10.42 ms |
-| **ReDoS Attempt**       | `/(a+)+!/`                 | `re2js` is **13.2x** faster |         1.02 ms |       13.57 ms |
+| **ReDoS Attempt**       | `/(a+)+$/`                 | `re2js` is **13.2x** faster |         1.02 ms |       13.57 ms |
 | **Deep State Machine**  | `/([0-9]+(/[0-9]+)+)/`     | `re2js` is **5.6x** faster  |         2.39 ms |       13.33 ms |
 | **Lazy Wildcard**       | `/enters.*?battlefield/`   | `re2js` is **4.0x** faster  |         2.78 ms |       11.13 ms |
 | **Greedy Wildcard**     | `/enters.*battlefield/`    | `re2js` is **4.0x** faster  |         2.83 ms |       11.08 ms |
