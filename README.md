@@ -713,21 +713,21 @@ Here is a [benchmark running 30,000 short strings](src/__tests__/re2.bench.js) t
 
 | Benchmark Scenario      | Pattern Example            | Result                      | RE2JS (Pure JS) | RE2-Node (C++) |
 | :---------------------- | :------------------------- | :-------------------------- | --------------: | -------------: |
-| **Simple Literal**      | `/damage/`                 | `re2js` is **15.3x** faster |         0.98 ms |       15.01 ms |
-| **ReDoS Attempt**       | `/(a+)+!/`                 | `re2js` is **14.2x** faster |         1.29 ms |       18.27 ms |
-| **Deep State Machine**  | `/([0-9]+(/[0-9]+)+)/`     | `re2js` is **6.6x** faster  |         2.80 ms |       18.54 ms |
-| **Lazy Wildcard**       | `/enters.*?battlefield/`   | `re2js` is **4.5x** faster  |         3.52 ms |       15.94 ms |
-| **Greedy Wildcard**     | `/enters.*battlefield/`    | `re2js` is **4.5x** faster  |         3.38 ms |       15.16 ms |
-| **Word Boundaries**     | `/\b(Flying\|First...)\b/` | `re2js` is **2.8x** faster  |         6.63 ms |       18.36 ms |
-| **Bounded Repetition**  | `/[A-Z][a-z]{5,15}/`       | `re2js` is **2.5x** faster  |         6.19 ms |       15.34 ms |
-| **Massive Alternation** | `/White\|Blue\|Black.../`  | `re2js` is **2.3x** faster  |         7.19 ms |       16.69 ms |
-| **Case Insensitive**    | `/(?i)swamp/`              | `re2js` is **1.5x** faster  |        11.65 ms |       17.59 ms |
+| **Simple Literal**      | `/damage/`                 | `re2js` is **14.9x** faster |         0.88 ms |       13.12 ms |
+| **ReDoS Attempt**       | `/(a+)+!/`                 | `re2js` is **12.8x** faster |         1.31 ms |       16.74 ms |
+| **Deep State Machine**  | `/([0-9]+(/[0-9]+)+)/`     | `re2js` is **6.0x** faster  |         2.73 ms |       16.45 ms |
+| **Greedy Wildcard**     | `/enters.*battlefield/`    | `re2js` is **4.2x** faster  |         3.35 ms |       13.93 ms |
+| **Lazy Wildcard**       | `/enters.*?battlefield/`   | `re2js` is **4.1x** faster  |         3.40 ms |       13.95 ms |
+| **Word Boundaries**     | `/\b(Flying\|First...)\b/` | `re2js` is **2.6x** faster  |         6.35 ms |       16.37 ms |
+| **Bounded Repetition**  | `/[A-Z][a-z]{5,15}/`       | `re2js` is **2.3x** faster  |         6.08 ms |       14.23 ms |
+| **Massive Alternation** | `/White\|Blue\|Black.../`  | `re2js` is **2.2x** faster  |         6.86 ms |       15.24 ms |
+| **Case Insensitive**    | `/(?i)swamp/`              | `re2js` is **1.5x** faster  |        11.03 ms |       16.53 ms |
 
-Measured on an Apple M1 Pro with macOS 27.0.1, Node.js 24.14.0, `re2js` 2.8.8 and `re2` 1.27.0 (October 2026). Times are the mean of one pass over the 30,000 strings, and the result is the median ratio of three runs (each benchmark measures for 2 seconds after a 1 second warm-up). The benchmark also checks that both libraries find the same matches.
+Measured on an Apple M1 Pro with macOS 27.0.1, Node.js 24.14.0, `re2js` 2.9.0 and `re2` 1.27.0 (October 2026). Times are the mean of one pass over the 30,000 strings, from one run (each benchmark measures for 2 seconds after a 1 second warm-up); ratios vary by a few tenths between runs. The benchmark also checks that both libraries find the same matches.
 
 **Takeaways:**
 
-- **Many short calls favour RE2JS.** Every `re2-node` call crosses from JavaScript into C++, and that fixed cost dominates here: `re2-node` takes roughly the same 15-19 ms for every pattern, while RE2JS's time follows the work each pattern needs. With few calls on very large inputs, that per-call cost is amortized and the C++ engine is the better fit; this benchmark does not measure that case.
+- **Many short calls favour RE2JS.** Every `re2-node` call crosses from JavaScript into C++, and that fixed cost dominates here: `re2-node` takes roughly the same 13-17 ms for every pattern, while RE2JS's time follows the work each pattern needs. With few calls on very large inputs, that per-call cost is amortized and the C++ engine is the better fit; this benchmark does not measure that case.
 - **Boolean matching runs on the lazy DFA.** Literals, wildcards, nested groups, alternations, character classes, case-insensitive matching and assertions such as `^`, `$` and `\b` all run on RE2JS's lazy DFA, often after the prefilter has already ruled out most strings. Lookbehinds are the exception: they run on the NFA (see [Lookbehinds](#lookbehinds-linear-time-execution)).
 - **Ratios vary by hardware.** On a GitHub Actions `ubuntu-24.04` (x86-64) runner, the same benchmark shows larger gaps in favour of RE2JS, because the per-call cost of the native binding is higher there.
 
