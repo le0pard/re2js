@@ -7,11 +7,43 @@
 // several matches an engine prefers, as backtracking and RE2 choose differently in some cases
 // (e.g. an empty iteration of a loop): where the first match starts, searching from each
 // position, and whether the whole input matches.
+//
+// The JavaScript searches run in a worker thread (native-worker.js): backtracking can take
+// exponential time on the nested repetitions the generator makes (the very problem RE2 avoids),
+// so a case whose search takes longer than NATIVE_TIMEOUT_MS is skipped.
+import { Worker } from 'node:worker_threads'
 import { RE2JS } from '../../src/index.js'
 import { RE2JSCompileException, RE2JSSyntaxException } from '../../src/exceptions.js'
 import { makeJsPattern, makeJsText } from './generate.js'
 
 const FLAGS = ['', '', 'i', 'm', 's', 'ims']
+const NATIVE_TIMEOUT_MS = 250
+
+let worker = null
+const startWorker = () => {
+  worker = new Worker(new URL('./native-worker.js', import.meta.url))
+}
+
+// The JavaScript answers for |request|, or null when they take too long
+const askNative = (request) =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      worker.removeAllListeners()
+      worker.terminate()
+      startWorker()
+      resolve(null)
+    }, NATIVE_TIMEOUT_MS)
+    worker.once('message', (answer) => {
+      clearTimeout(timer)
+      worker.removeAllListeners('error')
+      resolve(answer)
+    })
+    worker.once('error', (e) => {
+      clearTimeout(timer)
+      reject(e)
+    })
+    worker.postMessage(request)
+  })
 
 const compile = (regexp) => {
   try {
@@ -27,14 +59,22 @@ export const nativeFuzzer = {
   name: 'native',
   fields: ['pattern', 'text'],
 
+  setup() {
+    startWorker()
+    return null
+  },
+
+  async teardown() {
+    await worker?.terminate()
+  },
+
   generate(random) {
     return { pattern: makeJsPattern(random), flags: random.pick(FLAGS), text: makeJsText(random) }
   },
 
-  check(c) {
-    let native
+  async check(c) {
     try {
-      native = new RegExp(c.pattern, `gu${c.flags}`)
+      new RegExp(c.pattern, `gu${c.flags}`) // oxlint-disable-line no-new
     } catch {
       return null // not valid JavaScript (a shrink can break it)
     }
@@ -43,10 +83,17 @@ export const nativeFuzzer = {
 
     const boundaries = [0]
     for (const ch of c.text) boundaries.push(boundaries[boundaries.length - 1] + ch.length)
-    for (const from of boundaries) {
-      native.lastIndex = from
-      const m = native.exec(c.text)
-      const want = m === null ? -1 : m.index
+    const native = await askNative({
+      pattern: c.pattern,
+      flags: c.flags,
+      text: c.text,
+      starts: boundaries
+    })
+    if (native === null) return null // JavaScript's backtracking took too long
+
+    for (let k = 0; k < boundaries.length; k++) {
+      const from = boundaries[k]
+      const want = native.firsts[k]
       // V8 can report a match that starts inside a surrogate pair (with lookbehinds or \B),
       // which u-mode matching never should: there is nothing to compare with
       if (want >= 0 && !boundaries.includes(want)) continue
@@ -58,9 +105,8 @@ export const nativeFuzzer = {
     }
 
     const full = compile(new RegExp(`^(?:${c.pattern})$`, `u${c.flags}`))
-    const fullNative = new RegExp(`^(?:${c.pattern})$`, `u${c.flags}`).test(c.text)
-    if (full !== null && full.test(c.text) !== fullNative) {
-      return `the whole input matches: ${full.test(c.text)}, in JavaScript: ${fullNative}`
+    if (full !== null && full.test(c.text) !== native.full) {
+      return `the whole input matches: ${full.test(c.text)}, in JavaScript: ${native.full}`
     }
     return null
   }
