@@ -46,7 +46,7 @@ export class Regexp {
   }
 
   static quoteIfHyphen(rune) {
-    if (rune === Codepoint.CODES.get('-')) {
+    if (rune === Codepoint.CODES['-']) {
       return '\\'
     }
     return ''

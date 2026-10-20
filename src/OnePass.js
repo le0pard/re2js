@@ -421,7 +421,7 @@ export class OnePass {
         case Inst.RUNE_ANY:
           break
         case Inst.RUNE_ANY_NOT_NL:
-          if (rune === 10) return null
+          if (rune === 10) return null // '\n'
           break
         case Inst.ALT:
         case Inst.ALT_MATCH:

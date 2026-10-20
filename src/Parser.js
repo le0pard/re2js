@@ -327,7 +327,7 @@ class Parser {
 
     for (let i = 0; i < name.length; i++) {
       const c = name.codePointAt(i)
-      if (c !== Codepoint.CODES.get('_') && !Utils.isalnum(c)) {
+      if (c !== Codepoint.CODES['_'] && !Utils.isalnum(c)) {
         return false
       }
     }
@@ -339,16 +339,12 @@ class Parser {
   // -1 => bad format.  -2 => format ok, but integer overflow.
   static parseInt(t) {
     const start = t.pos()
-    while (
-      t.more() &&
-      t.peek() >= Codepoint.CODES.get('0') &&
-      t.peek() <= Codepoint.CODES.get('9')
-    ) {
+    while (t.more() && t.peek() >= Codepoint.CODES['0'] && t.peek() <= Codepoint.CODES['9']) {
       t.skip(1)
     }
 
     const n = t.from(start)
-    if (n.length === 0 || (n.length > 1 && n.codePointAt(0) === Codepoint.CODES.get('0'))) {
+    if (n.length === 0 || (n.length > 1 && n.codePointAt(0) === Codepoint.CODES['0'])) {
       return -1
     }
     if (n.length > 8) {
@@ -381,7 +377,7 @@ class Parser {
         }
         return false
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        return r !== Codepoint.CODES.get('\n')
+        return r !== Codepoint.CODES['\n']
       case Regexp.Op.ANY_CHAR:
         return true
     }
@@ -396,7 +392,7 @@ class Parser {
       case Regexp.Op.ANY_CHAR:
         break
       case Regexp.Op.ANY_CHAR_NOT_NL:
-        if (Parser.matchRune(src, Codepoint.CODES.get('\n'))) {
+        if (Parser.matchRune(src, Codepoint.CODES['\n'])) {
           dst.op = Regexp.Op.ANY_CHAR
         }
         break
@@ -437,45 +433,37 @@ class Parser {
     }
     let c = t.pop()
     bigswitch: switch (c) {
-      case Codepoint.CODES.get('1'):
-      case Codepoint.CODES.get('2'):
-      case Codepoint.CODES.get('3'):
-      case Codepoint.CODES.get('4'):
-      case Codepoint.CODES.get('5'):
-      case Codepoint.CODES.get('6'):
-      case Codepoint.CODES.get('7'): {
+      case Codepoint.CODES['1']:
+      case Codepoint.CODES['2']:
+      case Codepoint.CODES['3']:
+      case Codepoint.CODES['4']:
+      case Codepoint.CODES['5']:
+      case Codepoint.CODES['6']:
+      case Codepoint.CODES['7']: {
         // Single non-zero digit is a backreference; not supported
-        if (
-          !t.more() ||
-          t.peek() < Codepoint.CODES.get('0') ||
-          t.peek() > Codepoint.CODES.get('7')
-        ) {
+        if (!t.more() || t.peek() < Codepoint.CODES['0'] || t.peek() > Codepoint.CODES['7']) {
           break
         }
       }
       // fallsthrough
-      case Codepoint.CODES.get('0'): {
+      case Codepoint.CODES['0']: {
         // Consume up to three octal digits; already have one.
-        let r = c - Codepoint.CODES.get('0')
+        let r = c - Codepoint.CODES['0']
         for (let i = 1; i < 3; i++) {
-          if (
-            !t.more() ||
-            t.peek() < Codepoint.CODES.get('0') ||
-            t.peek() > Codepoint.CODES.get('7')
-          ) {
+          if (!t.more() || t.peek() < Codepoint.CODES['0'] || t.peek() > Codepoint.CODES['7']) {
             break
           }
-          r = r * 8 + t.peek() - Codepoint.CODES.get('0')
+          r = r * 8 + t.peek() - Codepoint.CODES['0']
           t.skip(1)
         }
         return r
       }
-      case Codepoint.CODES.get('x'): {
+      case Codepoint.CODES['x']: {
         if (!t.more()) {
           break
         }
         c = t.pop()
-        if (c === Codepoint.CODES.get('{')) {
+        if (c === Codepoint.CODES['{']) {
           let nhex = 0
           let r = 0
 
@@ -484,7 +472,7 @@ class Parser {
               break bigswitch
             }
             c = t.pop()
-            if (c === Codepoint.CODES.get('}')) {
+            if (c === Codepoint.CODES['}']) {
               break
             }
             const v = Utils.unhex(c)
@@ -513,18 +501,18 @@ class Parser {
         }
         return x * 16 + y
       }
-      case Codepoint.CODES.get('a'):
-        return Codepoint.CODES.get('\x07')
-      case Codepoint.CODES.get('f'):
-        return Codepoint.CODES.get('\f')
-      case Codepoint.CODES.get('n'):
-        return Codepoint.CODES.get('\n')
-      case Codepoint.CODES.get('r'):
-        return Codepoint.CODES.get('\r')
-      case Codepoint.CODES.get('t'):
-        return Codepoint.CODES.get('\t')
-      case Codepoint.CODES.get('v'):
-        return Codepoint.CODES.get('\v')
+      case Codepoint.CODES['a']:
+        return Codepoint.CODES['\x07']
+      case Codepoint.CODES['f']:
+        return Codepoint.CODES['\f']
+      case Codepoint.CODES['n']:
+        return Codepoint.CODES['\n']
+      case Codepoint.CODES['r']:
+        return Codepoint.CODES['\r']
+      case Codepoint.CODES['t']:
+        return Codepoint.CODES['\t']
+      case Codepoint.CODES['v']:
+        return Codepoint.CODES['\v']
       default:
         if (c <= Unicode.MAX_ASCII && !Utils.isalnum(c)) {
           return c
@@ -1001,8 +989,8 @@ class Parser {
       } else if (
         re.runes.length === 4 &&
         re.runes[0] === 0 &&
-        re.runes[1] === Codepoint.CODES.get('\n') - 1 &&
-        re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
+        re.runes[1] === Codepoint.CODES['\n'] - 1 &&
+        re.runes[2] === Codepoint.CODES['\n'] + 1 &&
         re.runes[3] === Unicode.MAX_RUNE
       ) {
         re.runes = new Int32Array(0)
@@ -1378,7 +1366,7 @@ class Parser {
       {
         let repeatPos = -1
         bigswitch: switch (t.peek()) {
-          case Codepoint.CODES.get('('):
+          case Codepoint.CODES['(']:
             // Intercept Lookbehinds if the flag is enabled
             if ((this.flags & RE2Flags.LOOKBEHIND) !== 0) {
               if (t.lookingAt('(?<=')) {
@@ -1401,15 +1389,15 @@ class Parser {
             this.op(Regexp.Op.LEFT_PAREN).cap = ++this.numCap
             t.skip(1) // '('
             break
-          case Codepoint.CODES.get('|'):
+          case Codepoint.CODES['|']:
             this.parseVerticalBar() // '|'
             t.skip(1) // '|'
             break
-          case Codepoint.CODES.get(')'):
+          case Codepoint.CODES[')']:
             this.parseRightParen()
             t.skip(1) // ')'
             break
-          case Codepoint.CODES.get('^'):
+          case Codepoint.CODES['^']:
             if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
               this.op(Regexp.Op.BEGIN_TEXT)
             } else {
@@ -1417,7 +1405,7 @@ class Parser {
             }
             t.skip(1) // '^'
             break
-          case Codepoint.CODES.get('$'):
+          case Codepoint.CODES['$']:
             if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
               this.op(Regexp.Op.END_TEXT).flags |= RE2Flags.WAS_DOLLAR
             } else {
@@ -1425,7 +1413,7 @@ class Parser {
             }
             t.skip(1) // '$'
             break
-          case Codepoint.CODES.get('.'):
+          case Codepoint.CODES['.']:
             if ((this.flags & RE2Flags.DOT_NL) !== 0) {
               this.op(Regexp.Op.ANY_CHAR)
             } else {
@@ -1433,22 +1421,22 @@ class Parser {
             }
             t.skip(1) // '.'
             break
-          case Codepoint.CODES.get('['):
+          case Codepoint.CODES['[']:
             this.parseClass(t)
             break
-          case Codepoint.CODES.get('*'):
-          case Codepoint.CODES.get('+'):
-          case Codepoint.CODES.get('?'): {
+          case Codepoint.CODES['*']:
+          case Codepoint.CODES['+']:
+          case Codepoint.CODES['?']: {
             repeatPos = t.pos()
             let op = null
             switch (t.pop()) {
-              case Codepoint.CODES.get('*'):
+              case Codepoint.CODES['*']:
                 op = Regexp.Op.STAR
                 break
-              case Codepoint.CODES.get('+'):
+              case Codepoint.CODES['+']:
                 op = Regexp.Op.PLUS
                 break
-              case Codepoint.CODES.get('?'):
+              case Codepoint.CODES['?']:
                 op = Regexp.Op.QUEST
                 break
             }
@@ -1457,7 +1445,7 @@ class Parser {
             break
           }
 
-          case Codepoint.CODES.get('{'): {
+          case Codepoint.CODES['{']: {
             const before = t.pos()
             const minMax = Parser.parseRepeat(t)
             if (minMax < 0) {
@@ -1474,25 +1462,25 @@ class Parser {
             break
           }
 
-          case Codepoint.CODES.get('\\'): {
+          case Codepoint.CODES['\\']: {
             const savedPos = t.pos()
             t.skip(1) // '\\'
             if ((this.flags & RE2Flags.PERL_X) !== 0 && t.more()) {
               const c = t.pop()
               switch (c) {
-                case Codepoint.CODES.get('A'):
+                case Codepoint.CODES['A']:
                   this.op(Regexp.Op.BEGIN_TEXT)
                   break bigswitch
-                case Codepoint.CODES.get('b'):
+                case Codepoint.CODES['b']:
                   this.op(Regexp.Op.WORD_BOUNDARY)
                   break bigswitch
-                case Codepoint.CODES.get('B'):
+                case Codepoint.CODES['B']:
                   this.op(Regexp.Op.NO_WORD_BOUNDARY)
                   break bigswitch
-                case Codepoint.CODES.get('C'):
+                case Codepoint.CODES['C']:
                   // any byte; not supported
                   throw new RE2JSSyntaxException(Parser.ERR_INVALID_ESCAPE, '\\C')
-                case Codepoint.CODES.get('Q'): {
+                case Codepoint.CODES['Q']: {
                   // \Q ... \E: the ... is always literals
                   let lit = t.rest()
                   const i = lit.indexOf('\\E')
@@ -1513,7 +1501,7 @@ class Parser {
                   break bigswitch
                 }
 
-                case Codepoint.CODES.get('z'):
+                case Codepoint.CODES['z']:
                   this.op(Regexp.Op.END_TEXT)
                   break bigswitch
                 default:
@@ -1626,24 +1614,24 @@ class Parser {
       {
         const c = t.pop()
         switch (c) {
-          case Codepoint.CODES.get('i'):
+          case Codepoint.CODES['i']:
             flags |= RE2Flags.FOLD_CASE
             sawFlag = true
             break
-          case Codepoint.CODES.get('m'):
+          case Codepoint.CODES['m']:
             flags &= ~RE2Flags.ONE_LINE
             sawFlag = true
             break
-          case Codepoint.CODES.get('s'):
+          case Codepoint.CODES['s']:
             flags |= RE2Flags.DOT_NL
             sawFlag = true
             break
-          case Codepoint.CODES.get('U'):
+          case Codepoint.CODES['U']:
             flags |= RE2Flags.NON_GREEDY
             sawFlag = true
             break
           // Switch to negation.
-          case Codepoint.CODES.get('-'):
+          case Codepoint.CODES['-']:
             if (sign < 0) {
               break loop
             }
@@ -1654,15 +1642,15 @@ class Parser {
             sawFlag = false
             break
           // End of flags, starting group or not.
-          case Codepoint.CODES.get(':'):
-          case Codepoint.CODES.get(')'):
+          case Codepoint.CODES[':']:
+          case Codepoint.CODES[')']:
             if (sign < 0) {
               if (!sawFlag) {
                 break loop
               }
               flags = ~flags
             }
-            if (c === Codepoint.CODES.get(':')) {
+            if (c === Codepoint.CODES[':']) {
               // Open new group
               this.op(Regexp.Op.LEFT_PAREN)
             }
@@ -1804,7 +1792,7 @@ class Parser {
     if (
       (this.flags & RE2Flags.PERL_X) === 0 ||
       !t.more() ||
-      t.pop() !== Codepoint.CODES.get('\\') ||
+      t.pop() !== Codepoint.CODES['\\'] ||
       !t.more()
     ) {
       return false
@@ -1863,7 +1851,7 @@ class Parser {
     // Committed to parse or throw exception.
     let sign = +1
     let c = t.pop() // 'p' or 'P'
-    if (c === Codepoint.CODES.get('P')) {
+    if (c === Codepoint.CODES['P']) {
       sign = -1
     }
     if (!t.more()) {
@@ -1874,7 +1862,7 @@ class Parser {
     c = t.pop()
     let name
 
-    if (c !== Codepoint.CODES.get('{')) {
+    if (c !== Codepoint.CODES['{']) {
       // Single-letter name.
       name = Utils.runeToString(c)
     } else {
@@ -1893,7 +1881,7 @@ class Parser {
     }
     // Group can have leading negation too.
     //  \p{^Han} == \P{Han}, \P{^Han} == \p{Han}.
-    if (!(name.length === 0) && name.codePointAt(0) === Codepoint.CODES.get('^')) {
+    if (!(name.length === 0) && name.codePointAt(0) === Codepoint.CODES['^']) {
       sign = 0 - sign // -sign
       name = name.substring(1)
     }
@@ -1940,12 +1928,12 @@ class Parser {
       // If character class does not match \n, add it here,
       // so that negation later will do the right thing.
       if ((this.flags & RE2Flags.CLASS_NL) === 0) {
-        cc.appendRange(Codepoint.CODES.get('\n'), Codepoint.CODES.get('\n'))
+        cc.appendRange(Codepoint.CODES['\n'], Codepoint.CODES['\n'])
       }
     }
 
     let first = true // ']' and '-' are okay as first char in class
-    while (!t.more() || t.peek() !== Codepoint.CODES.get(']') || first) {
+    while (!t.more() || t.peek() !== Codepoint.CODES[']'] || first) {
       // POSIX: - is only okay unescaped as first or last in class.
       // Perl: - is okay anywhere.
       if (t.more() && t.lookingAt('-') && (this.flags & RE2Flags.PERL_X) === 0 && !first) {

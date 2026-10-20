@@ -29,6 +29,10 @@ const arraysEqual = (a, b) => {
   return true
 }
 
+// Whether |state| is the state for instruction set |pcs|, flag word |flag| and match ids |ids|
+const isState = (state, pcs, flag, ids) =>
+  state.flag === flag && arraysEqual(state.nfaStates, pcs) && arraysEqual(state.matchIDs, ids)
+
 const NO_IDS = []
 
 // Pseudo-rune for the imaginary character after the end of the input (RE2: kByteEndText). The
@@ -38,7 +42,7 @@ const END_TEXT = -1
 
 class DFAState {
   constructor(nfaStates, flag, matchIDs) {
-    this.nfaStates = nfaStates // Int32Array of instruction PCs, sorted
+    this.nfaStates = nfaStates // instruction PCs, sorted
     this.flag = flag // see DFA.FLAG_*
     this.isMatch = (flag & DFA.FLAG_MATCH) !== 0
     // For sets: the patterns that matched just before the character that led to this state
@@ -82,10 +86,13 @@ class DFA {
   static FLAG_LAST_WORD = 0x200 // the last character was a word character (for \b, \B)
   static FLAG_NEED_SHIFT = 16 // assertions needed by pending EMPTY_WIDTH instructions
 
-  // Approximate bytes charged per state (object, instruction list header, hash bucket entry)
-  // and per transition table, on top of their elements.
-  static STATE_OVERHEAD = 160
-  static TABLE_OVERHEAD = 16
+  // Bytes charged for each state and transition table, as measured in V8 (64-bit, Node 24): a
+  // state is its object and hash map entry (~110 bytes) plus its instruction list, a plain array
+  // (~40 bytes plus 8 per element); a table is an array of ~48 bytes plus 8 per entry.
+  static STATE_OVERHEAD = 150
+  static ARRAY_OVERHEAD = 40
+  static ELEMENT_SIZE = 8
+  static TABLE_OVERHEAD = 48
   // Bail out of a search when fewer than this many characters were processed per cached state
   // since the previous cache reset (RE2: 10 bytes per state).
   static PROGRESS_PER_STATE = 10
@@ -94,7 +101,9 @@ class DFA {
   constructor(prog, maxMem = 8388608) {
     this.prog = prog
     this.maxMem = maxMem
-    this.stateCache = new Map() // hash(number) -> DFAState[]
+    // hash(number) -> DFAState, or an array of the DFAStates whose hashes collide (rare): a
+    // bucket array per state would cost more than the state itself
+    this.stateCache = new Map()
     this.stateCount = 0
     this.startStates = new Map() // start flags -> DFAState
     // Lookbehinds depend on automata running alongside the main program, which this DFA does
@@ -236,7 +245,7 @@ class DFA {
       }
     }
 
-    return { pcs: Int32Array.from(closure).sort(), needflags }
+    return { pcs: Array.from(closure).sort((a, b) => a - b), needflags }
   }
 
   // Get or create the state for the instruction set |pcs| with flag word |flag| and set match
@@ -244,35 +253,48 @@ class DFA {
   // fit in the memory budget.
   getState(pcs, flag, ids) {
     const hash = hashState(pcs, flag, ids)
-
-    let bucket = this.stateCache.get(hash)
-    if (bucket) {
-      for (let i = 0; i < bucket.length; i++) {
-        const state = bucket[i]
-        if (
-          state.flag === flag &&
-          arraysEqual(state.nfaStates, pcs) &&
-          arraysEqual(state.matchIDs, ids)
-        ) {
-          return state
-        }
+    const cached = this.stateCache.get(hash)
+    if (cached instanceof DFAState) {
+      if (isState(cached, pcs, flag, ids)) return cached
+    } else if (cached !== void 0) {
+      for (let i = 0; i < cached.length; i++) {
+        if (isState(cached[i], pcs, flag, ids)) return cached[i]
       }
     }
 
-    const cost = DFA.STATE_OVERHEAD + 4 * pcs.length + 8 * ids.length
+    const cost = DFA.stateCost(pcs, ids)
     if (this.memBudget < cost) {
       return null // out of memory: the caller resets the cache or gives up
     }
     this.memBudget -= cost
 
-    if (!bucket) {
-      bucket = []
-      this.stateCache.set(hash, bucket)
-    }
     const state = new DFAState(pcs, flag, ids)
-    bucket.push(state)
+    if (cached === void 0) {
+      this.stateCache.set(hash, state)
+    } else if (cached instanceof DFAState) {
+      this.stateCache.set(hash, [cached, state])
+    } else {
+      cached.push(state)
+    }
     this.stateCount++
     return state
+  }
+
+  // The bytes charged for a state with instruction list |pcs| and set match ids |ids|
+  static stateCost(pcs, ids) {
+    const idsCost = ids.length === 0 ? 0 : DFA.ARRAY_OVERHEAD + DFA.ELEMENT_SIZE * ids.length
+    return DFA.STATE_OVERHEAD + DFA.ELEMENT_SIZE * pcs.length + idsCost
+  }
+
+  // The cached states (for tests and diagnostics)
+  *cachedStates() {
+    for (const cached of this.stateCache.values()) {
+      if (cached instanceof DFAState) {
+        yield cached
+      } else {
+        yield* cached
+      }
+    }
   }
 
   // Builds the state for the closure of |pcs| under the assertions in |flag|, which also carries
@@ -293,7 +315,7 @@ class DFA {
   // Returns null when it does not fit.
   allocTable(state, anchor) {
     const size = this.numClasses + 1 // + 1 for END_TEXT
-    const cost = DFA.TABLE_OVERHEAD + 8 * size
+    const cost = DFA.TABLE_OVERHEAD + DFA.ELEMENT_SIZE * size
     if (this.memBudget < cost) {
       return null
     }
@@ -536,4 +558,4 @@ class DFA {
   }
 }
 
-export { DFA }
+export { DFA, hashState }

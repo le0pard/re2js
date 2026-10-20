@@ -11,6 +11,7 @@ class MachineInputBase {
   }
 
   constructor() {
+    this.start = 0
     this.end = 0
   }
 
@@ -19,9 +20,10 @@ class MachineInputBase {
     return true
   }
 
-  // Returns the end position in the same units as step().
+  // Returns the end position in the same units as step(), relative to the start of the input
+  // like every position the engines use.
   endPos() {
-    return this.end
+    return this.end - this.start
   }
 
   hasString() {

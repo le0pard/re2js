@@ -128,8 +128,8 @@ describe('Utils', () => {
 
   describe('.unhex', () => {
     it('correctly decodes hexadecimal characters', () => {
-      expect(Utils.unhex(Codepoint.CODES.get('0'))).toBe(0)
-      expect(Utils.unhex(Codepoint.CODES.get('9'))).toBe(9)
+      expect(Utils.unhex(Codepoint.CODES['0'])).toBe(0)
+      expect(Utils.unhex(Codepoint.CODES['9'])).toBe(9)
       expect(Utils.unhex('a'.codePointAt(0))).toBe(10)
       expect(Utils.unhex('f'.codePointAt(0))).toBe(15)
       expect(Utils.unhex('A'.codePointAt(0))).toBe(10)

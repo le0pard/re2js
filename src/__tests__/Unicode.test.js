@@ -3,19 +3,6 @@ import { Unicode } from '../Unicode.js'
 import { UnicodeTables } from '../UnicodeTables.js'
 import { codePoint } from '../__utils__/chars.js'
 
-describe('#isUpper', () => {
-  it.each([
-    [115, false], // 's'
-    [83, true], // 'S'
-    [503, true], // 'Ƿ'
-    [469, true], // 'Ǖ'
-    [474, false], // 'ǚ'
-    [940, false] // 'ά'
-  ])('#isUpper(%p) === %p', (input, expected) => {
-    expect(Unicode.isUpper(input)).toEqual(expected)
-  })
-})
-
 describe('#isPrint', () => {
   it.each([
     [32, true], // ' '

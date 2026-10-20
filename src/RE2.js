@@ -32,6 +32,7 @@ class RE2 {
     res.prefixComplete = re2.prefixComplete
     res.prefixRune = re2.prefixRune
     res.prefilter = re2.prefilter
+    res.namedGroups = re2.namedGroups
     return res
   }
 
@@ -116,10 +117,21 @@ class RE2 {
     this.prefixUTF8 = null // required UTF-8 prefix in unanchored matches
     this.prefixComplete = false // true if prefix is the entire regexp
     this.prefixRune = 0 // first rune in prefix
+    /** @type {Record<string, number>} */
+    this.namedGroups = Object.create(null) // group name -> group number
     this.machinePool = [] // Cache of machines for running regexp
-    this.dfa = new DFA(this.prog) // initialize Lazy DFA
+    this.lazyDFA = null // see dfa
     this.onepass = OnePass.compile(this.prog) // compile OnePass
     this.prefilter = null
+  }
+
+  // The lazy DFA, built on first use (RE2: Prog::GetDFA). It only answers whether the regexp
+  // matches, so a regexp used only for submatches never needs one.
+  get dfa() {
+    if (this.lazyDFA === null) {
+      this.lazyDFA = new DFA(this.prog)
+    }
+    return this.lazyDFA
   }
 
   matchPrefixComplete(input, pos, anchor, ncap) {

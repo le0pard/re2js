@@ -53,7 +53,7 @@ describe('Backtracker Execution Engine', () => {
 })
 
 describe('Backtracker Internal Exception Handling', () => {
-  it('throws RE2JSInternalException on unexpected Inst.FAIL', () => {
+  it('treats a reachable Inst.FAIL as a dead end, like the other engines', () => {
     const re = RE2JS.compile('a')
 
     // SABOTAGE: Force bypass the Literal and OnePass fast-paths
@@ -61,21 +61,17 @@ describe('Backtracker Internal Exception Handling', () => {
     re.re2Input.prefixComplete = false
     re.re2Input.onepass = null
 
-    // The `start` instruction is processed via `push()`, which explicitly ignores Inst.FAIL.
-    // To trigger the exception inside the inner execution loop, we must corrupt an instruction
-    // that is branched to *after* the initial push (e.g., via `currentPc = inst.out`).
+    // The `start` instruction is processed via `push()`, which skips Inst.FAIL. To reach a FAIL
+    // inside the inner execution loop, corrupt an instruction that is branched to *after* the
+    // initial push (e.g., via `currentPc = inst.out`). It used to throw "unexpected InstFail",
+    // so a program the compiler left with such a jump crashed find() instead of not matching.
     const startPc = re.re2Input.prog.start
     const nextPc = re.re2Input.prog.inst[startPc].out
 
     re.re2Input.prog.inst[nextPc].op = Inst.FAIL
 
-    expect(() => {
-      re.matcher('a').find()
-    }).toThrow(RE2JSInternalException)
-
-    expect(() => {
-      re.matcher('a').find()
-    }).toThrow('unexpected InstFail')
+    expect(re.matcher('a').find()).toBe(false)
+    expect(re.matcher('ba').find()).toBe(false)
   })
 
   it('throws RE2JSInternalException on an unknown/bad instruction', () => {

@@ -55,7 +55,7 @@ class Matcher {
         .split('')
         .map((s) => {
           const c = s.codePointAt(0)
-          if (c === Codepoint.CODES.get('\\') || c === Codepoint.CODES.get('$')) {
+          if (c === Codepoint.CODES['\\'] || c === Codepoint.CODES['$']) {
             return `\\${s}`
           }
           return s
@@ -70,7 +70,7 @@ class Matcher {
     return str
       .split('')
       .map((s) => {
-        if (s.codePointAt(0) === Codepoint.CODES.get('$')) {
+        if (s.codePointAt(0) === Codepoint.CODES['$']) {
           return '$$'
         }
         return s
@@ -100,6 +100,8 @@ class Matcher {
     this.groups = []
     /** @type {Record<string, number>} */
     this.namedGroups = re2.namedGroups
+    /** @type {boolean} */
+    this.hasNamedGroups = Object.keys(this.namedGroups).length > 0
     /** @type {number} */
     this.numberOfInstructions = re2.numberOfInstructions()
     // Lookbehind automata state carried between successive matches over the current input, so
@@ -429,23 +431,19 @@ class Matcher {
 
   /**
    * Appends to result two strings: the text from the append position up to the beginning of the
-   * most recent match, and then the replacement with submatch groups substituted for references of
-   * the form {@code $n}, where {@code n} is the group number in decimal. It advances the append
-   * position to where the most recent match ended.
+   * most recent match, and then the replacement with submatch groups substituted for references to
+   * them. It advances the append position to where the most recent match ended.
    *
-   * To embed a literal {@code $}, use \$ (actually {@code "\\$"} with string escapes). The escape
-   * is only necessary when {@code $} is followed by a digit, but it is always allowed. Only
-   * {@code $} and {@code \} need escaping, but any character can be escaped.
-   *
-   * The group number {@code n} in {@code $n} is always at least one digit and expands to use more
-   * digits as long as the resulting number is a valid group number for this pattern. To cut it off
-   * earlier, escape the first digit that should not be used.
+   * By default the replacement is expanded as by String.prototype.replace (see
+   * appendReplacementInternalJs). In Java mode it follows re2j / java.util.regex: $n takes as
+   * many digits as still form a valid group number, ${name} is a named group, and a backslash
+   * escapes the next character (so "\\$" in a JS string literal inserts a literal $).
    *
    * @param {string} replacement the replacement string
    * @param {boolean} [javaMode=false] activate java mode (different behaviour for capture groups and special characters)
    * @returns {string}
    * @throws IllegalStateException if there was no most recent match
-   * @throws IndexOutOfBoundsException if replacement refers to an invalid group
+   * @throws IndexOutOfBoundsException in Java mode, if replacement refers to an invalid group
    * @private
    */
   appendReplacement(replacement, javaMode = false) {
@@ -476,7 +474,7 @@ class Matcher {
     while (i < m) {
       const cCode = replacement.codePointAt(i)
 
-      if (cCode === Codepoint.CODES.get('\\')) {
+      if (cCode === Codepoint.CODES['\\']) {
         if (last < i) {
           res += replacement.substring(last, i)
         }
@@ -489,7 +487,7 @@ class Matcher {
         continue
       }
 
-      if (cCode === Codepoint.CODES.get('$')) {
+      if (cCode === Codepoint.CODES['$']) {
         if (last < i) {
           res += replacement.substring(last, i)
         }
@@ -499,21 +497,21 @@ class Matcher {
 
         const nextCode = replacement.codePointAt(i + 1)
 
-        if (Codepoint.CODES.get('0') <= nextCode && nextCode <= Codepoint.CODES.get('9')) {
+        if (Codepoint.CODES['0'] <= nextCode && nextCode <= Codepoint.CODES['9']) {
           // The group number is the longest run of digits that is still a valid group
           // (re2j / java.util.regex): with one group, "$10" is group 1 followed by "0".
-          let n = nextCode - Codepoint.CODES.get('0')
+          let n = nextCode - Codepoint.CODES['0']
           let j = i + 2
           for (; j < m; j++) {
             const digit = replacement.codePointAt(j)
             if (
-              digit < Codepoint.CODES.get('0') ||
-              digit > Codepoint.CODES.get('9') ||
-              n * 10 + digit - Codepoint.CODES.get('0') > this.patternGroupCount
+              digit < Codepoint.CODES['0'] ||
+              digit > Codepoint.CODES['9'] ||
+              n * 10 + digit - Codepoint.CODES['0'] > this.patternGroupCount
             ) {
               break
             }
-            n = n * 10 + digit - Codepoint.CODES.get('0')
+            n = n * 10 + digit - Codepoint.CODES['0']
           }
 
           if (n > this.patternGroupCount) {
@@ -526,9 +524,9 @@ class Matcher {
           }
           i = j
           last = i
-        } else if (nextCode === Codepoint.CODES.get('{')) {
+        } else if (nextCode === Codepoint.CODES['{']) {
           let j = i + 2
-          while (j < m && replacement.codePointAt(j) !== Codepoint.CODES.get('}')) {
+          while (j < m && replacement.codePointAt(j) !== Codepoint.CODES['}']) {
             j++
           }
           if (j >= m) {
@@ -557,137 +555,80 @@ class Matcher {
   }
 
   /**
+   * Expands |replacement| for the current match by the rules of String.prototype.replace
+   * (ECMAScript GetSubstitution): $$ is "$", $& the match, $` the text before it, $' the text
+   * after it, $n and $nn a group (two digits only when they form a valid group number, so with
+   * one group "$10" is group 1 then "0"; an unmatched group is empty), and $<name> a named group
+   * (empty when no such group), only when the pattern has named groups. Anything else, such as
+   * "$0" or "$<" without a closing ">", is kept as is.
    * @param {string} replacement - the replacement string
    * @returns {string}
    * @private
    */
   appendReplacementInternalJs(replacement) {
+    const isDigit = (c) => c >= 0x30 && c <= 0x39 // '0'-'9'
+    const groupCount = this.patternGroupCount
     let res = ''
-    let last = 0
-    const m = replacement.length
+    let i = 0
+    while (i < replacement.length) {
+      const dollar = replacement.indexOf('$', i)
+      if (dollar < 0) {
+        break
+      }
+      res += replacement.substring(i, dollar)
+      i = dollar
+      const c = replacement.charCodeAt(i + 1)
 
-    for (let i = 0; i < m - 1; i++) {
-      if (replacement.codePointAt(i) === Codepoint.CODES.get('$')) {
-        let c = replacement.codePointAt(i + 1)
-
-        if (Codepoint.CODES.get('$') === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          res += '$'
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES.get('&') === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          const group = this.group(0)
-          if (group !== null) {
-            res += group
-          } else {
-            res += '$&'
-          }
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES.get('`') === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          res += this.substring(0, this.start(0))
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES.get("'") === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          res += this.substring(this.end(0), this.matcherInputLength)
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES.get('1') <= c && c <= Codepoint.CODES.get('9')) {
-          let n = c - Codepoint.CODES.get('0')
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          for (i += 2; i < m; i++) {
-            c = replacement.codePointAt(i)
-            if (
-              c < Codepoint.CODES.get('0') ||
-              c > Codepoint.CODES.get('9') ||
-              n * 10 + c - Codepoint.CODES.get('0') > this.patternGroupCount
-            ) {
-              break
-            }
-            n = n * 10 + c - Codepoint.CODES.get('0')
-          }
-
-          if (n > this.patternGroupCount) {
-            res += `$${n}`
-            last = i
-            i--
-            continue
-          }
-
-          const group = this.group(n)
-          if (group !== null) {
-            res += group
-          }
-
-          last = i
-          i--
-          continue
-        } else if (c === Codepoint.CODES.get('<')) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          i++
-          let j = i + 1
-          while (
-            j < replacement.length &&
-            replacement.codePointAt(j) !== Codepoint.CODES.get('>') &&
-            replacement.codePointAt(j) !== Codepoint.CODES.get(' ')
-          ) {
-            j++
-          }
-
-          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('>')) {
-            res += replacement.substring(i - 1, j + 1)
-            last = j + 1
-            i = j
-            continue
-          }
-
-          const groupName = replacement.substring(i + 1, j)
-          if (Object.prototype.hasOwnProperty.call(this.namedGroups, groupName)) {
-            const groupVal = this.group(groupName)
-            if (groupVal !== null) {
-              res += groupVal
-            }
-          } else {
-            res += `$<${groupName}>`
-          }
-
-          last = j + 1
-          i = j
-          continue
+      if (c === Codepoint.CODES['$']) {
+        res += '$'
+        i += 2
+      } else if (c === Codepoint.CODES['&']) {
+        res += this.group(0)
+        i += 2
+      } else if (c === Codepoint.CODES['`']) {
+        res += this.substring(0, this.start(0))
+        i += 2
+      } else if (c === Codepoint.CODES["'"]) {
+        res += this.substring(this.end(0), this.matcherInputLength)
+        i += 2
+      } else if (isDigit(c)) {
+        let digits = 1
+        let index = c - 0x30
+        const c2 = replacement.charCodeAt(i + 2)
+        if (isDigit(c2) && index * 10 + c2 - 0x30 <= groupCount) {
+          digits = 2
+          index = index * 10 + c2 - 0x30
         }
+        if (index >= 1 && index <= groupCount) {
+          const group = this.group(index)
+          if (group !== null) {
+            res += group
+          }
+        } else {
+          res += replacement.substring(i, i + 1 + digits)
+        }
+        i += 1 + digits
+      } else if (c === Codepoint.CODES['<'] && this.hasNamedGroups) {
+        const gt = replacement.indexOf('>', i + 2)
+        if (gt < 0) {
+          res += '$<'
+          i += 2
+        } else {
+          const name = replacement.substring(i + 2, gt)
+          if (Object.prototype.hasOwnProperty.call(this.namedGroups, name)) {
+            const group = this.group(name)
+            if (group !== null) {
+              res += group
+            }
+          }
+          i = gt + 1
+        }
+      } else {
+        res += '$'
+        i += 1
       }
     }
-
-    if (last < m) {
-      res += replacement.substring(last, m)
-    }
-
-    return res
+    return res + replacement.substring(i)
   }
 
   /**
@@ -740,9 +681,6 @@ class Matcher {
 
     const isFunc = typeof replacement === 'function'
 
-    // Cache named groups check to avoid GC thrashing on every match
-    const hasNamedGroups = Object.keys(this.namedGroups).length > 0
-
     let originalInput = null
 
     if (isFunc) {
@@ -758,7 +696,7 @@ class Matcher {
 
     while (this.find()) {
       res += isFunc
-        ? this.appendReplacementFunc(replacement, hasNamedGroups, originalInput)
+        ? this.appendReplacementFunc(replacement, originalInput)
         : this.appendReplacement(replacement, javaMode)
 
       if (!all) {
@@ -774,12 +712,11 @@ class Matcher {
    * Evaluates a replacer function for the current match and appends the result,
    * along with any un-matched preceding text, advancing the append position.
    * @param {Function} replacer - the replacer function
-   * @param {boolean} hasNamedGroups - cached flag if pattern has named groups
    * @param {string|Uint8Array|number[]} originalInput - the cached original input reference
    * @returns {string} the evaluated string to append
    * @private
    */
-  appendReplacementFunc(replacer, hasNamedGroups, originalInput) {
+  appendReplacementFunc(replacer, originalInput) {
     let res = ''
     const s = this.start()
     const e = this.end()
@@ -789,50 +726,50 @@ class Matcher {
     }
     this.appendPos = e
 
-    const args = this.buildReplacerArgs(s, hasNamedGroups, originalInput)
+    /** @type {unknown[]} */
+    const args = this.matchArray()
+    args.push(s, originalInput)
+    if (this.hasNamedGroups) {
+      args.push(this.namedGroupsObject())
+    }
 
     res += String(replacer(...args))
     return res
   }
 
   /**
-   * Builds the argument array for the replacer function matching the standard
-   * JS String.prototype.replace(regex, replacer) signature.
-   * @param {number} matchStart - the start index of the match
-   * @param {boolean} hasNamedGroups - cached flag if pattern has named groups
-   * @param {string|Uint8Array|number[]} originalInput - the cached original input reference
-   * @returns {Array} array of arguments
+   * The match and its groups, as the elements of a JS RegExpExecArray: undefined for a group that
+   * did not take part in the match. Used by exec(), matchAll() and replacer functions.
+   * @returns {Array<string|undefined>}
    * @private
    */
-  buildReplacerArgs(matchStart, hasNamedGroups, originalInput) {
-    const args = [this.group(0)] // match
+  matchArray() {
+    const result = [this.group(0)]
+    for (let i = 1; i <= this.patternGroupCount; i++) {
+      const group = this.group(i)
+      result.push(group === null ? void 0 : group)
+    }
+    return result
+  }
 
-    const numGroups = this.groupCount()
-    // Fast-path capture group extraction
-    for (let i = 1; i <= numGroups; i++) {
-      const start = this.start(i)
-      if (start < 0) {
-        args.push(void 0)
-      } else {
-        args.push(this.substring(start, this.end(i)))
+  /**
+   * The named groups, as the groups property of a JS RegExpExecArray: an object without a
+   * prototype mapping each name to its group (undefined when it did not take part in the match),
+   * or undefined when the pattern has no named groups.
+   * @returns {Record<string, string|undefined>|undefined}
+   * @private
+   */
+  namedGroupsObject() {
+    if (!this.hasNamedGroups) {
+      return void 0
+    }
+    const result = this.getNamedGroups()
+    for (const name in result) {
+      if (result[name] === null) {
+        result[name] = void 0
       }
     }
-
-    args.push(matchStart) // offset
-    args.push(originalInput) // original string (cached)
-
-    // Append named groups object if pattern contains them
-    if (hasNamedGroups) {
-      const parsedGroups = this.getNamedGroups()
-      for (const key in parsedGroups) {
-        if (parsedGroups[key] === null) {
-          parsedGroups[key] = void 0
-        }
-      }
-      args.push(parsedGroups)
-    }
-
-    return args
+    return result
   }
 }
 

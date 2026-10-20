@@ -111,9 +111,10 @@ class BitState {
         const inst = re2.prog.getInst(currentPc)
 
         switch (inst.op) {
-          case Inst.FAIL: {
-            throw new RE2JSInternalException('unexpected InstFail')
-          }
+          case Inst.FAIL:
+            // A dead end, as in RE2's BitState and the other engines here. (Go panics instead,
+            // as its compiler never makes a FAIL reachable.)
+            break
           case Inst.ALT: {
             if (arg) {
               arg = false
@@ -159,7 +160,7 @@ class BitState {
           case Inst.RUNE_ANY_NOT_NL: {
             const r = input.step(currentPos)
             if (r === MachineInputBase.EOF()) break
-            if (r >> 3 === 10) break
+            if (r >> 3 === 10) break // '\n'
             currentPos += r & 7
             currentPc = inst.out
             continue

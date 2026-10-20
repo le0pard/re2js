@@ -4,7 +4,7 @@
   ],
   "compilerOptions": {
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "declaration": true,
     "noImplicitAny": false,
     "strictNullChecks": false,

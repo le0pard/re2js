@@ -320,3 +320,70 @@ describe('Compiler shares the rune array of repeated literal runes', () => {
     expect(runeArrays.size).toBe(2)
   })
 })
+
+describe('groups that can never match', () => {
+  // Simplify reduces an empty class to "no match" but keeps the group around it, so the compiler
+  // sees a failing fragment inside x?, x* and x+. It must not leave a reachable jump to FAIL,
+  // which the bit-state backtracker used to reject with "unexpected InstFail".
+  const E = '[^\\s\\S]'
+  const compile = (pattern) =>
+    Compiler.compileRegexp(Simplify.simplify(Parser.parse(pattern, RE2Flags.PERL)))
+  const reachesFail = (prog) => {
+    const seen = new Set()
+    const stack = [prog.start]
+    while (stack.length > 0) {
+      const pc = stack.pop()
+      if (seen.has(pc)) continue
+      seen.add(pc)
+      const inst = prog.getInst(pc)
+      if (inst.op === Inst.FAIL) return true
+      if (inst.op === Inst.MATCH) continue
+      stack.push(inst.out)
+      if (inst.op === Inst.ALT || inst.op === Inst.ALT_MATCH) stack.push(inst.arg)
+    }
+    return false
+  }
+
+  it.each([
+    `(a)(${E})?b`,
+    `(${E})*`,
+    `(${E})*?a`,
+    `(?:(${E})|a)*b`,
+    `(a|(${E}))*b`,
+    `(${E}){0,3}y`
+  ])('compiles %s without a reachable FAIL', (pattern) => {
+    expect(reachesFail(compile(pattern))).toBe(false)
+  })
+
+  it('compiles a pattern that can never match to a single FAIL', () => {
+    const prog = compile(`(${E})+`)
+    expect(prog.getInst(prog.start).op).toBe(Inst.FAIL)
+  })
+
+  it.each([
+    // [pattern, input, Go's FindAllStringSubmatchIndex]
+    [`(a)(${E})?b`, 'xab', [[1, 3, 1, 2, -1, -1]]],
+    [
+      `(${E})*`,
+      'ab',
+      [
+        [0, 0, -1, -1],
+        [1, 1, -1, -1],
+        [2, 2, -1, -1]
+      ]
+    ],
+    [`(a|(${E}))*b`, 'xaab', [[1, 4, 2, 3, -1, -1]]],
+    [`(${E}){0,3}y`, 'xy', [[1, 2, -1, -1]]],
+    [`(?:(${E})|a)+$`, 'baa', [[1, 3, -1, -1]]],
+    [`(${E})+|c`, 'abc', [[2, 3, -1, -1]]]
+  ])('matches %s in %j as Go does', (pattern, input, want) => {
+    const m = RE2JS.compile(pattern).matcher(input)
+    const have = []
+    while (m.find()) {
+      const match = []
+      for (let g = 0; g <= m.groupCount(); g++) match.push(m.start(g), m.end(g))
+      have.push(match)
+    }
+    expect(have).toEqual(want)
+  })
+})

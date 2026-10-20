@@ -2,6 +2,10 @@ import { expect, describe, it } from 'vitest'
 import { MachineInput, MachineInputBase } from '../MachineInput.js'
 import { RE2JS } from '../index.js'
 import { Utils } from '../Utils.js'
+import { RE2 } from '../RE2.js'
+import { RE2Flags } from '../RE2Flags.js'
+import { Backtracker } from '../Backtracker.js'
+import { OnePass } from '../OnePass.js'
 
 describe('MachineUTF16Input Boundary Checks', () => {
   it('does not report literal prefix matches that exceed the bounded substring', () => {
@@ -40,6 +44,45 @@ it('MachineUTF8Input.indexOf fallback works without native .indexOf', () => {
     // Restore the native function so we don't pollute the Vitest environment
     buffer.indexOf = originalIndexOf
   }
+})
+
+describe('Inputs that start inside a buffer', () => {
+  // Every position the engines use is relative to the start of the input, endPos() included, so
+  // [start, end) of a buffer matches like that slice alone (the text around it is not visible).
+  const engines = (re, input, anchor) => {
+    const ncap = 2 * (1 + re.numSubexp)
+    const results = [
+      ['nfa', re.doExecuteNFA(input(), 0, anchor, ncap)],
+      ['backtracker', Backtracker.execute(re, input(), 0, anchor, ncap)],
+      ['dfa', re.dfa.match(input(), 0, anchor)]
+    ]
+    if (re.onepass !== null) {
+      results.push(['onepass', OnePass.execute(re, input(), 0, anchor, ncap)])
+    }
+    return results
+  }
+
+  it.each(['(?i)\\w', '^a+$', 'a\\b', '(a)(b)?$', '^(a)b\\z', '\\Bb', '(?m)^b$'])(
+    'matches /%s/ in a slice like in the slice alone',
+    (pattern) => {
+      const re = RE2.compile(pattern)
+      const text = 'Kab\nb!'
+      for (let start = 0; start <= text.length; start++) {
+        for (let end = start; end <= text.length; end++) {
+          const slice = text.slice(start, end)
+          const bytes = Utils.stringToUtf8ByteArray(text)
+          for (const anchor of [RE2Flags.UNANCHORED, RE2Flags.ANCHOR_START, RE2Flags.ANCHOR_BOTH]) {
+            const want = engines(re, () => MachineInput.fromUTF16(slice), anchor)
+            const utf16 = engines(re, () => MachineInput.fromUTF16(text, start, end), anchor)
+            const utf8 = engines(re, () => MachineInput.fromUTF8(bytes, start, end), anchor)
+            const where = `${JSON.stringify(slice)} anchor=${anchor}`
+            expect(utf16, `UTF-16 ${where}`).toEqual(want)
+            expect(utf8, `UTF-8 ${where}`).toEqual(want)
+          }
+        }
+      }
+    }
+  )
 })
 
 describe('UTF-8 decoding follows Go utf8.DecodeRune', () => {
