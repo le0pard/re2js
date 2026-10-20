@@ -14,9 +14,9 @@ permissions: {}
 
 jobs:
   fuzz:
-    name: 'Fuzz (engines and Go regexp)'
+    name: 'Fuzz (engines, sets, JS RegExp, Go regexp)'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     permissions:
       contents: read
     steps:
@@ -42,11 +42,12 @@ jobs:
           go-version-file: 'tools/fuzz/go-oracle/go.mod'
           cache: false
 
-      # Ten minutes per fuzzer, with a new random seed every night (printed first). A failure
-      # prints the case shrunk to a minimal pattern and input, and the command that replays it.
+      # Seven and a half minutes per fuzzer (four of them), with a new random seed every night
+      # (printed first). A failure prints the case shrunk to a minimal pattern and input, and the
+      # command that replays it.
       - name: Fuzz
         env:
-          RE2JS_FUZZ_SECONDS: '600'
+          RE2JS_FUZZ_SECONDS: '450'
           RE2JS_FUZZ_REQUIRE_ALL: '1'
           RE2JS_FUZZ_SEED: ${{ inputs.seed }}
         run: yarn fuzz

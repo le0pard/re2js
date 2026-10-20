@@ -55,6 +55,9 @@ class Compiler {
 
     let starts = []
     for (let i = 0; i < regexps.length; i++) {
+      // Each pattern numbers its lookbehinds from 1; in the shared program they follow the
+      // previous patterns' ones, so that no two lookbehinds share a slot of the lookbehind table.
+      c.lbOffset = c.prog.numLb
       const f = c.compile(regexps[i])
       const m = c.newInst(Inst.MATCH)
       c.prog.getInst(m.i).arg = i // Store the regex index
@@ -79,6 +82,8 @@ class Compiler {
   constructor() {
     this.prog = new Prog()
     this.newInst(Inst.FAIL)
+    // Added to the lookbehind numbers of the regexp being compiled (see compileSet)
+    this.lbOffset = 0
     // One shared rune array per literal rune, so repeated literals do not allocate one per
     // instruction (RE2 keeps a similar rune_cache_; Go slices the literal's rune array).
     this.runeCache = new Map()
@@ -253,7 +258,9 @@ class Compiler {
     return f
   }
 
-  lookBehind(a, lb) {
+  lookBehind(a, parsedLb) {
+    // The number keeps its sign (negative for a negative lookbehind)
+    const lb = Math.sign(parsedLb) * (Math.abs(parsedLb) + this.lbOffset)
     const id = this.newInst(Inst.LB_WRITE)
     this.prog.getInst(id.i).arg = lb
 

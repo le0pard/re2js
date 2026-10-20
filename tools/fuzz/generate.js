@@ -103,3 +103,56 @@ export const makeBytes = (random, { long = 0.05 } = {}) => {
   for (let n = pieceCount(random, long); n > 0; n--) bytes.push(...random.pick(BYTE_PIECES))
   return bytes
 }
+
+// JavaScript (u-mode) syntax whose meaning RE2 shares once translated by translateRegExp
+const JS_ATOMS = ['a', 'b', 'ab', 'x', 'é', '本', '😀', '-', ' ', '\\n', '\\t', '.', '[ab]', '[^a]']
+JS_ATOMS.push('[a-c]', '[😀é]', '\\w', '\\W', '\\d', '\\D', '\\s', '\\S', '\\b', '\\B', '^', '$')
+JS_ATOMS.push('\\p{L}', '\\P{L}', '\\p{Lu}', '\\x41', '\\u0042', '\\u{1F600}', '\\0', '\\cJ', '\\/')
+JS_ATOMS.push('\\.', '[\\b]', '[^]', '[]', '(?:)')
+const JS_LOOKBEHINDS = [
+  '(?<=a)',
+  '(?<!a)',
+  '(?<=ab)',
+  '(?<!b)',
+  '(?<=[ab]+)',
+  '(?<=a.)',
+  '(?<!\\w)'
+]
+JS_LOOKBEHINDS.push('(?<=^a*)', '(?<=😀)', '(?<=\\b)', '(?<!(?:a|b)x)', '(?<=a|bc)', '(?<!\\d{2})')
+
+// A random JavaScript regular expression source, with lookbehinds in some places
+export const makeJsPattern = (random) => {
+  let names = 0
+  const atom = (depth) => {
+    const r = random.next()
+    if (r < 0.15) return random.pick(JS_LOOKBEHINDS)
+    if (r < 0.6 || depth > 2) return random.pick(JS_ATOMS)
+    if (r < 0.75) return `(?:${sequence(depth + 1)})`
+    if (r < 0.9) return `(${sequence(depth + 1)})`
+    return `(?<g${names++}>${sequence(depth + 1)})`
+  }
+  const quantify = (s) => {
+    if (random.chance(0.55)) return s
+    return (
+      s + random.pick(['*', '+', '?', '{2}', '{0,2}', '{1,3}']) + (random.chance(0.25) ? '?' : '')
+    )
+  }
+  const sequence = (depth) => {
+    let s = ''
+    for (let n = 1 + random.int(3); n > 0; n--) s += quantify(atom(depth))
+    return random.chance(0.3) ? `${s}|${quantify(atom(depth))}` : s
+  }
+  return sequence(0)
+}
+
+// Inputs without the characters JavaScript and RE2 classify differently: \r, \v and the other
+// line terminators and spaces (".", "^", "$" and \s), and the Kelvin sign and long s (\w and \b
+// under the i flag)
+const JS_TEXT_PIECES = ['a', 'b', 'ab', 'x', 'A', 'B', 'é', 'É', '本', '😀', ' ', '-', '\n', '\t']
+JS_TEXT_PIECES.push('1', '2', '/', '\0')
+
+export const makeJsText = (random) => {
+  let s = ''
+  for (let n = random.int(12); n > 0; n--) s += random.pick(JS_TEXT_PIECES)
+  return s
+}

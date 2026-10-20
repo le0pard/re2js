@@ -1,5 +1,6 @@
 import { expect, describe, it } from 'vitest'
 import { TranslateRegExpString } from '../TranslateRegExpString.js'
+import { RE2JS } from '../index.js'
 
 describe('.translate', () => {
   it.each([
@@ -92,6 +93,16 @@ describe('.translate', () => {
     ['(?<=a)b', '(?<=a)b'], // Positive lookbehind
     ['(?<!a)b', '(?<!a)b'], // Negative lookbehind
 
+    // JS's empty class [] matches nothing and [^] any character; to RE2 a ] right after [ or
+    // [^ is a member, so they are rewritten
+    ['[]', '[^\\x00-\\x{10FFFF}]'],
+    ['[^]', '[\\x00-\\x{10FFFF}]'],
+    ['x[]y|[^]+', 'x[^\\x00-\\x{10FFFF}]y|[\\x00-\\x{10FFFF}]+'],
+    ['[^]a]', '[\\x00-\\x{10FFFF}]a]'], // in JS: any character, then "a]"
+    ['[[^]]', '[[^]]'], // [ inside a class is a member: the class is "[" and "^", then "]"
+    ['\\[^]', '\\[^]'], // an escaped [ opens no class
+    [/[^]/s, '(?s)[\\x00-\\x{10FFFF}]'],
+
     // native regex
     [/hello/, 'hello'],
     [/foo/i, '(?i)foo'],
@@ -104,4 +115,20 @@ describe('.translate', () => {
   ])('#translate(%p) === %p', (input, expected) => {
     expect(TranslateRegExpString.translate(input)).toEqual(expected)
   })
+})
+
+describe('translated patterns match like the JS RegExp', () => {
+  // Translation must keep the meaning, not only produce valid RE2 syntax. Compared with the u
+  // flag: RE2JS matches whole code points, as a u-mode RegExp does.
+  it.each([['[]'], ['[^]'], ['x[]y|[^]+'], ['a[^]b'], ['[^]a\\]'], ['(?<n>[^])[]?']])(
+    '%s',
+    (source) => {
+      for (const text of ['', 'a', 'ab', 'a]b', 'x\ny', 'axb', '😀z']) {
+        const native = Array.from(text.matchAll(new RegExp(source, 'gu')), (m) => [m.index, m[0]])
+        const re = RE2JS.compile(RE2JS.translateRegExp(source))
+        const have = Array.from(re.matchAll(text), (m) => [m.index, m[0]])
+        expect(have, JSON.stringify(text)).toEqual(native)
+      }
+    }
+  )
 })

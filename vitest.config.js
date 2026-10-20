@@ -20,12 +20,13 @@ export default defineConfig({
         'src/UnicodeTables.js',
         'src/CharGroup.js'
       ],
-      // Fail when coverage drops noticeably below its current level
+      // Fail when coverage drops below its current level (lines 95.8%, statements 95.6%,
+      // functions 96.8%, branches 93.4% in October 2026)
       thresholds: {
-        lines: 93,
-        statements: 92,
-        functions: 93,
-        branches: 90
+        lines: 95,
+        statements: 95,
+        functions: 96,
+        branches: 93
       }
     },
     projects: [

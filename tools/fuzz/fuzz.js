@@ -1,5 +1,7 @@
 // Runs the fuzzers: random patterns and inputs, checked by the engines against each other
-// (engines.js) and against Go's regexp package (go.js). A failure is shrunk to a minimal case
+// (engines.js), by multi-pattern sets against their patterns on their own (set.js), against the
+// JavaScript engine's RegExp for lookbehinds and translateRegExp (native.js), and against Go's
+// regexp package (go.js). A failure is shrunk to a minimal case
 // and printed with the command that replays it. Exits with status 1 on a failure.
 //
 //   yarn fuzz
@@ -7,16 +9,18 @@
 // Environment:
 //   RE2JS_FUZZ_SEED         seed of the run (default: random, printed at the start)
 //   RE2JS_FUZZ_SECONDS      time for each fuzzer (default: 30)
-//   RE2JS_FUZZ_ONLY         comma-separated fuzzers to run: engines, go (default: all)
+//   RE2JS_FUZZ_ONLY         comma-separated fuzzers to run: engines, set, native, go (default: all)
 //   RE2JS_FUZZ_CASE         replay only this case of the run (with RE2JS_FUZZ_SEED)
 //   RE2JS_FUZZ_REQUIRE_ALL  1 to fail instead of skipping a fuzzer that cannot run (CI)
 import { randomInt } from 'node:crypto'
 import { enginesFuzzer } from './engines.js'
 import { goFuzzer } from './go.js'
+import { nativeFuzzer } from './native.js'
 import { caseSeed, makeRandom } from './random.js'
+import { setFuzzer } from './set.js'
 import { shrink } from './shrink.js'
 
-const FUZZERS = [enginesFuzzer, goFuzzer]
+const FUZZERS = [enginesFuzzer, setFuzzer, nativeFuzzer, goFuzzer]
 
 const env = (name) =>
   process.env[name] === void 0 || process.env[name] === '' ? null : process.env[name]
