@@ -169,6 +169,12 @@ class Compiler {
 
   // Given a fragment for a, returns a fragment for a? or a?? (if nongreedy)
   quest(f1, nongreedy) {
+    // A failing a (one that cannot match, kept by Simplify inside a capture group) can only be
+    // skipped: a? is the empty string (RE2: Compiler::Quest). An ALT into it would make the
+    // failure reachable.
+    if (f1.i === 0) {
+      return this.nop()
+    }
     const f = this.newInst(Inst.ALT)
     const i = this.prog.getInst(f.i)
     if (nongreedy) {
@@ -184,6 +190,10 @@ class Compiler {
 
   // Given a fragment a, returns a fragment for a* or a*? (if nongreedy)
   star(f1, nongreedy) {
+    // As for quest: a failing a can only repeat zero times
+    if (f1.i === 0) {
+      return this.nop()
+    }
     if (f1.nullable) {
       return this.quest(this.plus(f1, nongreedy), nongreedy)
     }
@@ -192,6 +202,10 @@ class Compiler {
 
   // Given a fragment for a, returns a fragment for a+ or a+? (if nongreedy)
   plus(f1, nongreedy) {
+    // a+ needs one a: a failing a fails
+    if (f1.i === 0) {
+      return this.fail()
+    }
     return new Frag(f1.i, this.loop(f1, nongreedy).out, f1.nullable)
   }
 

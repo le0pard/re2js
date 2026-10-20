@@ -87,7 +87,8 @@ const ATOMS = [
   '\\w',
   '\\s',
   '\\pL',
-  '[\\x{100}-\\x{2000}]'
+  '[\\x{100}-\\x{2000}]',
+  '[^\\s\\S]' // never matches: inside a group it must not leave a reachable FAIL
 ]
 const TEXT_PIECES = ['a', 'b', 'c', 'x', 'A', 'K', 'K', ' ', '\n', 'é', '😀', '1', 'ā']
 
