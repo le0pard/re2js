@@ -53,22 +53,22 @@ class Utils {
   // Returns true iff |c| is an ASCII letter or decimal digit.
   static isalnum(c) {
     return (
-      (Codepoint.CODES.get('0') <= c && c <= Codepoint.CODES.get('9')) ||
-      (Codepoint.CODES.get('a') <= c && c <= Codepoint.CODES.get('z')) ||
-      (Codepoint.CODES.get('A') <= c && c <= Codepoint.CODES.get('Z'))
+      (Codepoint.CODES['0'] <= c && c <= Codepoint.CODES['9']) ||
+      (Codepoint.CODES['a'] <= c && c <= Codepoint.CODES['z']) ||
+      (Codepoint.CODES['A'] <= c && c <= Codepoint.CODES['Z'])
     )
   }
 
   // If |c| is an ASCII hex digit, returns its value, otherwise -1.
   static unhex(c) {
-    if (Codepoint.CODES.get('0') <= c && c <= Codepoint.CODES.get('9')) {
-      return c - Codepoint.CODES.get('0')
+    if (Codepoint.CODES['0'] <= c && c <= Codepoint.CODES['9']) {
+      return c - Codepoint.CODES['0']
     }
-    if (Codepoint.CODES.get('a') <= c && c <= Codepoint.CODES.get('f')) {
-      return c - Codepoint.CODES.get('a') + 10
+    if (Codepoint.CODES['a'] <= c && c <= Codepoint.CODES['f']) {
+      return c - Codepoint.CODES['a'] + 10
     }
-    if (Codepoint.CODES.get('A') <= c && c <= Codepoint.CODES.get('F')) {
-      return c - Codepoint.CODES.get('A') + 10
+    if (Codepoint.CODES['A'] <= c && c <= Codepoint.CODES['F']) {
+      return c - Codepoint.CODES['A'] + 10
     }
     return -1
   }
@@ -84,25 +84,25 @@ class Utils {
       out += String.fromCodePoint(rune)
     } else {
       switch (rune) {
-        case Codepoint.CODES.get('"'): // '"'
+        case Codepoint.CODES['"']: // '"'
           out += '\\"'
           break
-        case Codepoint.CODES.get('\\'): // '\\'
+        case Codepoint.CODES['\\']: // '\\'
           out += '\\\\'
           break
-        case Codepoint.CODES.get('\t'): // '\t'
+        case Codepoint.CODES['\t']: // '\t'
           out += '\\t'
           break
-        case Codepoint.CODES.get('\n'): // '\n'
+        case Codepoint.CODES['\n']: // '\n'
           out += '\\n'
           break
-        case Codepoint.CODES.get('\r'): // '\r'
+        case Codepoint.CODES['\r']: // '\r'
           out += '\\r'
           break
-        case Codepoint.CODES.get('\b'): // '\b'
+        case Codepoint.CODES['\b']: // '\b'
           out += '\\b'
           break
-        case Codepoint.CODES.get('\f'): // '\f'
+        case Codepoint.CODES['\f']: // '\f'
           out += '\\f'
           break
         default: {

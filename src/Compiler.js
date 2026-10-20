@@ -10,8 +10,8 @@ import { RegexpWalker } from './RegexpWalker.js'
 
 const ANY_RUNE_NOT_NL = new Int32Array([
   0,
-  Codepoint.CODES.get('\n') - 1,
-  Codepoint.CODES.get('\n') + 1,
+  Codepoint.CODES['\n'] - 1,
+  Codepoint.CODES['\n'] + 1,
   Unicode.MAX_RUNE
 ])
 const ANY_RUNE = new Int32Array([0, Unicode.MAX_RUNE])
@@ -225,8 +225,8 @@ class Compiler {
     } else if (
       runes.length === 4 &&
       runes[0] === 0 &&
-      runes[1] === Codepoint.CODES.get('\n') - 1 &&
-      runes[2] === Codepoint.CODES.get('\n') + 1 &&
+      runes[1] === Codepoint.CODES['\n'] - 1 &&
+      runes[2] === Codepoint.CODES['\n'] + 1 &&
       runes[3] === Unicode.MAX_RUNE
     ) {
       i.op = Inst.RUNE_ANY_NOT_NL

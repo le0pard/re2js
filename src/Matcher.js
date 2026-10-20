@@ -55,7 +55,7 @@ class Matcher {
         .split('')
         .map((s) => {
           const c = s.codePointAt(0)
-          if (c === Codepoint.CODES.get('\\') || c === Codepoint.CODES.get('$')) {
+          if (c === Codepoint.CODES['\\'] || c === Codepoint.CODES['$']) {
             return `\\${s}`
           }
           return s
@@ -70,7 +70,7 @@ class Matcher {
     return str
       .split('')
       .map((s) => {
-        if (s.codePointAt(0) === Codepoint.CODES.get('$')) {
+        if (s.codePointAt(0) === Codepoint.CODES['$']) {
           return '$$'
         }
         return s
@@ -476,7 +476,7 @@ class Matcher {
     while (i < m) {
       const cCode = replacement.codePointAt(i)
 
-      if (cCode === Codepoint.CODES.get('\\')) {
+      if (cCode === Codepoint.CODES['\\']) {
         if (last < i) {
           res += replacement.substring(last, i)
         }
@@ -489,7 +489,7 @@ class Matcher {
         continue
       }
 
-      if (cCode === Codepoint.CODES.get('$')) {
+      if (cCode === Codepoint.CODES['$']) {
         if (last < i) {
           res += replacement.substring(last, i)
         }
@@ -499,21 +499,21 @@ class Matcher {
 
         const nextCode = replacement.codePointAt(i + 1)
 
-        if (Codepoint.CODES.get('0') <= nextCode && nextCode <= Codepoint.CODES.get('9')) {
+        if (Codepoint.CODES['0'] <= nextCode && nextCode <= Codepoint.CODES['9']) {
           // The group number is the longest run of digits that is still a valid group
           // (re2j / java.util.regex): with one group, "$10" is group 1 followed by "0".
-          let n = nextCode - Codepoint.CODES.get('0')
+          let n = nextCode - Codepoint.CODES['0']
           let j = i + 2
           for (; j < m; j++) {
             const digit = replacement.codePointAt(j)
             if (
-              digit < Codepoint.CODES.get('0') ||
-              digit > Codepoint.CODES.get('9') ||
-              n * 10 + digit - Codepoint.CODES.get('0') > this.patternGroupCount
+              digit < Codepoint.CODES['0'] ||
+              digit > Codepoint.CODES['9'] ||
+              n * 10 + digit - Codepoint.CODES['0'] > this.patternGroupCount
             ) {
               break
             }
-            n = n * 10 + digit - Codepoint.CODES.get('0')
+            n = n * 10 + digit - Codepoint.CODES['0']
           }
 
           if (n > this.patternGroupCount) {
@@ -526,9 +526,9 @@ class Matcher {
           }
           i = j
           last = i
-        } else if (nextCode === Codepoint.CODES.get('{')) {
+        } else if (nextCode === Codepoint.CODES['{']) {
           let j = i + 2
-          while (j < m && replacement.codePointAt(j) !== Codepoint.CODES.get('}')) {
+          while (j < m && replacement.codePointAt(j) !== Codepoint.CODES['}']) {
             j++
           }
           if (j >= m) {
@@ -567,10 +567,10 @@ class Matcher {
     const m = replacement.length
 
     for (let i = 0; i < m - 1; i++) {
-      if (replacement.codePointAt(i) === Codepoint.CODES.get('$')) {
+      if (replacement.codePointAt(i) === Codepoint.CODES['$']) {
         let c = replacement.codePointAt(i + 1)
 
-        if (Codepoint.CODES.get('$') === c) {
+        if (Codepoint.CODES['$'] === c) {
           if (last < i) {
             res += replacement.substring(last, i)
           }
@@ -579,7 +579,7 @@ class Matcher {
           i++
           last = i + 1
           continue
-        } else if (Codepoint.CODES.get('&') === c) {
+        } else if (Codepoint.CODES['&'] === c) {
           if (last < i) {
             res += replacement.substring(last, i)
           }
@@ -593,7 +593,7 @@ class Matcher {
           i++
           last = i + 1
           continue
-        } else if (Codepoint.CODES.get('`') === c) {
+        } else if (Codepoint.CODES['`'] === c) {
           if (last < i) {
             res += replacement.substring(last, i)
           }
@@ -602,7 +602,7 @@ class Matcher {
           i++
           last = i + 1
           continue
-        } else if (Codepoint.CODES.get("'") === c) {
+        } else if (Codepoint.CODES["'"] === c) {
           if (last < i) {
             res += replacement.substring(last, i)
           }
@@ -611,8 +611,8 @@ class Matcher {
           i++
           last = i + 1
           continue
-        } else if (Codepoint.CODES.get('1') <= c && c <= Codepoint.CODES.get('9')) {
-          let n = c - Codepoint.CODES.get('0')
+        } else if (Codepoint.CODES['1'] <= c && c <= Codepoint.CODES['9']) {
+          let n = c - Codepoint.CODES['0']
           if (last < i) {
             res += replacement.substring(last, i)
           }
@@ -620,13 +620,13 @@ class Matcher {
           for (i += 2; i < m; i++) {
             c = replacement.codePointAt(i)
             if (
-              c < Codepoint.CODES.get('0') ||
-              c > Codepoint.CODES.get('9') ||
-              n * 10 + c - Codepoint.CODES.get('0') > this.patternGroupCount
+              c < Codepoint.CODES['0'] ||
+              c > Codepoint.CODES['9'] ||
+              n * 10 + c - Codepoint.CODES['0'] > this.patternGroupCount
             ) {
               break
             }
-            n = n * 10 + c - Codepoint.CODES.get('0')
+            n = n * 10 + c - Codepoint.CODES['0']
           }
 
           if (n > this.patternGroupCount) {
@@ -644,7 +644,7 @@ class Matcher {
           last = i
           i--
           continue
-        } else if (c === Codepoint.CODES.get('<')) {
+        } else if (c === Codepoint.CODES['<']) {
           if (last < i) {
             res += replacement.substring(last, i)
           }
@@ -653,13 +653,13 @@ class Matcher {
           let j = i + 1
           while (
             j < replacement.length &&
-            replacement.codePointAt(j) !== Codepoint.CODES.get('>') &&
-            replacement.codePointAt(j) !== Codepoint.CODES.get(' ')
+            replacement.codePointAt(j) !== Codepoint.CODES['>'] &&
+            replacement.codePointAt(j) !== Codepoint.CODES[' ']
           ) {
             j++
           }
 
-          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES.get('>')) {
+          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES['>']) {
             res += replacement.substring(i - 1, j + 1)
             last = j + 1
             i = j

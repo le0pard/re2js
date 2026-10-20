@@ -1,5 +1,5 @@
 import { expect, describe, it, vi } from 'vitest'
-import { DFA } from '../DFA.js'
+import { DFA, hashState } from '../DFA.js'
 import { RE2 } from '../RE2.js'
 import { Compiler } from '../Compiler.js'
 import { Simplify } from '../Simplify.js'
@@ -80,6 +80,40 @@ describe('Bailout / Unsupported Features', () => {
 })
 
 describe('Memory budget (ReDoS Protection)', () => {
+  it('is built by RE2 on first use, as only yes/no questions need it', () => {
+    const re = RE2.compile('(\\w+) (\\w+)')
+    expect(re.lazyDFA).toBeNull()
+    expect(re.findSubmatchIndex('ab cd')).toEqual([0, 5, 0, 2, 3, 5])
+    expect(re.lazyDFA).toBeNull()
+    expect(re.match('ab cd')).toBe(true)
+    expect(re.lazyDFA).toBeInstanceOf(DFA)
+    expect(re.dfa).toBe(re.lazyDFA)
+  })
+
+  it('keeps states whose hashes collide apart', () => {
+    // Find two lists with the same 32-bit hash among seeded random pairs (birthday bound: about
+    // 80,000 tries); they need not be real instructions, as getState only compares them.
+    const seen = new Map()
+    let pair = null
+    let seed = 1
+    const next = () => (seed = (Math.imul(seed, 1103515245) + 12345) | 0)
+    while (pair === null) {
+      const pcs = [next(), next()]
+      const hash = hashState(pcs, 0, [])
+      if (seen.has(hash)) pair = [seen.get(hash), pcs]
+      seen.set(hash, pcs)
+    }
+    const dfa = createDFA('a')
+    const first = dfa.getState(pair[0], 0, [])
+    const second = dfa.getState(pair[1], 0, [])
+    expect(second).not.toBe(first)
+    expect(dfa.getState(pair[0], 0, [])).toBe(first)
+    expect(dfa.getState(pair[1], 0, [])).toBe(second)
+    expect(dfa.stateCache.size).toBe(1)
+    expect(Array.from(dfa.cachedStates())).toEqual([first, second])
+    expect(dfa.stateCount).toBe(2)
+  })
+
   it('completes a search within a tiny budget by resetting the cache while making progress', () => {
     // Enough for a handful of states: the cache is reset as needed and the search goes on.
     const dfa = createDFA('(a+)+b', RE2Flags.PERL, 2000)
@@ -120,7 +154,7 @@ describe('Memory budget (ReDoS Protection)', () => {
     const recreated = dfa.resetCache(current)
     expect(dfa.stateCount).toBe(1)
     expect(recreated.nfaStates).toEqual(current.nfaStates)
-    expect(dfa.memBudget).toBe(before - DFA.STATE_OVERHEAD - 4 * recreated.nfaStates.length)
+    expect(dfa.memBudget).toBe(before - DFA.stateCost(recreated.nfaStates, recreated.matchIDs))
   })
 
   it('accepts programs with empty-width assertions', () => {
@@ -295,10 +329,8 @@ describe('Empty-width assertions (port of RE2 dfa.cc flag handling)', () => {
     const states = plain.stateCount
     runDFA(plain, '  !!  ')
     expect(plain.stateCount).toBe(states)
-    for (const bucket of plain.stateCache.values()) {
-      for (const state of bucket) {
-        expect(state.flag & ~DFA.FLAG_MATCH).toBe(0)
-      }
+    for (const state of plain.cachedStates()) {
+      expect(state.flag & ~DFA.FLAG_MATCH).toBe(0)
     }
   })
 

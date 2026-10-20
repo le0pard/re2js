@@ -47,8 +47,8 @@ class Simplify {
       if (
         re.runes.length === 4 &&
         re.runes[0] === 0 &&
-        re.runes[1] === Codepoint.CODES.get('\n') - 1 &&
-        re.runes[2] === Codepoint.CODES.get('\n') + 1 &&
+        re.runes[1] === Codepoint.CODES['\n'] - 1 &&
+        re.runes[2] === Codepoint.CODES['\n'] + 1 &&
         re.runes[3] === Unicode.MAX_RUNE
       ) {
         return new Regexp(Regexp.Op.ANY_CHAR_NOT_NL)
