@@ -355,6 +355,22 @@ describe('groups that can never match', () => {
     expect(reachesFail(compile(pattern))).toBe(false)
   })
 
+  it.each([`(([^\\s\\S])3}?)|\\A`, `a${E}|^x`, `(a(b)?${E})|^$`, `^(a${E}|b)$`])(
+    'leaves no dangling link in the unreachable rest of %s',
+    (pattern) => {
+      // A fragment dropped because the rest of its concatenation fails used to keep its patch
+      // list in its instructions, which OnePass.compile followed out of the program.
+      const prog = compile(pattern)
+      for (const inst of prog.inst) {
+        expect(inst.out).toBeLessThan(prog.numInst())
+        if (inst.op === Inst.ALT || inst.op === Inst.ALT_MATCH) {
+          expect(inst.arg).toBeLessThan(prog.numInst())
+        }
+      }
+      expect(() => RE2JS.compile(pattern)).not.toThrow()
+    }
+  )
+
   it('compiles a pattern that can never match to a single FAIL', () => {
     const prog = compile(`(${E})+`)
     expect(prog.getInst(prog.start).op).toBe(Inst.FAIL)
@@ -375,7 +391,8 @@ describe('groups that can never match', () => {
     [`(a|(${E}))*b`, 'xaab', [[1, 4, 2, 3, -1, -1]]],
     [`(${E}){0,3}y`, 'xy', [[1, 2, -1, -1]]],
     [`(?:(${E})|a)+$`, 'baa', [[1, 3, -1, -1]]],
-    [`(${E})+|c`, 'abc', [[2, 3, -1, -1]]]
+    [`(${E})+|c`, 'abc', [[2, 3, -1, -1]]],
+    [`((${E})3}?)|\\A`, 'x', [[0, 0, -1, -1, -1, -1]]]
   ])('matches %s in %j as Go does', (pattern, input, want) => {
     const m = RE2JS.compile(pattern).matcher(input)
     const have = []

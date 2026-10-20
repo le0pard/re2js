@@ -120,8 +120,13 @@ class Compiler {
 
   // Given fragments a and b, returns ab; a|b
   cat(f1, f2) {
-    // concat of failure is failure
+    // concat of failure is failure. The other fragment becomes unreachable; its dangling links
+    // (a patch list, kept in the out and arg fields of its instructions) are pointed at the FAIL
+    // instruction, as code that scans every instruction (OnePass.compile) would otherwise follow
+    // them out of the program. (Go never drops such a fragment: its empty class is a RUNE.)
     if (f1.i === 0 || f2.i === 0) {
+      this.prog.patch(f1.out, 0)
+      this.prog.patch(f2.out, 0)
       return this.fail()
     }
     // oxlint-disable-next-line no-warning-comments

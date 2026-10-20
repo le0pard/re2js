@@ -1,0 +1,52 @@
+name: Fuzz
+on:
+  schedule:
+    # Every night at 03:41 UTC
+    - cron: '41 3 * * *'
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Seed of the run to replay (empty for a random one)'
+        required: false
+        default: ''
+
+permissions: {}
+
+jobs:
+  fuzz:
+    name: 'Fuzz (engines and Go regexp)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Node.JS
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          cache: 'yarn'
+          node-version-file: '.tool-versions'
+
+      - name: Install Javascript dependencies
+        run: yarn install --immutable
+
+      # The Go release whose regexp package the differential fuzzer compares against, pinned in
+      # tools/fuzz/go-oracle/go.mod. The oracle has no dependencies, so there is nothing to cache.
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'tools/fuzz/go-oracle/go.mod'
+          cache: false
+
+      # Ten minutes per fuzzer, with a new random seed every night (printed first). A failure
+      # prints the case shrunk to a minimal pattern and input, and the command that replays it.
+      - name: Fuzz
+        env:
+          RE2JS_FUZZ_SECONDS: '600'
+          RE2JS_FUZZ_REQUIRE_ALL: '1'
+          RE2JS_FUZZ_SEED: ${{ inputs.seed }}
+        run: yarn fuzz

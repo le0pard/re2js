@@ -55,6 +55,7 @@
     "build:types": "tsc && dts-bundle-generator -o build/index.d.ts tmp/types/index.d.ts && cp build/index.d.ts build/index.d.cts && rm -rf tmp/types",
     "lint": "oxfmt --check src tools *.config.js && oxlint 'src/**/*.js' 'tools/**/*.{js,cjs,mjs}' rolldown.config.js vitest.config.js",
     "format": "oxfmt src tools *.config.js",
+    "fuzz": "node tools/fuzz/fuzz.js",
     "gen:char-groups": "perl tools/scripts/make_perl_groups.pl > src/CharGroup.js && oxfmt src/CharGroup.js",
     "gen:unicode": "node tools/scripts/genUnicodeTable.js src/UnicodeTables.js && oxfmt src/UnicodeTables.js",
     "test": "vitest run --project=node",
