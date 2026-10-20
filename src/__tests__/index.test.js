@@ -1497,3 +1497,15 @@ describe('compile flags', () => {
     expect(RE2JS.compile('\\pL').test('é')).toBe(true)
   })
 })
+
+describe('equals', () => {
+  it('compares the pattern and the flags', () => {
+    const re = RE2JS.compile('a+', RE2JS.CASE_INSENSITIVE)
+    expect(re.equals(re)).toBe(true)
+    expect(re.equals(RE2JS.compile('a+', RE2JS.CASE_INSENSITIVE))).toBe(true)
+    expect(re.equals(RE2JS.compile('a+'))).toBe(false)
+    expect(re.equals(RE2JS.compile('a*', RE2JS.CASE_INSENSITIVE))).toBe(false)
+    expect(re.equals(null)).toBe(false)
+    expect(re.equals('a+')).toBe(false)
+  })
+})

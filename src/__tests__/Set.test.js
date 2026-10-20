@@ -2,6 +2,7 @@ import { expect, describe, it } from 'vitest'
 import { Parser } from '../Parser.js'
 import { RE2JS, RE2Set } from '../index.js'
 import { Utils } from '../Utils.js'
+import { Inst } from '../Inst.js'
 
 describe('RE2Set Multi-Pattern Matching', () => {
   it('matches multiple literal patterns simultaneously (Unanchored)', () => {
@@ -264,5 +265,41 @@ describe('RE2Set anchored matching', () => {
     expect(set.match('zzy')).toEqual([3])
     expect(set.match('foo')).toEqual([4])
     expect(set.match('o')).toEqual([])
+  })
+})
+
+describe('RE2Set with lookbehinds in several patterns', () => {
+  // Each pattern numbers its lookbehinds from 1. They used to keep those numbers in the shared
+  // program, so lookbehinds of different patterns wrote and read the same slot: the empty
+  // lookbehind (?<=) made (?<!a) believe an "a" came before.
+  const anchored = (anchor, p) =>
+    anchor === RE2Set.ANCHOR_BOTH ? `^(?:${p})$` : anchor === RE2Set.ANCHOR_START ? `^(?:${p})` : p
+
+  it.each([
+    [['(?<!a)', '(?<=)'], ''],
+    [['(?<!a)', '(?<=)'], 'x'],
+    [['(?<=a)b', '(?<!a)b', '(?<=c)b'], 'ab'],
+    [['(?<!x)y', 'x', '(?<=x)y'], 'xy'],
+    [['(?<=a)(?<!b)c', '(?<=b)c', '(?<!a)c'], 'bc']
+  ])('reports each of %j that matches %j on its own', (patterns, text) => {
+    for (const anchor of [RE2Set.UNANCHORED, RE2Set.ANCHOR_START, RE2Set.ANCHOR_BOTH]) {
+      const set = new RE2Set(anchor, RE2JS.LOOKBEHINDS)
+      for (const p of patterns) set.add(p)
+      set.compile()
+      const want = patterns.flatMap((p, k) =>
+        RE2JS.compile(anchored(anchor, p), RE2JS.LOOKBEHINDS).test(text) ? [k] : []
+      )
+      expect(set.match(text), `anchor ${anchor}`).toEqual(want)
+    }
+  })
+
+  it('gives every lookbehind its own number in the shared program', () => {
+    const set = new RE2Set(RE2Set.UNANCHORED, RE2JS.LOOKBEHINDS)
+    set.add('(?<!a)')
+    set.add('(?<=b)(?<!c)')
+    set.compile()
+    expect(set.prog.numLb).toBe(3)
+    const numbers = set.prog.inst.filter((i) => i.op === Inst.LB_CHECK).map((i) => i.arg)
+    expect(numbers.sort((a, b) => a - b)).toEqual([-3, -1, 2])
   })
 })

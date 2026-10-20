@@ -223,6 +223,20 @@ class TranslateRegExpString {
         changed = true
         continue
       } else if (ch === '[') {
+        // JS's empty class [] matches nothing and [^] any character. RE2 has no empty class: to
+        // it a ] right after [ or [^ is a member, so both would start a longer class.
+        if (!inCharClass && data[i + 1] === ']') {
+          result += '[^\\x00-\\x{10FFFF}]'
+          i += 2
+          changed = true
+          continue
+        }
+        if (!inCharClass && data[i + 1] === '^' && data[i + 2] === ']') {
+          result += '[\\x00-\\x{10FFFF}]'
+          i += 3
+          changed = true
+          continue
+        }
         // Track entry into a character class (protects syntax inside)
         inCharClass = true
       } else if (ch === ']') {

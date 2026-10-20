@@ -821,4 +821,21 @@ The conformance tests in `src/__tests__/Exec.test.js` run the RE2 and AT&T POSIX
 RE2JS_EXHAUSTIVE=1 yarn vitest run --project=node src/__tests__/Exec.test.js
 ```
 
+The fuzzers in `tools/fuzz` run random patterns and inputs, each against a different reference:
+
+- `engines`: every matching engine must give the same answer, including on invalid UTF-8 and UTF-16, with lookbehinds, and under tiny DFA memory budgets
+- `set`: `RE2Set` must report exactly the patterns that match on their own
+- `native`: lookbehinds and `translateRegExp()` must agree with the JavaScript engine's `RegExp`
+- `go`: results must agree with Go's `regexp` package; this needs the Go toolchain (without it, that fuzzer is skipped)
+
+They run every night in CI with a new seed. A failure is shrunk to a minimal pattern and input and printed with the command that replays it:
+
+```bash
+yarn fuzz                                                    # 30 seconds per fuzzer, random seed
+RE2JS_FUZZ_SECONDS=300 RE2JS_FUZZ_ONLY=engines yarn fuzz     # one fuzzer, longer
+RE2JS_FUZZ_SEED=1234 RE2JS_FUZZ_ONLY=go RE2JS_FUZZ_CASE=42 yarn fuzz  # replay a reported case
+```
+
+Differences from Go that are intended are listed, with their reasons, in `tools/fuzz/go.js`.
+
 [Playground website](https://re2js.leopard.in.ua/) maintained in `www` branch
