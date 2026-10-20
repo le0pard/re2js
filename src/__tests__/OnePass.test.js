@@ -34,6 +34,65 @@ describe('OnePass Compiler', () => {
   })
 })
 
+describe("Go's onePassTests (regexp/onepass_test.go)", () => {
+  it.each([
+    ['^(?:a|(?:a*))$', false],
+    ['^(?:(a)|(?:a*))$', false],
+    ['^(?:(?:(?:.(?:$))?))$', true],
+    ['^abcd$', true],
+    ['^abcd', true],
+    ['^(?:(?:a{0,})*?)$', false],
+    ['^(?:(?:a+)*)$', true],
+    ['^(?:(?:a|(?:aa)))$', true],
+    // Go: true. The class is empty, and re2js simplifies the whole pattern to "no match" (a
+    // program that only fails), so there is nothing to run one-pass.
+    ['^(?:[^\\s\\S])$', false],
+    ['^(?:(?:a{3,4}){0,})$', false],
+    ['^(?:(?:(?:a*)+))$', true],
+    ['^[a-c]+$', true],
+    ['^[a-c]*$', true],
+    ['^(?:a*)$', true],
+    ['^(?:(?:aa)|a)$', true],
+    ['^[a-c]*', false],
+    ['^...$', true],
+    ['^...', true],
+    ['^(?:a|(?:aa))$', true],
+    ['^a((b))c$', true],
+    ['^a.[l-nA-Cg-j]?e$', true],
+    ['^a((b))$', true],
+    ['^a(?:(b)|(c))c$', true],
+    ['^a(?:(b*)|(c))c$', false],
+    ['^a(?:b|c)$', true],
+    ['^a(?:b?|c)$', true],
+    ['^a(?:b?|c?)$', false],
+    ['^a(?:b?|c+)$', true],
+    ['^a(?:b+|(bc))d$', false],
+    ['^a(?:bc)+$', true],
+    ['^a(?:[bcd])+$', true],
+    ['^a((?:[bcd])+)$', true],
+    ['^a(:?b|c)*d$', true],
+    ['^.bc(d|e)*$', true],
+    ['^(?:(?:aa)|.)$', false],
+    ['^(?:(?:a{1,2}){1,2})$', false],
+    [`^l${'o'.repeat(2 << 8)}ng$`, true]
+  ])('%s is one-pass: %s', (pattern, isOnePass) => {
+    expect(RE2.compile(pattern).onepass !== null).toBe(isOnePass)
+  })
+
+  it('never matches the empty class that Go runs one-pass', () => {
+    const re = RE2.compile('^(?:[^\\s\\S])$')
+    for (const text of ['', 'a', ' ', '\n']) {
+      expect(re.match(text)).toBe(false)
+    }
+  })
+
+  it('runs one-pass programs (onePassTests1, golang.org/issue/11905)', () => {
+    const re = RE2.compile('^a(/b+(#c+)*)*$')
+    expect(re.onepass).not.toBeNull()
+    expect(re.match('a/b#c')).toBe(true)
+  })
+})
+
 describe('OnePass Execution', () => {
   it('correctly matches and captures groups (flattened alt)', () => {
     const re = RE2.compile('^a(b|c)d$')

@@ -1,4 +1,10 @@
 import { Utils } from '../Utils.js'
+import { Unicode } from '../Unicode.js'
+import { UnicodeTables } from '../UnicodeTables.js'
+
+// Go's unicode.IsUpper: whether |r| is an upper case letter (category Lu). Ported tests use it
+// to describe the classes they expect.
+export const isUpper = (r) => Unicode.is(UnicodeTables.CATEGORIES.get('Lu'), r)
 
 export const utf16IndicesToUtf8 = (idx16, text) => {
   let idx8 = new Array(idx16.length)

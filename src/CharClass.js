@@ -46,7 +46,11 @@ class CharClass {
     }
   }
 
+  /**
+   * @param {number[]|Int32Array} [r]
+   */
   constructor(r = Utils.emptyInts()) {
+    /** @type {number[]|Int32Array} */
     this.r = r // inclusive ranges, pairs of [lo,hi].  r.length is even.
     this.len = r.length // prefix of |r| that is defined.  Even.
   }

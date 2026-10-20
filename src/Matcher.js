@@ -100,6 +100,8 @@ class Matcher {
     this.groups = []
     /** @type {Record<string, number>} */
     this.namedGroups = re2.namedGroups
+    /** @type {boolean} */
+    this.hasNamedGroups = Object.keys(this.namedGroups).length > 0
     /** @type {number} */
     this.numberOfInstructions = re2.numberOfInstructions()
     // Lookbehind automata state carried between successive matches over the current input, so
@@ -606,7 +608,7 @@ class Matcher {
           res += replacement.substring(i, i + 1 + digits)
         }
         i += 1 + digits
-      } else if (c === Codepoint.CODES['<'] && Object.keys(this.namedGroups).length > 0) {
+      } else if (c === Codepoint.CODES['<'] && this.hasNamedGroups) {
         const gt = replacement.indexOf('>', i + 2)
         if (gt < 0) {
           res += '$<'
@@ -679,9 +681,6 @@ class Matcher {
 
     const isFunc = typeof replacement === 'function'
 
-    // Cache named groups check to avoid GC thrashing on every match
-    const hasNamedGroups = Object.keys(this.namedGroups).length > 0
-
     let originalInput = null
 
     if (isFunc) {
@@ -697,7 +696,7 @@ class Matcher {
 
     while (this.find()) {
       res += isFunc
-        ? this.appendReplacementFunc(replacement, hasNamedGroups, originalInput)
+        ? this.appendReplacementFunc(replacement, originalInput)
         : this.appendReplacement(replacement, javaMode)
 
       if (!all) {
@@ -713,12 +712,11 @@ class Matcher {
    * Evaluates a replacer function for the current match and appends the result,
    * along with any un-matched preceding text, advancing the append position.
    * @param {Function} replacer - the replacer function
-   * @param {boolean} hasNamedGroups - cached flag if pattern has named groups
    * @param {string|Uint8Array|number[]} originalInput - the cached original input reference
    * @returns {string} the evaluated string to append
    * @private
    */
-  appendReplacementFunc(replacer, hasNamedGroups, originalInput) {
+  appendReplacementFunc(replacer, originalInput) {
     let res = ''
     const s = this.start()
     const e = this.end()
@@ -728,50 +726,50 @@ class Matcher {
     }
     this.appendPos = e
 
-    const args = this.buildReplacerArgs(s, hasNamedGroups, originalInput)
+    /** @type {unknown[]} */
+    const args = this.matchArray()
+    args.push(s, originalInput)
+    if (this.hasNamedGroups) {
+      args.push(this.namedGroupsObject())
+    }
 
     res += String(replacer(...args))
     return res
   }
 
   /**
-   * Builds the argument array for the replacer function matching the standard
-   * JS String.prototype.replace(regex, replacer) signature.
-   * @param {number} matchStart - the start index of the match
-   * @param {boolean} hasNamedGroups - cached flag if pattern has named groups
-   * @param {string|Uint8Array|number[]} originalInput - the cached original input reference
-   * @returns {Array} array of arguments
+   * The match and its groups, as the elements of a JS RegExpExecArray: undefined for a group that
+   * did not take part in the match. Used by exec(), matchAll() and replacer functions.
+   * @returns {Array<string|undefined>}
    * @private
    */
-  buildReplacerArgs(matchStart, hasNamedGroups, originalInput) {
-    const args = [this.group(0)] // match
+  matchArray() {
+    const result = [this.group(0)]
+    for (let i = 1; i <= this.patternGroupCount; i++) {
+      const group = this.group(i)
+      result.push(group === null ? void 0 : group)
+    }
+    return result
+  }
 
-    const numGroups = this.groupCount()
-    // Fast-path capture group extraction
-    for (let i = 1; i <= numGroups; i++) {
-      const start = this.start(i)
-      if (start < 0) {
-        args.push(void 0)
-      } else {
-        args.push(this.substring(start, this.end(i)))
+  /**
+   * The named groups, as the groups property of a JS RegExpExecArray: an object without a
+   * prototype mapping each name to its group (undefined when it did not take part in the match),
+   * or undefined when the pattern has no named groups.
+   * @returns {Record<string, string|undefined>|undefined}
+   * @private
+   */
+  namedGroupsObject() {
+    if (!this.hasNamedGroups) {
+      return void 0
+    }
+    const result = this.getNamedGroups()
+    for (const name in result) {
+      if (result[name] === null) {
+        result[name] = void 0
       }
     }
-
-    args.push(matchStart) // offset
-    args.push(originalInput) // original string (cached)
-
-    // Append named groups object if pattern contains them
-    if (hasNamedGroups) {
-      const parsedGroups = this.getNamedGroups()
-      for (const key in parsedGroups) {
-        if (parsedGroups[key] === null) {
-          parsedGroups[key] = void 0
-        }
-      }
-      args.push(parsedGroups)
-    }
-
-    return args
+    return result
   }
 }
 

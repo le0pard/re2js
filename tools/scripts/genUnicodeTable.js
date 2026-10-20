@@ -310,10 +310,6 @@ class UnicodeTables {
 ${categories}
   })
 
-  static get Upper() {
-    return this.CATEGORIES.get('Lu')
-  }
-
   static SCRIPTS = new LazyMap({
 ${scripts}
   })

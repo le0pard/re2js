@@ -370,10 +370,6 @@ class UnicodeTables {
       new UnicodeRangeTable(decodeRanges('JEBTlDlDbgvFgvFgsCKBeBBGwBwBh9DAB', false))
   })
 
-  static get Upper() {
-    return this.CATEGORIES.get('Lu')
-  }
-
   static SCRIPTS = new LazyMap({
     Adlam: () => new UnicodeRangeTable(decodeRanges('go6DrCFJFB', true)),
     Ahom: () => new UnicodeRangeTable(decodeRanges('g4lCaDOFW', true)),

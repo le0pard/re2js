@@ -103,6 +103,7 @@ class Prog {
   // prefix() returns a pair of a literal string that all matches for the
   // regexp must start with, and a boolean which is true if the prefix is the
   // entire match.  The string is returned by appending to |prefix|.
+  /** @returns {[boolean, string]} */
   prefix() {
     let prefix = ''
     let i = this.skipNop(this.start)

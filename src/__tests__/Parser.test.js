@@ -5,6 +5,7 @@ import { Parser } from '../Parser.js'
 import { Regexp } from '../Regexp.js'
 import { Unicode } from '../Unicode.js'
 import { dumpRegexp, mkCharClass } from '../__utils__/parser.js'
+import { isUpper } from '../__utils__/unicode.js'
 
 describe('.parse', () => {
   const cases = [
@@ -105,17 +106,17 @@ describe('.parse', () => {
     ['[\\p{^Braille}]', 'cc{0x0-0x27ff 0x2900-0x10ffff}'],
     ['[\\P{^Braille}]', 'cc{0x2800-0x28ff}'],
     ['[\\pZ]', 'cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}'],
-    ['\\p{Lu}', mkCharClass((r) => Unicode.isUpper(r))],
-    ['[\\p{Lu}]', mkCharClass((r) => Unicode.isUpper(r))],
+    ['\\p{Lu}', mkCharClass((r) => isUpper(r))],
+    ['[\\p{Lu}]', mkCharClass((r) => isUpper(r))],
     [
       '(?i)[\\p{Lu}]',
       mkCharClass((r) => {
-        if (Unicode.isUpper(r)) {
+        if (isUpper(r)) {
           return true
         }
 
         for (let c = Unicode.simpleFold(r); c !== r; c = Unicode.simpleFold(c)) {
-          if (Unicode.isUpper(c)) {
+          if (isUpper(c)) {
             return true
           }
         }
@@ -318,14 +319,24 @@ describe('no match new line cases', () => {
 })
 
 describe('invalid regexp cases', () => {
+  // Go's invalidRegexps (regexp/syntax/parse_test.go), in its order. Its four invalid UTF-8
+  // patterns ("\xff", "[\xff]", ...) have no counterpart: a JS pattern is a UTF-16 string.
   it.each([
     ['('],
     [')'],
     ['(a'],
+    ['a)'],
+    ['(a))'],
     ['(a|b|'],
+    ['a|b|)'],
+    ['(a|b|))'],
     ['(a|b'],
+    ['a|b)'],
+    ['(a|b))'],
     ['[a-z'],
     ['([a-z)'],
+    ['[a-z)'],
+    ['([a-z]))'],
     ['x{1001}'],
     ['x{9876543210}'],
     ['x{2,1}'],

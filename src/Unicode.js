@@ -85,15 +85,6 @@ class Unicode {
     return ranges.length > 0 && r >= ranges.getLo(0) && Unicode.is32(ranges, r)
   }
 
-  // isUpper reports whether the rune is an upper case letter.
-  static isUpper(r) {
-    if (r <= Unicode.MAX_LATIN1) {
-      const s = String.fromCodePoint(r)
-      return s.toUpperCase() === s && s.toLowerCase() !== s
-    }
-    return Unicode.is(UnicodeTables.Upper, r)
-  }
-
   // isPrint reports whether the rune is printable (Unicode L/M/N/P/S or ' ').
   static isPrint(r) {
     if (r <= Unicode.MAX_LATIN1) {

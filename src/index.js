@@ -16,6 +16,16 @@ import {
   RE2JSInternalException
 } from './exceptions.js'
 
+// The current match of |m| shaped like a JS RegExpExecArray, as exec() and matchAll() return it:
+// the match and its groups, index, input and groups (the named groups).
+const execResult = (m, input) => {
+  const result = m.matchArray()
+  result.index = m.start(0)
+  result.input = input // the original string or byte array, so that index refers to it
+  result.groups = m.namedGroupsObject()
+  return result
+}
+
 /**
  * A compiled representation of an RE2 regular expression
  *
@@ -287,29 +297,7 @@ class RE2JS {
    */
   exec(input) {
     const m = this.matcher(input)
-    if (!m.find()) return null
-
-    const result = [m.group(0)]
-    for (let i = 1; i <= m.groupCount(); i++) {
-      const val = m.group(i)
-      result.push(val === null ? void 0 : val)
-    }
-
-    result.index = m.start(0)
-    result.input = input
-
-    const namedGroups = this.namedGroups()
-    if (Object.keys(namedGroups).length > 0) {
-      const parsedGroups = m.getNamedGroups()
-      for (const key in parsedGroups) {
-        if (parsedGroups[key] === null) parsedGroups[key] = void 0
-      }
-      result.groups = parsedGroups
-    } else {
-      result.groups = void 0
-    }
-
-    return result
+    return m.find() ? execResult(m, input) : null
   }
 
   /**
@@ -391,36 +379,8 @@ class RE2JS {
    */
   *matchAll(input) {
     const m = this.matcher(input)
-
     while (m.find()) {
-      // Build the match array starting with the full match
-      const result = [m.group(0)]
-
-      // Append all capture groups using void 0 instead of undefined
-      for (let i = 1; i <= m.groupCount(); i++) {
-        const groupVal = m.group(i)
-        result.push(groupVal === null ? void 0 : groupVal)
-      }
-
-      // Attach native RegExp match properties
-      result.index = m.start(0)
-      result.input = input // Retains original String or Uint8Array so index aligns perfectly
-
-      // Attach named capture groups if they exist
-      const namedGroups = this.namedGroups()
-      if (Object.keys(namedGroups).length > 0) {
-        const parsedGroups = m.getNamedGroups()
-        for (const key in parsedGroups) {
-          if (parsedGroups[key] === null) {
-            parsedGroups[key] = void 0
-          }
-        }
-        result.groups = parsedGroups
-      } else {
-        result.groups = void 0
-      }
-
-      yield result
+      yield execResult(m, input)
     }
   }
 
