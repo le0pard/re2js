@@ -159,7 +159,7 @@ class BitState {
           case Inst.RUNE_ANY_NOT_NL: {
             const r = input.step(currentPos)
             if (r === MachineInputBase.EOF()) break
-            if (r >> 3 === 10) break
+            if (r >> 3 === 10) break // '\n'
             currentPos += r & 7
             currentPc = inst.out
             continue

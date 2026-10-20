@@ -541,14 +541,13 @@ Note that the replacement string can include references to capturing groups from
 
 Parameters:
 
-- `replacement (String | Function)`: The string that replaces the substrings found, or a function invoked to create the new substring. When passing a string, capture groups and special characters have special behavior. For example:
+- `replacement (String | Function)`: The string that replaces the substrings found, or a function invoked to create the new substring. A replacement string is expanded exactly as by JavaScript's [`String.prototype.replace`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#specifying_a_string_as_the_replacement):
   - `$&` refers to the entire matched substring
-  - `$1, $2, ...` refer to the corresponding capture groups in the pattern
+  - `$1, $2, ...` refer to the corresponding capture groups in the pattern. At most two digits are read, and the second only when the two digits form a valid group number (with one group, `$10` is group 1 followed by `0`); `$01` is the same as `$1`. An unmatched group inserts nothing; a number that is not a group, like `$0` or `$3` with two groups, is kept as is
   - `$$` inserts a literal `$`
-  - `$<name>` can be used to reference named capture groups
+  - `$<name>` references a named capture group, when the pattern has named groups (otherwise `$<` is kept as is). A name that is not a group inserts nothing
   - `` $` `` inserts the portion of the string that precedes the matched substring
   - `$'` inserts the portion of the string that follows the matched substring
-  - on invalid group - ignore it
 - `javaMode (Boolean)`: If set to `true`, the replacement follows Java's rules for replacement. Defaults to `false`. If `javaMode = true`, changed rules for capture groups and special characters:
   - `$0` refers to the entire matched substring
   - `$1, $2, ...` refer to the corresponding capture groups in the pattern

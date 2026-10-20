@@ -851,14 +851,16 @@ describe('replaceAll and replaceFirst', () => {
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
         'max.power@example.com',
+        // "$<" up to the first ">" names a group, here "name - $<domain", which does not exist
         '$<name - $<domain> - $domain>',
-        '$<name - example.com - $domain>'
+        ' - $domain>'
       ],
       [
         '(?P<name>[a-zA-Z0-9._%+-]+)@(?P<domain>[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})',
         'max.power@example.com',
+        // a group name that does not exist expands to nothing, as in String.prototype.replace
         '$<undefined> - $<domain> - $<void>',
-        '$<undefined> - example.com - $<void>'
+        ' - example.com - '
       ]
     ]
 
@@ -1079,20 +1081,31 @@ describe('replaceAll and replaceFirst using replacer function', () => {
   )
 })
 
-it('does not re-evaluate characters inside named groups in JS mode', () => {
+it('keeps $< as text in JS mode when the pattern has no named groups', () => {
+  // As in String.prototype.replace: "$<" is plain text, and the rest is still expanded
   const re2 = RE2JS.compile('(world)')
-  const m = re2.matcher('hello world')
-
-  // $<na$1> references a non-existent group 'na$1'.
-  // In JS mode, it should output exactly 'hello $<na$1>'
-  expect(m.replaceAll('$<na$1>')).toBe('hello $<na$1>')
+  expect(re2.matcher('hello world').replaceAll('$<na$1>')).toBe('hello $<naworld>')
+  expect(re2.matcher('hello world').replaceAll('$<na$1 ')).toBe('hello $<naworld ')
+  expect('hello world'.replace(/(world)/g, '$<na$1>')).toBe('hello $<naworld>')
 })
 
-it('does not re-evaluate characters inside malformed named groups in JS mode', () => {
-  const re2 = RE2JS.compile('(world)')
-  const m = re2.matcher('hello world')
-
-  expect(m.replaceAll('$<na$1 ')).toBe('hello $<na$1 ')
+it('expands replacement templates exactly as String.prototype.replace does in JS mode', () => {
+  const cases = [
+    // [pattern, input, template]
+    ['(a)(b)', 'xaby', '[$01|$02|$00|$0|$03]'], // two digits only when they name a group
+    ['(a)', 'xay', '[$10|$1$1|$11]'], // "$10" is group 1 then "0" with one group
+    ['(?<n>a)(b)?', 'xay', '[$<n>|$<zz>|$<$2|$2]'], // unknown name and unmatched group: empty
+    ['(?<n>a)', 'xay', '[$<n|$<>]'], // the name runs to the first ">": "n|$<", not a group
+    ['(?<n>a)', 'xay', '[$<n'], // "$<" without a closing ">" stays text
+    ['a', 'xay', "[$$|$&|$`|$'|$]"]
+  ]
+  for (const [pattern, input, template] of cases) {
+    const want = input.replace(new RegExp(pattern, 'g'), template)
+    expect(RE2JS.compile(pattern).matcher(input).replaceAll(template), template).toBe(want)
+  }
+  // more than 99 groups: at most two digits are read
+  const many = RE2JS.compile('(a)'.repeat(100))
+  expect(many.matcher('a'.repeat(100)).replaceFirst('$100')).toBe('a0')
 })
 
 it('unmatched named groups append empty string', () => {

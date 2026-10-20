@@ -429,23 +429,19 @@ class Matcher {
 
   /**
    * Appends to result two strings: the text from the append position up to the beginning of the
-   * most recent match, and then the replacement with submatch groups substituted for references of
-   * the form {@code $n}, where {@code n} is the group number in decimal. It advances the append
-   * position to where the most recent match ended.
+   * most recent match, and then the replacement with submatch groups substituted for references to
+   * them. It advances the append position to where the most recent match ended.
    *
-   * To embed a literal {@code $}, use \$ (actually {@code "\\$"} with string escapes). The escape
-   * is only necessary when {@code $} is followed by a digit, but it is always allowed. Only
-   * {@code $} and {@code \} need escaping, but any character can be escaped.
-   *
-   * The group number {@code n} in {@code $n} is always at least one digit and expands to use more
-   * digits as long as the resulting number is a valid group number for this pattern. To cut it off
-   * earlier, escape the first digit that should not be used.
+   * By default the replacement is expanded as by String.prototype.replace (see
+   * appendReplacementInternalJs). In Java mode it follows re2j / java.util.regex: $n takes as
+   * many digits as still form a valid group number, ${name} is a named group, and a backslash
+   * escapes the next character (so "\\$" in a JS string literal inserts a literal $).
    *
    * @param {string} replacement the replacement string
    * @param {boolean} [javaMode=false] activate java mode (different behaviour for capture groups and special characters)
    * @returns {string}
    * @throws IllegalStateException if there was no most recent match
-   * @throws IndexOutOfBoundsException if replacement refers to an invalid group
+   * @throws IndexOutOfBoundsException in Java mode, if replacement refers to an invalid group
    * @private
    */
   appendReplacement(replacement, javaMode = false) {
@@ -557,137 +553,80 @@ class Matcher {
   }
 
   /**
+   * Expands |replacement| for the current match by the rules of String.prototype.replace
+   * (ECMAScript GetSubstitution): $$ is "$", $& the match, $` the text before it, $' the text
+   * after it, $n and $nn a group (two digits only when they form a valid group number, so with
+   * one group "$10" is group 1 then "0"; an unmatched group is empty), and $<name> a named group
+   * (empty when no such group), only when the pattern has named groups. Anything else, such as
+   * "$0" or "$<" without a closing ">", is kept as is.
    * @param {string} replacement - the replacement string
    * @returns {string}
    * @private
    */
   appendReplacementInternalJs(replacement) {
+    const isDigit = (c) => c >= 0x30 && c <= 0x39 // '0'-'9'
+    const groupCount = this.patternGroupCount
     let res = ''
-    let last = 0
-    const m = replacement.length
+    let i = 0
+    while (i < replacement.length) {
+      const dollar = replacement.indexOf('$', i)
+      if (dollar < 0) {
+        break
+      }
+      res += replacement.substring(i, dollar)
+      i = dollar
+      const c = replacement.charCodeAt(i + 1)
 
-    for (let i = 0; i < m - 1; i++) {
-      if (replacement.codePointAt(i) === Codepoint.CODES['$']) {
-        let c = replacement.codePointAt(i + 1)
-
-        if (Codepoint.CODES['$'] === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          res += '$'
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES['&'] === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          const group = this.group(0)
-          if (group !== null) {
-            res += group
-          } else {
-            res += '$&'
-          }
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES['`'] === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          res += this.substring(0, this.start(0))
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES["'"] === c) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          res += this.substring(this.end(0), this.matcherInputLength)
-          i++
-          last = i + 1
-          continue
-        } else if (Codepoint.CODES['1'] <= c && c <= Codepoint.CODES['9']) {
-          let n = c - Codepoint.CODES['0']
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          for (i += 2; i < m; i++) {
-            c = replacement.codePointAt(i)
-            if (
-              c < Codepoint.CODES['0'] ||
-              c > Codepoint.CODES['9'] ||
-              n * 10 + c - Codepoint.CODES['0'] > this.patternGroupCount
-            ) {
-              break
-            }
-            n = n * 10 + c - Codepoint.CODES['0']
-          }
-
-          if (n > this.patternGroupCount) {
-            res += `$${n}`
-            last = i
-            i--
-            continue
-          }
-
-          const group = this.group(n)
-          if (group !== null) {
-            res += group
-          }
-
-          last = i
-          i--
-          continue
-        } else if (c === Codepoint.CODES['<']) {
-          if (last < i) {
-            res += replacement.substring(last, i)
-          }
-
-          i++
-          let j = i + 1
-          while (
-            j < replacement.length &&
-            replacement.codePointAt(j) !== Codepoint.CODES['>'] &&
-            replacement.codePointAt(j) !== Codepoint.CODES[' ']
-          ) {
-            j++
-          }
-
-          if (j === replacement.length || replacement.codePointAt(j) !== Codepoint.CODES['>']) {
-            res += replacement.substring(i - 1, j + 1)
-            last = j + 1
-            i = j
-            continue
-          }
-
-          const groupName = replacement.substring(i + 1, j)
-          if (Object.prototype.hasOwnProperty.call(this.namedGroups, groupName)) {
-            const groupVal = this.group(groupName)
-            if (groupVal !== null) {
-              res += groupVal
-            }
-          } else {
-            res += `$<${groupName}>`
-          }
-
-          last = j + 1
-          i = j
-          continue
+      if (c === Codepoint.CODES['$']) {
+        res += '$'
+        i += 2
+      } else if (c === Codepoint.CODES['&']) {
+        res += this.group(0)
+        i += 2
+      } else if (c === Codepoint.CODES['`']) {
+        res += this.substring(0, this.start(0))
+        i += 2
+      } else if (c === Codepoint.CODES["'"]) {
+        res += this.substring(this.end(0), this.matcherInputLength)
+        i += 2
+      } else if (isDigit(c)) {
+        let digits = 1
+        let index = c - 0x30
+        const c2 = replacement.charCodeAt(i + 2)
+        if (isDigit(c2) && index * 10 + c2 - 0x30 <= groupCount) {
+          digits = 2
+          index = index * 10 + c2 - 0x30
         }
+        if (index >= 1 && index <= groupCount) {
+          const group = this.group(index)
+          if (group !== null) {
+            res += group
+          }
+        } else {
+          res += replacement.substring(i, i + 1 + digits)
+        }
+        i += 1 + digits
+      } else if (c === Codepoint.CODES['<'] && Object.keys(this.namedGroups).length > 0) {
+        const gt = replacement.indexOf('>', i + 2)
+        if (gt < 0) {
+          res += '$<'
+          i += 2
+        } else {
+          const name = replacement.substring(i + 2, gt)
+          if (Object.prototype.hasOwnProperty.call(this.namedGroups, name)) {
+            const group = this.group(name)
+            if (group !== null) {
+              res += group
+            }
+          }
+          i = gt + 1
+        }
+      } else {
+        res += '$'
+        i += 1
       }
     }
-
-    if (last < m) {
-      res += replacement.substring(last, m)
-    }
-
-    return res
+    return res + replacement.substring(i)
   }
 
   /**
