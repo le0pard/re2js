@@ -1,0 +1,44 @@
+# RE2JS Playground
+
+> RE2JS is a pure JavaScript port of Google's RE2 regular expression engine (through Go's `regexp` package and re2j). It matches in time linear in the size of the input, without backtracking, so it is safe for patterns and inputs from untrusted sources: there is no catastrophic backtracking (ReDoS). This site is the RE2JS playground, a page to try patterns, flags and inputs in the browser.
+
+Key facts:
+
+- Install with `npm install re2js` (or yarn, pnpm, bun). It has no dependencies and runs in Node.js, browsers, Deno and Bun, with ESM, CommonJS and UMD builds: `import { RE2JS, RE2Set, re } from 're2js'`.
+- The pattern syntax is RE2's, not JavaScript RegExp's: no backreferences and no lookaheads. Lookbehinds `(?<=...)` and `(?<!...)` are available only with the `RE2JS.LOOKBEHINDS` flag, run in linear time, and may not contain capture groups. Named groups are `(?P<name>...)` or `(?<name>...)`; inline flags `(?i)`, `(?m)`, `(?s)`, `(?U)`; Unicode classes such as `\pL` and `\p{Greek}`; `\Q...\E` quotes a literal. `\C` is not supported.
+- `\d`, `\w`, `\s` and `\b` are ASCII-only, as in RE2. `.` matches anything but `\n` unless `DOTALL` or `(?s)` is set. Without `MULTILINE`, `$` matches only at the very end of the input. Case-insensitive matching uses Unicode simple case folding (so `k` also matches the Kelvin sign).
+- Patterns are strings, so backslashes must be doubled in string literals (`RE2JS.compile('\\d+')`), or written once with the `re` tagged template (`` re`\d+` ``).
+- `RE2JS.translateRegExp(source)` rewrites JavaScript RegExp syntax for RE2JS (a RegExp object or a source string), e.g. `(?<name>...)`, `\u{1F600}`, `[^]` and the flags `i`, `m` and `s`.
+- Inputs are strings or UTF-8 bytes (`Uint8Array` or a number array); match positions are in the same units as the input.
+
+API quick reference:
+
+- `RE2JS.compile(pattern, flags)`: compiles a pattern. Flags combine with `|`: `RE2JS.CASE_INSENSITIVE`, `RE2JS.DOTALL`, `RE2JS.MULTILINE`, `RE2JS.DISABLE_UNICODE_GROUPS`, `RE2JS.LONGEST_MATCH` (leftmost-longest instead of leftmost-first), `RE2JS.LOOKBEHINDS`. `` re`pattern` `` and `` re(flags)`pattern` `` do the same without double escaping.
+- `p.test(input)`: whether any part of the input matches, like `RegExp.prototype.test`. `p.testExact(input)`, `p.matches(input)` and `RE2JS.matches(pattern, input)`: whether the whole input matches.
+- `p.exec(input)` and `p.matchAll(input)`: results shaped like JavaScript's (`index`, `input`, `groups`, `undefined` for unmatched groups).
+- `p.matcher(input)`: a Java-style matcher with `find()`, `find(start)`, `matches()` (whole input), `lookingAt()` (match at the start), `group(numberOrName)`, `start(group)`, `end(group)`, `groupCount()` and `getNamedGroups()`.
+- `matcher.replaceAll(replacement)` and `matcher.replaceFirst(replacement)`: a replacement string is expanded as by `String.prototype.replace` (`$1`, `$<name>`, `$&`, `` $` ``, `$'`, `$$`), or as in Java with a second argument `true` (`$1`, `${name}`, `\$`). A function receives the arguments `String.prototype.replace` passes.
+- `p.split(input, limit)`: splits around matches, with Java's `String.split` rules (trailing empty strings are dropped when `limit` is 0).
+- `RE2JS.quote(text)`: a pattern that matches `text` literally. `RE2JS.quoteReplacement(text, javaMode)`: `text` escaped for use as a replacement (`$500` becomes `$$500`, or `\$500` in Java mode).
+- `p.groupCount()`, `p.namedGroups()` (name to group number) and `p.programSize()` (size of the compiled program).
+- `new RE2Set(anchor, flags, maxMem)`: matches many patterns in one pass. Call `add(pattern)` for each (it returns the pattern's id), then `compile()`; `match(input)` returns the ids of every pattern that matches. Anchors: `RE2Set.UNANCHORED` (default), `RE2Set.ANCHOR_START`, `RE2Set.ANCHOR_BOTH`.
+- Errors: `RE2JSSyntaxException` for an invalid pattern (including one that is too large or nested too deeply), `RE2JSCompileException` when an `RE2Set`'s combined program is too large, `RE2JSGroupException` for a bad group reference, `RE2JSFlagsException` for unknown flags.
+
+## Playground
+
+- [RE2JS Playground](https://re2js.leopard.in.ua/): enter a pattern and a test string and toggle the six flags. It shows whether the whole string matches (`matches()`), whether it contains a match (`test()`), whether it starts with a match (`lookingAt()`), the groups and named groups of the first match, every match (`matchAll()`), the size of the compiled program, and syntax errors. The library is also available as `RE2JS` in the browser console.
+
+## Documentation
+
+- [README](https://raw.githubusercontent.com/le0pard/re2js/main/README.md): the full documentation in Markdown: installation, every API with examples, multi-pattern sets, replacements, performance and architecture, and lookbehinds
+- [RE2 syntax](https://github.com/google/re2/wiki/Syntax): the pattern syntax RE2JS accepts
+- [GitHub repository](https://github.com/le0pard/re2js): source code, issues and releases
+- [npm package](https://www.npmjs.com/package/re2js): the published package and its versions
+
+## Optional
+
+- [Go regexp package](https://pkg.go.dev/regexp): the implementation RE2JS follows most closely, with the same matching semantics
+- [re2j](https://github.com/google/re2j): the Java port of RE2, whose `Matcher` API RE2JS mirrors
+- [RE2](https://github.com/google/re2): the original C++ engine
+- [Linear-time lookbehinds (EPFL paper)](https://arxiv.org/pdf/2311.17620): the algorithm behind the `LOOKBEHINDS` flag
+- [Adding lookbehinds to RE2 (EPFL blog)](https://systemf.epfl.ch/blog/re2-lookbehinds/): a guide to the same approach
