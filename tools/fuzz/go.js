@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url'
 import { RE2 } from '../../src/RE2.js'
 import { RE2Flags } from '../../src/RE2Flags.js'
 import { Utils } from '../../src/Utils.js'
+import { RE2JSCompileException, RE2JSSyntaxException } from '../../src/exceptions.js'
 import { makeBytes, makePattern } from './generate.js'
 
 const ORACLE_SOURCE = join(dirname(fileURLToPath(import.meta.url)), 'go-oracle')
@@ -117,6 +118,9 @@ export const goFuzzer = {
     try {
       re = RE2.compileImpl(c.pattern, c.posix ? RE2Flags.POSIX : RE2Flags.PERL, c.longest)
     } catch (e) {
+      // Rejecting a pattern is a syntax (or size) error; anything else is a crash, even when Go
+      // rejects the pattern too
+      if (!(e instanceof RE2JSSyntaxException || e instanceof RE2JSCompileException)) throw e
       re2jsError = e
     }
     if (KNOWN_DIFFERENCES.some((d) => d.explains({ c, re2jsError, go }))) return null

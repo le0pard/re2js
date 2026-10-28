@@ -16,6 +16,7 @@ import { RE2Flags } from '../RE2Flags.js'
 import { Utils } from '../Utils.js'
 import { unquote, unquoteBytes } from '../__utils__/strconv.js'
 import { runEngines } from '../__utils__/engines.js'
+import { RE2JSSyntaxException } from '../exceptions.js'
 
 const FIXTURES_DIRNAME = path.join(process.cwd(), 'src', '__fixtures__')
 
@@ -335,9 +336,10 @@ const testFowler = async (fileName) => {
       let re = null
       try {
         re = RE2.compileImpl(pattern, flags, true)
-      } catch (_e) {
-        if (shouldCompileMatch[0]) {
-          throw new Error(`${lineno}: ${pattern} did not compile`)
+      } catch (e) {
+        // Only a syntax error is the rejection the data expects; anything else is a bug
+        if (shouldCompileMatch[0] || !(e instanceof RE2JSSyntaxException)) {
+          throw new Error(`${lineno}: ${pattern} did not compile: ${e.message}`, { cause: e })
         }
         continue
       }

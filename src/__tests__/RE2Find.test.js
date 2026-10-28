@@ -55,12 +55,15 @@ const testSubmatchIndices = ({
 
 // tests
 
+// As Go's find tests: a test without matches checks that there is none, and a test with matches
+// checks how many there are, so that neither a missing nor an extra match passes unnoticed.
+
 it.each(FIND_TESTS)('findUTF8 %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8(testPattern.textUTF8)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     expect(result).toEqual(testPattern.submatchBytes(0, 0))
   }
@@ -70,8 +73,8 @@ it.each(FIND_TESTS)('find %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.find(testPattern.text)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBe('') // as Go's FindString, which cannot tell no match from an empty one
   } else {
     expect(result).toEqual(testPattern.submatchString(0, 0))
   }
@@ -81,8 +84,8 @@ it.each(FIND_TESTS)('findUTF8Index %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8Index(testPattern.textUTF8)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     const expected = testPattern.matches[0]
     expect(expected[0]).toEqual(result[0])
@@ -94,8 +97,8 @@ it.each(FIND_TESTS)('findIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findIndex(testPattern.text)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     const resultUtf8 = utf16IndicesToUtf8(result, testPattern.text)
     const expected = testPattern.matches[0]
@@ -109,8 +112,8 @@ it.each(FIND_TESTS)('findAllUTF8 %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8(testPattern.textUTF8, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     expect(result.length).toEqual(testPattern.matches.length)
 
@@ -124,8 +127,8 @@ it.each(FIND_TESTS)('findAll %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAll(testPattern.text, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     expect(result.length).toEqual(testPattern.matches.length)
 
@@ -145,8 +148,8 @@ it.each(FIND_TESTS)('findAllUTF8Index %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8Index(testPattern.textUTF8, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     expect(result.length).toEqual(testPattern.matches.length)
 
@@ -163,8 +166,8 @@ it.each(FIND_TESTS)('findAllIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllIndex(testPattern.text, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     expect(result.length).toEqual(testPattern.matches.length)
 
@@ -181,8 +184,8 @@ it.each(FIND_TESTS)('findUTF8Submatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8Submatch(testPattern.textUTF8)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     testSubmatchBytes({ testPattern, result, pos: 0 })
   }
@@ -192,8 +195,8 @@ it.each(FIND_TESTS)('findSubmatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findSubmatch(testPattern.text)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     testSubmatch({ testPattern, result, pos: 0 })
   }
@@ -203,8 +206,8 @@ it.each(FIND_TESTS)('findUTF8SubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findUTF8SubmatchIndex(testPattern.textUTF8)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     testSubmatchIndices({ testPattern, result, pos: 0, resultIndicesAreUTF8: true })
   }
@@ -214,8 +217,8 @@ it.each(FIND_TESTS)('findSubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findSubmatchIndex(testPattern.text)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
     testSubmatchIndices({ testPattern, result, pos: 0, resultIndicesAreUTF8: false })
   }
@@ -225,9 +228,10 @@ it.each(FIND_TESTS)('findAllUTF8Submatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8Submatch(testPattern.textUTF8, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
+    expect(result.length).toEqual(testPattern.matches.length)
     for (let k = 0; k < testPattern.matches.length; k++) {
       testSubmatchBytes({ testPattern, result: result[k], pos: k })
     }
@@ -238,9 +242,10 @@ it.each(FIND_TESTS)('findAllSubmatch %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllSubmatch(testPattern.text, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
+    expect(result.length).toEqual(testPattern.matches.length)
     for (let k = 0; k < testPattern.matches.length; k++) {
       testSubmatch({ testPattern, result: result[k], pos: k })
     }
@@ -251,9 +256,10 @@ it.each(FIND_TESTS)('findAllUTF8SubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllUTF8SubmatchIndex(testPattern.textUTF8, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
+    expect(result.length).toEqual(testPattern.matches.length)
     for (let k = 0; k < testPattern.matches.length; k++) {
       testSubmatchIndices({ testPattern, result: result[k], pos: k, resultIndicesAreUTF8: true })
     }
@@ -264,9 +270,10 @@ it.each(FIND_TESTS)('findAllSubmatchIndex %s', (testPattern) => {
   const re = RE2.compile(testPattern.pat)
   const result = re.findAllSubmatchIndex(testPattern.text, -1)
 
-  if (testPattern.matches.length === 0 && (result === null || result.length === 0)) {
-    // ok
+  if (testPattern.matches.length === 0) {
+    expect(result).toBeNull()
   } else {
+    expect(result.length).toEqual(testPattern.matches.length)
     for (let k = 0; k < testPattern.matches.length; k++) {
       testSubmatchIndices({ testPattern, result: result[k], pos: k, resultIndicesAreUTF8: false })
     }

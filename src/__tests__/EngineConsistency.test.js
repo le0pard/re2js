@@ -13,6 +13,13 @@ import { MachineInput } from '../MachineInput.js'
 import { Backtracker } from '../Backtracker.js'
 import { Utils } from '../Utils.js'
 import { runEngines } from '../__utils__/engines.js'
+import { RE2JSCompileException, RE2JSSyntaxException } from '../exceptions.js'
+
+// Random patterns are often invalid and are skipped; any other error while compiling one (such
+// as an internal TypeError) is a bug and must fail the test, not be skipped with them.
+const skipInvalid = (e) => {
+  if (!(e instanceof RE2JSSyntaxException || e instanceof RE2JSCompileException)) throw e
+}
 
 const makeRandom = (seed) => {
   let state = seed
@@ -116,7 +123,8 @@ describe('every engine agrees with the Pike VM', () => {
         let re
         try {
           re = RE2.compileImpl(pattern, RE2Flags.PERL, longest)
-        } catch {
+        } catch (e) {
+          skipInvalid(e)
           continue
         }
         for (let k = 0; k < 3; k++) {
@@ -154,7 +162,8 @@ describe('every engine agrees with the Pike VM', () => {
       let re
       try {
         re = RE2.compile(generate())
-      } catch {
+      } catch (e) {
+        skipInvalid(e)
         continue
       }
       for (let k = 0; k < 3; k++) {
@@ -218,7 +227,8 @@ describe('lookbehind state carried across repeated matches', () => {
       let re
       try {
         re = RE2JS.compile(pattern, RE2JS.LOOKBEHINDS)
-      } catch {
+      } catch (e) {
+        skipInvalid(e)
         continue
       }
       const re2 = re.re2()
@@ -262,7 +272,8 @@ describe('the prefilter never changes a result', () => {
       let re
       try {
         re = RE2JS.compile(generate())
-      } catch {
+      } catch (e) {
+        skipInvalid(e)
         continue
       }
       const re2 = re.re2()

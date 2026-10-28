@@ -34,13 +34,16 @@ export default defineConfig({
         test: {
           name: 'node',
           environment: 'node',
-          include: ['src/__tests__/**/*.test.js']
+          include: ['src/__tests__/**/*.test.js'],
+          // A test that asserts nothing passes whatever the code does
+          expect: { requireAssertions: true }
         }
       },
       {
         test: {
           name: 'browser',
           include: ['src/__tests__/**/*.test.js'],
+          expect: { requireAssertions: true },
           exclude: [...configDefaults.exclude, '**/Exec.test.js'], // Exec contain node.js specific tests
           browser: {
             enabled: true,
