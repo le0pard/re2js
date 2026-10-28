@@ -15,6 +15,10 @@ const replaced: string = pattern.matcher('a@b').replaceAll('$2')
 const set = new RE2Set(RE2Set.UNANCHORED, RE2JS.MULTILINE)
 const id: number = set.add('foo')
 const ids: number[] = set.match('foo')
-const tagged: RE2JS = re`a+${'b'}` as RE2JS
+// Both forms of the re tag must type as RE2JS without a cast (2.8.7 to 2.9.0 published a union)
+const tagged: RE2JS = re`a+${'b'}`
+const flagged: RE2JS = re(RE2JS.CASE_INSENSITIVE)`a+`
+const all: RE2JS[] = [re`.`]
+const firstMatch = re`.`.matchAll('')
 const error = new RE2JSSyntaxException('bad')
-void [ok, parts, replaced, id, ids, tagged, error]
+void [ok, parts, replaced, id, ids, tagged, flagged, all, firstMatch, error]

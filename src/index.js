@@ -461,8 +461,10 @@ class RE2JS {
  * @param {...any} values
  * @returns {RE2JS | ((strings: TemplateStringsArray, ...tagValues: any[]) => RE2JS)}
  */
-// @ts-ignore: TypeScript cannot infer intersection types for overloaded functions in JS
-const re = (stringsOrFlags, ...values) => {
+// A declaration, not an arrow function: TypeScript (from version 7) applies JSDoc @overload
+// tags only to declarations, and otherwise publishes a union return type for both forms.
+// oxlint-disable-next-line func-style
+function re(stringsOrFlags, ...values) {
   if (Array.isArray(stringsOrFlags) && 'raw' in stringsOrFlags) {
     const pattern = String.raw(stringsOrFlags, ...values)
     return RE2JS.compile(pattern)
