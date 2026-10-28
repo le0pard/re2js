@@ -3,6 +3,20 @@ import { RE2JS } from '../index.js'
 import { Parser } from '../Parser.js'
 import { RE2Flags } from '../RE2Flags.js'
 
+// The fastest of |runs| runs of |fn|, in milliseconds. Scaling checks compare two timings, and a
+// single run can include a garbage collection or a JIT compilation: once in CI, WebKit took 10.7x
+// as long to parse a pattern 4x the size, where the parser is linear. The fastest run is the one
+// such pauses missed.
+const fastestOf = (fn, runs = 3) => {
+  let best = Infinity
+  for (let run = 0; run < runs; run++) {
+    const start = performance.now()
+    fn()
+    best = Math.min(best, performance.now() - start)
+  }
+  return best
+}
+
 describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
   describe('Catastrophic Backtracking Immunity (ReDoS)', () => {
     // A helper to assert that an execution finishes quickly, whereas a backtracking engine
@@ -136,11 +150,13 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
       }
       return `${s} !`
     }
+    // The fastest of three runs, each with a fresh, empty DFA cache (see fastestOf)
     const testTime = (pattern, text) => {
-      const re = RE2JS.compile(pattern) // a fresh, empty DFA cache
-      const start = performance.now()
-      const result = re.test(text)
-      return [performance.now() - start, result]
+      let result = null
+      const time = fastestOf(() => {
+        result = RE2JS.compile(pattern).test(text)
+      })
+      return [time, result]
     }
 
     it.each(['[ab]*a[ab]{19}!', '\\b[ab]*a[ab]{19}\\b!', '(?i)\\B[ab]*a[ab]{19}\\B!'])(
@@ -162,11 +178,7 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
     // were copied on every appended rune, and classes merged across '|' were copied per branch.
     // Measure scaling rather than absolute time so the check holds on slow CI machines: parsing
     // 4x the pattern must cost well under 16x the time (the quadratic code gave 16-22x).
-    const parseTime = (pattern) => {
-      const start = performance.now()
-      Parser.parse(pattern, RE2Flags.PERL)
-      return performance.now() - start
-    }
+    const parseTime = (pattern) => fastestOf(() => Parser.parse(pattern, RE2Flags.PERL))
     const assertLinearParse = (makePattern, n) => {
       const small = makePattern(n)
       const large = makePattern(4 * n)
