@@ -102,8 +102,11 @@ describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {
             re2js.test(cards[i])
           }
         })
+        // Each benchmark must have measured something (and the test runner requires a test to
+        // assert at least once)
         if (re2node === null) {
-          await re2jsBench.run(benchOpts)
+          const result = await re2jsBench.run(benchOpts)
+          expect(result.latency.samplesCount).toBeGreaterThan(0)
           return
         }
         // C++ binding, compared side by side when installed
@@ -112,7 +115,9 @@ describe('Cross-Library Performance Benchmark: re2js vs re2-node', () => {
             re2node.test(cards[i])
           }
         })
-        await bench.compare(re2jsBench, re2nodeBench, benchOpts)
+        const results = await bench.compare(re2jsBench, re2nodeBench, benchOpts)
+        expect(results.get('re2js').latency.samplesCount).toBeGreaterThan(0)
+        expect(results.get('re2-node').latency.samplesCount).toBeGreaterThan(0)
       })
     })
   }
