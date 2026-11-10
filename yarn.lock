@@ -929,6 +929,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@jridgewell/trace-mapping@npm:^0.3.31":
+  version: 0.3.31
+  resolution: "@jridgewell/trace-mapping@npm:0.3.31"
+  dependencies:
+    "@jridgewell/resolve-uri": "npm:^3.1.0"
+    "@jridgewell/sourcemap-codec": "npm:^1.4.14"
+  checksum: 10/da0283270e691bdb5543806077548532791608e52386cfbbf3b9e8fb00457859d1bd01d512851161c886eb3a2f3ce6fd9bcf25db8edf3bddedd275bd4a88d606
+  languageName: node
+  linkType: hard
+
 "@keyv/bigmap@npm:^1.3.1":
   version: 1.3.1
   resolution: "@keyv/bigmap@npm:1.3.1"
@@ -997,275 +1007,275 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oxc-project/types@npm:=0.155.0":
-  version: 0.155.0
-  resolution: "@oxc-project/types@npm:0.155.0"
-  checksum: 10/5f1a03ff2e71746c188e0740158fa1f01d3fe9982baf3269aa955a5d24b68f44fc92951ac843d8c55159a4263de27f1b849b8f0ad88d51476c20c086b24071de
+"@oxc-project/types@npm:=0.156.0":
+  version: 0.156.0
+  resolution: "@oxc-project/types@npm:0.156.0"
+  checksum: 10/282e357299cd6c5a2c0c55d57fcb6edb4ac67df1bec1a6e4613f146721f584377071bce61453093a8cf179fc934095ffdf269ea327dd4df250272ac8ab04e159
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-android-arm-eabi@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-android-arm-eabi@npm:0.75.0"
+"@oxfmt/binding-android-arm-eabi@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-android-arm-eabi@npm:0.78.0"
   conditions: os=android & cpu=arm
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-android-arm64@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-android-arm64@npm:0.75.0"
+"@oxfmt/binding-android-arm64@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-android-arm64@npm:0.78.0"
   conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-darwin-arm64@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-darwin-arm64@npm:0.75.0"
+"@oxfmt/binding-darwin-arm64@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-darwin-arm64@npm:0.78.0"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-darwin-x64@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-darwin-x64@npm:0.75.0"
+"@oxfmt/binding-darwin-x64@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-darwin-x64@npm:0.78.0"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-freebsd-x64@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-freebsd-x64@npm:0.75.0"
+"@oxfmt/binding-freebsd-x64@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-freebsd-x64@npm:0.78.0"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-arm-gnueabihf@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-arm-gnueabihf@npm:0.75.0"
+"@oxfmt/binding-linux-arm-gnueabihf@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-arm-gnueabihf@npm:0.78.0"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-arm-musleabihf@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-arm-musleabihf@npm:0.75.0"
+"@oxfmt/binding-linux-arm-musleabihf@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-arm-musleabihf@npm:0.78.0"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-arm64-gnu@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-arm64-gnu@npm:0.75.0"
+"@oxfmt/binding-linux-arm64-gnu@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-arm64-gnu@npm:0.78.0"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-arm64-musl@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-arm64-musl@npm:0.75.0"
+"@oxfmt/binding-linux-arm64-musl@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-arm64-musl@npm:0.78.0"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-ppc64-gnu@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-ppc64-gnu@npm:0.75.0"
+"@oxfmt/binding-linux-ppc64-gnu@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-ppc64-gnu@npm:0.78.0"
   conditions: os=linux & cpu=ppc64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-riscv64-gnu@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-riscv64-gnu@npm:0.75.0"
+"@oxfmt/binding-linux-riscv64-gnu@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-riscv64-gnu@npm:0.78.0"
   conditions: os=linux & cpu=riscv64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-riscv64-musl@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-riscv64-musl@npm:0.75.0"
+"@oxfmt/binding-linux-riscv64-musl@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-riscv64-musl@npm:0.78.0"
   conditions: os=linux & cpu=riscv64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-s390x-gnu@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-s390x-gnu@npm:0.75.0"
+"@oxfmt/binding-linux-s390x-gnu@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-s390x-gnu@npm:0.78.0"
   conditions: os=linux & cpu=s390x & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-x64-gnu@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-x64-gnu@npm:0.75.0"
+"@oxfmt/binding-linux-x64-gnu@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-x64-gnu@npm:0.78.0"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-linux-x64-musl@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-linux-x64-musl@npm:0.75.0"
+"@oxfmt/binding-linux-x64-musl@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-linux-x64-musl@npm:0.78.0"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-openharmony-arm64@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-openharmony-arm64@npm:0.75.0"
+"@oxfmt/binding-openharmony-arm64@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-openharmony-arm64@npm:0.78.0"
   conditions: os=openharmony & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-win32-arm64-msvc@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-win32-arm64-msvc@npm:0.75.0"
+"@oxfmt/binding-win32-arm64-msvc@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-win32-arm64-msvc@npm:0.78.0"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-win32-ia32-msvc@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-win32-ia32-msvc@npm:0.75.0"
+"@oxfmt/binding-win32-ia32-msvc@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-win32-ia32-msvc@npm:0.78.0"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
-"@oxfmt/binding-win32-x64-msvc@npm:0.75.0":
-  version: 0.75.0
-  resolution: "@oxfmt/binding-win32-x64-msvc@npm:0.75.0"
+"@oxfmt/binding-win32-x64-msvc@npm:0.78.0":
+  version: 0.78.0
+  resolution: "@oxfmt/binding-win32-x64-msvc@npm:0.78.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-android-arm-eabi@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-android-arm-eabi@npm:1.90.0"
+"@oxlint/binding-android-arm-eabi@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-android-arm-eabi@npm:1.93.0"
   conditions: os=android & cpu=arm
   languageName: node
   linkType: hard
 
-"@oxlint/binding-android-arm64@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-android-arm64@npm:1.90.0"
+"@oxlint/binding-android-arm64@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-android-arm64@npm:1.93.0"
   conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-darwin-arm64@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-darwin-arm64@npm:1.90.0"
+"@oxlint/binding-darwin-arm64@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-darwin-arm64@npm:1.93.0"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-darwin-x64@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-darwin-x64@npm:1.90.0"
+"@oxlint/binding-darwin-x64@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-darwin-x64@npm:1.93.0"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-freebsd-x64@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-freebsd-x64@npm:1.90.0"
+"@oxlint/binding-freebsd-x64@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-freebsd-x64@npm:1.93.0"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-arm-gnueabihf@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-arm-gnueabihf@npm:1.90.0"
+"@oxlint/binding-linux-arm-gnueabihf@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-arm-gnueabihf@npm:1.93.0"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-arm-musleabihf@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-arm-musleabihf@npm:1.90.0"
+"@oxlint/binding-linux-arm-musleabihf@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-arm-musleabihf@npm:1.93.0"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-arm64-gnu@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-arm64-gnu@npm:1.90.0"
+"@oxlint/binding-linux-arm64-gnu@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-arm64-gnu@npm:1.93.0"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-arm64-musl@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-arm64-musl@npm:1.90.0"
+"@oxlint/binding-linux-arm64-musl@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-arm64-musl@npm:1.93.0"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-ppc64-gnu@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-ppc64-gnu@npm:1.90.0"
+"@oxlint/binding-linux-ppc64-gnu@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-ppc64-gnu@npm:1.93.0"
   conditions: os=linux & cpu=ppc64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-riscv64-gnu@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-riscv64-gnu@npm:1.90.0"
+"@oxlint/binding-linux-riscv64-gnu@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-riscv64-gnu@npm:1.93.0"
   conditions: os=linux & cpu=riscv64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-riscv64-musl@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-riscv64-musl@npm:1.90.0"
+"@oxlint/binding-linux-riscv64-musl@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-riscv64-musl@npm:1.93.0"
   conditions: os=linux & cpu=riscv64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-s390x-gnu@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-s390x-gnu@npm:1.90.0"
+"@oxlint/binding-linux-s390x-gnu@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-s390x-gnu@npm:1.93.0"
   conditions: os=linux & cpu=s390x & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-x64-gnu@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-x64-gnu@npm:1.90.0"
+"@oxlint/binding-linux-x64-gnu@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-x64-gnu@npm:1.93.0"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@oxlint/binding-linux-x64-musl@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-linux-x64-musl@npm:1.90.0"
+"@oxlint/binding-linux-x64-musl@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-linux-x64-musl@npm:1.93.0"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@oxlint/binding-openharmony-arm64@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-openharmony-arm64@npm:1.90.0"
+"@oxlint/binding-openharmony-arm64@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-openharmony-arm64@npm:1.93.0"
   conditions: os=openharmony & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-win32-arm64-msvc@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-win32-arm64-msvc@npm:1.90.0"
+"@oxlint/binding-win32-arm64-msvc@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-win32-arm64-msvc@npm:1.93.0"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/binding-win32-ia32-msvc@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-win32-ia32-msvc@npm:1.90.0"
+"@oxlint/binding-win32-ia32-msvc@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-win32-ia32-msvc@npm:1.93.0"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
 
-"@oxlint/binding-win32-x64-msvc@npm:1.90.0":
-  version: 1.90.0
-  resolution: "@oxlint/binding-win32-x64-msvc@npm:1.90.0"
+"@oxlint/binding-win32-x64-msvc@npm:1.93.0":
+  version: 1.93.0
+  resolution: "@oxlint/binding-win32-x64-msvc@npm:1.93.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -1291,107 +1301,107 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rolldown/binding-android-arm-eabi@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-android-arm-eabi@npm:1.2.15"
+"@rolldown/binding-android-arm-eabi@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-android-arm-eabi@npm:1.2.18"
   conditions: os=android & cpu=arm
   languageName: node
   linkType: hard
 
-"@rolldown/binding-android-arm64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-android-arm64@npm:1.2.15"
+"@rolldown/binding-android-arm64@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-android-arm64@npm:1.2.18"
   conditions: os=android & cpu=arm64
   languageName: node
   linkType: hard
 
-"@rolldown/binding-darwin-arm64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-darwin-arm64@npm:1.2.15"
+"@rolldown/binding-darwin-arm64@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-darwin-arm64@npm:1.2.18"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@rolldown/binding-darwin-x64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-darwin-x64@npm:1.2.15"
+"@rolldown/binding-darwin-x64@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-darwin-x64@npm:1.2.18"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@rolldown/binding-freebsd-x64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-freebsd-x64@npm:1.2.15"
+"@rolldown/binding-freebsd-x64@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-freebsd-x64@npm:1.2.18"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-arm-gnueabihf@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-arm-gnueabihf@npm:1.2.15"
+"@rolldown/binding-linux-arm-gnueabihf@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-arm-gnueabihf@npm:1.2.18"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-arm64-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-arm64-gnu@npm:1.2.15"
+"@rolldown/binding-linux-arm64-gnu@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-arm64-gnu@npm:1.2.18"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-arm64-musl@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-arm64-musl@npm:1.2.15"
+"@rolldown/binding-linux-arm64-musl@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-arm64-musl@npm:1.2.18"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-ppc64-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-ppc64-gnu@npm:1.2.15"
+"@rolldown/binding-linux-ppc64-gnu@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-ppc64-gnu@npm:1.2.18"
   conditions: os=linux & cpu=ppc64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-s390x-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-s390x-gnu@npm:1.2.15"
+"@rolldown/binding-linux-s390x-gnu@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-s390x-gnu@npm:1.2.18"
   conditions: os=linux & cpu=s390x & libc=glibc
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-x64-gnu@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-x64-gnu@npm:1.2.15"
+"@rolldown/binding-linux-x64-gnu@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-x64-gnu@npm:1.2.18"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@rolldown/binding-linux-x64-musl@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-linux-x64-musl@npm:1.2.15"
+"@rolldown/binding-linux-x64-musl@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-linux-x64-musl@npm:1.2.18"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@rolldown/binding-openharmony-arm64@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-openharmony-arm64@npm:1.2.15"
+"@rolldown/binding-openharmony-arm64@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-openharmony-arm64@npm:1.2.18"
   conditions: os=openharmony & cpu=arm64
   languageName: node
   linkType: hard
 
-"@rolldown/binding-win32-arm64-msvc@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-win32-arm64-msvc@npm:1.2.15"
+"@rolldown/binding-win32-arm64-msvc@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-win32-arm64-msvc@npm:1.2.18"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@rolldown/binding-win32-x64-msvc@npm:1.2.15":
-  version: 1.2.15
-  resolution: "@rolldown/binding-win32-x64-msvc@npm:1.2.15"
+"@rolldown/binding-win32-x64-msvc@npm:1.2.18":
+  version: 1.2.18
+  resolution: "@rolldown/binding-win32-x64-msvc@npm:1.2.18"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -1435,10 +1445,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "@sveltejs/kit@npm:3.1.1"
+"@sveltejs/kit@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@sveltejs/kit@npm:3.2.0"
   dependencies:
+    "@jridgewell/trace-mapping": "npm:^0.3.31"
     "@rolldown/pluginutils": "npm:^1.0.1"
     "@standard-schema/spec": "npm:^1.1.0"
     cookie: "npm:^2.0.1"
@@ -1460,7 +1471,7 @@ __metadata:
       optional: true
   bin:
     svelte-kit: svelte-kit.js
-  checksum: 10/7d8891ff3340147669f6d4c75a74ff787fd1c35c232daa27166be6ea4288a02d488dd9795c5511969fb16ca05d6113548675617292240dbd208b5f0599c0662e
+  checksum: 10/fd905a50a0b624a96988105ef64e38a3815478ffabe9d192a7297fdb9104b9f1521f2e012853197585421c7dc1552af13bd01ddfadbe31032d5c53e517cfb1ae
   languageName: node
   linkType: hard
 
@@ -2376,27 +2387,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-svelte@npm:^3.23.1":
-  version: 3.23.1
-  resolution: "eslint-plugin-svelte@npm:3.23.1"
+"eslint-plugin-svelte@npm:^3.24.1":
+  version: 3.24.1
+  resolution: "eslint-plugin-svelte@npm:3.24.1"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.6.1"
     "@jridgewell/sourcemap-codec": "npm:^1.5.0"
     esutils: "npm:^2.0.3"
     globals: "npm:^16.0.0"
     known-css-properties: "npm:^0.37.0"
-    postcss: "npm:^8.4.49"
+    postcss: "npm:^8.5.10"
     postcss-load-config: "npm:^3.1.4"
     postcss-safe-parser: "npm:^7.0.0"
     semver: "npm:^7.6.3"
-    svelte-eslint-parser: "npm:^1.7.0"
+    svelte-eslint-parser: "npm:^1.10.1"
   peerDependencies:
     eslint: ^8.57.1 || ^9.0.0 || ^10.0.0
     svelte: ^3.37.0 || ^4.0.0 || ^5.0.0
   peerDependenciesMeta:
     svelte:
       optional: true
-  checksum: 10/3c4862295f0d134aaa1aaf0437e9ddae3378ca914010dd40426e7824d4772577e226b85408855678cc7598698769702cceb7d97be533ce039b300a5217e5f0ad
+  checksum: 10/9604daf5de44f946308d09ceae42046ebf8959b0a4d95621f992d78670142636fc7b038a086ea081c8f359a34d2f38bc5478a736685e4688743ea80b5e9819e3
   languageName: node
   linkType: hard
 
@@ -3601,29 +3612,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oxfmt@npm:^0.75.0":
-  version: 0.75.0
-  resolution: "oxfmt@npm:0.75.0"
+"oxfmt@npm:^0.78.0":
+  version: 0.78.0
+  resolution: "oxfmt@npm:0.78.0"
   dependencies:
-    "@oxfmt/binding-android-arm-eabi": "npm:0.75.0"
-    "@oxfmt/binding-android-arm64": "npm:0.75.0"
-    "@oxfmt/binding-darwin-arm64": "npm:0.75.0"
-    "@oxfmt/binding-darwin-x64": "npm:0.75.0"
-    "@oxfmt/binding-freebsd-x64": "npm:0.75.0"
-    "@oxfmt/binding-linux-arm-gnueabihf": "npm:0.75.0"
-    "@oxfmt/binding-linux-arm-musleabihf": "npm:0.75.0"
-    "@oxfmt/binding-linux-arm64-gnu": "npm:0.75.0"
-    "@oxfmt/binding-linux-arm64-musl": "npm:0.75.0"
-    "@oxfmt/binding-linux-ppc64-gnu": "npm:0.75.0"
-    "@oxfmt/binding-linux-riscv64-gnu": "npm:0.75.0"
-    "@oxfmt/binding-linux-riscv64-musl": "npm:0.75.0"
-    "@oxfmt/binding-linux-s390x-gnu": "npm:0.75.0"
-    "@oxfmt/binding-linux-x64-gnu": "npm:0.75.0"
-    "@oxfmt/binding-linux-x64-musl": "npm:0.75.0"
-    "@oxfmt/binding-openharmony-arm64": "npm:0.75.0"
-    "@oxfmt/binding-win32-arm64-msvc": "npm:0.75.0"
-    "@oxfmt/binding-win32-ia32-msvc": "npm:0.75.0"
-    "@oxfmt/binding-win32-x64-msvc": "npm:0.75.0"
+    "@oxfmt/binding-android-arm-eabi": "npm:0.78.0"
+    "@oxfmt/binding-android-arm64": "npm:0.78.0"
+    "@oxfmt/binding-darwin-arm64": "npm:0.78.0"
+    "@oxfmt/binding-darwin-x64": "npm:0.78.0"
+    "@oxfmt/binding-freebsd-x64": "npm:0.78.0"
+    "@oxfmt/binding-linux-arm-gnueabihf": "npm:0.78.0"
+    "@oxfmt/binding-linux-arm-musleabihf": "npm:0.78.0"
+    "@oxfmt/binding-linux-arm64-gnu": "npm:0.78.0"
+    "@oxfmt/binding-linux-arm64-musl": "npm:0.78.0"
+    "@oxfmt/binding-linux-ppc64-gnu": "npm:0.78.0"
+    "@oxfmt/binding-linux-riscv64-gnu": "npm:0.78.0"
+    "@oxfmt/binding-linux-riscv64-musl": "npm:0.78.0"
+    "@oxfmt/binding-linux-s390x-gnu": "npm:0.78.0"
+    "@oxfmt/binding-linux-x64-gnu": "npm:0.78.0"
+    "@oxfmt/binding-linux-x64-musl": "npm:0.78.0"
+    "@oxfmt/binding-openharmony-arm64": "npm:0.78.0"
+    "@oxfmt/binding-win32-arm64-msvc": "npm:0.78.0"
+    "@oxfmt/binding-win32-ia32-msvc": "npm:0.78.0"
+    "@oxfmt/binding-win32-x64-msvc": "npm:0.78.0"
     tinypool: "npm:2.2.0"
   peerDependencies:
     "@astrojs/compiler-rs": ^0.5.0
@@ -3677,33 +3688,33 @@ __metadata:
       optional: true
   bin:
     oxfmt: bin/oxfmt
-  checksum: 10/c5775dc9172abbbd86e67763b14e930f30aa029be29c2e11feb1d06a5a23c9cb77ba361133b7a00271df7c324e6c3f8110e55e7bd4959c709d278fa221825376
+  checksum: 10/876b4856a64ac3af5d7677b4b418945c64cf19f54efd4ae10fbcea80829bda77e7bbd480d639ae89252dda36a778edee21bf23104e36200f99655ee0edee5110
   languageName: node
   linkType: hard
 
-"oxlint@npm:^1.90.0":
-  version: 1.90.0
-  resolution: "oxlint@npm:1.90.0"
+"oxlint@npm:^1.93.0":
+  version: 1.93.0
+  resolution: "oxlint@npm:1.93.0"
   dependencies:
-    "@oxlint/binding-android-arm-eabi": "npm:1.90.0"
-    "@oxlint/binding-android-arm64": "npm:1.90.0"
-    "@oxlint/binding-darwin-arm64": "npm:1.90.0"
-    "@oxlint/binding-darwin-x64": "npm:1.90.0"
-    "@oxlint/binding-freebsd-x64": "npm:1.90.0"
-    "@oxlint/binding-linux-arm-gnueabihf": "npm:1.90.0"
-    "@oxlint/binding-linux-arm-musleabihf": "npm:1.90.0"
-    "@oxlint/binding-linux-arm64-gnu": "npm:1.90.0"
-    "@oxlint/binding-linux-arm64-musl": "npm:1.90.0"
-    "@oxlint/binding-linux-ppc64-gnu": "npm:1.90.0"
-    "@oxlint/binding-linux-riscv64-gnu": "npm:1.90.0"
-    "@oxlint/binding-linux-riscv64-musl": "npm:1.90.0"
-    "@oxlint/binding-linux-s390x-gnu": "npm:1.90.0"
-    "@oxlint/binding-linux-x64-gnu": "npm:1.90.0"
-    "@oxlint/binding-linux-x64-musl": "npm:1.90.0"
-    "@oxlint/binding-openharmony-arm64": "npm:1.90.0"
-    "@oxlint/binding-win32-arm64-msvc": "npm:1.90.0"
-    "@oxlint/binding-win32-ia32-msvc": "npm:1.90.0"
-    "@oxlint/binding-win32-x64-msvc": "npm:1.90.0"
+    "@oxlint/binding-android-arm-eabi": "npm:1.93.0"
+    "@oxlint/binding-android-arm64": "npm:1.93.0"
+    "@oxlint/binding-darwin-arm64": "npm:1.93.0"
+    "@oxlint/binding-darwin-x64": "npm:1.93.0"
+    "@oxlint/binding-freebsd-x64": "npm:1.93.0"
+    "@oxlint/binding-linux-arm-gnueabihf": "npm:1.93.0"
+    "@oxlint/binding-linux-arm-musleabihf": "npm:1.93.0"
+    "@oxlint/binding-linux-arm64-gnu": "npm:1.93.0"
+    "@oxlint/binding-linux-arm64-musl": "npm:1.93.0"
+    "@oxlint/binding-linux-ppc64-gnu": "npm:1.93.0"
+    "@oxlint/binding-linux-riscv64-gnu": "npm:1.93.0"
+    "@oxlint/binding-linux-riscv64-musl": "npm:1.93.0"
+    "@oxlint/binding-linux-s390x-gnu": "npm:1.93.0"
+    "@oxlint/binding-linux-x64-gnu": "npm:1.93.0"
+    "@oxlint/binding-linux-x64-musl": "npm:1.93.0"
+    "@oxlint/binding-openharmony-arm64": "npm:1.93.0"
+    "@oxlint/binding-win32-arm64-msvc": "npm:1.93.0"
+    "@oxlint/binding-win32-ia32-msvc": "npm:1.93.0"
+    "@oxlint/binding-win32-x64-msvc": "npm:1.93.0"
   peerDependencies:
     oxlint-tsgolint: ">=7.0.2005"
     vite-plus: "*"
@@ -3753,7 +3764,7 @@ __metadata:
       optional: true
   bin:
     oxlint: bin/oxlint
-  checksum: 10/57343d3368118e66bf72cf58c01574151b380fae1829eb94595c79d11bb72395698aba253689df2f285c4785208be183db98caec71d13446daf43759f2f1a089
+  checksum: 10/1c44b8942bacf449e18f62752c17da213d0fc8be37f7df610b5f037699d95372fdfc1364d5ec8783b9938968763eb7c4c1ffd801c11790b7b4cd660082346b40
   languageName: node
   linkType: hard
 
@@ -4366,18 +4377,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.5.30":
-  version: 8.5.31
-  resolution: "postcss@npm:8.5.31"
-  dependencies:
-    nanoid: "npm:^3.3.20"
-    picocolors: "npm:^1.1.1"
-    source-map-js: "npm:^1.2.2"
-  checksum: 10/d2a3415681570c4687cbb34d7a9cdb570619da73b764229260f7c7337d2359cffa1045f4081a4599bd0b9320bd23b05f9915057f7b13ad9534b0121c2e9de564
-  languageName: node
-  linkType: hard
-
-"postcss@npm:^8.5.32":
+"postcss@npm:^8.5.10, postcss@npm:^8.5.32":
   version: 8.5.32
   resolution: "postcss@npm:8.5.32"
   dependencies:
@@ -4452,10 +4452,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"re2js@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "re2js@npm:2.9.1"
-  checksum: 10/52ddfc92187544bf4e13899cca4704d7ebdcdf803a66b45cba93df0d02bd50e109a87fa3deb6f1e7d8fb30a8ac8b665f647eed7e7d4cd40b434c66ffc7ffb5a1
+"re2js@npm:^2.10.0":
+  version: 2.10.0
+  resolution: "re2js@npm:2.10.0"
+  checksum: 10/effc46420e597c464a60e790b8907ab0da5879f0d367378adb26f7fe3340bd729c42b819c0ddac6db9f649b5a4553ead6e5500d2db3146adb11401225ba4d575
   languageName: node
   linkType: hard
 
@@ -4465,25 +4465,25 @@ __metadata:
   dependencies:
     "@picocss/pico": "npm:^2.1.1"
     "@sveltejs/adapter-static": "npm:^4.0.1"
-    "@sveltejs/kit": "npm:^3.1.1"
+    "@sveltejs/kit": "npm:^3.2.0"
     "@sveltejs/vite-plugin-svelte": "npm:^7.3.1"
     "@types/cookie": "npm:^1.0.0"
     "@yarnpkg/pnpify": "npm:^4.1.7"
     eslint: "npm:^10.14.0"
-    eslint-plugin-svelte: "npm:^3.23.1"
+    eslint-plugin-svelte: "npm:^3.24.1"
     globals: "npm:^17.14.0"
-    oxfmt: "npm:^0.75.0"
-    oxlint: "npm:^1.90.0"
+    oxfmt: "npm:^0.78.0"
+    oxlint: "npm:^1.93.0"
     postcss: "npm:^8.5.32"
     postcss-import: "npm:^17.0.1"
     postcss-load-config: "npm:^6.0.1"
     postcss-preset-env: "npm:^11.6.2"
-    re2js: "npm:^2.9.1"
+    re2js: "npm:^2.10.0"
     svelte: "npm:^5.57.3"
     svelte-check: "npm:^4.7.8"
     svelte-preprocess: "npm:^6.0.5"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.3.5"
+    vite: "npm:^8.3.7"
   languageName: unknown
   linkType: soft
 
@@ -4570,26 +4570,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rolldown@npm:~1.2.14":
-  version: 1.2.15
-  resolution: "rolldown@npm:1.2.15"
+"rolldown@npm:~1.2.18":
+  version: 1.2.18
+  resolution: "rolldown@npm:1.2.18"
   dependencies:
-    "@oxc-project/types": "npm:=0.155.0"
-    "@rolldown/binding-android-arm-eabi": "npm:1.2.15"
-    "@rolldown/binding-android-arm64": "npm:1.2.15"
-    "@rolldown/binding-darwin-arm64": "npm:1.2.15"
-    "@rolldown/binding-darwin-x64": "npm:1.2.15"
-    "@rolldown/binding-freebsd-x64": "npm:1.2.15"
-    "@rolldown/binding-linux-arm-gnueabihf": "npm:1.2.15"
-    "@rolldown/binding-linux-arm64-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-arm64-musl": "npm:1.2.15"
-    "@rolldown/binding-linux-ppc64-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-s390x-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-x64-gnu": "npm:1.2.15"
-    "@rolldown/binding-linux-x64-musl": "npm:1.2.15"
-    "@rolldown/binding-openharmony-arm64": "npm:1.2.15"
-    "@rolldown/binding-win32-arm64-msvc": "npm:1.2.15"
-    "@rolldown/binding-win32-x64-msvc": "npm:1.2.15"
+    "@oxc-project/types": "npm:=0.156.0"
+    "@rolldown/binding-android-arm-eabi": "npm:1.2.18"
+    "@rolldown/binding-android-arm64": "npm:1.2.18"
+    "@rolldown/binding-darwin-arm64": "npm:1.2.18"
+    "@rolldown/binding-darwin-x64": "npm:1.2.18"
+    "@rolldown/binding-freebsd-x64": "npm:1.2.18"
+    "@rolldown/binding-linux-arm-gnueabihf": "npm:1.2.18"
+    "@rolldown/binding-linux-arm64-gnu": "npm:1.2.18"
+    "@rolldown/binding-linux-arm64-musl": "npm:1.2.18"
+    "@rolldown/binding-linux-ppc64-gnu": "npm:1.2.18"
+    "@rolldown/binding-linux-s390x-gnu": "npm:1.2.18"
+    "@rolldown/binding-linux-x64-gnu": "npm:1.2.18"
+    "@rolldown/binding-linux-x64-musl": "npm:1.2.18"
+    "@rolldown/binding-openharmony-arm64": "npm:1.2.18"
+    "@rolldown/binding-win32-arm64-msvc": "npm:1.2.18"
+    "@rolldown/binding-win32-x64-msvc": "npm:1.2.18"
     "@rolldown/pluginutils": "npm:^1.0.0"
   dependenciesMeta:
     "@rolldown/binding-android-arm-eabi":
@@ -4624,7 +4624,7 @@ __metadata:
       optional: true
   bin:
     rolldown: ./bin/cli.mjs
-  checksum: 10/06e5ff665376c4318f441df2224a90b05af4ef3afb056b5b001c502eb54ab5b9673f916c3b7700e4285161a1d59c59b3b48150c2ea27afcc802b45cc63f8366e
+  checksum: 10/862e98a2632f25be7b7e56b673c5f31196e813bf9028f6454ae0532f2d84bf8ba2bf8c9cb95415d326bb06f18b1991827a34250fb3570df7c38dd234d19a2194
   languageName: node
   linkType: hard
 
@@ -4845,9 +4845,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"svelte-eslint-parser@npm:^1.7.0":
-  version: 1.8.0
-  resolution: "svelte-eslint-parser@npm:1.8.0"
+"svelte-eslint-parser@npm:^1.10.1":
+  version: 1.10.1
+  resolution: "svelte-eslint-parser@npm:1.10.1"
   dependencies:
     eslint-scope: "npm:^8.2.0"
     eslint-visitor-keys: "npm:^4.0.0"
@@ -4861,7 +4861,7 @@ __metadata:
   peerDependenciesMeta:
     svelte:
       optional: true
-  checksum: 10/8b4c58587fab2d35cf5ec5683ebcaee0fd7c10a324f9ecc3829bf226a2b48f89c34865ed86ca89362d5809486052ebeeec9b4bd8e313359bc01df9231bda9306
+  checksum: 10/c14cba581aa89c98bf83ac6bead2c2d325f7f4a28ccb203b1f86e086599abbb95fb6a43eb954b5bf20da60d4f495bc1f389b998b9f85f5dfe380c9f58082c6b2
   languageName: node
   linkType: hard
 
@@ -5121,15 +5121,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^8.3.5":
-  version: 8.3.5
-  resolution: "vite@npm:8.3.5"
+"vite@npm:^8.3.7":
+  version: 8.3.7
+  resolution: "vite@npm:8.3.7"
   dependencies:
     fsevents: "npm:~2.3.3"
     lightningcss: "npm:^1.33.0"
     picomatch: "npm:^4.0.7"
-    postcss: "npm:^8.5.30"
-    rolldown: "npm:~1.2.14"
+    postcss: "npm:^8.5.32"
+    rolldown: "npm:~1.2.18"
     tinyglobby: "npm:^0.2.17"
   peerDependencies:
     "@types/node": ^20.19.0 || >=22.12.0
@@ -5174,7 +5174,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10/4767200cd0ccaf7b98fe2a5837e005451a3213971577f82525dc74742b02f636916e4519acf12dede04bf1e04f954a7fc8e427762bd51e51700dcf328d3bc3e9
+  checksum: 10/18803d5c9977dd179a17cffef22bf5365f23f815f5bab78e461b3a7d9f213cbf2ccaa5995d4bc01d7bf408c48114e61932ddfd3fab539cbf47444817626b000e
   languageName: node
   linkType: hard
 
