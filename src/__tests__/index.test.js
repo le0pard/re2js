@@ -1,4 +1,5 @@
 import { expect, describe, it } from 'vitest'
+import vm from 'node:vm'
 import { RE2JS, re } from '../index.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { MatcherInput } from '../MatcherInput.js'
@@ -1507,5 +1508,74 @@ describe('equals', () => {
     expect(re.equals(RE2JS.compile('a*', RE2JS.CASE_INSENSITIVE))).toBe(false)
     expect(re.equals(null)).toBe(false)
     expect(re.equals('a+')).toBe(false)
+  })
+})
+
+// Values that JS would coerce silently used to be accepted: a RegExp or a number as the pattern
+// gave an empty program that matched everything, a string flag such as 'i' was ignored, and
+// other inputs failed deep inside the engines.
+describe('argument types', () => {
+  const NOT_PATTERNS = [/x/, vm.runInNewContext('/x/'), 123, null, undefined, {}]
+  const NOT_INPUTS = [123, null, undefined, {}, /a/, new Uint16Array([97])]
+
+  it.each(NOT_PATTERNS)('compile(%p) throws a TypeError', (pattern) => {
+    expect(() => RE2JS.compile(pattern)).toThrow(TypeError)
+    expect(() => RE2JS.compile(pattern)).toThrow(/pattern must be a string/)
+    expect(() => RE2JS.matches(pattern, 'x')).toThrow(TypeError)
+  })
+
+  // Kept out of the it.each table: test runners spread an array row into arguments
+  it('rejects an array as the pattern', () => {
+    expect(() => RE2JS.compile(['a'])).toThrow(/pattern must be a string, not Array/)
+  })
+
+  it('accepts String objects, from this realm or another, as patterns and inputs', () => {
+    expect(RE2JS.compile(new String('a+')).test('aa')).toBe(true)
+    expect(RE2JS.compile(vm.runInNewContext('new String("a+")')).test('aa')).toBe(true)
+    expect(RE2JS.compile('b').test(new String('abc'))).toBe(true)
+    expect(RE2JS.compile('b').test(vm.runInNewContext('new String("abc")'))).toBe(true)
+  })
+
+  it.each(['i', '1', 1.5, NaN, -1, 1 << 20, null])(
+    'compile("a", %p) throws a flags error',
+    (flags) => {
+      expect(() => RE2JS.compile('a', flags)).toThrow(RE2JSFlagsException)
+    }
+  )
+
+  it('accepts every combination of the public flags', () => {
+    const all =
+      RE2JS.MULTILINE |
+      RE2JS.DOTALL |
+      RE2JS.CASE_INSENSITIVE |
+      RE2JS.DISABLE_UNICODE_GROUPS |
+      RE2JS.LONGEST_MATCH |
+      RE2JS.LOOKBEHINDS
+    expect(RE2JS.compile('a', all).flags()).toBe(all)
+    expect(RE2JS.compile('a', undefined).flags()).toBe(0)
+  })
+
+  it.each(NOT_INPUTS)('input %p throws a TypeError in every matching method', (input) => {
+    const p = RE2JS.compile('a')
+    const calls = [
+      () => p.test(input),
+      () => p.testExact(input),
+      () => p.matches(input),
+      () => p.matcher(input),
+      () => p.exec(input),
+      () => [...p.matchAll(input)],
+      () => p.split(input),
+      () => RE2JS.matches('a', input)
+    ]
+    for (const call of calls) {
+      expect(call).toThrow(/input must be a string or a byte array/)
+    }
+  })
+
+  it('accepts byte arrays from this realm or another', () => {
+    const p = RE2JS.compile('a')
+    expect(p.test(new Uint8Array([120, 97]))).toBe(true)
+    expect(p.test([120, 97])).toBe(true)
+    expect(p.test(vm.runInNewContext('new Uint8Array([120, 97])'))).toBe(true)
   })
 })

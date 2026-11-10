@@ -114,6 +114,8 @@ class RE2JS {
    * @returns {RE2JS}
    */
   static compile(regex, flags = 0) {
+    Utils.checkPattern(regex)
+    Utils.checkFlags(flags)
     let fregex = regex
     if ((flags & RE2JS.CASE_INSENSITIVE) !== 0) {
       fregex = `(?i)${fregex}`
@@ -123,22 +125,6 @@ class RE2JS {
     }
     if ((flags & RE2JS.MULTILINE) !== 0) {
       fregex = `(?m)${fregex}`
-    }
-    if (
-      (flags &
-        ~(
-          RE2JS.MULTILINE |
-          RE2JS.DOTALL |
-          RE2JS.CASE_INSENSITIVE |
-          RE2JS.DISABLE_UNICODE_GROUPS |
-          RE2JS.LONGEST_MATCH |
-          RE2JS.LOOKBEHINDS
-        )) !==
-      0
-    ) {
-      throw new RE2JSFlagsException(
-        'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS'
-      )
     }
 
     let re2Flags = RE2Flags.PERL

@@ -319,8 +319,9 @@ class MachineInput {
     return new MachineUTF8Input(bytes, start, end)
   }
 
-  static fromUTF16(charSequence, start = 0, end = charSequence.length) {
-    return new MachineUTF16Input(charSequence, start, end)
+  static fromUTF16(charSequence, start = 0, end = void 0) {
+    Utils.checkInput(charSequence)
+    return new MachineUTF16Input(charSequence, start, end ?? charSequence.length)
   }
 }
 

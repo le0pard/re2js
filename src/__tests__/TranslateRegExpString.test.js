@@ -1,6 +1,7 @@
 import { expect, describe, it } from 'vitest'
 import { TranslateRegExpString } from '../TranslateRegExpString.js'
 import { RE2JS } from '../index.js'
+import vm from 'node:vm'
 
 describe('.translate', () => {
   it.each([
@@ -114,6 +115,16 @@ describe('.translate', () => {
     [/(?:)/, '(?:)']
   ])('#translate(%p) === %p', (input, expected) => {
     expect(TranslateRegExpString.translate(input)).toEqual(expected)
+  })
+})
+
+describe('RegExp from another realm', () => {
+  // An iframe or a vm context has its own RegExp constructor, so instanceof RegExp is false there
+  it('is translated with its flags', () => {
+    const regexp = vm.runInNewContext('/a(?<n>b)/ims')
+    expect(regexp instanceof RegExp).toBe(false)
+    expect(RE2JS.translateRegExp(regexp)).toBe('(?ims)a(?P<n>b)')
+    expect(RE2JS.compile(RE2JS.translateRegExp(regexp)).test('xAB')).toBe(true)
   })
 })
 

@@ -11,7 +11,8 @@ class TranslateRegExpString {
   static translate(data) {
     let prefixFlags = ''
 
-    if (data instanceof RegExp) {
+    // The tag check also recognizes a RegExp from another realm (an iframe, a vm context)
+    if (Object.prototype.toString.call(data) === '[object RegExp]') {
       if (data.ignoreCase) prefixFlags += 'i'
       if (data.multiline) prefixFlags += 'm'
       if (data.dotAll) prefixFlags += 's'

@@ -7,7 +7,7 @@ import { MachineInput } from './MachineInput.js'
 import { RE2Flags } from './RE2Flags.js'
 import { PublicFlags } from './PublicFlags.js'
 import { Utils } from './Utils.js'
-import { RE2JSCompileException } from './exceptions.js'
+import { RE2JSCompileException, RE2JSFlagsException } from './exceptions.js'
 
 class RE2Set {
   /** @type {number} */
@@ -24,6 +24,13 @@ class RE2Set {
    * @param {number} [maxMem=8388608] - The maximum memory in bytes to use for the DFA (default 8MB).
    */
   constructor(anchor = RE2Set.UNANCHORED, flags = 0, maxMem = 8388608) {
+    // An unknown anchor used to be accepted and searched as UNANCHORED
+    if (![RE2Set.UNANCHORED, RE2Set.ANCHOR_START, RE2Set.ANCHOR_BOTH].includes(anchor)) {
+      throw new RE2JSFlagsException(
+        'The anchor should be RE2Set.UNANCHORED, RE2Set.ANCHOR_START or RE2Set.ANCHOR_BOTH'
+      )
+    }
+    Utils.checkFlags(flags)
     this.anchor = anchor
     this.jsFlags = flags
     this.maxMem = maxMem
@@ -54,6 +61,7 @@ class RE2Set {
     if (this.prog) {
       throw new RE2JSCompileException('Cannot add patterns after compile')
     }
+    Utils.checkPattern(pattern)
 
     let fregex = pattern
     if ((this.jsFlags & PublicFlags.CASE_INSENSITIVE) !== 0) {

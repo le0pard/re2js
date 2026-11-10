@@ -3,6 +3,7 @@ import { Parser } from '../Parser.js'
 import { RE2JS, RE2Set } from '../index.js'
 import { Utils } from '../Utils.js'
 import { Inst } from '../Inst.js'
+import { RE2JSFlagsException } from '../exceptions.js'
 
 describe('RE2Set Multi-Pattern Matching', () => {
   it('matches multiple literal patterns simultaneously (Unanchored)', () => {
@@ -301,5 +302,26 @@ describe('RE2Set with lookbehinds in several patterns', () => {
     expect(set.prog.numLb).toBe(3)
     const numbers = set.prog.inst.filter((i) => i.op === Inst.LB_CHECK).map((i) => i.arg)
     expect(numbers.sort((a, b) => a - b)).toEqual([-3, -1, 2])
+  })
+})
+
+describe('RE2Set argument types', () => {
+  it.each(['i', 1.5, 1 << 20])('rejects flags %p', (flags) => {
+    expect(() => new RE2Set(RE2Set.UNANCHORED, flags)).toThrow(RE2JSFlagsException)
+  })
+
+  it.each(['start', 3, -1, null])('rejects anchor %p', (anchor) => {
+    expect(() => new RE2Set(anchor)).toThrow(/anchor should be/)
+  })
+
+  it.each([/x/, 123, null, undefined])('add(%p) throws a TypeError', (pattern) => {
+    expect(() => new RE2Set().add(pattern)).toThrow(TypeError)
+  })
+
+  it.each([123, null, {}])('match(%p) throws a TypeError', (input) => {
+    const set = new RE2Set()
+    set.add('a')
+    set.compile()
+    expect(() => set.match(input)).toThrow(TypeError)
   })
 })

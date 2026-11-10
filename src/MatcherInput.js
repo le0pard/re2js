@@ -120,6 +120,7 @@ class MatcherInput {
    * @returns {Utf16MatcherInput}
    */
   static utf16(charSequence) {
+    Utils.checkInput(charSequence)
     return new Utf16MatcherInput(charSequence)
   }
 

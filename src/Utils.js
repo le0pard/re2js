@@ -1,5 +1,7 @@
 import { Codepoint } from './Codepoint.js'
 import { Unicode } from './Unicode.js'
+import { PublicFlags } from './PublicFlags.js'
+import { RE2JSFlagsException } from './exceptions.js'
 /**
  * Size of the precomputed single-byte lookup table.
  * Covers standard ASCII and Latin-1 characters for fast-path execution.
@@ -42,6 +44,55 @@ class Utils {
 
   static emptyInts() {
     return []
+  }
+
+  // Whether |value| is a string: a primitive, or a String object (from any realm)
+  static isString(value) {
+    return typeof value === 'string' || Object.prototype.toString.call(value) === '[object String]'
+  }
+
+  // A short description of |value| for error messages: "number", "null", "RegExp", ...
+  static typeName(value) {
+    if (value === null || (typeof value !== 'object' && typeof value !== 'function')) {
+      return value === null ? 'null' : typeof value
+    }
+    return Object.prototype.toString.call(value).slice(8, -1)
+  }
+
+  // Throws unless |pattern| is a string. Anything else (a RegExp object, a number) used to be
+  // read as an empty pattern, which matches every input.
+  static checkPattern(pattern) {
+    if (!Utils.isString(pattern)) {
+      throw new TypeError(
+        `The pattern must be a string, not ${Utils.typeName(pattern)} (RE2JS.translateRegExp() converts a RegExp)`
+      )
+    }
+  }
+
+  // Throws unless |input| is text to match: a string, or UTF-8 bytes (see isByteArray)
+  static checkInput(input) {
+    if (!Utils.isString(input) && !Utils.isByteArray(input)) {
+      throw new TypeError(
+        `The input must be a string or a byte array (Uint8Array or number[]), not ${Utils.typeName(input)}`
+      )
+    }
+  }
+
+  // Throws unless |flags| is a combination of the public flags. A string such as 'i' used to be
+  // accepted and ignored, as a bitwise operation turns it into 0.
+  static checkFlags(flags) {
+    const known =
+      PublicFlags.MULTILINE |
+      PublicFlags.DOTALL |
+      PublicFlags.CASE_INSENSITIVE |
+      PublicFlags.DISABLE_UNICODE_GROUPS |
+      PublicFlags.LONGEST_MATCH |
+      PublicFlags.LOOKBEHINDS
+    if (!Number.isInteger(flags) || (flags & ~known) !== 0) {
+      throw new RE2JSFlagsException(
+        'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS, LONGEST_MATCH, LOOKBEHINDS'
+      )
+    }
   }
 
   static isByteArray(input) {
