@@ -1,6 +1,7 @@
 import { expect, describe, it, afterEach } from 'vitest'
 import { Utils } from '../Utils.js'
 import { Codepoint } from '../Codepoint.js'
+import { evalInOtherRealm, hasOtherRealm } from '../__utils__/realm.js'
 
 describe('Utils', () => {
   describe('.escapeRune', () => {
@@ -231,18 +232,18 @@ describe('Utils', () => {
 })
 
 describe('.isByteArray', () => {
-  it('accepts arrays, Uint8Arrays, Buffers and Uint8Arrays from another realm', async () => {
+  it('accepts arrays, Uint8Arrays and Buffers', () => {
     expect(Utils.isByteArray([1, 2])).toBe(true)
     expect(Utils.isByteArray(new Uint8Array(2))).toBe(true)
     if (typeof Buffer !== 'undefined') {
       expect(Utils.isByteArray(Buffer.from('ab'))).toBe(true)
     }
-    if (typeof process !== 'undefined' && process.versions?.node) {
-      const vm = await import('node:vm')
-      const foreign = vm.runInNewContext('new Uint8Array([97, 98])')
-      expect(foreign instanceof Uint8Array).toBe(false)
-      expect(Utils.isByteArray(foreign)).toBe(true)
-    }
+  })
+
+  it.skipIf(!hasOtherRealm)('accepts Uint8Arrays from another realm', () => {
+    const foreign = evalInOtherRealm('new Uint8Array([97, 98])')
+    expect(foreign instanceof Uint8Array).toBe(false)
+    expect(Utils.isByteArray(foreign)).toBe(true)
   })
 
   it('rejects strings and other typed arrays', () => {

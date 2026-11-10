@@ -1,10 +1,10 @@
 import { expect, describe, it } from 'vitest'
-import vm from 'node:vm'
 import { RE2JS, re } from '../index.js'
 import { RE2Flags } from '../RE2Flags.js'
 import { MatcherInput } from '../MatcherInput.js'
 import { Utils } from '../Utils.js'
 import { RE2JSGroupException, RE2JSFlagsException } from '../exceptions.js'
+import { evalInOtherRealm, hasOtherRealm } from '../__utils__/realm.js'
 
 it('compile', () => {
   const p = RE2JS.compile('abc')
@@ -1515,7 +1515,7 @@ describe('equals', () => {
 // gave an empty program that matched everything, a string flag such as 'i' was ignored, and
 // other inputs failed deep inside the engines.
 describe('argument types', () => {
-  const NOT_PATTERNS = [/x/, vm.runInNewContext('/x/'), 123, null, undefined, {}]
+  const NOT_PATTERNS = [/x/, 123, null, undefined, {}]
   const NOT_INPUTS = [123, null, undefined, {}, /a/, new Uint16Array([97])]
 
   it.each(NOT_PATTERNS)('compile(%p) throws a TypeError', (pattern) => {
@@ -1529,11 +1529,19 @@ describe('argument types', () => {
     expect(() => RE2JS.compile(['a'])).toThrow(/pattern must be a string, not Array/)
   })
 
-  it('accepts String objects, from this realm or another, as patterns and inputs', () => {
+  it.skipIf(!hasOtherRealm)('rejects a RegExp from another realm as the pattern', () => {
+    const regexp = evalInOtherRealm('/x/')
+    expect(() => RE2JS.compile(regexp)).toThrow(/pattern must be a string, not RegExp/)
+  })
+
+  it('accepts String objects as patterns and inputs', () => {
     expect(RE2JS.compile(new String('a+')).test('aa')).toBe(true)
-    expect(RE2JS.compile(vm.runInNewContext('new String("a+")')).test('aa')).toBe(true)
     expect(RE2JS.compile('b').test(new String('abc'))).toBe(true)
-    expect(RE2JS.compile('b').test(vm.runInNewContext('new String("abc")'))).toBe(true)
+  })
+
+  it.skipIf(!hasOtherRealm)('accepts String objects from another realm', () => {
+    expect(RE2JS.compile(evalInOtherRealm('new String("a+")')).test('aa')).toBe(true)
+    expect(RE2JS.compile('b').test(evalInOtherRealm('new String("abc")'))).toBe(true)
   })
 
   it.each(['i', '1', 1.5, NaN, -1, 1 << 20, null])(
@@ -1572,10 +1580,13 @@ describe('argument types', () => {
     }
   })
 
-  it('accepts byte arrays from this realm or another', () => {
+  it('accepts byte arrays', () => {
     const p = RE2JS.compile('a')
     expect(p.test(new Uint8Array([120, 97]))).toBe(true)
     expect(p.test([120, 97])).toBe(true)
-    expect(p.test(vm.runInNewContext('new Uint8Array([120, 97])'))).toBe(true)
+  })
+
+  it.skipIf(!hasOtherRealm)('accepts byte arrays from another realm', () => {
+    expect(RE2JS.compile('a').test(evalInOtherRealm('new Uint8Array([120, 97])'))).toBe(true)
   })
 })
