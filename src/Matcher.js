@@ -615,7 +615,7 @@ class Matcher {
           i += 2
         } else {
           const name = replacement.substring(i + 2, gt)
-          if (Object.prototype.hasOwnProperty.call(this.namedGroups, name)) {
+          if (Object.hasOwn(this.namedGroups, name)) {
             const group = this.group(name)
             if (group !== null) {
               res += group

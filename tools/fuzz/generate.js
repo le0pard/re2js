@@ -34,7 +34,7 @@ LOOKBEHINDS.push('(?<=^a*)', '(?<=😀)', '(?<=\\b)', '(?<!(?:a|b)x)')
 // Fragments that are often invalid, to compare which patterns are rejected
 const JUNK = ['(', ')', '[', '{', '}', '{2}', '*', '\\', '\\8', '\\Z', '\\C', '(?P<n>', '(?<n']
 JUNK.push('[z-a]', '\\p{Bogus}', '(?x)', 'x{2,1}', 'x{1001}', '(?i', '(?P=n)', '[[:foo:]]', '\\Q')
-JUNK.push('{,2}', '**')
+JUNK.push('{,2}', '**', '\\p{constructor}', '\\P{toString}') // names inherited by JS objects
 
 const REPEATS = ['*', '+', '?', '{2}', '{1,3}', '{0,2}', '{2,}', '{0}']
 const PATTERN_FLAGS = ['', '', '', '(?i)', '(?s)', '(?m)', '(?U)', '(?ims)']

@@ -2,6 +2,8 @@ import { expect, describe, it, vi } from 'vitest'
 import { Unicode } from '../Unicode.js'
 import { UnicodeTables } from '../UnicodeTables.js'
 import { codePoint } from '../__utils__/chars.js'
+import { RE2JS, RE2Set } from '../index.js'
+import { RE2JSSyntaxException } from '../exceptions.js'
 
 describe('#isPrint', () => {
   it.each([
@@ -192,5 +194,42 @@ describe('UnicodeTables VLQ Decompression', () => {
     }
 
     expect(foundAsciiDigits).toBe(true)
+  })
+})
+
+describe('Unicode class names', () => {
+  // github.com/le0pard/re2js/issues/71: names inherited from Object.prototype were taken for
+  // tables, so \p{constructor} compiled (matching nothing) and \p{toString} threw a TypeError
+  const INHERITED = ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty']
+  INHERITED.push('isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString')
+
+  it.each(INHERITED)('%s is not a table', (name) => {
+    for (const map of [UnicodeTables.CATEGORIES, UnicodeTables.SCRIPTS]) {
+      expect(map.has(name)).toBe(false)
+      expect(map.get(name)).toBeNull()
+    }
+    for (const map of [UnicodeTables.FOLD_CATEGORIES, UnicodeTables.FOLD_SCRIPT]) {
+      expect(map.get(name)).toBeNull()
+    }
+  })
+
+  it.each(INHERITED)('\\p{%s} is a syntax error, as an unknown name is', (name) => {
+    for (const pattern of [`\\p{${name}}`, `\\P{${name}}`, `\\p{^${name}}`, `[\\p{${name}}]`]) {
+      for (const flags of [0, RE2JS.CASE_INSENSITIVE]) {
+        expect(() => RE2JS.compile(pattern, flags), pattern).toThrow(RE2JSSyntaxException)
+        expect(() => RE2JS.compile(pattern, flags), pattern).toThrow(
+          'invalid character class range'
+        )
+      }
+    }
+    expect(() => new RE2Set().add(`\\p{${name}}`)).toThrow(RE2JSSyntaxException)
+  })
+
+  it('still knows the real names', () => {
+    expect(RE2JS.compile('\\p{Greek}').test('β')).toBe(true)
+    expect(RE2JS.compile('\\p{Lu}').test('A')).toBe(true)
+    expect(RE2JS.compile('\\P{L}').test('1')).toBe(true)
+    expect(RE2JS.compile('(?i)\\p{Lu}').test('a')).toBe(true)
+    expect(RE2JS.compile('[\\p{Greek}]').test('β')).toBe(true)
   })
 })

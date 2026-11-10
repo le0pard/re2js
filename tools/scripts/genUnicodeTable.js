@@ -197,19 +197,20 @@ const decodeOrbit = (str) => {
   return map
 }
 
-// A map whose values are built on first use
+// A map whose values are built on first use. Keys come from patterns (\p{name}), so only the
+// initializer's own properties count: names such as "constructor" or "__proto__", inherited
+// from Object.prototype, are not tables.
 class LazyMap {
   constructor(initializer) {
     this.initializer = initializer
     this.cache = new Map()
   }
   has(key) {
-    return key in this.initializer
+    return Object.hasOwn(this.initializer, key)
   }
   get(key) {
     if (this.cache.has(key)) return this.cache.get(key)
-    const fn = this.initializer[key]
-    const val = fn ? fn() : null
+    const val = this.has(key) ? this.initializer[key]() : null
     this.cache.set(key, val)
     return val
   }

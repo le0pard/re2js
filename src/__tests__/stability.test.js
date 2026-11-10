@@ -169,7 +169,10 @@ describe('RE2JS Stability and Anti-ReDoS Guarantees', () => {
         const [tLarge, rLarge] = testTime(pattern, large)
         expect([rSmall, rLarge]).toEqual([false, false])
         expect(tLarge).toBeLessThan(8 * tSmall + 100)
-      }
+      },
+      // Seven timed searches over up to 200,000 characters, each filling the DFA cache before
+      // the NFA takes over: well past the default timeout under coverage instrumentation
+      60000
     )
   })
 

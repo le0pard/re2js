@@ -62,12 +62,11 @@ class LazyMap {
     this.cache = new Map()
   }
   has(key) {
-    return key in this.initializer
+    return Object.hasOwn(this.initializer, key)
   }
   get(key) {
     if (this.cache.has(key)) return this.cache.get(key)
-    const fn = this.initializer[key]
-    const val = fn ? fn() : null
+    const val = this.has(key) ? this.initializer[key]() : null
     this.cache.set(key, val)
     return val
   }
