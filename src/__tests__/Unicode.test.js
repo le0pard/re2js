@@ -200,8 +200,16 @@ describe('UnicodeTables VLQ Decompression', () => {
 describe('Unicode class names', () => {
   // github.com/le0pard/re2js/issues/71: names inherited from Object.prototype were taken for
   // tables, so \p{constructor} compiled (matching nothing) and \p{toString} threw a TypeError
-  const INHERITED = ['constructor', '__proto__', 'toString', 'valueOf', 'hasOwnProperty']
-  INHERITED.push('isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString')
+  const INHERITED = [
+    'constructor',
+    '__proto__',
+    'toString',
+    'valueOf',
+    'hasOwnProperty',
+    'isPrototypeOf',
+    'propertyIsEnumerable',
+    'toLocaleString'
+  ]
 
   it.each(INHERITED)('%s is not a table', (name) => {
     for (const map of [UnicodeTables.CATEGORIES, UnicodeTables.SCRIPTS]) {
