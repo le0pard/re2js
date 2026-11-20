@@ -1367,7 +1367,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^17.13.0":
+"globals@npm:^17.14.0":
   version: 17.14.0
   resolution: "globals@npm:17.14.0"
   checksum: 10/3d889e226ee8f4401abc568cd853d017b6407b24744c28b3d8260c65200174082bb77eeefecf4d2b40ab48e9484a2b163b1372c8addf782f49ecd546faf27ceb
@@ -1919,7 +1919,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright@npm:^1.64.1":
+"playwright@npm:^1.65.1":
   version: 1.65.1
   resolution: "playwright@npm:1.65.1"
   dependencies:
@@ -1979,15 +1979,15 @@ __metadata:
     "@vitest/browser-playwright": "npm:5.1.0"
     "@vitest/coverage-v8": "npm:5.1.0"
     dts-bundle-generator: "npm:^10.0.0"
-    globals: "npm:^17.13.0"
+    globals: "npm:^17.14.0"
     oxfmt: "npm:0.79.0"
     oxlint: "npm:1.94.0"
-    playwright: "npm:^1.64.1"
+    playwright: "npm:^1.65.1"
     publint: "npm:^0.3.25"
     rolldown: "npm:1.3.2"
     typescript: "npm:^7.0.2"
     unicode-property-value-aliases: "npm:^4.0.0"
-    vite: "npm:^8.3.5"
+    vite: "npm:^8.3.8"
     vitest: "npm:5.1.0"
   languageName: unknown
   linkType: soft
@@ -2521,7 +2521,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^8.3.5":
+"vite@npm:^8.3.8":
   version: 8.3.8
   resolution: "vite@npm:8.3.8"
   dependencies:
