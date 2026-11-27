@@ -3,8 +3,10 @@ import { defineConfig } from 'vite'
 import adapter from '@sveltejs/adapter-static'
 
 export default defineConfig({
-  css: {
-    devSourcemap: true
+  dev: {
+    sourcemap: {
+      css: true
+    }
   },
   server: {
     fs: {
